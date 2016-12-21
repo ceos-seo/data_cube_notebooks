@@ -1,0 +1,144 @@
+table {
+    background: #FFFFFF;
+    border-collapse: collapse;
+    overflow: auto;
+    /*font-size: 0.75vw;*/
+}
+
+#main-content {
+    padding: 1vmin;
+}
+
+.table-wrapper {
+    border: 2px solid coral;
+    padding: 1vmin;
+    height: 100%;
+    width: 100%;
+    border-radius: 5px;
+}
+
+.query-table {
+    height: 100%;
+}
+
+.odd {
+    padding-top: 1vmin;
+    padding-bottom: 1vmin;
+    text-align: center;
+    border-bottom: 3px solid white;
+    background: #FFFFFF;
+    width: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.even {
+    padding-top: 1vmin;
+    padding-bottom: 1vmin;
+    text-align: center;
+    border-bottom: 3px solid white;
+    background: #E6E6E6;
+    width: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.details-column-even {
+    padding-top: 1vh;
+    padding-bottom: 1vh;
+    text-align: center;
+    border-bottom: 3px solid white;
+    background: #E6E6E6;
+    width: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.details-column-odd {
+    padding-top: 1vh;
+    padding-bottom: 1vh;
+    text-align: center;
+    border-bottom: 3px solid white;
+    background: #FFFFFF;
+    width: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+table, tr {
+    width: 100% !important;
+}
+
+table, tr, th {
+    padding: 1vh;
+    text-align: center;
+    background: #C8C8C8;
+}
+
+.btn {
+    display: block;
+    width: 5vw;
+    height: 3vh;
+    background: rgb(200,200,200);
+    padding: 0.5vmin;
+    text-align: center;
+    border-radius: 5px;
+    color: black;
+    font-weight: bold;
+}
+
+.btn:hover {
+    background: rgb(180,180,180);
+}
+
+.dataTables_length {
+    display: inline-block;
+    float: left;
+    width: 50%;
+    padding-bottom: 5px;
+}
+
+.dataTables_filter {
+    display: inline-block;
+    float: right;
+    width: 50%;
+}
+
+.dataTables_filter label {
+    float: right;
+    padding-bottom: 0.25vh;
+}
+
+.dataTables_info{
+    display: inline-block;
+    float: left;
+    width: 50%;
+}
+
+.dataTables_paginate {
+    display: inline-block;
+    float: right;
+    width: 50%;
+    text-align: right;
+}
+
+
+.paginate_button {
+    padding-right: 10px;
+}
+
+.paginate_button:hover {
+    cursor: pointer;
+}
+
+.sorting:hover {
+    cursor: pointer
+}
+
+.sorting_asc:hover {
+    cursor: pointer
+}
+
+.sorting_desc:hover {
+    cursor: pointer
+}

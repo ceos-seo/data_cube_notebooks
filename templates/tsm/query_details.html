@@ -1,0 +1,76 @@
+{% extends "query_details_template.html" %}
+<!--
+Copyright 2016 United States Government as represented by the Administrator
+of the National Aeronautics and Space Administration. All Rights Reserved.
+
+Portion of this code is Copyright Geoscience Australia, Licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License
+at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+-->
+{% block query_details %}
+<dl>
+  <dt>
+    Query(Task) Metadata:
+  </dt>
+  <dd><b>User ID:</b> {{query.user_id}}</dd>
+  <dd><b>Query ID:</b> {{query.query_id}}</dd>
+  <dd><b>Status:</b> {% if query.complete %} Complete {% else %} Running... {% endif %}</dd>
+  <dd><b>Start Time:</b> {{query.query_start}}</dd>
+  <dd><b>End Time:</b> {{query.query_end}}</dd>
+  <dt>
+    Data Metadata:
+  </dt>
+  <dd><b>Platform:</b> {{query.platform}}</dd>
+  <dd><b>Product Type:</b> {{query.product}}</dd>
+  <dd><b>Scene Count:</b> {{metadata.scene_count}}</dd>
+  <dd><b>Pixel Count:</b> {{metadata.pixel_count}}</dd>
+  <dt>
+    Query Parameters:
+  </dt>
+  <dd><b>(Lat, Lon) Min:</b> ({{query.latitude_min}} , {{query.longitude_min}})</dd>
+  <dd><b>(Lat, Lon) Max:</b> ({{query.latitude_max}} , {{query.longitude_max}})</dd>
+  <dd><b>Query Type:</b> {{query.query_type}}</dd>
+  <dd><b>Animation Type:</b> {{query.animated_product}}</dd>
+  <dt>
+    Results:
+  </dt>
+  <dd><b>Average TSM Image Path:</b> <a href={{result.average_tsm_path}} target="_blank">View image</a></dd>
+  <dd><b>Clear Observations Image Path:</b> <a href={{result.clear_observations_path}}>View image</a></dd>
+  {% if result.tsm_animation_path != "None" %}
+  <dd><b>TSM Animation GIF Path:</b> <a href={{result.tsm_animation_path}}>Download gif</a></dd>
+  {% endif %}
+  <dd><b>Data GeoTiff Path:</b> <a href={{result.data_path}}>Download tif</a></dd>
+  <dd><b>Data NetCDF Path:</b> <a href={{result.data_netcdf_path}}>Download nc</a></dd>
+</dl>
+{% endblock %}
+{% block image_display %}
+<img src={{result.average_tsm_path}} class="image-display" />
+<span class="image-description">{{result.average_tsm_path}}</span>
+{% endblock %}
+{% block scenes_block %}
+<b>Scene List: </b>
+<ul class="scenes_list alternating">
+  {% for acquisition, pixels, pixel_percentage in metadata.acquisitions_dates_with_pixels_percentages %}
+  <dl class="scenes_list" id="scenes_{{ metadata.query_id }}">
+    <dt>{{ acquisition }}:</dt>
+    <dd>Clean pixels: <span>{{ pixels }}</span></dd>
+    <dd>Total Pixels: <span>{{ metadata.pixel_count }}</span></dd>
+    <dd>Clean Pixel Percentage: <span>{{ pixel_percentage|floatformat:2 }}%</span></dd>
+  </dl>
+  {% endfor %}
+</ul>
+{% endblock %}

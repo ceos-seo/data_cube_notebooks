@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Canvas ImageData Zoom w/ Marginals</title>
+<style>
+body {
+  position: relative;
+}
+
+svg,
+canvas {
+    position: absolute;
+}
+
+.axis text {
+    font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.axis.grid {
+    fill: none;
+    stroke: #000;
+    stroke-opacity: .1;
+}
+
+.axis.grid text {
+    display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+/*
+img {
+   image-rendering: -moz-crisp-edges;         /* Firefox */
+   image-rendering:   -o-crisp-edges;         /* Opera */
+   image-rendering: -webkit-optimize-contrast;/* Webkit (non-standard naming) */
+   image-rendering: crisp-edges;
+   -ms-interpolation-mode: nearest-neighbor;  /* IE (non-standard property) */
+}
+ */
+
+</style>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<body>
+<script>
+
+var total_width = 846,
+    total_height = 941,
+    margin = {top: 40, left: 40, bottom: total_height*.8, right: total_width *.8},
+    bottompanel_margin = {top: margin.bottom, bottom: total_height-30, left: margin.left, right: margin.right},
+    rightpanel_margin = {top: margin.top, left: margin.right, bottom: margin.bottom, right: total_width-30},
+    width = margin.right-margin.left,//total_width - margin.left - margin.right,
+    height = margin.bottom - margin.top,//total_height - margin.top - margin.bottom,
+    bottompanel_height = bottompanel_margin.bottom - bottompanel_margin.top,
+    rightpanel_width = rightpanel_margin.right - rightpanel_margin.left;
+
+var xmin = 0;
+var xmax = width;
+var ymin = 0;
+var ymax = height;
+
+var ctx;
+var imageObj = new Image();
+
+// The 0.5 offset makes the scale ones-based, making it so that tick marks
+// are centered in the pixel.
+var x = d3.scale.linear()
+        .domain([xmin, xmax])
+        .range([0, width]);
+
+var y = d3.scale.linear()
+        .domain([ymin, ymax])
+        .range([0, height]);
+
+var bottompanel_y = d3.scale.linear()
+        .domain([ymin, ymax])
+        .range([bottompanel_height, 0]);
+
+var rightpanel_x = d3.scale.linear()
+        .domain([xmin, xmax])
+        .range([0, rightpanel_width]);
+
+var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        .tickSize(-height-bottompanel_height); // tickLine == gridline
+
+var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickSize(-width-rightpanel_width); // tickLine == gridline
+
+var bottompanel_xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+var bottompanel_yAxis = d3.svg.axis()
+        .scale(bottompanel_y)
+        .ticks(3)
+        .orient("left");
+
+var rightpanel_xAxis = d3.svg.axis()
+        .scale(rightpanel_x)
+        .ticks(3)
+        .orient("bottom");
+
+var rightpanel_yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("right");
+
+var zoom = d3.behavior.zoom()
+        .x(x)
+        .y(y)
+        .scaleExtent([1, 100])
+        .on("zoom", refresh);
+
+var color = d3.scale.linear()
+    .domain([0, .5, 1])
+    .range(["#eff3ff", "#6baed6", "#08519c"]);
+
+var canvas = d3.select("body").append("canvas")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .style("left", margin.left + "px")
+        .style("top", margin.top + "px")
+        .style("width", width + "px")
+        .style("height", height + "px")
+        .style("position", "absolute");
+
+var svg = d3.select("body").append("svg")
+    .attr("width", total_width)
+    .attr("height", total_height)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// We make an invisible rectangle to intercept mouse events for zooming.
+svg.append("rect")
+    .attr("width", width)
+    .attr("height", height)
+    .style("fill", "000")
+    .style("opacity", 1e-6)
+    .call(zoom);
+
+svg.append("g")
+        .attr("class", "y axis grid")
+        .call(yAxis)
+        .call(removeZero);
+
+var bottompanel_context = svg.append("g")
+        .attr("transform", "translate(0," + (bottompanel_margin.top - margin.top) + ")");
+
+svg.append("defs").append("clipPath")
+    .attr("id", "bottomclip")
+  .append("rect")
+    .attr("width", width)
+    .attr("height", bottompanel_height);
+
+bottompanel_context.append("path")
+        .attr("clip-path", "url(#bottomclip)");
+
+bottompanel_context.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + bottompanel_height + ")")
+        .call(bottompanel_xAxis)
+        .call(removeZero);
+bottompanel_context.append("g")
+        .attr("class", "x axis grid")
+        .attr("transform", "translate(0," + bottompanel_height + ")")
+        .call(zoom)
+        .call(xAxis)
+        .call(removeZero);
+
+bottompanel_context.append("g")
+        .attr("class", "y axis")
+        .call(bottompanel_yAxis)
+        .call(removeZero);
+
+var rightpanel_context = svg.append("g")
+        .attr("transform", "translate(" + (rightpanel_margin.left-margin.left) + ",0)");
+
+svg.append("defs").append("clipPath")
+    .attr("id", "rightclip")
+  .append("rect")
+    .attr("width", rightpanel_width)
+    .attr("height", height);
+
+rightpanel_context.append("path")
+        .attr("clip-path", "url(#rightclip)");
+
+rightpanel_context.append("g")
+        .attr("class", "y axis")
+        .attr("transform", "translate(" + rightpanel_width + ",0)")
+        .call(rightpanel_yAxis)
+        .call(removeZero);
+
+rightpanel_context.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + (rightpanel_margin.bottom-margin.top) + ")")
+        .call(rightpanel_xAxis)
+        .call(removeZero);
+
+var columnsum_line = d3.svg.line()
+        .x(function(d) { return x(d[0]); })
+        .y(function(d) { return bottompanel_y(d[1]); });
+
+var rowsum_line = d3.svg.line()
+        .y(function(d) { return y(d[0]); })
+        .x(function(d) { return rightpanel_x(d[1]); });
+
+var heatmap;
+
+// Keep an eye out for "translateExtent" or "xExtent" methods that may be
+// added at some point to bound the limits of zooming and panning. Until then,
+// this works.
+function refresh() {
+    var t = zoom.translate();
+    var s = zoom.scale();
+    var tx = t[0],
+        ty = t[1];
+    var xdom = x.domain();
+    var reset_s = 0;
+    if ((xdom[1] - xdom[0]) >= (xmax - xmin)) {
+        zoom.x(x.domain([xmin, xmax]));
+        xdom = x.domain();
+        reset_s = 1;
+    }
+    var ydom = y.domain();
+    if ((ydom[1] - ydom[0]) >= (ymax - ymin)) {
+        zoom.y(y.domain([ymin, ymax]));
+        ydom = y.domain();
+        reset_s += 1;
+    }
+    if (reset_s == 2) { // Both axes are full resolution. Reset.
+        zoom.scale(1);
+        tx = 0;
+        ty = 0;
+    }
+    else {
+        if (xdom[0] < xmin ) {
+            tx = 0;
+            x.domain([xmin, xdom[1] - xdom[0] + xmin]);
+            xdom = x.domain();
+        }
+        if (xdom[1] > xmax ) {
+            xdom[0] -= xdom[1] - xmax;
+            tx = -xdom[0]*width/(xmax-xmin)*s;
+            x.domain([xdom[0], xmax]);
+        }
+        if (ydom[0] < ymin ) {
+            y.domain([ymin, ydom[1] - ydom[0] + ymin]);
+            ydom = y.domain();
+            // Image origin = (top,left)
+            ty = 0;
+            // If image origin = (bottom,left), uncomment next line.
+            // ty = -(ymax-ydom[1])*height/(ymax-ymin)*s;
+        }
+        if (ydom[1] > ymax ) {
+            ydom[0] -= ydom[1] - ymax;
+            ty = -ydom[0]*height/(ymax-ymin)*s;
+            // If image origin = (bottom, left), uncomment next line.
+            // ty = 0;
+            y.domain([ydom[0], ymax]);
+        }
+    }
+    // Reset (possibly) if hit an edge so that next focus event starts correctly.
+    zoom.translate([tx, ty]);
+
+    ctx.drawImage(imageObj,
+        tx*imageObj.width/width, ty*imageObj.height/height,
+        imageObj.width*s, imageObj.height*s);
+    draw_column_sum();
+    draw_row_sum();
+    bottompanel_context.selectAll(".x.axis").call(bottompanel_xAxis).call(removeZero);
+    bottompanel_context.selectAll(".y.axis").call(bottompanel_yAxis).call(removeZero);
+    rightpanel_context.selectAll(".x.axis").call(rightpanel_xAxis).call(removeZero);
+    rightpanel_context.selectAll(".y.axis").call(rightpanel_yAxis).call(removeZero);
+    svg.selectAll(".x.axis.grid").call(xAxis).call(removeZero);
+    svg.selectAll(".y.axis.grid").call(yAxis).call(removeZero);
+}
+
+function removeZero(axis) {
+    axis.selectAll("g").filter(function(d) { return !d; }).remove();
+}
+
+var sum = function(arr) {
+    return arr.reduce(function(a, b){ return a + b; }, 0);
+};
+
+d3.json("heatmap.json", function(error, json) {
+    heatmap = json;
+    xmax = heatmap[0].length,
+    ymax = heatmap.length;
+    x.domain([0, xmax]);
+    y.domain([0, ymax]);
+    d3.select("canvas")
+        .attr("width", xmax)
+        .attr("height", ymax)
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .call(drawImage);
+
+  // Compute the pixel colors; scaled by CSS.
+    function drawImage(canvas) {
+        ctx = canvas.node().getContext("2d");
+        var img = ctx.createImageData(xmax, ymax);
+        for (var y = 0, p = -1; y < ymax; ++y) {
+            for (var x = 0; x < xmax; ++x) {
+                img.data[++p] = heatmap[y][x][0];
+                img.data[++p] = heatmap[y][x][1];
+                img.data[++p] = heatmap[y][x][2];
+                img.data[++p] = 255;
+            }
+        }
+        // Keeping pixels as nearest neighbor (as anti-aliased as we can get
+        // without doing more programming) allows us to see how the marginals
+        // line up when zooming in a lot.
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+        ctx.imageSmoothingEnabled = false;
+        ctx.putImageData(img, 0, 0);
+        imageObj.src = canvas.node().toDataURL();
+    }
+    draw_column_sum();
+    draw_row_sum();
+    refresh();
+});
+
+var draw_column_sum = function () {
+    console.log("Col sum");
+    var cropped = heatmap.slice(Math.floor(y.domain()[0]), Math.ceil(y.domain()[1]));
+    cropped = d3.transpose(cropped);
+    cropped = cropped.slice(Math.floor(x.domain()[0]), Math.ceil(x.domain()[1]));
+    var column_sum = cropped.map(sum);
+
+    bottompanel_y.domain([d3.min(column_sum)*.95, d3.max(column_sum)*1.05]);
+    bottompanel_context.select("path")
+        .datum(d3.zip(d3.range(
+                Math.floor(x.domain()[0])+1, Math.floor(x.domain()[0])+column_sum.length+10),
+                column_sum))
+        .attr("class", "line")
+        .attr("d", columnsum_line);
+
+}
+
+var draw_row_sum = function () {
+    var cropped = heatmap.slice(Math.floor(y.domain()[0]), Math.ceil(y.domain()[1]));
+    cropped = d3.transpose(cropped);
+    cropped = cropped.slice(Math.floor(x.domain()[0]), Math.ceil(x.domain()[1]));
+    var row_sum = d3.transpose(cropped).map(sum);
+
+    rightpanel_x.domain([d3.min(row_sum)*.95, d3.max(row_sum)*1.05]);
+    rightpanel_context.select("path")
+        .datum(d3.zip(d3.range(
+                Math.floor(y.domain()[0])+1, Math.floor(y.domain()[0])+row_sum.length+10),
+                row_sum))
+        .attr("class", "line")
+        .attr("d", rowsum_line);
+
+}
+
+</script>

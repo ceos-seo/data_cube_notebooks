@@ -1,0 +1,83 @@
+<!--
+Copyright 2016 United States Government as represented by the Administrator
+of the National Aeronautics and Space Administration. All Rights Reserved.
+
+Portion of this code is Copyright Geoscience Australia, Licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License
+at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+-->
+<!-- Author: AHDS
+     Creation date: 2016-09/08
+     Modified by:
+     Last modified date: -->
+{% extends "output_list_template.html" %}
+{% block table_rows %}
+        <tr>
+          <td>Time Submitted: </td>
+          <td class="right_aligned_text">{{ query.query_start }}</td>
+        </tr>
+        <tr>
+          <td>Time Finished: </td>
+          <td class="right_aligned_text">{{ query.query_end }}</td>
+        </tr>
+        <tr>
+          <td>Scene Count:</td>
+          <td class="right_aligned_text">{{ meta.scene_count }}</td>
+        </tr>
+        <tr>
+          <td>Animated Product:</td>
+          <td class="right_aligned_text">{{ query.get_animation_type_name }}</td>
+        </tr>
+        <tr>
+          <td>Total Pixel Count:</td>
+          <td class="right_aligned_text">{{ meta.pixel_count }}</td>
+        </tr>
+        <tr>
+          <td>Latitude Range: </td>
+          <td class="right_aligned_text">({{ query.latitude_min }}, {{ query.latitude_max }})</td>
+        </tr>
+        <tr>
+          <td>Longitude Range: </td>
+          <td class="right_aligned_text">({{ query.longitude_min }}, {{ query.longitude_max }})</td>
+        </tr>
+        <tr>
+          <td>Time Range: </td>
+          <td class="right_aligned_text">({{ query.time_start|date:"m/d/Y" }}, {{ query.time_end|date:"m/d/Y" }})</td>
+        </tr>
+{% endblock %}
+
+{% block download_options %}
+<option value="image_url">Average TSM</option>
+<option value="clear_observations_url">Clear Observations</option>
+<option value="animation_url">TSM Animation</option>
+<option value="nc_url">netCDF</option>
+<option value="data_url">GeoTIFF</option>
+{% endblock %}
+
+{% block download_function %}
+//download products
+function set_dl_url() {
+    dl_link = "";
+    if(queries[selected_output]){
+      dl_link += queries[selected_output][$('#download_sel').val()];
+      if($('#download_sel').val() == "water_animation_url" && queries[selected_output].water_animation_url == "None")
+        return;
+      //window.open(dl_link, '_blank');
+      $("#output_list_download_button").attr("href", dl_link);
+    }
+}
+{% endblock %}

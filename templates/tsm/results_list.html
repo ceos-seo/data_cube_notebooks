@@ -1,0 +1,98 @@
+<!--
+Copyright 2016 United States Government as represented by the Administrator
+of the National Aeronautics and Space Administration. All Rights Reserved.
+
+Portion of this code is Copyright Geoscience Australia, Licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License
+at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+-->
+<!-- Author: AHDS
+     Creation date: 2016-09-08
+     Modified by:
+     Last modified date: -->
+{% extends "results_list_template.html" %}
+{% block query_table_rows %}
+<tr>
+  <td>Time Submitted: </td>
+  <td class="right_aligned_text">{{ query.query_start }}</td>
+</tr>
+<tr>
+  <td>Time Finished: </td>
+  <td class="right_aligned_text">{{ query.query_end }}</td>
+</tr>
+<tr>
+  <td>Latitude Range: </td>
+  <td class="right_aligned_text">({{ query.latitude_min }}, {{ query.latitude_max }})</td>
+</tr>
+<tr>
+  <td>Longitude Range: </td>
+  <td class="right_aligned_text">({{ query.longitude_min }}, {{ query.longitude_max }})</td>
+</tr>
+<tr>
+  <td>Time Range: </td>
+  <td class="right_aligned_text">({{ query.time_start|date:"m/d/Y" }}, {{ query.time_end|date:"m/d/Y" }})</td>
+</tr>
+<tr>
+  <td>Show Average TSM:</td>
+  <td class="right_aligned_text"><input type="checkbox" checked='true' name="show_average_tsm" onclick="show_result(this, '{{ query.query_id }}', 0)"></td>
+</tr>
+<tr>
+  <td>Show Clear Observations:</td>
+  <td class="right_aligned_text"><input type="checkbox" name="show_clear_observations" onclick="show_result(this, '{{ query.query_id }}', 1)"></td>
+</tr>
+{% endblock %}
+{% block meta_table_rows %}
+<tr>
+  <td>Scene Count:</td>
+  <td class="right_aligned_text">{{ metadata_entry.scene_count }}</td>
+</tr>
+<tr>
+  <td>Total Pixel Count:</td>
+  <td class="right_aligned_text">{{ metadata_entry.pixel_count }}</td>
+</tr>
+{% endblock %}
+{% block functions_block %}
+//toggles the nodata highlighting based on a checkbox.
+//outline is shown as visible
+function show_result(checkbox, query_id, id) {
+  map.remove_image_by_id(queries[query_id].query_id);
+  switch(id) {
+    case 0:
+      image_url = queries[query_id].image_url;
+    break;
+    case 1:
+    default:
+      image_url = queries[query_id].clear_observations_url;
+    break;
+  }
+  //image_url = checkbox.checked ? queries[query_id].image_filled_url : queries[query_id].image_url;
+  $('input:checkbox').removeAttr('checked');
+  checkbox.checked = true;
+  add_result_to_map(query_id, image_url);
+  map.toggle_outline_by_id(query_id, true);
+}
+{% endblock %}
+{% block metadata_dl_block %}
+{% for acquisition, pixels, pixel_percentage in metadata_entry.acquisitions_dates_with_pixels_percentages %}
+  <dl class="scenes_list" id="scenes_{{ metadata_entry.query_id }}">
+    <dt>{{ acquisition }} <span><button class="tooltipped" title="Load this single scene. This will hide the current result." onclick="load_scene_from_query('{{ metadata_entry.query_id }}', '{{ acquisition }}')" style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Load this scene</button></span></dt>
+    <dd>Clean pixels: <span>{{ pixels }}</span></dd>
+    <dd>Total Pixels: <span>{{ metadata_entry.pixel_count }}</span></dd>
+    <dd>Clean Pixel Percentage: <span>{{ pixel_percentage|floatformat:2 }}%</span></dd>
+  </dl>
+{% endfor %}
+{% endblock %}

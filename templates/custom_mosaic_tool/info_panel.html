@@ -1,0 +1,55 @@
+<h2>Custom Mosaic Tool</h2>
+<hr>
+<div class="fieldSet boxed_list" style="height:95%">
+    <div id="infoPanelContent" style="height:100%">
+      <h3>Introduction</h3>
+      <div>
+        <div id="img_display" style="text-align: center; height: 30%;">
+          <img src=/static/assets/images/custom_mosaic_sample.png class="image-display" />
+          <span class="image-description">Median pixel mosaic of Lake Baringo over 10 years.</span>
+        </div>
+        <br>
+        <h3>Summary</h3>
+        The Custom Mosaic Tool uses a collection of acquisitions to create a single image composed of the 'best' pixels based on the chosen criteria. Define a bounding box, time period, and data output options and press the submit button to run a task.
+        <br><br>
+        <h3>Input Options</h3>
+        The available options include the most recent clear pixel, least recent clear pixel, median clear pixel, and max/min NDVI pixels. When you submit a new task, the entire time stack of data from the specified bounding box and date range will be loaded and processed based on the input parameters.
+        <br><br>
+        <h3>Output Data</h3>
+        The output image will contain the mosaicked dataset and be displayed on the map. The data product is available for download in both NetCDF and GeoTiff format along with any images created.
+      </div>
+      <h3>Task Parameters</h3>
+      <div>
+        <h3>Data Selection</h3>
+        The data selection section contains options that affect the data and processes that are used to create the output product.
+        <br>
+        <h4>Result Type</h4>
+        The result type refers to what bands of the data will be used to create the map image. True color uses red, green, and blue, while the other options use the three bands listed.
+        <h4>Compositing Method</h4>
+        The compositing method refers to the method used to combine the acquisitions. For example, "Most Recent Pixel" displays the closest valid pixel to the end date, and "Max NDVI Pixel" displays the pixel for each location that has the greatest NDVI value.
+        <br><br>
+        <h3>Geospatial Bounds</h3>
+        These bounds will be use to filter the available data. For any given bounding box, each acquisition that is found between start and end date will be used to create the mosaic.
+        The bounding box can either be drawn on the map by a single click, drag, and second click, or by entering valid values in the boxes.
+      </div>
+      <h3>Task Outputs</h3>
+      <div>
+        <h3>Output Image Display</h3>
+        The task will produce an image in the requested form (True color/false color) and display it on the map. The background can be filled in by selecting the "Highlight No Data" checkbox in the results tab. To zoom to a task, click on it on either the results or the output tab.
+        <br><br>
+        <h3>Managing Completed Tasks</h3>
+        In the results tab, selecting a task will load in the list of all acquisitions and some relevant data. From this panel, you are able to load any single acquisition by clicking "Load this scene". To remove a task from the map display, press either delete or the hide button on the results tab.
+        <br><br>
+        <h3>Product Download</h3>
+        All products can be downloaded using the output tab. A GeoTIFF and NetCDF are available containing all SR bands (Red, Green, Blue, NIR, SWIR1, SWIR2), as well as the map image and the map image with a background.
+      </div>
+    </div>
+</div>
+<script>
+$( function() {
+  $( "#infoPanelContent" ).accordion({
+    collapsible: true,
+    heightStyle: "fill"
+  });
+} );
+</script>

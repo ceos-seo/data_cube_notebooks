@@ -1,0 +1,125 @@
+/* (7/20/2016) Using VW, VH, VMIN, VMAX not supported in IE8, Opera Mini, or Android 4.3.  Partial support in IE9, Edge */
+.sub-header {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 2vw;
+    font-weight: bold;
+    top: 50%;
+}
+
+.left-content-label {
+    padding-top: 3vh;
+    border-bottom: 1px solid rgb(0,0,0);
+    font-size: 3em;
+    height: 8vh;
+    font-weight: bold;
+}
+
+.left-content {
+    width: 50%;
+    height: 100%;
+    float: left;
+    background-color: rgb(240,240,240);
+    border: 5px solid #FFFFFF;
+    display: inline-block;
+    padding: 1vmin;
+    padding-top: 1vmin;
+    word-wrap: break-word;
+    border-radius: 2.5vw;
+}
+
+.sub-content {
+    width: 100%;
+    height: 90%;
+    background-color: rgb(240,240,240);
+    display: inline-block;
+    padding: 2vmin;
+    padding-top: 1vh;
+    word-wrap: break-word;
+    font-size: 0.75vw;
+}
+
+.sub-content dl dt {
+    font-size: 1.5em;
+    font-weight: bold;
+    text-decoration: underline;
+    padding-top: 1.5vh;
+    padding-bottom: 1vh;
+}
+
+.sub-content dl dd {
+    font-size: 1em;
+    padding-top: 0.25vh;
+    padding-bottom: 0.25vh;
+}
+
+.right-content {
+    width: 50%;
+    height: 100%; 
+    float: left;
+    background-color: rgb(240,240,240);
+    border: 5px solid #FFFFFF;
+    display: inline-block;
+    padding: 1vmin;
+    padding-top: 2vh;
+    word-wrap: break-word;
+    border-radius: 2.5vw;
+}
+
+.image-content {
+    width: 100%;
+    height: 50%;
+    display: inline-block;
+    padding: 2vmin;
+    text-align: center;
+}
+
+.image-description {
+    font-size: 0.75em;
+}
+
+.image-display {
+    display: block;
+    margin: 0 auto;
+    max-height: 100%;
+	max-width: 100%;
+    border: rgb(255,127,80) 2px outset;
+}
+
+.scene-list-content {
+    width: 100%;
+    height: 48%;
+    background-color: rgb(240,240,240);
+    border-top: rgb(255,127,80) 1px solid;
+    border-bottom: rgb(255,127,80) 1px solid;
+    display: inline-block;
+    padding: 2vmin;
+    word-wrap: break-word;
+    overflow-y: scroll;
+    font-size: 0.75vw;
+}
+
+/* (7/20/2016) This is not supported in Firefox, Edge, or Opera Mini.  Partial support for IE. */
+#scene-list-content::-webkit-scrollbar{
+    min-width: 5px;
+    width: 1vw;
+    background:  rgb(240,240,240);
+}
+
+#scene-list-content::-webkit-scrollbar-thumb{
+    min-width: 5px;
+    width: 1vw;
+    background:  rgb(200,200,200);
+    border-radius: 15px;
+}
+
+#scene-list-content::-webkit-scrollbar-thumb:hover{
+    background:  rgb(180,180,180);
+}
+
+#scene-list-content::-webkit-scrollbar-track {
+    border-radius: 15px;
+    padding: 5px;
+    -webkit-box-shadow:0 0 6px rgb(180,180,180) inset;
+}
+ 

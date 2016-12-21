@@ -1,0 +1,13 @@
+# .coveragerc to control coverage.py
+
+# Note : May at some point want to remove the omission of apps/home if there is a need for coverage.
+[run]
+branch = True
+omit = ../*migrations*, ../*admin.py, /home/localuser/Datacube/datacube_env/*, /home/localuser/Datacube/data_cube_ui/data_cube_ui/*.py, /home/localuser/Datacube/data_cube_ui/apps/custom_mosaic_tool/testsuite/*.py, /home/localuser/Datacube/data_cube_ui/manage.py,/home/localuser/Datacube/data_cube_ui/utils/*.py,/home/localuser/agdc-v2/*.py, /home/localuser/Datacube/data_cube_ui/apps/home/*.py, 
+
+# Shows the missing lines in the report and excludes any line with the phrase "pragma: no cover" on it.
+# Note: If this is on a method definition it will skip every line in the method.
+[report]
+show_missing = True
+exclude_lines =
+	      pragma: no cover

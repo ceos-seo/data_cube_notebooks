@@ -1,0 +1,44 @@
+{% extends "default.html" %}
+
+{% block css %}
+<!--
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/login.css" /> 
+    -->
+<link rel="stylesheet" type="text/css" href="/static/assets/css/style_login.css" />
+{% endblock %}
+{% block content %}
+<div id="container" class="login" style="width: 600px;">
+  <!-- Header -->
+  <div id="header">
+    <div id="branding">
+      <h1 id="site-name">{{ title }}</h1>
+    </div>
+  </div>
+  <!-- END Header -->
+  <!-- Content -->
+  <div id="content" class="colM">
+    <span style="font-size: 18px; font-weight: bold;">{{ successful_submission }}</span>
+    <div id="content-main">
+      <form action="{% url 'submit_feedback' %}" method="post" id="feedback-form">
+	{% csrf_token %}
+	<div class="form-row comment_input">
+	  <div>
+	    <label for="reason" style="font-weight: bold;">Feedback Type:</label>
+	    {{ form.feedback_reason }}
+	  </div>
+	  <div>
+	    <label for="feedback" style="font-weight: bold;">Additional Information:</label>
+	    {{ form.feedback }}
+	  </div>
+	</div>
+	<div class="submit-row">
+          <label>&nbsp;</label>
+          <input id="log-in-submit" type="submit" value="Submit" />
+	</div>
+      </form>
+    </div>
+  </div>
+  <!-- END Content -->
+</div>
+{% endblock %}

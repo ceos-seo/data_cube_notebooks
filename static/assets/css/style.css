@@ -1,0 +1,968 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+body {
+    font: 13px/1.5em 'Helvetica Neue', Helvetica, Helvetica Neue, Arial, sans-serif;
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+}
+body.introPage {
+    background: url(../images/introBG.jpg) no-repeat center center;
+    background-size: cover;
+}
+* {
+    -webkit-box-sizing: border-box;
+    /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;
+    /* Firefox, other Gecko */
+    box-sizing: border-box;
+    /* Opera/IE 8+ */
+}
+
+img {
+	font-family: Arial,Helvetica,sans-serif;
+	font-size: 1em;
+  text-align: center;
+}
+
+.image-display {
+    display: block;
+    margin: 0 auto;
+  	max-width: 100%;
+    max-height: 100%;
+    border: rgb(255,127,80) 2px outset;
+}
+
+.image-description {
+    font-size: 0.75em;
+    text-align: center;
+}
+
+#wrap {
+    min-height: 100%;
+    height: 100%;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+}
+.wrapper {
+    width: 100%;
+    margin: 0 auto;
+}
+.wrapper.introContent {
+    background: url(../images/screen.png) no-repeat left center;
+    overflow: hidden;
+    min-height: 500px;
+    padding-top: 80px;
+}
+@media screen and (max-width: 1400px) {
+    .wrapper.introContent {
+        background: url(../images/screen.png) no-repeat left 80px;
+        overflow: hidden;
+        min-height: 500px;
+        padding-top: 30px;
+    }
+}
+.home-container {
+    width: 980px;
+    padding-left: 530px;
+    margin: 50px auto;
+}
+.home-container a {
+    color: #ca4f2d;
+    text-decoration: underline;
+}
+.home-container input[type="text"] {
+    padding: 9px 0;
+    text-indent: 5px;
+    border-radius: 2px;
+    border: 1px solid #777;
+    font-size: 14px;
+    color: #999;
+    width: 180px;
+}
+.home-container button {
+    border-radius: 2px;
+    padding: 1px 5px;
+    line-height: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    border: 1px solid #777;
+    background-color: #ca4f2d;
+}
+.home-container button:hover {
+    border-top-color: #28597a;
+    background: #822309;
+    color: white;
+    cursor: pointer;
+}
+.home-container button:active {
+    border-top-color: #28597a;
+    background: #ca4f2d;
+    color: black;
+}
+.home-container p {
+    color: #666666;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 15px;
+    line-height: 21px;
+}
+p.loginText {
+    font-size: 18px;
+}
+.loginBlock {
+    float: left;
+    min-width: 200px;
+    padding-top: 15px;
+    padding-bottom: 40px;
+    color: #666;
+    font-size: 15px;
+}
+#main-content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 60px;
+    bottom: 0;
+}
+h3, li, p, label, input, select, button {
+    color: #444;
+}
+
+h4 {
+  margin: 1vw 0 0 0;
+}
+
+/* styling of the uls/form data..  */
+
+.right_aligned {
+    float: right;
+}
+.right_aligned_text {
+    text-align: right;
+}
+.left_aligned {
+    float: left;
+}
+.form_style {
+    list-style: none;
+    width: 100%;
+    margin: 0;
+    display: inline-block;
+}
+.form_style label {
+    margin: 0 0 3px 0;
+    padding: 0px;
+    display: block;
+    font-weight: bold;
+}
+.form_style li {
+    float: left;
+    margin: 0px 2px 0px 2px;
+}
+.form_style .field-divided, .form_style .field-long {
+    width: 100%;
+}
+.form_style input[type=text], .form_style input[type=date], .form_style input[type=datetime], .form_style input[type=number], .form_style input[type=search], .form_style input[type=time], .form_style input[type=url], .form_style input[type=email], select, .form_style button, textarea {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    border: 1px solid #C2C2C2;
+    box-shadow: 1px 1px 4px #EBEBEB;
+    -moz-box-shadow: 1px 1px 4px #EBEBEB;
+    -webkit-box-shadow: 1px 1px 4px #EBEBEB;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    padding: 5px;
+    margin: 0px;
+    -webkit-transition: all 0.30s ease-in-out;
+    -moz-transition: all 0.30s ease-in-out;
+    -ms-transition: all 0.30s ease-in-out;
+    -o-transition: all 0.30s ease-in-out;
+    outline: none;
+}
+.form_style input[type=text]:focus, .form_style input[type=date]:focus, .form_style input[type=datetime]:focus, .form_style input[type=number]:focus, .form_style input[type=search]:focus, .form_style input[type=time]:focus, .form_style input[type=url]:focus, .form_style input[type=email]:focus, .form_style textarea:focus, .form_style select:focus {
+    -moz-box-shadow: 0 0 8px coral;
+    -webkit-box-shadow: 0 0 8px coral;
+    box-shadow: 0 0 8px coral;
+    border: 1px solid coral;
+}
+input[type=submit], input[type=button], button {
+    float: right;
+    padding: 8px 15px 8px 15px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    border: 1px solid #AEAEAE;
+}
+input[type=submit]:hover, input[type=button]:hover, button:hover {
+    background-color: #EEE;
+    box-shadow: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+}
+
+/* end form styling.  */
+
+
+/**/
+
+
+/**/
+
+
+/* @group Panels */
+
+#tabs_main {
+    position: relative;
+    height: 100%;
+    z-index: 100;
+    width: 380px;
+    float: left;
+    padding: 5px;
+    border-radius: 5px;
+    border: 2px solid darkgrey;
+    overflow-y: auto;
+}
+#tabs_main .tabCustomPanel {
+    height: 95%;
+    width: 100%;
+    background-color: #fff;
+}
+.tabCustomPanel h2 {
+    display: inline-block;
+    width: 90%;
+    color: #444;
+    background-color: #fff;
+    margin-bottom: 0px;
+}
+.tabCustomPanel h3 {
+    margin-bottom: 0px;
+    margin-top: .25em;
+}
+.map {
+    position: relative;
+    z-index: 98;
+    width: auto;
+    height: 100%;
+    padding: 0px;
+    overflow: hidden;
+    border-radius: 5px;
+    border: 1px solid darkgrey;
+    background-size: cover;
+    background-color: lightgray;
+}
+.image-display-vertically-centered {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: block;
+    margin: auto;
+    max-height: 100%;
+    max-width: 100%;
+    border: rgb(255, 127, 80) 2px outset;
+}
+.button_on_map {
+    position: absolute;
+    z-index: 10000;
+    right: 5px;
+    top: 5px;
+}
+
+.lat_lon_map_indicator {
+    position: absolute;
+    z-index: 10000;
+    right: 5px;
+    bottom: 5px;
+    font-size: 20px !important;
+}
+
+/*
+.options p {
+  margin: 0.25em;
+}
+
+.options label {
+  width: 30%;
+  margin-left: 5%;
+  vertical-align: bottom;
+}
+
+.options input {
+  width: 40%;
+  float: right;
+  clear: left;
+  vertical-align: bottom;
+}
+
+.options select {
+  float: right;
+  vertical-align: bottom;
+}
+
+.options li label {
+  width: 100%;
+}
+*/
+
+#output_list {
+    height: 600px;
+}
+#resultsPanel label {
+    float: left;
+}
+#resultsPanel input select {
+    width: 30px;
+    padding-top: 5px;
+}
+#task_list {
+    height: 300px;
+}
+#query_metadata {
+    height: 125px;
+}
+
+/* Running queries: progress bars etc.  */
+
+#running_queries {
+    height: 65px;
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+#running_queries label {
+    margin: 0 0 1px 0;
+    padding: 0px;
+    font-weight: bold;
+}
+#running_queries div {
+    width: 100%;
+}
+#running_queries li {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+/* End running queries.  */
+
+
+/* detail lists */
+
+.spaced_details, .spaced_details table {
+    height: auto;
+    width: 100%;
+}
+
+/* Should the same coral color be used here? */
+
+.spaced_details tr:nth-child(even) {
+    background-color: #EEEEEE;
+}
+.spaced_details table {
+    table-layout: fixed;
+    border-collapse: collapse
+}
+
+.spaced_details .title {
+  vertical-align: top;
+}
+
+.spaced_details td {
+    border-bottom: 1px solid black;
+}
+.spaced_details td {
+    border-left: 1px solid black;
+}
+.spaced_details td:first-child {
+    border-left: 0;
+}
+
+/* end detail lists */
+
+#query_history_container .ui-accordion-content, #task_list .ui-accordion-content, #output_list .ui-accordion-content {
+    padding: 1em 1em 1em 2em;
+}
+
+/* Results tab */
+
+#scenes_list {
+    height: 220px;
+}
+
+#scenes_list dl:nth-child(even) {
+  background-color: rgba(255, 127, 80, 0.15);
+}
+
+.scenes_list {
+    padding-top: 5px;
+    padding-left: 10px;
+    padding-right: 30px;
+    padding-bottom: 5px;
+    margin: 10px;
+    list-style-type: none;
+}
+.scenes_list {
+    width: 93%;
+}
+
+.scenes_list span {
+  float: right;
+}
+
+.standalone_table {
+    padding: 1em 1em 1em 1em
+}
+
+/* end results tab. */
+
+
+/* Task history. */
+
+
+/* end task history */
+
+.ui-state-active, .ui-widget-content .ui-state-active {
+    background: coral;
+    border: 1px solid red;
+}
+.alternating li:nth-child(odd) {
+    background: rgba(255, 127, 80, 0.15);
+}
+
+#past_queries {
+    height: 220px;
+}
+.panel h2 {
+    line-height: 40px;
+    padding: 0 0 0 10px;
+    margin: 0;
+    font-weight: normal;
+}
+#optionsPanel .threeRadials label {
+    width: auto;
+    display: inline-block;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+#resultsPanel .twoCheckboxes {
+    position: relative;
+    height: 30px;
+    float: right;
+}
+#resultsPanel .twoCheckboxes label {
+    width: auto;
+    display: inline-block;
+    vertical-align: top;
+    white-space: nowrap;
+    float: none;
+}
+#resultsPanel .twoCheckboxes input[type="checkbox"] {
+    display: inline-block;
+    padding: 5px;
+}
+.panelBottom {
+    position: absolute;
+    padding: 5px;
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
+}
+.panelBottom .fieldSet {
+    background-color: yellow;
+    padding: 5px;
+}
+.submitBlock {
+    float: right;
+    padding: 8px 15px 8px 15px;
+    margin-left: 5px;
+    position: relative;
+    height: 30px;
+}
+.submitBlock .greyButton {
+    display: inline-block;
+    float: right;
+    margin: 2px;
+}
+.previewBlock {
+    padding: 5px 20px;
+}
+.previewBlock h3 {
+    font-size: 16px;
+    line-height: 32px;
+    color: #666;
+    margin: 0;
+    border-bottom: 1px solid #bbb;
+}
+.tasksSection {
+    background: rgba(0, 0, 0, .4);
+    padding: 10px;
+}
+#queuePanel {
+    height: 50%;
+    overflow: hidden;
+}
+#queuePanel .queueHeader {
+    margin: 0;
+    padding: 5px;
+    background: rgba(0, 0, 0, .4);
+}
+#queuePanel .queueHeader button {
+    padding: 5px;
+}
+#queuePanel .queueHeader h2 {
+    padding-right: 10px;
+}
+#queuePanel h2 {
+    /*display: inline-block;*/
+    line-height: 60px;
+    vertical-align: middle;
+}
+#queuePanel .sep {
+    color: #777;
+}
+#queuePanel ul {
+    margin: 0;
+    padding: 5px;
+}
+#queuePanel ul li {
+    margin: 2px 0;
+    padding: 0;
+    list-style-type: none;
+}
+#queuePanel span, #queuePanel li> div {
+    display: inline-block;
+    vertical-align: middle;
+    color: #eee;
+    margin: 0 5px;
+}
+#queuePanel a {
+    color: #ca4f2d;
+}
+#queuePanel button {
+    margin: 0 0 0 10px;
+    line-height: 40px;
+    display: inline-block;
+    vertical-align: middle;
+}
+.queueBody {
+    background-color: #fff;
+}
+.queueBody ul {
+    height: 250px;
+    list-style-type: none;
+}
+.queueBody li {
+    padding-top: 5px;
+}
+#queueBody {
+    background-color: #fff;
+    margin-top: 5px;
+    overflow: hidden;
+    overflow-y: auto;
+    border: 1px solid coral;
+}
+#scene_composed {
+    height: 175px;
+    overflow: hidden;
+    overflow-y: auto;
+    border: 1px solid coral;
+}
+#stat_section {
+    height: 125px;
+    margin-bottom: 5px;
+    overflow: hidden;
+    overflow-y: auto;
+    border: 1px solid coral;
+}
+#bandSel {
+    margin-top: 5px;
+    height: auto;
+    overflow: hidden;
+    overflow-y: auto;
+    border: 1px solid coral;
+}
+#id_band_selection {
+    margin-top: 5px;
+    height: 130px;
+    overflow: hidden;
+    overflow-y: auto;
+    border: 1px solid coral;
+}
+#id_band_selection li.selectTask:hover {
+    border-top-color: darkgray;
+    background: lightgray;
+    cursor: pointer;
+}
+#id_band_selection li.sel_high {
+    border-top-color: darkgray;
+    background: coral;
+    cursor: pointer;
+}
+#id_band_selection li.sel_high:hover {
+    border-top-color: darkgray;
+    background: coral;
+    cursor: pointer;
+}
+.boxed_list {
+    margin-top: 5px;
+    height: auto;
+    min-height: 50px;
+    overflow: hidden;
+    overflow-y: auto;
+    border: 1px solid coral;
+}
+.boxed_list li.selectTask:hover {
+    border-top-color: darkgray;
+    background: lightgray;
+    cursor: pointer;
+}
+.boxed_list li.sel_high {
+    border-top-color: darkgray;
+    background: coral;
+    cursor: pointer;
+}
+.boxed_list li.sel_high:hover {
+    border-top-color: darkgray;
+    background: coral;
+    cursor: pointer;
+}
+.resultsButtonRow {
+    position: relative;
+    height: 30px;
+    margin-top: 0px;
+    padding: 5px;
+    display: block;
+}
+.resultsButtonRow button {
+    display: inline-block;
+    float: right;
+    padding: 2px;
+}
+.resultsButtonRow label.smallLabel {
+    display: inline-block;
+    width: auto;
+    padding-left: 2px;
+    padding-right: 5px;
+    float: left;
+}
+.resultsButtonRow input[type="checkbox"] {
+    display: inline-block;
+    width: auto;
+    padding-left: 2px;
+    padding-right: 5px;
+    float: left;
+}
+.ui-progressbar {
+    border: none;
+    width: 150px;
+    height: 10px;
+    border-radius: 5px;
+    background-image: none;
+    background-color: rgba(255, 255, 255, .2);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .7);
+}
+.ui-progressbar-value {
+    border-radius: 5px;
+    background: #ca4f2d url(../images/index.gif) repeat-x left top;
+}
+
+/* @group Slider */
+
+.slider {
+    padding: 0;
+    height: 40px;
+    width: 30px;
+    z-index: 100;
+    position: absolute;
+}
+.right_slider {
+    padding: 0;
+    height: 40px;
+    width: 30px;
+    z-index: 100;
+    position: absolute;
+}
+#queuePanel .right_slider {
+    top: 10px;
+}
+
+/* @end */
+
+
+/* @group Form Elements */
+
+.yellowButton {
+    border-radius: 3px;
+    padding: 5px;
+    height: auto;
+    background-color: #ca4f2d;
+    color: #fff;
+    font-size: 14px;
+    border: none;
+}
+.yellowButton:hover {
+    border-top-color: #28597a;
+    background: #822309;
+    color: white;
+    cursor: pointer;
+}
+.yellowButton:active {
+    border-top-color: #28597a;
+    background: #ca4f2d;
+    color: black;
+}
+.loginButton {
+    border-radius: 3px;
+    line-height: 25px;
+    background-color: #ca4f2d;
+    font-size: 14px;
+    border: none;
+    color: #fff;
+}
+.greyButton {
+    border-radius: 3px;
+    padding: 5px;
+    height: auto;
+    background-color: #ccc;
+    font-size: 14px;
+    border: none;
+}
+.greyButton:hover {
+    background: #28597a;
+    color: white;
+    cursor: pointer;
+}
+.greyButton:active {
+    background: #ccc;
+    color: white;
+}
+.favoriteButton {
+    float: right;
+    height: auto;
+    width: auto;
+}
+.downloadButton {
+    float: right;
+    height: auto;
+    width: auto;
+}
+.fieldSet {
+    padding: 5px;
+    display: block;
+}
+
+/*
+    .fieldSet label {
+        display: inline-block;
+        vertical-align: middle;
+        width: 115px;
+        font-size: 12px;
+    }
+
+        .fieldSet label.smallLabel {
+            width: auto;
+            margin-left: 5px;
+            margin-right: 5px;
+            float: right;
+        }
+
+        .fieldSet label.showMissingLabel {
+            width: 150px;
+        }
+
+    .fieldSet div.field {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 2px;
+        margin-left: 2px;
+        font-size: 13px;
+        float: right;
+    }
+
+    .fieldSet input[type="checkbox"] {
+        float: right;
+    }
+*/
+
+#export_format #fav_list #fav_name {
+    padding: 5px;
+    margin-right: 5px;
+}
+#fav_list {
+    width: 90px;
+}
+.yearBlock, .latlonBlock {
+    width: 75px;
+    float: right;
+}
+.message_block {
+    text-align: center;
+}
+.shape_block .season_dates_block .season_dates_custom_annual_block {
+    background-color: cyan;
+    display: none;
+    text-align: center;
+    vertical-align: middle;
+    width: 100%;
+}
+#months_sel {
+    float: right;
+}
+.season_dates_custom_annual_block {
+    padding: 5px 5px;
+    height: 80px;
+}
+.season_dates_custom_annual_block label {
+    font-size: 12px;
+}
+.helper {
+    float: left;
+    display: inline-block;
+}
+.helper a {
+    display: block;
+    height: 15px;
+    width: 15px;
+    font-size: 12px;
+    text-align: center;
+    background: #ccc;
+    color: #000;
+    border-radius: 15px;
+    cursor: pointer;
+}
+.helper a:hover {
+    background: #28597a;
+    color: #fff;
+    cursor: pointer;
+}
+.helper_filler {
+    display: inline-block;
+}
+.helper_filler a {
+    display: block;
+    line-height: 20px;
+    height: 15px;
+    width: 15px;
+    background-color: transparent;
+    color: transparent;
+}
+
+/* @end */
+
+#queuePanel {
+    color: #fff;
+    position: absolute;
+    right: 0;
+    z-index: 101;
+    padding: 0 0 0 30px;
+}
+.resultsSection {
+    padding: 10px;
+}
+#queuePanel .right_slider {
+    top: 0;
+    left: 0;
+    border-radius: 5px 0 0 5px;
+    background: rgba(0, 0, 0, .7) url(../images/sliderArrows-light.png) no-repeat center top;
+    box-shadow: -2px 1px 2px rgba(0, 0, 0, .5);
+    right: -395px;
+}
+#queuePanel .slider.hide {
+    background-position: center bottom;
+}
+.introContent {
+    padding-top: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+}
+.introContent h1 {
+    padding-top: 50px !important;
+}
+.introContent .yellowButton {
+    margin: 10px;
+    padding: 0 20px;
+    font-size: 18px;
+    line-height: 42px;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, .3);
+}
+.introContent .yellowButton:hover {
+    border-top-color: #28597a;
+    background: #822309;
+    color: white;
+    cursor: pointer;
+}
+.introContent .yellowButton:active {
+    border-top-color: #28597a;
+    background: #ca4f2d;
+    color: black;
+}
+.introImage {
+    float: left;
+    margin: 10px 0 0 50px;
+}
+.mainImage {
+    float: left;
+    margin: 0 50px 0 0;
+}
+
+/*task manager html styles*/
+
+.taskManager .title {
+    margin-left: auto;
+    margin-right: auto;
+    border-bottom: 2px solid black;
+    padding-bottom: 5px;
+    box-shadow: inset 0 -2px 0 #d9d8a2;
+    text-align: center;
+}
+.taskManager .center {
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+    color: rgb(105, 105, 105);
+}
+.taskManager td {
+    padding: 15px 5px 15px 5px;
+}
+#query-title {
+    width: 100%;
+}
+#query-description {
+    width: 100%;
+	resize: none;
+}
+.popup-label {
+    font-weight: bold;
+}
+.myCustomBlock {
+    text-align: left !important;
+    background-color: rgb(240, 240, 240) !important;
+    cursor: auto !important;
+}
+#save-and-close {
+    margin-right: 0.25vw;
+}
+.details-popup {
+    display: none;
+    background: rgb(240, 240, 240);
+    z-index: 99;
+    width: auto;
+    height: auto;
+    padding-left: 1vw;
+    padding-right: 1vw;
+}
+.blockOverlay {
+    cursor: not-allowed !important;
+}
+
+.additional-info-header {
+    border-bottom: 1px solid rgb(0, 0, 0);
+}

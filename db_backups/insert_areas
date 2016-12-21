@@ -1,0 +1,5 @@
+INSERT INTO public.fractional_cover_area VALUES (1, 'lake_baringo', 'Lake Baringo', 'ls7_ledaps_lake_baringo', 0.5, 0.75, 36, 36.25, '/static/assets/images/black.png', '/static/assets/images/35.5,0,37,1.5.png', 0, 1.5, 35.5, 37);
+INSERT INTO public.fractional_cover_area VALUES (2, 'lake_chad', 'Lake Chad', 'ls7_ledaps_lake_chad', 12.75, 13, 14.25, 14.5, '/static/assets/images/black.png', '/static/assets/images/13.75,12.25,15,13.5.png', 12.25, 13.5, 13.75, 15);
+INSERT INTO public.fractional_cover_area VALUES (3, 'kenya_micro', 'Kenya Micro Cube', 'ls7_ledaps_kenya', -1, 1, 34, 37, '/static/assets/images/black.png', '/static/assets/images/34,-1.5,37,1.5.png', -1.5, 1.5, 34, 37);
+INSERT INTO public.fractional_cover_area VALUES (4, 'colombia_micro', 'Colombia Micro Cube', 'ls7_ledaps_colombia', -1, 1, -76.5, -74, '/static/assets/images/black.png', '/static/assets/images/-76.5,-1.25,-74,1.25.png', -1.25, 1.25, -76.5, -74);
+INSERT INTO public.fractional_cover_area VALUES (5, 'meta_river', 'Meta River', 'ls7_ledaps_meta_river', 4, 5, -72, -71, '/static/assets/images/black.png', '/static/assets/images/-72,4-71,5.png', 4, 5, -72, -71);
