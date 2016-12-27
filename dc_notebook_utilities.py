@@ -1,7 +1,7 @@
 from ipywidgets import widgets
 from IPython.display import display, HTML
 
-#from mpl_toolkits.basemap import Basemap
+from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
 import math # ceil
 
