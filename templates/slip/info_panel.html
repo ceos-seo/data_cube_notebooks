@@ -1,0 +1,55 @@
+<h2>Fractional Cover Tool</h2>
+<hr>
+<div class="fieldSet boxed_list" style="height:95%">
+    <div id="infoPanelContent" style="height:100%">
+      <h3>Introduction</h3>
+      <div>
+        <div id="img_display" style="text-align: center; height: 30%;">
+          <img src=/static/assets/images/slip_sample.png class="image-display" />
+          <span class="image-description">SLIP Analysis over Salgar, Colombia for 2014 to 2016.</span>
+        </div>
+        <br>
+        <h3>Summary</h3>
+        SLIP is used to automate the detection of landslides. A SLIP product is the result of filtering based on per-pixel changes in both soil moisture and vegetation in areas with high elevation gradients. All of which (with the exception of elevation gradients) can be computed using simple bandmath equations. Define a bounding box, time period, and data output options and press the submit button to run a task.
+        <br><br>
+        <h3>Input Options</h3>
+        The available options include the baseline type (average or composite) and the baseline length (number of acquisitions). When you submit a new task, the entire time stack of data from the specified bounding box and date range will be loaded and processed based on the input parameters.
+        <br><br>
+        <h3>Output Data</h3>
+        The output image will contain a mosaic of the baseline scenes with pixels that exhibit signs of change being highlighted in red. The mosaic without red highlighted pixels is also available in the results and output panels. The data product is available for download in both NetCDF and GeoTIFF format along with any images created.
+      </div>
+      <h3>Task Parameters</h3>
+      <div>
+        <h3>Data Selection</h3>
+        The data selection section contains options that affect the data and processes that are used to create the output product.
+        <br>
+        <h4>Baseline Method</h4>
+        The available options are average and composite. Selecting average will use the mean of previous scenes as a baseline, while selecting composite will create a most recent pixel mosaic for the baseline.
+        <br>
+        <h4>Baseline Length</h4>
+        The baseline length is the number of acquisitions that will be used to create the baseline. For example, selecting 5 will use the five scenes preceeding the scene that is being analyzed for the baseline.
+        <br><br>
+        <h3>Geospatial Bounds</h3>
+        These bounds will be use to filter the available data. For any given bounding box, each acquisition that is found between start and end date will be used to create the mosaic.
+        The bounding box can either be drawn on the map by a single click, drag, and second click, or by entering valid values in the boxes.
+      </div>
+      <h3>Task Outputs</h3>
+      <div>
+        <h3>Output Image Display</h3>
+        The output image will contain a mosaic of the baseline scenes with pixels that exhibit signs of change being highlighted in red. The mosaic without red highlighted pixels is also available in the results and output panels. The data product is available for download in both NetCDF and GeoTIFF format along with any images created.        <br><br>
+        <h3>Managing Completed Tasks</h3>
+        In the results tab, selecting a task will load the list of scenes that contain SLIP classified pixels. From this panel, you are able to load the SLIP analysis of any single acquisition by clicking "Load this scene." To remove a task from the map display, press either delete or the hide button on the results tab.
+        <br><br>
+        <h3>Product Download</h3>
+        All products can be downloaded using the output tab. A GeoTIFF and NetCDF are available the result of the SLIP output, as well as the map image and the mosaic image.
+      </div>
+    </div>
+</div>
+<script>
+$( function() {
+  $( "#infoPanelContent" ).accordion({
+    collapsible: true,
+    heightStyle: "fill"
+  });
+} );
+</script>

@@ -21,6 +21,8 @@
 
 from django.db import models
 from data_cube_ui.models import Area, Compositor
+from data_cube_ui.models import Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as BaseResultType
+
 
 """
 Models file that holds all the classes representative of the database tabeles.  Allows for queries
@@ -33,40 +35,13 @@ to be created for basic CRUD operations.
 # Last modified date:
 
 
-class Query(models.Model):
+class Query(BaseQuery):
     """
     Stores a single instance of a Query object that contains all the information for requests
     submitted.
     """
 
-    # meta
-    query_id = models.CharField(max_length=1000, default="")
-    area_id = models.CharField(max_length=100, default="")
-    title = models.CharField(max_length=100, default="")
-    description = models.CharField(max_length=10000, default="")
-
-    # app specific
-    user_id = models.CharField(max_length=25, default="")
-    query_start = models.DateTimeField('query_start')
-    query_end = models.DateTimeField('query_end')
-
-    # query info for dc data.
-    platform = models.CharField(max_length=25, default="")
-    product = models.CharField(max_length=25, default="")
-    #product_type = models.CharField(max_length=25, default="")
-
-    time_start = models.DateTimeField('time_start')
-    time_end = models.DateTimeField('time_end')
-    latitude_min = models.FloatField(default=0)
-    latitude_max = models.FloatField(default=0)
-    longitude_min = models.FloatField(default=0)
-    longitude_max = models.FloatField(default=0)
     compositor = models.CharField(max_length=25, default="most_recent")
-
-    # false by default, only change is false-> true
-    complete = models.BooleanField(default=False)
-
-    id = models.AutoField(primary_key=True)
 
     # functs.
     def get_compositor_name(self):
@@ -76,7 +51,7 @@ class Query(models.Model):
         Returns:
             result_type (string): The result type of the query.
         """
-        return Compositor.objects.get(compositor_id=self.compositor).compositor
+        return Compositor.objects.get(compositor_id=self.compositor).compositor_name
 
     def generate_query_id(self):
         """
@@ -103,97 +78,21 @@ class Query(models.Model):
         return result
 
 
-class Metadata(models.Model):
+class Metadata(BaseMetadata):
     """
     Stores a single instance of a Query object that contains all the information for requests
     submitted.
     """
 
-    # meta
-    query_id = models.CharField(max_length=1000, default="")
+    pass
 
-    # geospatial bounds.
-    latitude_max = models.FloatField(default=0)
-    latitude_min = models.FloatField(default=0)
-    longitude_max = models.FloatField(default=0)
-    longitude_min = models.FloatField(default=0)
-
-    # meta attributes
-    scene_count = models.IntegerField(default=0)
-    pixel_count = models.IntegerField(default=0)
-    clean_pixel_count = models.IntegerField(default=0)
-    percentage_clean_pixels = models.FloatField(default=0)
-    # comma seperated dates representing individual acquisitions
-    # followed by comma seperated numbers representing pixels per scene.
-    acquisition_list = models.CharField(max_length=100000, default="")
-    clean_pixels_per_acquisition = models.CharField(
-        max_length=100000, default="")
-    clean_pixel_percentages_per_acquisition = models.CharField(
-        max_length=100000, default="")
-    # more to come?
-
-    def acquisition_list_as_list(self):
-        """
-        Splits the list of acquisitions into a list.
-
-        Returns:
-            acquisition_list (list): List representation of the acquisitions from the database.
-        """
-        return self.acquisition_list.rstrip(',').split(',')
-
-    def clean_pixels_list_as_list(self):
-        """
-        Splits the list of clean pixels into a list.
-
-        Returns:
-            clean_pixels_per_acquisition (list): List representation of the acquisitions from the
-            database.
-        """
-        return self.clean_pixels_per_acquisition.rstrip(',').split(',')
-
-    def clean_pixels_percentages_as_list(self):
-        """
-        Splits the list of clean pixels with percentages into a list.
-
-        Returns:
-            clean_pixel_percentages_per_acquisition_list (list): List representation of the
-            acquisitions from the database.
-        """
-        return self.clean_pixel_percentages_per_acquisition.rstrip(',').split(',')
-
-    def acquisitions_dates_with_pixels_percentages(self):
-        """
-        Creates a zip file with a number of lists included as the content
-
-        Returns:
-            zip file: Zip file combining three different lists (acquisition_list_as_list(),
-            clean_pixels_list_as_list(), clean_pixels_percentages_as_list())
-        """
-        return zip(self.acquisition_list_as_list(), self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
-
-
-class Result(models.Model):
+class Result(BaseResult):
     """
     Stores a single instance of a Result object that contains all the information for requests
     submitted.
     """
 
-    # meta
-    query_id = models.CharField(max_length=1000, default="")
-    # either OK or ERROR or WAIT
-    status = models.CharField(max_length=100, default="")
-
-    scenes_processed = models.IntegerField(default=0)
-    total_scenes = models.IntegerField(default=0)
-
-    # geospatial bounds.
-    latitude_max = models.FloatField(default=0)
-    latitude_min = models.FloatField(default=0)
-    longitude_max = models.FloatField(default=0)
-    longitude_min = models.FloatField(default=0)
-
     # result path + other data. More to come.
-    result_path = models.CharField(max_length=250, default="")
     result_mosaic_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
     data_path = models.CharField(max_length=250, default="")

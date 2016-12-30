@@ -42,7 +42,7 @@ from utils.dc_mosaic import create_mosaic, create_median_mosaic, create_max_ndvi
 from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task
 from utils.dc_fractional_coverage_classifier import frac_coverage_classify
 
-from .utils import update_model_bounds_with_dataset, map_ranges
+from data_cube_ui.utils import update_model_bounds_with_dataset, map_ranges
 
 """
 Class for handling loading celery workers to perform tasks asynchronously.
@@ -167,32 +167,23 @@ def create_fractional_cover(query_id, user_id):
     print("Starting for query:" + query_id)
     # its fair to assume that the query_id will exist at this point, as if it wasn't it wouldn't
     # start the task.
-    print(query_id, user_id)
-    queries = Query.objects.filter(query_id=query_id, user_id=user_id)
+    query = Query.objects.get(query_id=query_id, user_id=user_id)
     # if there is a matching query other than the one we're using now then do nothing.
     # the ui section has already grabbed the result from the db.
-    if queries.count() > 1:
+    if Result.objects.filter(query_id=query.query_id).exists():
         print("Repeat query, client will receive cached result.")
-        if Result.objects.filter(query_id=query_id).count() > 0:
-            queries.update(complete=True)
         return
-    query = queries[0]
+
     print("Got the query, creating metadata.")
 
     # creates the empty result.
     result = query.generate_result()
 
-    product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
-
-    # do metadata before actually submitting the task.
-    metadata = dc.get_scene_metadata(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
-        query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
-    if not metadata:
-        error_with_message(result, "There was an exception when handling this query.")
+    if query.platform == "LANDSAT_ALL":
+        error_with_message(result, "Combined products are not supported for fractional cover calculations.")
         return
 
-    meta = query.generate_metadata(scene_count=metadata['scene_count'], pixel_count=metadata['pixel_count'])
-
+    product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
     # wrapping this in a try/catch, as it will throw a few different errors
     # having to do with memory etc.
     try:
@@ -291,6 +282,10 @@ def create_fractional_cover(query_id, user_id):
         # populate metadata values.
         dates = list(acquisition_metadata.keys())
         dates.sort()
+
+        meta = query.generate_metadata(
+            scene_count=len(dates), pixel_count=len(latitude)*len(longitude))
+
         for date in reversed(dates):
             meta.acquisition_list += date.strftime("%m/%d/%Y") + ","
             meta.clean_pixels_per_acquisition += str(

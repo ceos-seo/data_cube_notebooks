@@ -47,7 +47,6 @@ self.addEventListener("message", function(e) {
 //used to load a single scene from a query.
 function getSingleResult(e) {
 	csrftoken = e.data.csrf;
-	query_obj['query_type'] = e.data.result_type;
 
 	var request = new XMLHttpRequest();
 	request.open("POST", '/' + tool_name + '/submit_single', false);
@@ -65,7 +64,8 @@ function getSingleResult(e) {
 				error("There was a problem submitting your task, please try again.");
 				return;
 			}
-			query_obj['query_id'] = response.request_id;
+			query_obj['query_id'] = response.query_id;
+			query_obj['title'] = response.title;
 			postMessage({
 					'msg': "START",
 					'query': query_obj
@@ -77,7 +77,7 @@ function getSingleResult(e) {
 //Used to load a result using the query history box.
 function getResultFromHistory(e) {
 	query_obj['query_id'] = e.data.query_id;
-	query_obj['query_type'] = e.data.result_type;
+	query_obj['title'] = e.data.title;
 	csrftoken = e.data.csrf;
 	postMessage({
 			'msg': "START",
@@ -89,7 +89,6 @@ function getResultFromHistory(e) {
 //uses form data to generate a new query.
 function getNewResult(e) {
 	query_obj['query_data'] = e.data.form_data;
-	query_obj['query_type'] = e.data.result_type;
 	csrftoken = e.data.csrf;
 	addNewQuery();
 }
@@ -113,7 +112,8 @@ function addNewQuery() {
 					error("There was a problem submitting your task, please try again.");
 					return;
 				}
-        query_obj['query_id'] = response.request_id;
+        query_obj['query_id'] = response.query_id;
+				query_obj['title'] = response.title;
 				postMessage({
             'msg': "START",
 						'query': query_obj
@@ -143,7 +143,6 @@ function checkQuery() {
 						error("There was a problem with your task, please try again.");
 						return;
 				}
-        console.log(request.response);
         if (response.msg == "WAIT") {
 						if(response.result) {
 							if(!isNaN(response.result.total_scenes) && !isNaN(response.result.scenes_processed)) {
@@ -157,14 +156,8 @@ function checkQuery() {
             setTimeout(checkQuery, 3000);
         } else {
 						//just pass in all the attributes from the result obj.
-						for(var attr in response.result)
-							query_obj[attr] = response.result[attr];
-            //query_obj['image_url'] = response.result.result;
-						//query_obj['image_filled_url'] = response.result.result_filled;
-            //query_obj['data_url'] = response.result.data;
-						//query_obj['latitude'] = [response.result.min_lat, response.result.max_lat];
-						//query_obj['longitude'] = [response.result.min_lon, response.result.max_lon];
-            //upper and lower bounds?
+						for(var attr in response)
+							query_obj[attr] = response[attr];
             postResult();
         }
     }

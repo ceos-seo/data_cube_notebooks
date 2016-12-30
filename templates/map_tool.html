@@ -98,7 +98,7 @@ under the License.
                 w.postMessage({
                     'tool_name': window.tool_name,
                     'msg': "HISTORY",
-                    'result_type': '{{ query.query_type }}',
+                    "title": '{{ query.title }}',
                     'query_id': '{{ query.query_id }}',
                     'csrf': csrftoken
                 });
@@ -119,7 +119,7 @@ under the License.
             //jquery to set the end date equal to the start date when its changed.
             $("#{{ satellite.satellite_id }}_time_start").on("input change", function(e) {
               date = $("#{{ satellite.satellite_id }}_time_start").datepicker('getDate');
-              date.setDate(date.getDate()+1);
+              date.setFullYear(date.getFullYear()+1);
               $("#{{ satellite.satellite_id }}_time_end").datepicker('setDate', date);
             })
           {% endfor %}
@@ -246,12 +246,12 @@ under the License.
 
       //the obj.map funct. doesn't work for older versions of ie... not sure if that matters.
       //handles the results panel: task list, scenes list, meta.
-      //.hasOwnProperty('image_url')
+      //.hasOwnProperty('result_path')
       function loadResultsPanel() {
           var ids = Object.keys(queries);
           var valid_ids = [];
           for(var index = 0; index < ids.length; index++) {
-            if(queries[ids[index]].hasOwnProperty('image_url')) {
+            if(queries[ids[index]].hasOwnProperty('result_path')) {
               valid_ids.push(ids[index]);
             }
           }
@@ -270,7 +270,7 @@ under the License.
           var ids = Object.keys(queries);
           var valid_ids = [];
           for(var index = 0; index < ids.length; index++) {
-            if(queries[ids[index]].hasOwnProperty('image_url')) {
+            if(queries[ids[index]].hasOwnProperty('result_path')) {
               valid_ids.push(ids[index]);
             }
           }
@@ -284,8 +284,8 @@ under the License.
       var selected_result = undefined;
       //Required for the use of the results list module.
       function set_selected_result(query_id) {
-          //$('#query_result_temp').attr("src", queries[query_id].image_url);
-          //map.insert_image_with_bounds(query_id, queries[query_id].image_url, queries[query_id].latitude[0], queries[query_id].latitude[1], queries[query_id].longitude[0], queries[query_id].longitude[1]);
+          //$('#query_result_temp').attr("src", queries[query_id].result_path);
+          //map.insert_image_with_bounds(query_id, queries[query_id].result_path, queries[query_id].latitude[0], queries[query_id].latitude[1], queries[query_id].longitude[0], queries[query_id].longitude[1]);
           if(selected_result == query_id) {
             map.zoom_to_image_by_id(query_id);
             return;
@@ -294,13 +294,13 @@ under the License.
           selected_result = query_id;
           map.toggle_outline_by_id(query_id, true);
           map.zoom_to_image_by_id(query_id);
-          $("#static-map-img").attr("src", queries[query_id].image_url);
+          $("#static-map-img").attr("src", queries[query_id].result_path);
       }
 
       //adds a query to the map by its id. if boolean filled is true, use the filled version.
-      function add_result_to_map(query_id, image_url) {
-          $("#static-map-img").attr("src", image_url);
-          map.insert_image_with_bounds(query_id, image_url, queries[query_id].min_lat, queries[query_id].max_lat, queries[query_id].min_lon, queries[query_id].max_lon);
+      function add_result_to_map(query_id, result_path) {
+          $("#static-map-img").attr("src", result_path);
+          map.insert_image_with_bounds(query_id, result_path, queries[query_id].latitude_min, queries[query_id].latitude_max, queries[query_id].longitude_min, queries[query_id].longitude_max);
       }
 
       //removes a result from the map and modifies the queries and workers variables.
@@ -338,12 +338,12 @@ under the License.
                   }
                   queries[data.query.query_id] = data.query;
                   workers[data.query.query_id] = event.target;
-                  add_task_bar(data.query.query_id, data.query.query_type);
+                  add_task_bar(data.query.query_id, data.query.title);
                   break;
               case "RESULT":
                   queries[data.query.query_id] = data.query;
                   remove_task_bar(data.query.query_id);
-                  add_result_to_map(data.query.query_id, data.query.image_url);
+                  add_result_to_map(data.query.query_id, data.query.result_path);
                   loadHistoryPanel();
                   loadResultsPanel();
                   loadOutputPanel();
@@ -405,14 +405,10 @@ under the License.
           //worker init w/ the serialized data.
           if (typeof(Worker) !== undefined) {
               var w = new Worker("/static/assets/js/dcw.js");
-              var result_type = values['result_type']
-              if(result_type == undefined) {
-                result_type = "UI Task";
-              }
+
               w.postMessage({
                   'tool_name': window.tool_name,
                   'msg': "NEW",
-                  'result_type': result_type,
                   'form_data': request,
                   'csrf': csrftoken
               });
