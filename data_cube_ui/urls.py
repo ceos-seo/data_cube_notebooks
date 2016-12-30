@@ -49,6 +49,7 @@ urlpatterns = [
     url(r'^tsm/', include('apps.tsm.urls')),
     url(r'^fractional_cover/', include('apps.fractional_cover.urls')),
     url(r'^slip/', include('apps.slip.urls')),
+    url(r'^ndvi_anomaly/', include('apps.ndvi_anomaly.urls')),
     url(r'^task_manager/', include('apps.task_manager.urls')),
     url(r'^accounts/', include('apps.accounts.urls')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

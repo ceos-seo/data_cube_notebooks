@@ -30,9 +30,8 @@ import json
 from datetime import datetime, timedelta
 
 from .models import Result, Query, Metadata
-from .forms import DataSelectForm
-from data_cube_ui.forms import GeospatialForm
-from .tasks import create_slip
+from .forms import DataSelectForm, GeospatialForm
+from .tasks import create_ndvi_anomaly, get_acquisition_list
 from data_cube_ui.models import Satellite, Area, Application
 
 from .utils import create_query_from_post
@@ -40,7 +39,7 @@ from .utils import create_query_from_post
 from collections import OrderedDict
 
 """
-Class holding all the views for the slip app in the project.
+Class holding all the views for the ndvi_anomaly app in the project.
 """
 
 # Author: AHDS
@@ -49,7 +48,7 @@ Class holding all the views for the slip app in the project.
 # Last modified date:
 
 @login_required
-def slip(request, area_id):
+def ndvi_anomaly(request, area_id):
     """
     Loads the custom mosaic tool page. Includes the relevant forms/satellites, as well as running
     queries for the user. A form is created for each satellite based on the db contents for any
@@ -69,24 +68,25 @@ def slip(request, area_id):
 
     **Template**
 
-    :template:`slip/map_tool.html`
+    :template:`ndvi_anomaly/map_tool.html`
     """
 
     user_id = 0
     if request.user.is_authenticated():
         user_id = request.user.username
     area = Area.objects.get(area_id=area_id)
-    app = Application.objects.get(application_id="slip")
+    app = Application.objects.get(application_id="ndvi_anomaly")
     satellites = area.satellites.all() & app.satellites.all() #Satellite.objects.all().order_by('satellite_id')
     forms = {}
     for satellite in satellites:
+        acquisition_list = get_acquisition_list.delay(area, satellite)
         forms[satellite.satellite_id] = {'Data Selection': DataSelectForm(auto_id=satellite.satellite_id + "_%s"),
-                                         'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s") }
+                                         'Geospatial Bounds': GeospatialForm(acquisition_list=acquisition_list.get(), auto_id=satellite.satellite_id + "_%s") }
     running_queries = Query.objects.filter(user_id=user_id, area_id=area_id, complete=False)
 
     context = {
-        'tool_name': 'slip',
-        'info_panel': 'slip/info_panel.html',
+        'tool_name': 'ndvi_anomaly',
+        'info_panel': 'ndvi_anomaly/info_panel.html',
         'satellites': satellites,
         'forms': forms,
         'running_queries': running_queries,
@@ -114,7 +114,7 @@ def submit_new_request(request):
         response['msg'] = "OK"
         try:
             query_id = create_query_from_post(user_id, request.POST)
-            create_slip.delay(query_id, user_id)
+            create_ndvi_anomaly.delay(query_id, user_id)
             response.update(model_to_dict(Query.objects.filter(query_id=query_id, user_id=user_id)[0]))
         except:
             response['msg'] = "ERROR"
@@ -150,7 +150,7 @@ def submit_new_single_request(request):
             query.title = "Single acquisition for " + request.POST['date']
             query.query_id = query.generate_query_id()
             query.save();
-            create_slip.delay(query.query_id, user_id, single=True)
+            create_ndvi_anomaly.delay(query.query_id, user_id, single=False)
             response.update(model_to_dict(query))
         except:
             response['msg'] = "ERROR"
@@ -245,7 +245,7 @@ def get_query_history(request, area_id):
 
     **Template**
 
-    :template:`slip/query_history`
+    :template:`ndvi_anomaly/query_history`
     """
     user_id = 0
     if request.user.is_authenticated():
@@ -255,7 +255,7 @@ def get_query_history(request, area_id):
     context = {
         'query_history': history,
     }
-    return render(request, 'slip/query_history.html', context)
+    return render(request, 'ndvi_anomaly/query_history.html', context)
 
 
 @login_required
@@ -273,7 +273,7 @@ def get_results_list(request, area_id):
 
     **Template**
 
-    :template:`slip/results_list.html`
+    :template:`ndvi_anomaly/results_list.html`
 
     """
 
@@ -290,7 +290,7 @@ def get_results_list(request, area_id):
             'queries': queries,
             'metadata_entries': metadata_entries
         }
-        return render(request, 'slip/results_list.html', context)
+        return render(request, 'ndvi_anomaly/results_list.html', context)
     return HttpResponse("Invalid Request.")
 
 @login_required
@@ -305,7 +305,7 @@ def get_output_list(request, area_id):
 
     **Template**
 
-    :template: `slip/output_list.html`
+    :template: `ndvi_anomaly/output_list.html`
     """
 
     if request.method == 'POST':
@@ -324,5 +324,5 @@ def get_output_list(request, area_id):
             #'metadata_entries': metadata_entries
             'data': data
         }
-        return render(request, 'slip/output_list.html', context)
+        return render(request, 'ndvi_anomaly/output_list.html', context)
     return HttpResponse("Invalid Request.")

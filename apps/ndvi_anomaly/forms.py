@@ -25,6 +25,8 @@ import datetime
 
 from data_cube_ui.models import Baseline
 
+from data_cube_ui.forms import GeospatialForm as GeospatialFormBase
+
 """
 File designed to house the different forms for taking in user input in the web application.  Forms
 allow for input validation and passing of data.  Includes forms for creating Queries to be ran.
@@ -49,9 +51,15 @@ class DataSelectForm(forms.Form):
     title = forms.CharField(widget=forms.HiddenInput())
     description = forms.CharField(widget=forms.HiddenInput())
 
-    baseline_length = forms.ChoiceField(help_text='Select the number of acquisitions that will be used to create the baseline', label="Baseline Length (Acquisitions):", choices=[(number, number) for number in range(1,11)], widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+    months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    #index+1 so jan==1
+    months_sel = [(index+1, month) for index, month in enumerate(months)]
+    baseline_selection = forms.MultipleChoiceField(help_text='Select the month(s) that will be used to create the baseline. Scenes from the selected months that occur before the selected scene will be used to form a baseline.', label="Baseline Period:", choices=months_sel, widget=forms.SelectMultiple(attrs={'class': 'field-long tooltipped'}))
 
-    def __init__(self, *args, **kwargs):
-        super(DataSelectForm, self).__init__(*args, **kwargs)
-        baseline_list = [(baseline.baseline_id, baseline.baseline_name) for baseline in Baseline.objects.all()]
-        self.fields["baseline_selection"] = forms.ChoiceField(help_text='Select the method by which the baseline will be created.', label="Baseline Method:", choices=baseline_list, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+class GeospatialForm(GeospatialFormBase):
+    def __init__(self, acquisition_list=None, *args, **kwargs):
+        super(GeospatialForm, self).__init__(*args, **kwargs)
+        self.fields.pop('time_start')
+        self.fields.pop('time_end')
+        scene_sel = [(str(index)+"-"+date.strftime("%Y/%m/%d %H:%M UTC"), date.strftime("%Y/%m/%d %H:%M UTC")) for index, date in enumerate(acquisition_list)]
+        self.fields['scene_selection'] = forms.ChoiceField(help_text='Select a scene to perform NDVI differencing on.', label="Scene Selection:", choices=scene_sel, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))

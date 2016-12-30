@@ -41,18 +41,21 @@ class Query(BaseQuery):
     submitted.
     """
 
-    baseline = models.CharField(max_length=25, default="average")
-    baseline_length = models.IntegerField(default=5)
+    #baseline is a comma seperated list of months, indexed starting from 1.
+    baseline_method = models.CharField(max_length=50, default="median")
+    baseline = models.CharField(max_length=50, default="1,2,3,4,5,6,7,8,9,10,11,12")
+    #comma seperated index values for scene dates.
+    #overriding the base class start/end times. Only start time is used,
+    #end time included only for consistency.
+    time_start = models.CharField(max_length=5000, default="0")
+    time_end = models.CharField(max_length=5000, default="0")
 
-    # functs.
     def get_baseline_name(self):
-        """
-        Gets the ResultType.result_type attribute associated with the given Query object.
-
-        Returns:
-            result_type (string): The result type of the query.
-        """
-        return Baseline.objects.get(baseline_id=self.baseline).baseline_name
+        months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        baseline_str = ""
+        for baseline in [int(month) for month in self.baseline.split(',')]:
+            baseline_str += months[baseline-1] + ", "
+        return baseline_str
 
     def generate_query_id(self):
         """
@@ -62,9 +65,8 @@ class Query(BaseQuery):
         Returns:
             query_id (string): The ID of the query built up by object attributes.
         """
-        query_id = self.time_start.strftime("%Y-%m-%d") + '-' + self.time_end.strftime("%Y-%m-%d") + '-' + str(self.latitude_max) + '-' + str(
-            self.latitude_min) + '-' + str(self.longitude_max) + '-' + str(self.longitude_min) + '-' + self.baseline + '-' + str(
-            self.baseline_length) + '-' + self.platform + '-' + self.product
+        query_id = self.time_start + '-' + str(self.latitude_max) + '-' + str(
+            self.latitude_min) + '-' + str(self.longitude_max) + '-' + str(self.longitude_min) + '-' + self.baseline + '-' + self.platform + '-' + self.product
         return query_id
 
     def generate_metadata(self, scene_count=0, pixel_count=0):
@@ -86,18 +88,6 @@ class Metadata(BaseMetadata):
     submitted.
     """
 
-    slip_pixels_per_acquisition = models.CharField(max_length=100000, default="")
-
-    def slip_pixels_list_as_list(self):
-        """
-        Splits the list of clean pixels into a list.
-
-        Returns:
-            clean_pixels_per_acquisition (list): List representation of the acquisitions from the
-            database.
-        """
-        return self.slip_pixels_per_acquisition.rstrip(',').split(',')
-
     def acquisitions_dates_with_pixels_percentages(self):
         """
         Creates a zip file with a number of lists included as the content
@@ -106,7 +96,7 @@ class Metadata(BaseMetadata):
             zip file: Zip file combining three different lists (acquisition_list_as_list(),
             clean_pixels_list_as_list(), clean_pixels_percentages_as_list())
         """
-        return zip(self.acquisition_list_as_list(), self.clean_pixels_list_as_list(), self.slip_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
+        return zip(self.acquisition_list_as_list(), self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
 
 class Result(BaseResult):
     """
@@ -115,7 +105,9 @@ class Result(BaseResult):
     """
 
     # result path + other data. More to come.
+    scene_ndvi_path = models.CharField(max_length=250, default="")
+    baseline_ndvi_path = models.CharField(max_length=250, default="")
+    ndvi_percentage_change_path = models.CharField(max_length=250, default="")
     result_mosaic_path = models.CharField(max_length=250, default="")
-    baseline_mosaic_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
     data_path = models.CharField(max_length=250, default="")

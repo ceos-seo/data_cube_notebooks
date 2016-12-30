@@ -22,7 +22,7 @@
 # Django specific
 from celery.decorators import task
 from celery.signals import worker_process_init, worker_process_shutdown
-from .models import Query, Result, ResultType, Metadata
+from .models import Query, Result, Metadata
 
 import numpy as np
 import math
@@ -38,10 +38,12 @@ from collections import OrderedDict
 from dateutil.tz import tzutc
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_mosaic import create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic
+from utils.dc_mosaic import create_mosaic
 from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task
-
-from .utils import update_model_bounds_with_dataset
+from utils.dc_baseline import generate_baseline
+from utils.dc_demutils import create_slope_mask
+from utils.dc_water_classifier import wofs_classify
+from data_cube_ui.utils import update_model_bounds_with_dataset, map_ranges
 
 """
 Class for handling loading celery workers to perform tasks asynchronously.
@@ -53,15 +55,18 @@ Class for handling loading celery workers to perform tasks asynchronously.
 # Last modified date:
 
 # constants up top for easy access/modification
-base_result_path = '/ui_results/custom_mosaic/'
-base_temp_path = '/ui_results_temp/'
+# hardcoded colors input path..
+color_paths = ['~/Datacube/data_cube_ui/utils/color_scales/ndvi', '~/Datacube/data_cube_ui/utils/color_scales/ndvi', '~/Datacube/data_cube_ui/utils/color_scales/ndvi_difference', '~/Datacube/data_cube_ui/utils/color_scales/ndvi_percentage_change']
+
+base_result_path = '/datacube/ui_results/ndvi_anomaly/'
+base_temp_path = '/datacube/ui_results_temp/'
 
 # Datacube instance to be initialized.
 # A seperate DC instance is created for each worker.
 dc = None
 
 #default measurements. leaves out all qa bands.
-measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
+measurements = ['red', 'nir', 'cf_mask']
 
 """
 functions used to combine time sliced data after being combined geographically.
@@ -80,73 +85,23 @@ def fill_nodata(dataset, dataset_intermediate):
         dataset_out[key].values[dataset_out[key].values==-9999] = dataset[key].values[dataset_out[key].values==-9999]
     return dataset_out
 
-def max_value(dataset, dataset_intermediate):
-    if dataset_intermediate is None:
-        return dataset.copy(deep=True)
-    dataset_out = dataset_intermediate.copy(deep=True)
-    for key in list(dataset_out.data_vars):
-        # Get raw data for current variable and mask the data
-        dataset_out[key].values[dataset.ndvi.values > dataset_out.ndvi.values] = dataset[key].values[dataset.ndvi.values > dataset_out.ndvi.values]
-    return dataset_out
-
-def min_value(dataset, dataset_intermediate):
-    if dataset_intermediate is None:
-        return dataset.copy(deep=True)
-    dataset_out = dataset_intermediate.copy(deep=True)
-    for key in list(dataset_out.data_vars):
-        # Get raw data for current variable and mask the data
-        dataset_out[key].values[dataset.ndvi.values < dataset_out.ndvi.values] = dataset[key].values[dataset.ndvi.values < dataset_out.ndvi.values]
-    return dataset_out
-
-#holds the different compositing algorithms. Most/least recent, max/min ndvi, median, etc.
+#holds the different compositing algorithms. median, mean, mosaic?
 # all options are required. setting None to a option will have the algo/task splitting
 # process disregard it.
 #experimentally optimized geo/time/slices_per_iter
 processing_algorithms = {
-    'most_recent': {
-        'geo_chunk_size': 0.5,
-        'time_chunks': 5,
-        'time_slices_per_iteration': 5,
-        'reverse_time': True,
-        'chunk_combination_method': fill_nodata,
-        'processing_method': create_mosaic
-    },
-    'least_recent': {
-        'geo_chunk_size': 0.5,
-        'time_chunks': 5,
-        'time_slices_per_iteration': 1,
-        'reverse_time': False,
-        'chunk_combination_method': fill_nodata,
-        'processing_method': create_mosaic
-    },
-    'median_pixel': {
-        'geo_chunk_size': 0.01,
+    'median': {
+        'geo_chunk_size': 0.05,
         'time_chunks': None,
         'time_slices_per_iteration': None,
-        'reverse_time': False,
+        'reverse_time': True,
         'chunk_combination_method': fill_nodata,
-        'processing_method': create_median_mosaic
+        'processing_method': 'median'
     },
-    'max_ndvi': {
-        'geo_chunk_size': 0.5,
-        'time_chunks': 5,
-        'time_slices_per_iteration': 5,
-        'reverse_time': False,
-        'chunk_combination_method': max_value,
-        'processing_method': create_max_ndvi_mosaic
-    },
-    'min_ndvi': {
-        'geo_chunk_size': 0.5,
-        'time_chunks': 5,
-        'time_slices_per_iteration': 5,
-        'reverse_time': False,
-        'chunk_combination_method': min_value,
-        'processing_method': create_min_ndvi_mosaic
-    }
 }
 
-@task(name="get_data_task")
-def create_cloudfree_mosaic(query_id, user_id, single=False):
+@task(name="ndvi_anomaly_task")
+def create_ndvi_anomaly(query_id, user_id, single=False):
     """
     Creates metadata and result objects from a query id. gets the query, computes metadata for the
     parameters and saves the model. Uses the metadata to query the datacube for relevant data and
@@ -160,51 +115,51 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         user_id (string): The ID of the user that requested the query be made.
 
     Returns:
-        Doesn't return as the method is ran asynchronously.
+        Returns image url, data url for use only in tasks that reference this task.
     """
 
     print("Starting for query:" + query_id)
     # its fair to assume that the query_id will exist at this point, as if it wasn't it wouldn't
     # start the task.
-    queries = Query.objects.filter(query_id=query_id, user_id=user_id)
+    query = Query.objects.get(query_id=query_id, user_id=user_id)
     # if there is a matching query other than the one we're using now then do nothing.
     # the ui section has already grabbed the result from the db.
-    if queries.count() > 1:
+    if Result.objects.filter(query_id=query.query_id).exists():
         print("Repeat query, client will receive cached result.")
-        if Result.objects.filter(query_id=query_id).count() > 0:
-            queries.update(complete=True)
         return
-    query = queries[0]
-    print("Got the query, creating metadata.")
 
-    result_type = ResultType.objects.get(satellite_id=query.platform, result_id=query.query_type)
+    print("Got the query, creating metadata.")
 
     # creates the empty result.
     result = query.generate_result()
 
-    product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
-
-    # do metadata before actually submitting the task.
-    metadata = dc.get_scene_metadata(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
-        query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
-    if not metadata:
-        error_with_message(result, "There was an exception when handling this query.")
+    if query.platform == "LANDSAT_ALL":
+        error_with_message(result, "Combined products are not supported for NDVI Anomaly calculations.")
         return
 
-    meta = query.generate_metadata(scene_count=metadata['scene_count'], pixel_count=metadata['pixel_count'])
-
+    product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
     # wrapping this in a try/catch, as it will throw a few different errors
     # having to do with memory etc.
     try:
+        #selected scenes are indices in acquisitions, baseline months are 1-12 jan-dec.
+        selected_scenes = [int(val) for val in query.time_start.split(',')]
+        baseline_months = [int(val) for val in query.baseline.split(',')]
         # lists all acquisition dates for use in single tmeslice queries.
-        acquisitions = dc.list_acquisition_dates(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
-            query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
+        acquisitions = dc.list_acquisition_dates(query.platform, query.product)
 
-        if len(acquisitions) < 1:
-            error_with_message(result, "There were no acquisitions for this parameter set.")
+        # we will later iterate through chosen scenes.
+        #for scene in selected_scene:
+        scene = selected_scenes[0]
+        baseline_scenes_base = acquisitions[0:scene]
+        #can I use pandas/dfs to do a 'groupby' on month?
+        baseline_scenes = [baseline_scene for baseline_scene in baseline_scenes_base if baseline_scene.month in baseline_months]
+        if len(baseline_scenes_base) < 1:
+            error_with_message(result, "Insufficient scene count for baseline length.")
             return
+        #scene of interest being appended before processing: this is the MOST RECENT scene, e.g. index 0 after processing.
+        baseline_scenes.append(acquisitions[scene])
 
-        processing_options = processing_algorithms[query.compositor]
+        processing_options = processing_algorithms['median']
         #if its a single scene, load it all at once to prevent errors.
         if single:
             processing_options['time_chunks'] = None
@@ -213,13 +168,13 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         # Reversed time = True will make it so most recent = First, oldest = Last.
         #default is in order from oldest -> newwest.
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
-            query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
+            query.longitude_min, query.longitude_max), acquisitions=baseline_scenes, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
         result.total_scenes = len(time_ranges) * len(lat_ranges)
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.
-        print("Getting data and creating mosaic")
+        print("Getting data and creating product")
         # create a temp folder that isn't on the nfs server so we can quickly
         # access/delete.
         if not os.path.exists(base_temp_path + query.query_id):
@@ -234,19 +189,18 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             # iterate over the geographic chunks.
             geo_chunk_tasks = []
             for geographic_chunk_index in range(len(lat_ranges)):
-                geo_chunk_tasks.append(generate_mosaic_chunk.delay(time_range_index, geographic_chunk_index, processing_options=processing_options, query=query, acquisition_list=time_ranges[
+                geo_chunk_tasks.append(generate_ndvi_anomaly_chunk.delay(time_range_index, geographic_chunk_index, processing_options=processing_options, query=query, acquisition_list=time_ranges[
                                        time_range_index], lat_range=lat_ranges[geographic_chunk_index], lon_range=lon_ranges[geographic_chunk_index], measurements=measurements))
             time_chunk_tasks.append(geo_chunk_tasks)
 
-        # holds some acquisition based metadata. dict of objs keyed by date
-        dataset_out = None
+        dataset_out_mosaic = None
+        dataset_out_ndvi = None
         acquisition_metadata = {}
         for geographic_group in time_chunk_tasks:
             full_dataset = None
             tiles = []
             for t in geographic_group:
                 tile = t.get()
-                # tile is [path, metadata]. Append tiles to list of tiles for concat, compile metadata.
                 if tile == "CANCEL":
                     print("Cancelled task.")
                     shutil.rmtree(base_temp_path + query.query_id)
@@ -258,21 +212,32 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                 result.scenes_processed += 1
                 result.save()
             print("Got results for a time slice, computing intermediate product..")
-            xr_tiles = []
+            xr_tiles_mosaic = []
+            xr_tiles_ndvi = []
             for tile in tiles:
-                tile_metadata = tile[1]
+                tile_metadata = tile[2]
                 for acquisition_date in tile_metadata:
                     if acquisition_date in acquisition_metadata:
                         acquisition_metadata[acquisition_date]['clean_pixels'] += tile_metadata[acquisition_date]['clean_pixels']
                     else:
                         acquisition_metadata[acquisition_date] = {'clean_pixels': tile_metadata[acquisition_date]['clean_pixels']}
-                xr_tiles.append(xr.open_dataset(tile[0]))
-            full_dataset = xr.concat(reversed(xr_tiles), dim='latitude')
-            dataset = full_dataset.load()
-            dataset_out = processing_options['chunk_combination_method'](dataset, dataset_out)
+                xr_tiles_mosaic.append(xr.open_dataset(tile[0]))
+                xr_tiles_ndvi.append(xr.open_dataset(tile[1]))
+            if len(xr_tiles_mosaic) < 1:
+                error_with_message(result, "There is no overlap between the selected scene and your area.")
+                return
+            #create cf mosaic
+            full_dataset_mosaic = xr.concat(reversed(xr_tiles_mosaic), dim='latitude')
+            dataset_mosaic = full_dataset_mosaic.load()
+            dataset_out_mosaic = processing_options['chunk_combination_method'](dataset_mosaic, dataset_out_mosaic)
 
-        latitude = dataset_out.latitude
-        longitude = dataset_out.longitude
+            #now ndvi_anomaly.
+            full_dataset_ndvi = xr.concat(reversed(xr_tiles_ndvi), dim='latitude')
+            dataset_ndvi = full_dataset_ndvi.load()
+            dataset_out_ndvi = processing_options['chunk_combination_method'](dataset_ndvi, dataset_out_ndvi)
+
+        latitude = dataset_out_mosaic.latitude
+        longitude = dataset_out_mosaic.longitude
 
         # grabs the resolution.
         geotransform = [longitude.values[0], product_details.resolution.values[0][1],
@@ -286,6 +251,10 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         # populate metadata values.
         dates = list(acquisition_metadata.keys())
         dates.sort()
+
+        meta = query.generate_metadata(
+            scene_count=len(dates), pixel_count=len(latitude)*len(longitude))
+
         for date in reversed(dates):
             meta.acquisition_list += date.strftime("%m/%d/%Y") + ","
             meta.clean_pixels_per_acquisition += str(
@@ -294,7 +263,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                 acquisition_metadata[date]['clean_pixels'] * 100 / meta.pixel_count) + ","
 
         # Count clean pixels and correct for the number of measurements.
-        clean_pixels = np.sum(dataset_out[measurements[0]].values != -9999)
+        clean_pixels = np.sum(dataset_out_mosaic[measurements[0]].values != -9999)
         meta.clean_pixel_count = clean_pixels
         meta.percentage_clean_pixels = (meta.clean_pixel_count / meta.pixel_count) * 100
         meta.save()
@@ -303,25 +272,39 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         file_path = base_result_path + query_id
         tif_path = file_path + '.tif'
         netcdf_path = file_path + '.nc'
-        png_path = file_path + '.png'
-        png_filled_path = file_path + "_filled.png"
+        mosaic_png_path = file_path + '_mosaic.png'
+        result_paths = [file_path + '_ndvi.png', file_path + '_baseline_ndvi.png', file_path + "_ndvi_difference.png", file_path + "_ndvi_percentage_change.png"]
 
         print("Creating query results.")
-        save_to_geotiff(tif_path, gdal.GDT_Int16, dataset_out, geotransform, get_spatial_ref(crs),
-                        x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'],
-                        band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2'])
-        dataset_out.to_netcdf(netcdf_path)
+        #Mosaic
+        save_to_geotiff(tif_path, gdal.GDT_Int16, dataset_out_mosaic, geotransform, get_spatial_ref(crs),
+                        x_pixels=dataset_out_mosaic.dims['longitude'], y_pixels=dataset_out_mosaic.dims['latitude'],
+                        band_order=['red', 'green', 'blue'])
+        # we've got the tif, now do the png. -> RGB
+        create_rgb_png_from_tiff(tif_path, mosaic_png_path, png_filled_path=None, fill_color=None, bands=[1,2,3], scale=(0, 4096))
 
-        # we've got the tif, now do the png.
-        bands = [measurements.index(result_type.red)+1, measurements.index(result_type.green)+1, measurements.index(result_type.blue)+1]
-        create_rgb_png_from_tiff(tif_path, png_path, png_filled_path=png_filled_path, fill_color=result_type.fill, bands=bands)
+        #ndvi_anomaly
+        dataset_out_ndvi.to_netcdf(netcdf_path)
+        save_to_geotiff(tif_path, gdal.GDT_Float64, dataset_out_ndvi, geotransform, get_spatial_ref(crs),
+                        x_pixels=dataset_out_mosaic.dims['longitude'], y_pixels=dataset_out_mosaic.dims['latitude'],
+                        band_order=['scene_ndvi', 'baseline_ndvi', 'ndvi_difference', 'ndvi_percentage_change'])
+        # we've got the tif, now do the png set..
+        # uses gdal dem with custom color maps..
+        for index in range(len(color_paths)):
+            cmd = "gdaldem color-relief -of PNG -b " + \
+                str(index + 1) + " " + tif_path + " " + \
+                color_paths[index] + " " + result_paths[index]
+            os.system(cmd)
 
         # update the results and finish up.
-        update_model_bounds_with_dataset([result, meta, query], dataset_out)
-        result.result_path = png_path
+        update_model_bounds_with_dataset([result, meta, query], dataset_out_mosaic)
+        result.result_mosaic_path = mosaic_png_path
+        result.scene_ndvi_path = result_paths[0]
+        result.baseline_ndvi_path = result_paths[1]
+        result.result_path = result_paths[2]
+        result.ndvi_percentage_change_path = result_paths[3]
         result.data_path = tif_path
         result.data_netcdf_path = netcdf_path
-        result.result_filled_path = png_filled_path
         result.status = "OK"
         result.total_scenes = len(acquisitions)
         result.save()
@@ -330,7 +313,6 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         query.complete = True
         query.query_end = datetime.datetime.now()
         query.save()
-
     except:
         error_with_message(
             result, "There was an exception when handling this query.")
@@ -338,19 +320,21 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
     # end error wrapping.
     return
 
-@task(name="generate_TOOL_chunk")
-def generate_TOOL_chunk(time_num, chunk_num, processing_options=None, query=None, acquisition_list=None, lat_range=None, lon_range=None, measurements=None):
+@task(name="generate_ndvi_anomaly_chunk")
+def generate_ndvi_anomaly_chunk(time_num, chunk_num, processing_options=None, query=None, acquisition_list=None, lat_range=None, lon_range=None, measurements=None):
     """
-    responsible for generating a piece of a custom mosaic product. This grabs the x/y area specified in the lat/lon ranges, gets all data
-    from acquisition_list, which is a list of acquisition dates, and creates the custom mosaic using the function named in processing_options.
+    responsible for generating a piece of a ndvi_anomaly product. This grabs the x/y area specified in the lat/lon ranges, gets all data
+    from acquisition_list, which is a list of acquisition dates, and creates the ndvi_anomaly using the function named in processing_options.
     saves the result to disk using time/chunk num, and returns the path and the acquisition date keyed metadata.
     """
+    selected_scene = acquisition_list[0]
+    baseline_scenes = acquisition_list[1:]
     time_index = 0
     iteration_data = None
     acquisition_metadata = {}
+
     print("Starting chunk: " + str(time_num) + " " + str(chunk_num))
-    # holds some acquisition based metadata.
-    while time_index < len(acquisition_list):
+    while time_index < len(baseline_scenes):
         # check if the task has been cancelled. if the result obj doesn't exist anymore then return.
         try:
             result = Result.objects.get(query_id=query.query_id)
@@ -360,26 +344,40 @@ def generate_TOOL_chunk(time_num, chunk_num, processing_options=None, query=None
         if result.status == "CANCEL":
             print("Cancelling...")
             return "CANCEL"
-
-        # time ranges set based on if the acquisition_list has been reversed or not. If it has, then the 'start' index is the later date, and must be handled appropriately.
-        start = acquisition_list[time_index] + datetime.timedelta(seconds=1) if processing_options['reverse_time'] else acquisition_list[time_index]
-        if processing_options['time_slices_per_iteration'] is not None and (time_index + processing_options['time_slices_per_iteration'] - 1) < len(acquisition_list):
-            end = acquisition_list[time_index + processing_options['time_slices_per_iteration'] - 1]
+        baseline_data = None
+        scene_data = None
+        # if everything needs to be loaded at once...
+        if processing_options['time_chunks'] is None and processing_options['time_slices_per_iteration'] == None:
+            datasets_in = []
+            for acquisition in baseline_scenes:
+                dataset = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=(acquisition, acquisition + datetime.timedelta(seconds=1)), longitude=lon_range, latitude=lat_range, measurements=measurements)
+                if 'time' in dataset:
+                    datasets_in.append(dataset.copy(deep=True))
+                dataset = None
+            if len(datasets_in) > 0:
+                baseline_data = xr.concat(datasets_in, 'time')
         else:
-            end = acquisition_list[-1] if processing_options['reverse_time'] else acquisition_list[-1] + datetime.timedelta(seconds=1)
-        time_range = (end, start) if processing_options['reverse_time'] else (start, end)
+            # time ranges set based on if the baseline_scenes has been reversed or not. If it has, then the 'start' index is the later date, and must be handled appropriately.
+            start = baseline_scenes[time_index] + datetime.timedelta(seconds=1) if processing_options['reverse_time'] else baseline_scenes[time_index]
+            if processing_options['time_slices_per_iteration'] is not None and (time_index + processing_options['time_slices_per_iteration'] - 1) < len(baseline_scenes):
+                end = baseline_scenes[time_index + processing_options['time_slices_per_iteration'] - 1]
+            else:
+                end = baseline_scenes[-1] if processing_options['reverse_time'] else baseline_scenes[-1] + datetime.timedelta(seconds=1)
+            time_range = (end, start) if processing_options['reverse_time'] else (start, end)
 
-        raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
+            baseline_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 
-        if "cf_mask" not in raw_data:
+        # if baseline or scene data isn't there, continue.
+        if 'cf_mask' not in baseline_data:
             time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
             continue
-        clear_mask = create_cfmask_clean_mask(raw_data.cf_mask)
+
+        clear_mask = create_cfmask_clean_mask(baseline_data.cf_mask)
 
         # update metadata. # here the clear mask has all the clean
         # pixels for each acquisition.
         for timeslice in range(clear_mask.shape[0]):
-            time = datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
+            time = baseline_scenes[time_index + timeslice]
             clean_pixels = np.sum(
                 clear_mask[timeslice, :, :] == True)
             if time not in acquisition_metadata:
@@ -388,24 +386,52 @@ def generate_TOOL_chunk(time_num, chunk_num, processing_options=None, query=None
             acquisition_metadata[time][
                 'clean_pixels'] += clean_pixels
 
-        # Removes the cf mask variable from the dataset after the clear mask has been created.
-        # prevents the cf mask from being put through the mosaicing function as it doesn't fit
-        # the correct format w/ nodata values for mosaicing.
-        raw_data = raw_data.drop('cf_mask')
+        for key in list(baseline_data.data_vars):
+            baseline_data[key].values[np.invert(clear_mask)] = -9999
+        #cloud filter + nan out all nodata.
+        baseline_data = baseline_data.where(baseline_data != -9999)
 
-        iteration_data = processing_options['processing_method'](
-            raw_data, clean_mask=clear_mask, intermediate_product=iteration_data)
+        ndvi_baseline = (baseline_data.nir - baseline_data.red) / (baseline_data.nir + baseline_data.red)
+        iteration_data = ndvi_baseline.mean('time') if processing_options['processing_method'] == 'mean' else ndvi_baseline.median('time') if processing_options['processing_method'] == 'median' else create_mosaic(ndvi_baseline, clean_mask=clear_mask, reverse_time=True, intermediate_product=None)
         time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
+
+    #load and clean up the selected scene. Just mosaicked as it does the cfmask corrections
+    scene_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=(selected_scene - datetime.timedelta(hours=1), selected_scene + datetime.timedelta(hours=1)), longitude=lon_range, latitude=lat_range)
+    if 'cf_mask' not in scene_data or iteration_data is None:
+        return [None, None, None]
+    scene_cleaned = create_mosaic(scene_data, reverse_time=True, intermediate_product=None)
+
+    #masks out nodata and water.
+    water_class = wofs_classify(scene_cleaned, mosaic=True).wofs
+    scene_cleaned_nan = scene_cleaned.copy(deep=True).where((scene_cleaned.red != -9999) & (water_class == 0))
+
+    scene_ndvi = (scene_cleaned_nan.nir - scene_cleaned_nan.red) / (scene_cleaned_nan.nir + scene_cleaned_nan.red)
+    ndvi_difference = scene_ndvi - iteration_data
+    ndvi_percentage_change = (scene_ndvi - iteration_data) / iteration_data
+
+    #convert to conventional nodata vals.
+    scene_ndvi.values[~np.isfinite(scene_ndvi.values)] = -9999
+    ndvi_difference.values[~np.isfinite(ndvi_difference.values)] = -9999
+    ndvi_percentage_change.values[~np.isfinite(ndvi_percentage_change.values)] = -9999
+
+    scene_ndvi_dataset = xr.Dataset({'scene_ndvi': scene_ndvi,
+                                     'baseline_ndvi': iteration_data,
+                                     'ndvi_difference': ndvi_difference,
+                                     'ndvi_percentage_change': ndvi_percentage_change},
+                                     coords={'latitude': scene_data.latitude,
+                                             'longitude': scene_data.longitude})
 
     # Save this geographic chunk to disk.
     geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
-    # if this is an empty chunk, just return an empty dataset.
-    if iteration_data is None:
-        return [None, None]
-    iteration_data.to_netcdf(geo_path)
+    geo_path_ndvi = base_temp_path + query.query_id + "/geo_chunk_ndvi_" + \
+        str(time_num) + "_" + str(chunk_num) + ".nc"
+
+    scene_cleaned.to_netcdf(geo_path)
+    scene_ndvi_dataset.to_netcdf(geo_path_ndvi)
+
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
-    return [geo_path, acquisition_metadata]
+    return [geo_path, geo_path_ndvi, acquisition_metadata]
 
 def error_with_message(result, message):
     """
@@ -450,3 +476,9 @@ def shutdown_worker(**kwargs):
     print('Closing DC instance for worker.')
     global dc
     dc = None
+
+@task(name="get_acquisition_list")
+def get_acquisition_list(area, satellite):
+    # lists all acquisition dates for use in single tmeslice queries.
+    acquisitions = dc.list_acquisition_dates(satellite.satellite_id, satellite.product_prefix + area.area_id)
+    return acquisitions
