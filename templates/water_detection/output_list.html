@@ -61,24 +61,14 @@ under the License.
 {% endblock %}
 
 {% block download_options %}
-<option value="image_url">Water Percentages</option>
-<option value="water_observations_url">Water Observations</option>
-<option value="clear_observations_url">Clear Observations</option>
-<option value="water_animation_url">Water Animation</option>
-<option value="nc_url">netCDF</option>
-<option value="data_url">GeoTIFF</option>
+<option value="result_path">Water Percentages</option>
+<option value="water_observations_path">Water Observations</option>
+<option value="clear_observations_path">Clear Observations</option>
+<option value="animation_path">Water Animation</option>
+<option value="data_netcdf_path">Water Det netCDF</option>
+<option value="data_path">Water Det GeoTIFF</option>
 {% endblock %}
 
 {% block download_function %}
-//download products
-function set_dl_url() {
-    dl_link = "";
-    if(queries[selected_output]){
-      dl_link += queries[selected_output][$('#download_sel').val()];
-      if($('#download_sel').val() == "water_animation_url" && queries[selected_output].water_animation_url == "None")
-        return;
-      //window.open(dl_link, '_blank');
-      $("#output_list_download_button").attr("href", dl_link);
-    }
-}
+
 {% endblock %}

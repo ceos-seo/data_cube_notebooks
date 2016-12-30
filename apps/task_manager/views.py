@@ -52,7 +52,7 @@ def build_headers_dictionary(model):
 
     # List of attributes to filter out.  Note that these should match the attributes of the
     # class being passed in.
-    exclusion_list = ['query_id', 'user_id', 'product_type', 'description']
+    exclusion_list = ['query_id', 'user_id', 'product_type', 'description', 'query_start', 'query_end']
 
     headers = list()
     headers_dictionary = OrderedDict()

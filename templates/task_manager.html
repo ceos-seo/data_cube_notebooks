@@ -49,42 +49,24 @@ under the License.
   <div id="table-content" class="table-wrapper">
     <table id="query-list-table-full" class="query-table">
       <thead>
-	<tr>
-	  {% for key, values in formatted_headers_dictionary.items %}
-	  {% for v in values %}
-	  {% if forloop.last %}
-	  <th>More Info</th>
-	  {% else %}
-	  <th>{{v}}</th>
-	  {% endif %}
-	  {% endfor %}
-	  {% endfor %}
-	</tr>
+        <tr>
+          {% for key, values in formatted_headers_dictionary.items %}
+            {% for v in values %}
+            <th>{{v}}</th>
+            {% endfor %}
+            <th>More Info</th>
+          {% endfor %}
+        </tr>
       </thead>
       <tbody>
-	{% for key, values in data_dictionary.items %}
-	{% if forloop.counter|divisibleby:2 %}
-	<tr>
-	  {% for v in values %}
-	  {% if forloop.last %}
-	  <td class="details-column-even"><a href="{% url 'get_query_details' application_id v %}" class="btn">Details</a></td>
-	  {% else %}
-	  <td class="even">{{v}}</td>
-	  {% endif %}
-	  {% endfor %}
-	</tr>
-	{% else %}
-	<tr>
-	  {% for v in values %}
-	  {% if forloop.last %}
-	  <td class="details-column-odd"><a href="{% url 'get_query_details' application_id v %}" class="btn">Details</a></td>
-	  {% else %}
-	  <td class="odd">{{v}}</td>
-	  {% endif %}
-	  {% endfor %}
-	</tr>
-	{% endif %}
-	{% endfor %}
+      	{% for key, values in data_dictionary.items %}
+        	<tr>
+        	  {% for v in values %}
+          	  <td class="even">{{v}}</td>
+        	  {% endfor %}
+            <td class={% if forloop.counter|divisibleby:2 %}"details-column-even"{% else %}"details-column-odd"{% endif %}><a href="{% url 'get_query_details' application_id key.id %}" class="btn">Details</a></td>
+        	</tr>
+      	{% endfor %}
       </tbody>
     </table>
   </div>
