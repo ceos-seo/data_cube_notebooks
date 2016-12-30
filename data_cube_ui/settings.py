@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'apps.task_manager',
     'apps.tsm',
     'apps.fractional_cover',
+    'apps.slip',
     'data_cube_ui',
     'apps.accounts',
     'django.contrib.admin',
@@ -100,6 +101,7 @@ TEMPLATES = [
             os.path.join(BASE_DIR, 'templates/custom_mosaic_tool').replace('\\','/'),
             os.path.join(BASE_DIR, 'templates/water_detection').replace('\\','/'),
             os.path.join(BASE_DIR, 'templates/tsm').replace('\\','/'),
+            os.path.join(BASE_DIR, 'templates/slip').replace('\\','/'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -108,7 +110,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'data_cube_ui.context_processors.countries',
+                'data_cube_ui.context_processors.apps',
             ],
         },
     },
@@ -180,7 +182,8 @@ STATICFILES_DIRS = [
 CELERY_ROUTES = {'generate_mosaic_chunk': {'queue': 'chunk_processing'},
                  'generate_water_chunk': {'queue': 'chunk_processing'},
                  'generate_tsm_chunk': {'queue': 'chunk_processing'},
-                 'generate_fractional_cover_chunk': {'queue': 'chunk_processing'}}
+                 'generate_fractional_cover_chunk': {'queue': 'chunk_processing'},
+                 'generate_slip_chunk': {'queue': 'chunk_processing'}}
 
 BROKER_URL = 'redis://' + MASTER_NODE + ':6379'
 CELERY_RESULT_BACKEND = 'redis://' + MASTER_NODE + ':6379'

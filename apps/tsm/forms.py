@@ -69,35 +69,3 @@ class DataSelectForm(forms.Form):
                             for animation_type in AnimationType.objects.filter(app_name__in=["tsm", "all"]).order_by('app_name', 'type_id')]
             self.fields["animated_product"] = forms.ChoiceField(label='Generate Time Series Animation', widget=forms.Select(
         attrs={'class': 'field-long tooltipped'}), choices=animation_list, help_text='Generate a .gif containing tsm values for every scene. Use the output tab to download this result.')
-
-
-
-class GeospatialForm(forms.Form):
-    """
-    Django form for taking geospatial information for Query requests:
-        latitude_min
-        latitude_min
-        longitude_min
-        longitude_max
-        time_start
-        time_end
-    """
-
-    latitude_min = forms.FloatField(label='Min Latitude', widget=forms.NumberInput(
-        attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    latitude_max = forms.FloatField(label='Max Latitude', widget=forms.NumberInput(
-        attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    longitude_min = forms.FloatField(label='Min Longitude', widget=forms.NumberInput(
-        attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    longitude_max = forms.FloatField(label='Max Longitude', widget=forms.NumberInput(
-        attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    time_start = forms.DateField(label='Start Date', widget=forms.DateInput(
-        attrs={'class': 'datepicker field-divided', 'placeholder': '01/01/2010', 'required': 'required'}))
-    time_end = forms.DateField(label='End Date', widget=forms.DateInput(
-        attrs={'class': 'datepicker field-divided', 'placeholder': '01/02/2010', 'required': 'required'}))
-
-    def __init__(self, area=None, *args, **kwargs):
-        super(GeospatialForm, self).__init__(*args, **kwargs)
-        if area is not None:
-            self.fields['time_start'] = forms.DateField(initial=area.date_min.strftime("%m/%d/%Y"), label='Start Date', widget=forms.DateInput(attrs={'class': 'datepicker field-divided', 'required': 'required'}))
-            self.fields['time_end'] = forms.DateField(initial=area.date_max.strftime("%m/%d/%Y"), label='End Date', widget=forms.DateInput(attrs={'class': 'datepicker field-divided', 'required': 'required'}))

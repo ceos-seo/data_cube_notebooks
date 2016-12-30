@@ -29,8 +29,7 @@ import pytz
 from .utils import isEmailAddressValid
 from .models import Activation, Reset
 from .forms import LoginForm, RegistrationForm, PasswordChangeForm, LostPasswordForm, PasswordResetForm
-from data_cube_ui.models import Area
-from apps.task_manager.models import Application
+from data_cube_ui.models import Area, Application
 
 # Create your views here.
 
@@ -134,7 +133,6 @@ def reset(request, uuid):
                 return render(request, 'registration/reset.html', context)
 
     except:
-        raise
         form = LoginForm()
         form.cleaned_data = {}
         form.add_error(NON_FIELD_ERRORS, _("Invalid password reset url."))

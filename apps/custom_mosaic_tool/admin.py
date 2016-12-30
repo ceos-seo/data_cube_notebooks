@@ -43,20 +43,9 @@ class ResultAdmin(admin.ModelAdmin):
 class ResultTypeAdmin(admin.ModelAdmin):
     list_display = ('satellite_id','result_id','result_type')
 
-class SatelliteAdmin(admin.ModelAdmin):
-    list_display = ('satellite_id','satellite_name')
-
-class AreaAdmin(admin.ModelAdmin):
-    list_display = ('area_id','area_name','area_product')
-
-class CompositorAdmin(admin.ModelAdmin):
-    list_display = ('compositor_id','compositor')
-
 # Register your models here.
+
 admin.site.register(Query, QueryAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(ResultType, ResultTypeAdmin)
-admin.site.register(Satellite, SatelliteAdmin)
-admin.site.register(Area, AreaAdmin)
-admin.site.register(Compositor, CompositorAdmin)
