@@ -30,30 +30,14 @@
     <li><a href="/">Home</a></li>
     <li id="tools_list_li" ><a href="#" id="tools_list_parent">Tools</a>
       <ul id="tools_list">
-        <li><a id="map_tools" href="#">Custom Mosaic</a>
-          <ul>
-            {% for area in areas %}
-            <li><a id="{{ area.area_id }}" href="/custom_mosaic_tool/{{ area.area_id }}">{{ area.area_name }}</a></li>{% endfor %}
-          </ul>
-        </li>
-        <li><a id="water_detection" href="#">Water Detection</a>
-          <ul>
-            {% for area in areas %}
-            <li><a id="{{ area.area_id }}" href="/water_detection/{{ area.area_id }}">{{ area.area_name }}</a></li>{% endfor %}
-          </ul>
-        </li>
-        <li><a id="tsm" href="#">TSM</a>
-          <ul>
-            {% for area in areas %}
-            <li><a id="{{ area.area_id }}" href="/tsm/{{ area.area_id }}">{{ area.area_name }}</a> </li>{% endfor %}
-          </ul>
-        </li>
-        <li><a id="fractional_cover" href="#">Fractional Cover</a>
-          <ul>
-            {% for area in areas %}
-            <li><a id="{{ area.area_id }}" href="/fractional_cover/{{ area.area_id }}">{{ area.area_name }}</a> </li>{% endfor %}
-          </ul>
-        </li>
+        {% for app in apps %}
+          <li><a id="{{ app.application_id }}" href="#">{{ app.application_name }}</a>
+            <ul>
+              {% for area in app.areas.all %}
+              <li><a id="{{ area.area_id }}" href="/{{ app.application_id }}/{{ area.area_id }}">{{ area.area_name }}</a></li>{% endfor %}
+            </ul>
+          </li>
+        {% endfor %}
       </ul>
     </li>
     <li id="task_manager_li"><a id="task-manager-nav" href="#">Task Manager</a>

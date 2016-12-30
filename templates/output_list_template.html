@@ -69,4 +69,16 @@ under the License.
       set_dl_url();
       set_selected_result(query_id);
   }
+
+  function set_dl_url() {
+      dl_link = "";
+      if(queries[selected_output]){
+        dl_link += queries[selected_output][$('#download_sel').val()];
+        if($('#download_sel').val() == "animation_path" && queries[selected_output].animation_path == "None")
+          return;
+        //window.open(dl_link, '_blank');
+        $("#output_list_download_button").attr("href", dl_link);
+        $("#output_list_download_button").attr("download", $("#download_sel option:selected").text().replace(/ /g,"_") + "." + dl_link.split('.').pop());
+      }
+  }
 </script>

@@ -20,7 +20,7 @@
 # under the License.
 
 from .models import Query
-from data_cube_ui.models import Area
+from data_cube_ui.models import Area, Satellite
 from datetime import datetime
 
 """
@@ -52,51 +52,18 @@ def create_query_from_post(user_id, post):
     end = datetime.strptime(post['time_end'], '%m/%d/%Y')
 
     # hardcoded product, user id. Will be changed.
-    query = Query(query_start=datetime.now(), query_end=datetime.now(), user_id=user_id, latitude_max=post[
-        'latitude_max'], latitude_min=post['latitude_min'],
-        longitude_max=post['longitude_max'], longitude_min=post[
-        'longitude_min'],
-        time_start=start, time_end=end, platform=post[
-        'platform'], compositor=post['compositor_selection'])
-    if 'title' not in post or post['title'] == '':
-        query.title = "Fractional Cover"
-    else:
-        query.title = post['title']
-    if 'description' not in post or post['description'] == '':
-        query.description = "None"
-    else:
-        query.description = post['description']
+    query = Query(query_start=datetime.now(), query_end=datetime.now(), user_id=user_id,
+                  latitude_max=post['latitude_max'], latitude_min=post['latitude_min'],
+                  longitude_max=post['longitude_max'], longitude_min=post['longitude_min'],
+                  time_start=start, time_end=end,
+                  platform=post['platform'], compositor=post['compositor_selection'],
+                  area_id=post['area_id'])
 
-    query.area_id = post['area_id']
-    query.product = Area.objects.get(area_id=query.area_id).area_product
+    query.title = query.get_compositor_name() + " Frac. Cover" if 'title' not in post or post['title'] == '' else post['title']
+    query.description = "None" if 'description' not in post or post['description'] == '' else post['description']
+
+    query.product = Satellite.objects.get(satellite_id=query.platform).product_prefix + Area.objects.get(area_id=query.area_id).area_id
     query.query_id = query.generate_query_id()
-    query.complete = False
-    query.save()
+    if not Query.objects.filter(query_id=query.query_id).exists():
+        query.save()
     return query.query_id
-
-
-# pulled from peterbe.com since there were benchmarks listed.
-# removes duplicates from python lists.
-def uniquify_list(seq):
-    seen = set()
-    return [x for x in seq if x not in seen and not seen.add(x)]
-
-
-def update_model_bounds_with_dataset(model_list, dataset):
-    for model in model_list:
-        model.latitude_max = dataset.latitude.values[0]
-        model.latitude_min = dataset.latitude.values[-1]
-        model.longitude_max = dataset.longitude.values[-1]
-        model.longitude_min = dataset.longitude.values[0]
-        model.save()
-
-def map_ranges(value, leftMin, leftMax, rightMin, rightMax):
-    # Figure out how 'wide' each range is
-    leftSpan = leftMax - leftMin
-    rightSpan = rightMax - rightMin
-    import numpy as np
-    # Convert the left range into a 0-1 range (float)
-    valueScaled = (value.astype(np.float64) - leftMin) / float(leftSpan)
-
-    # Convert the 0-1 range into a value in the right range.
-    return rightMin + (valueScaled * rightSpan)

@@ -48,19 +48,19 @@ under the License.
   <dt>
     Results:
   </dt>
-  <dd><b>Water Percentage Image Path:</b> <a href={{result.water_percentage_path}} target="_blank">View image</a></dd>
+  <dd><b>Water Percentage Image Path:</b> <a href={{result.result_path}} target="_blank">View image</a></dd>
   <dd><b>Water Observations Image Path:</b> <a href={{result.water_observations_path}}>View image</a></dd>
   <dd><b>Clear Observations Image Path:</b> <a href={{result.clear_observations_path}}>View image</a></dd>
-  {% if result.water_animation_path != "None" %}
-  <dd><b>Water Animation GIF Path:</b> <a href={{result.water_animation_path}}>Download gif</a></dd>
+  {% if result.animation_path != "None" %}
+  <dd><b>Water Animation GIF Path:</b> <a href={{result.animation_path}}>Download gif</a></dd>
   {% endif %}
-  <dd><b>Data GeoTiff Path:</b> <a href={{result.data_path}}>Download tif</a></dd>
+  <dd><b>Data GeoTIFF Path:</b> <a href={{result.data_path}}>Download tif</a></dd>
   <dd><b>Data NetCDF Path:</b> <a href={{result.data_netcdf_path}}>Download nc</a></dd>
 </dl>
 {% endblock %}
 {% block image_display %}
-<img src={{result.water_percentage_path}} class="image-display" />
-<span class="image-description">{{result.water_percentage_path}}</span>
+<img src={{result.result_path}} class="image-display" />
+<span class="image-description">{{result.result_path}}</span>
 {% endblock %}
 {% block scenes_block %}
 <b>Scene List: </b>

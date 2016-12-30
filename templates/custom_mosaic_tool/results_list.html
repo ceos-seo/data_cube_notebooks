@@ -79,8 +79,8 @@ under the License.
 //outline is shown as visible
 function toggle_highlight_nodata(checkbox, query_id) {
   map.remove_image_by_id(queries[query_id].query_id);
-  image_url = checkbox.checked ? queries[query_id].image_filled_url : queries[query_id].image_url;
-  add_result_to_map(query_id, image_url);
+  result_path = checkbox.checked ? queries[query_id].result_filled_path : queries[query_id].result_path;
+  add_result_to_map(query_id, result_path);
   map.toggle_outline_by_id(query_id, true);
 }
 {% endblock %}

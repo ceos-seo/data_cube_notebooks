@@ -36,8 +36,6 @@ allow for input validation and passing of data.  Includes forms for creating Que
 # Modified by:
 # Last modified date:
 
-years_range = list(range(1990, datetime.datetime.now().year+1))
-
 class DataSelectForm(forms.Form):
     """
     Django form to be created for selecting information and validating input for:
@@ -45,11 +43,11 @@ class DataSelectForm(forms.Form):
         band_selection
         title
         description
+    Init function to initialize dynamic forms.
     """
 
     #these are done in the init funct.
     result_type = forms.ChoiceField(label='Result Type (Map view/png):', widget=forms.Select(attrs={'class': 'field-long'}))
-
 
     title = forms.CharField(widget=forms.HiddenInput())
     description = forms.CharField(widget=forms.HiddenInput())
@@ -59,36 +57,14 @@ class DataSelectForm(forms.Form):
         if satellite_id is not None:
             #populate the results list and recreate the form element.
             result_types = ResultType.objects.filter(satellite_id=satellite_id)
+
             results_list = [(result.result_id, result.result_type) for result in result_types]
             self.fields["result_type"] = forms.ChoiceField(help_text='Select the type of image you would like displayed.', label='Result Type (Map view/png):', choices=results_list, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
-            compositor_list = [(compositor.compositor_id, compositor.compositor) for compositor in Compositor.objects.all()]
+
+            compositor_list = [(compositor.compositor_id, compositor.compositor_name) for compositor in Compositor.objects.all()]
             self.fields["compositor_selection"] = forms.ChoiceField(help_text='Select the method by which the "best" pixel will be chosen.', label="Compositing Method:", choices=compositor_list, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+
             animation_list = [(animation_type.type_id, animation_type.type_name)
                             for animation_type in AnimationType.objects.filter(app_name__in=["custom_mosaic_tool", "all"]).order_by('app_name', 'type_id')]
             self.fields["animated_product"] = forms.ChoiceField(label='Generate Time Series Animation', widget=forms.Select(
                 attrs={'class': 'field-long tooltipped'}), choices=animation_list, help_text='Generate a .gif containing either scene data or the cumulative mosaic over time. This is not compatible with median pixel mosaics.')
-
-
-class GeospatialForm(forms.Form):
-    """
-    Django form for taking geospatial information for Query requests:
-        latitude_min
-        latitude_min
-        longitude_min
-        longitude_max
-        time_start
-        time_end
-    """
-
-    latitude_min = forms.FloatField(label='Min Latitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    latitude_max = forms.FloatField(label='Max Latitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    longitude_min = forms.FloatField(label='Min Longitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    longitude_max = forms.FloatField(label='Max Longitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    time_start = forms.DateField(label='Start Date', widget=forms.DateInput(attrs={'class': 'datepicker field-divided', 'placeholder': '01/01/2010', 'required': 'required'}))
-    time_end = forms.DateField(label='End Date', widget=forms.DateInput(attrs={'class': 'datepicker field-divided', 'placeholder': '01/02/2010', 'required': 'required'}))
-
-    def __init__(self, area=None, *args, **kwargs):
-        super(GeospatialForm, self).__init__(*args, **kwargs)
-        if area is not None:
-            self.fields['time_start'] = forms.DateField(initial=area.date_min.strftime("%m/%d/%Y"), label='Start Date', widget=forms.DateInput(attrs={'class': 'datepicker field-divided', 'required': 'required'}))
-            self.fields['time_end'] = forms.DateField(initial=area.date_max.strftime("%m/%d/%Y"), label='End Date', widget=forms.DateInput(attrs={'class': 'datepicker field-divided', 'required': 'required'}))
