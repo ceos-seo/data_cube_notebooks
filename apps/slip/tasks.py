@@ -163,9 +163,7 @@ def create_slip(query_id, user_id):
         acquisitions_extension = dc.list_acquisition_dates(query.platform, query.product, longitude=(
             query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
         initial_acquisition = acquisitions_extension.index(acquisitions[0])-query.baseline_length if acquisitions_extension.index(acquisitions[0])-query.baseline_length > 0 else 0
-        print(acquisitions, len(acquisitions))
         acquisitions = acquisitions_extension[initial_acquisition:acquisitions_extension.index(acquisitions[-1])+1]
-        print(acquisitions, len(acquisitions))
         if len(acquisitions) < query.baseline_length + 1:
             error_with_message(result, "There are only " + str(len(acquisitions)) + " acquisitions for your parameter set. The acquisition count must be at least one greater than the baseline length.")
             return
@@ -202,6 +200,7 @@ def create_slip(query_id, user_id):
 
         # holds some acquisition based metadata. dict of objs keyed by date
         dataset_out_mosaic = None
+        dataset_out_baseline_mosaic = None
         dataset_out_slip = None
         acquisition_metadata = {}
         for geographic_group in time_chunk_tasks:
@@ -224,8 +223,9 @@ def create_slip(query_id, user_id):
             print("Got results for a time slice, computing intermediate product..")
             xr_tiles_mosaic = []
             xr_tiles_slip = []
+            xr_tiles_baseline_mosaic = []
             for tile in tiles:
-                tile_metadata = tile[2]
+                tile_metadata = tile[3]
                 for acquisition_date in tile_metadata:
                     if acquisition_date in acquisition_metadata:
                         acquisition_metadata[acquisition_date]['clean_pixels'] += tile_metadata[acquisition_date]['clean_pixels']
@@ -235,11 +235,18 @@ def create_slip(query_id, user_id):
                                                                   'slip_pixels': tile_metadata[acquisition_date]['slip_pixels']}
                 xr_tiles_mosaic.append(xr.open_dataset(tile[0]))
                 xr_tiles_slip.append(xr.open_dataset(tile[1]))
+                xr_tiles_baseline_mosaic.append(xr.open_dataset(tile[2]))
             #create cf mosaic
             full_dataset_mosaic = xr.concat(reversed(xr_tiles_mosaic), dim='latitude')
             dataset_mosaic = full_dataset_mosaic.load()
             dataset_out_mosaic = processing_options['chunk_combination_method'](dataset_mosaic, dataset_out_mosaic)
-            #now frac.
+
+            #create baseline mosaic
+            full_dataset_baseline_mosaic = xr.concat(reversed(xr_tiles_baseline_mosaic), dim='latitude')
+            dataset_baseline_mosaic = full_dataset_baseline_mosaic.load()
+            dataset_out_baseline_mosaic = processing_options['chunk_combination_method'](dataset_baseline_mosaic, dataset_out_baseline_mosaic)
+
+            #now slip.
             full_dataset_slip = xr.concat(reversed(xr_tiles_slip), dim='latitude')
             dataset_slip = full_dataset_slip.load()
             dataset_out_slip = processing_options['chunk_combination_method'](dataset_slip, dataset_out_slip)
@@ -283,10 +290,18 @@ def create_slip(query_id, user_id):
         tif_path = file_path + '.tif'
         netcdf_path = file_path + '.nc'
         mosaic_png_path = file_path + '_mosaic.png'
+        baseline_mosaic_png_path = file_path + '_baseline_mosaic.png'
         slip_png_path = file_path + "_slip.png"
 
         print("Creating query results.")
         #Mosaic
+
+        save_to_geotiff(tif_path, gdal.GDT_Int16, dataset_out_baseline_mosaic, geotransform, get_spatial_ref(crs),
+                        x_pixels=dataset_out_mosaic.dims['longitude'], y_pixels=dataset_out_mosaic.dims['latitude'],
+                        band_order=['blue', 'green', 'red'])
+        # we've got the tif, now do the png. -> RGB
+        bands = [3, 2, 1]
+        create_rgb_png_from_tiff(tif_path, baseline_mosaic_png_path, png_filled_path=None, fill_color=None, bands=bands, scale=(0, 4096))
 
         save_to_geotiff(tif_path, gdal.GDT_Int16, dataset_out_mosaic, geotransform, get_spatial_ref(crs),
                         x_pixels=dataset_out_mosaic.dims['longitude'], y_pixels=dataset_out_mosaic.dims['latitude'],
@@ -305,6 +320,7 @@ def create_slip(query_id, user_id):
         # update the results and finish up.
         update_model_bounds_with_dataset([result, meta, query], dataset_out_mosaic)
         result.result_mosaic_path = mosaic_png_path
+        result.baseline_mosaic_path = baseline_mosaic_png_path
         result.result_path = slip_png_path
         result.data_path = tif_path
         result.data_netcdf_path = netcdf_path
@@ -383,6 +399,9 @@ def generate_slip_chunk(time_num, chunk_num, processing_options=None, query=None
         is_above_slope_threshold = create_slope_mask(aster, degree_threshold = 15, resolution = 30)
         comparison_red_slope_filtered = comparison_red_filtered.where(is_above_slope_threshold)
 
+        #gather all relevant values from the baseline mosaics, average them, and insert them into the mosaic for the baseline mosaic.
+        baseline_mosaic_data = iteration_data.where(comparison_red_slope_filtered > 0).mean('time')
+        baseline_mosaic = iteration_data.copy(deep=True)
         # update metadata. # here the clear mask has all the clean
         # pixels for each acquisition.
         for timeslice in range(len(comparison_red_slope_filtered.time)):
@@ -408,21 +427,25 @@ def generate_slip_chunk(time_num, chunk_num, processing_options=None, query=None
         for band in iteration_data.data_vars:
             slip[band].values[comparison_red_slope_filtered.isnull()[band].values] = iteration_data[band].values[comparison_red_slope_filtered.isnull()[band].values]
             iteration_data[band].values[~comparison_red_slope_filtered.isnull()[band].values] = comparison_red_slope_filtered[band].values[~comparison_red_slope_filtered.isnull()[band].values]
+            baseline_mosaic[band].values[~baseline_mosaic_data.isnull()[band].values] = baseline_mosaic_data[band].values[~baseline_mosaic_data.isnull()[band].values]
 
         time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
 
     # Save this geographic chunk to disk.
     geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
+    geo_path_baseline = base_temp_path + query.query_id + "/geo_chunk_baseline" + \
+        str(time_num) + "_" + str(chunk_num) + ".nc"
     slip_path = base_temp_path + query.query_id + "/geo_chunk_slip_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
     # if this is an empty chunk, just return an empty dataset.
     if iteration_data is None:
-        return [None, None, None]
+        return [None, None, None, None]
     iteration_data.to_netcdf(geo_path)
     slip.to_netcdf(slip_path)
+    baseline_mosaic.to_netcdf(geo_path_baseline)
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
-    return [geo_path, slip_path, acquisition_metadata]
+    return [geo_path, slip_path, geo_path_baseline, acquisition_metadata]
 
 def error_with_message(result, message):
     """

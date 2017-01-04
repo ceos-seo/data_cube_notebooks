@@ -63,7 +63,8 @@ class Query(BaseQuery):
             query_id (string): The ID of the query built up by object attributes.
         """
         query_id = self.time_start.strftime("%Y-%m-%d") + '-' + self.time_end.strftime("%Y-%m-%d") + '-' + str(self.latitude_max) + '-' + str(
-            self.latitude_min) + '-' + str(self.longitude_max) + '-' + str(self.longitude_min) + '-' + self.baseline + '-' + self.platform + '-' + self.product
+            self.latitude_min) + '-' + str(self.longitude_max) + '-' + str(self.longitude_min) + '-' + self.baseline + '-' + str(
+            self.baseline_length) + '-' + self.platform + '-' + self.product
         return query_id
 
     def generate_metadata(self, scene_count=0, pixel_count=0):
@@ -115,5 +116,6 @@ class Result(BaseResult):
 
     # result path + other data. More to come.
     result_mosaic_path = models.CharField(max_length=250, default="")
+    baseline_mosaic_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
     data_path = models.CharField(max_length=250, default="")
