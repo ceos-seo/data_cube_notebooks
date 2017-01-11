@@ -7,7 +7,6 @@ Before beginning this installation process ensure the Data Cube has been properl
 Contents
 =================
 
-  * [Revision History](#revision_history)
   * [Introduction](#introduction)
   * [Checking Out Code](#checking_out_code)
   * [Installation Process](#installation_process)
@@ -16,16 +15,6 @@ Contents
   * [Running the Application](#running_the_application)
   * [Importing Areas and Adding New Areas](#importing_areas_of_interest)
   * [Common problems/FAQs](#faws)
-
-
-
-Revision History  <a name="revision_history"></a>
-=================
-
-Author |	Revision|	Date|	Changes  
-------|-------  
-M. Platt|	001|	12/23/2016|	Initial copy|
-A. DelosSantos|	002|	12/27/2016	|Minor revisions 
 			
 
 Introduction <a name="introduction"></a>
