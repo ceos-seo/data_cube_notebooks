@@ -2,7 +2,7 @@ Data Cube UI Installation Guide
 =================
 
 
-Before beginning this installation process ensure the Data Cube has been properly installed and data has been ingested. For installation and ingestion instructions, refer to [this guide]().
+Before beginning this installation process ensure the Data Cube has been properly installed and data has been ingested. For installation and ingestion instructions, refer to [this guide](http://www.ceos-cube.org/docs/installation/index.html).
 
 Contents
 =================
@@ -17,7 +17,7 @@ Contents
   * [Common problems/FAQs](#faws)
 			
 
-Introduction <a name="introduction"></a>
+<a name="introduction"></a> Introduction 
 =================
 The UI application is designed for high level use of the Data Cube.  It allows for users to:  
 
@@ -32,17 +32,19 @@ The UI application is designed for high level use of the Data Cube.  It allows f
 This document outlines the steps required to set up the UI given the previous DataCube base installation instructions have been followed.
 
 
-Checking Out Code <a name="checking_out_code"></a>
+
+<a name="checking_out_code"></a>Checking Out Code 
 =================
 
-The code should be checked out to the Datacube directory that was created from the previous [datacube installation document]():
+The code should be checked out to the Datacube directory that was created from the previous [datacube installation document](http://www.ceos-cube.org/docs/installation/index.html):
 
 	cd ~/Datacube
 	git clone https://github.com/ceos-seo/data_cube_ui.git -b master
 	cd ~/Datacube/data_cube_ui
-	git submodule init && git submodule update
+	git submodule init && git submodule update  
 
-Installation Process <a name="installation_process"></a>
+
+<a name="installation_process"></a>Installation Process 
 =================
 There are two dependencies that will need to be installed that accompany the application:  
 
@@ -67,7 +69,7 @@ The next set of dependencies are installed in the python virtual environment:
 
 	sudo apt-get install -y redis-server  
 
-Configuration <a name="configuration"></a>
+<a name="configuration"></a>Configuration
 ================= 
 
 Edit the `dc_ui.conf` file found at `~/Datacube/data_cube_ui/config/dc_ui.conf`:  
@@ -98,7 +100,7 @@ Copy the `.datacube.conf` file to your home directory:
 
 	sudo cp ~/Datacube/data_cube_ui/config/.datacube.conf ~/.datacube.conf  
 
-Creating a User Account  <a name="creating_a_user_account"></a>
+<a name="creating_a_user_account"></a> Creating a User Account 
 ============  
 
 In order to log in to the application, a user account must be created to authenticate against.
@@ -140,7 +142,7 @@ The terminal will ask for three pieces of information:
 - `password` - alpha-numeric (at least 8 characters long). For the sake of easy/consistent installation, use `localuser1234`  
 
 
-Running the Application<a name="running_the_application"></a>
+<a name="running_the_application"></a> Running the Application
 ==============
 
 In order to run the application, `Celery` and `Redis` must be started.
@@ -162,7 +164,7 @@ To start Celery:
 
 Navigate to the site’s home page by getting the IP address (ifconfig) and typing that directly into the URL box in the browser.
 
-Importing Areas and Adding New Areas<a name="importing_areas_of_interest"></a>
+<a name="importing_areas_of_interest"></a> Importing Areas and Adding New Areas
 ===
 
 The DataCube UI comes with a set of default areas along with having the ability to add new areas with ease:
@@ -179,7 +181,7 @@ The DataCube UI comes with a set of default areas along with having the ability 
 		- Click the add button and fill out the data with the appropriate information.  
 		- Hit the save button and the area will have been added to the UI database allowing for use in the application.
 
-Common problems/FAQs <a name="faqs"></a>
+<a name="faqs"></a> Common problems/FAQs
 ========  
 ----  
 
