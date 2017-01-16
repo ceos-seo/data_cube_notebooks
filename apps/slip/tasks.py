@@ -408,7 +408,7 @@ def generate_slip_chunk(time_num, chunk_num, processing_options=None, query=None
             slip_slice = comparison_red_slope_filtered.isel(time=timeslice).red.values
             baseline_slice = baseline.isel(time=timeslice).red.values
             if len(slip_slice[slip_slice > 0]) > 0:
-                time = acquisition_list[time_index + timeslice]
+                time = datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
                 if time not in acquisition_metadata:
                     acquisition_metadata[time] = {}
                     acquisition_metadata[time]['clean_pixels'] = 0

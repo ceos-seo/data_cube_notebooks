@@ -441,7 +441,7 @@ def generate_water_chunk(time_num, chunk_num, processing_options=None, query=Non
         # here the clear mask has all the clean pixels for each acquisition.
         # add to the comma seperated list of data.
         for timeslice in range(clean_mask.shape[0]):
-            time = acquisition_list[time_index + timeslice]
+            time = datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
             clean_pixels = np.sum(clean_mask[timeslice, :, :] == True)
             water_pixels = np.sum(wofs_data.wofs.values[timeslice, :, :] == 1)
             if time not in acquisition_metadata:
