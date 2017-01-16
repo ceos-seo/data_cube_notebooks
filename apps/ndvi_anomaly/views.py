@@ -150,7 +150,7 @@ def submit_new_single_request(request):
             query.title = "Single acquisition for " + request.POST['date']
             query.query_id = query.generate_query_id()
             query.save();
-            create_ndvi_anomaly.delay(query.query_id, user_id)
+            create_ndvi_anomaly.delay(query.query_id, user_id, single=False)
             response.update(model_to_dict(query))
         except:
             response['msg'] = "ERROR"

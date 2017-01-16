@@ -157,7 +157,7 @@ def submit_new_single_request(request):
             query.title = "Single scene analysis " + request.POST['date']
             query.query_id = query.generate_query_id()
             query.save()
-            perform_tsm_analysis.delay(query.query_id, user_id)
+            perform_tsm_analysis.delay(query.query_id, user_id, single=False)
             response.update(model_to_dict(query))
         except:
             response['msg'] = "ERROR"

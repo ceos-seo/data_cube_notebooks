@@ -150,7 +150,7 @@ def submit_new_single_request(request):
             query.title = "Single acquisition for " + request.POST['date']
             query.query_id = query.generate_query_id()
             query.save();
-            create_slip.delay(query.query_id, user_id)
+            create_slip.delay(query.query_id, user_id, single=True)
             response.update(model_to_dict(query))
         except:
             response['msg'] = "ERROR"

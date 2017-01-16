@@ -147,7 +147,7 @@ processing_algorithms = {
 }
 
 @task(name="fractional_cover_task")
-def create_fractional_cover(query_id, user_id):
+def create_fractional_cover(query_id, user_id, single=False):
     """
     Creates metadata and result objects from a query id. gets the query, computes metadata for the
     parameters and saves the model. Uses the metadata to query the datacube for relevant data and
@@ -196,7 +196,11 @@ def create_fractional_cover(query_id, user_id):
             return
 
         processing_options = processing_algorithms[query.compositor]
-
+        #if its a single scene, load it all at once to prevent errors.
+        if single:
+            processing_options['time_chunks'] = None
+            processing_options['time_slices_per_iteration'] = None
+            
         # Reversed time = True will make it so most recent = First, oldest = Last.
         #default is in order from oldest -> newwest.
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(

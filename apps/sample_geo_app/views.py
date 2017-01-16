@@ -155,7 +155,7 @@ def submit_new_single_request(request):
             query.title = "Single acquision for " + request.POST['date']
             query.query_id = query.generate_query_id()
             query.save();
-            create_cloudfree_mosaic.delay(query.query_id, user_id)
+            create_cloudfree_mosaic.delay(query.query_id, user_id, single=True)
             response['request_id'] = query.query_id
         except:
             response['msg'] = "ERROR"
