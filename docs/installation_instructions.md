@@ -173,7 +173,7 @@ The DataCube UI comes with a set of default areas along with having the ability 
 
 		source ~/Datacube/datacube_env/bin/activate  
 		cd ~/Datacube/data_cube_ui  
-		python manage.py loaddata db_backups/empty_db.json
+		python manage.py loaddata db_backups/init_database.json
 	- Another option for adding areas is to do this through the admin page of the UI
 		- Start by navigating to the URL:
 			`http://<IP_ADDRESS>/admin`
