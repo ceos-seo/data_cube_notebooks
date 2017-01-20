@@ -202,7 +202,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         if single:
             processing_options['time_chunks'] = None
             processing_options['time_slices_per_iteration'] = None
-            
+
         #animation related checks.. kinda bad but it'll do for now.
         if query.animated_product != "None":
             processing_options["time_slices_per_iteration"] = 1
@@ -252,7 +252,6 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                     print("Cancelled task.")
                     shutil.rmtree(base_temp_path + query.query_id)
                     query.delete()
-                    meta.delete()
                     result.delete()
                     return
                 if tile[0] is not None:
@@ -282,7 +281,6 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                           print("Cancelled task.")
                           shutil.rmtree(base_temp_path + query.query_id)
                           query.delete()
-                          meta.delete()
                           result.delete()
                           return
                       animation_tiles = []

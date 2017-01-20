@@ -251,7 +251,6 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                     print("Cancelled task.")
                     shutil.rmtree(base_temp_path + query.query_id)
                     query.delete()
-                    meta.delete()
                     result.delete()
                     return
                 if tile[0] is not None:

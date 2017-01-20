@@ -200,7 +200,7 @@ def create_fractional_cover(query_id, user_id, single=False):
         if single:
             processing_options['time_chunks'] = None
             processing_options['time_slices_per_iteration'] = None
-            
+
         # Reversed time = True will make it so most recent = First, oldest = Last.
         #default is in order from oldest -> newwest.
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
@@ -243,7 +243,6 @@ def create_fractional_cover(query_id, user_id, single=False):
                     print("Cancelled task.")
                     shutil.rmtree(base_temp_path + query.query_id)
                     query.delete()
-                    meta.delete()
                     result.delete()
                     return
                 if tile[0] is not None:
