@@ -64,8 +64,12 @@ under the License.
   <td class="right_aligned_text"><input type="checkbox" name="show_mosaic" onclick="show_result(this, '{{ query.query_id }}', 2)"></td>
 </tr>
 <tr>
-  <td>Show Scene:</td>
+  <td>Show Baseline NDVI:</td>
   <td class="right_aligned_text"><input type="checkbox" name="show_mosaic" onclick="show_result(this, '{{ query.query_id }}', 3)"></td>
+</tr>
+<tr>
+  <td>Show Scene:</td>
+  <td class="right_aligned_text"><input type="checkbox" name="show_mosaic" onclick="show_result(this, '{{ query.query_id }}', 4)"></td>
 </tr>
 {% endblock %}
 {% block meta_table_rows %}
@@ -103,6 +107,9 @@ function show_result(checkbox, query_id, id) {
       result_path = queries[query_id].scene_ndvi_path;
       break;
     case 3:
+      result_path = queries[query_id].baseline_ndvi_path;
+      break;
+    case 4:
       result_path = queries[query_id].result_mosaic_path;
       break;
   }

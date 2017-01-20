@@ -106,6 +106,7 @@ class Result(BaseResult):
 
     # result path + other data. More to come.
     scene_ndvi_path = models.CharField(max_length=250, default="")
+    baseline_ndvi_path = models.CharField(max_length=250, default="")
     ndvi_percentage_change_path = models.CharField(max_length=250, default="")
     result_mosaic_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")

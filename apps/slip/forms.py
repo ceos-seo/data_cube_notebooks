@@ -49,7 +49,7 @@ class DataSelectForm(forms.Form):
     title = forms.CharField(widget=forms.HiddenInput())
     description = forms.CharField(widget=forms.HiddenInput())
 
-    baseline_length = forms.ChoiceField(help_text='Select the number of acquisitions that will be used to create the baseline', label="Baseline Length:", choices=[(number, number) for number in range(1,11)], widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+    baseline_length = forms.ChoiceField(help_text='Select the number of acquisitions that will be used to create the baseline', label="Baseline Length (Acquisitions):", choices=[(number, number) for number in range(1,11)], widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
     def __init__(self, *args, **kwargs):
         super(DataSelectForm, self).__init__(*args, **kwargs)

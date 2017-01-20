@@ -42,7 +42,7 @@ from utils.dc_mosaic import create_mosaic
 from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task
 from utils.dc_baseline import generate_baseline
 from utils.dc_demutils import create_slope_mask
-
+from utils.dc_water_classifier import wofs_classify
 from data_cube_ui.utils import update_model_bounds_with_dataset, map_ranges
 
 """
@@ -56,7 +56,7 @@ Class for handling loading celery workers to perform tasks asynchronously.
 
 # constants up top for easy access/modification
 # hardcoded colors input path..
-color_paths = ['~/Datacube/data_cube_ui/utils/color_scales/ndvi', '~/Datacube/data_cube_ui/utils/color_scales/ndvi_difference', '~/Datacube/data_cube_ui/utils/color_scales/ndvi_percentage_change']
+color_paths = ['~/Datacube/data_cube_ui/utils/color_scales/ndvi', '~/Datacube/data_cube_ui/utils/color_scales/ndvi', '~/Datacube/data_cube_ui/utils/color_scales/ndvi_difference', '~/Datacube/data_cube_ui/utils/color_scales/ndvi_percentage_change']
 
 base_result_path = '/datacube/ui_results/ndvi_anomaly/'
 base_temp_path = '/datacube/ui_results_temp/'
@@ -274,7 +274,7 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
         tif_path = file_path + '.tif'
         netcdf_path = file_path + '.nc'
         mosaic_png_path = file_path + '_mosaic.png'
-        result_paths = [file_path + '_ndvi.png', file_path + "_ndvi_difference.png", file_path + "_ndvi_percentage_change.png"]
+        result_paths = [file_path + '_ndvi.png', file_path + '_baseline_ndvi.png', file_path + "_ndvi_difference.png", file_path + "_ndvi_percentage_change.png"]
 
         print("Creating query results.")
         #Mosaic
@@ -288,7 +288,7 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
         dataset_out_ndvi.to_netcdf(netcdf_path)
         save_to_geotiff(tif_path, gdal.GDT_Float64, dataset_out_ndvi, geotransform, get_spatial_ref(crs),
                         x_pixels=dataset_out_mosaic.dims['longitude'], y_pixels=dataset_out_mosaic.dims['latitude'],
-                        band_order=['scene_ndvi', 'ndvi_difference', 'ndvi_percentage_change'])
+                        band_order=['scene_ndvi', 'baseline_ndvi', 'ndvi_difference', 'ndvi_percentage_change'])
         # we've got the tif, now do the png set..
         # uses gdal dem with custom color maps..
         for index in range(len(color_paths)):
@@ -301,8 +301,9 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
         update_model_bounds_with_dataset([result, meta, query], dataset_out_mosaic)
         result.result_mosaic_path = mosaic_png_path
         result.scene_ndvi_path = result_paths[0]
-        result.result_path = result_paths[1]
-        result.ndvi_percentage_change_path = result_paths[2]
+        result.baseline_ndvi_path = result_paths[1]
+        result.result_path = result_paths[2]
+        result.ndvi_percentage_change_path = result_paths[3]
         result.data_path = tif_path
         result.data_netcdf_path = netcdf_path
         result.status = "OK"
@@ -400,18 +401,22 @@ def generate_ndvi_anomaly_chunk(time_num, chunk_num, processing_options=None, qu
     if 'cf_mask' not in scene_data or iteration_data is None:
         return [None, None, None]
     scene_cleaned = create_mosaic(scene_data, reverse_time=True, intermediate_product=None)
-    scene_cleaned_nan = scene_cleaned.copy(deep=True).where(scene_cleaned.red != -9999)
+
+    #masks out nodata and water.
+    water_class = wofs_classify(scene_cleaned, mosaic=True).wofs
+    scene_cleaned_nan = scene_cleaned.copy(deep=True).where((scene_cleaned.red != -9999) & (water_class == 0))
 
     scene_ndvi = (scene_cleaned_nan.nir - scene_cleaned_nan.red) / (scene_cleaned_nan.nir + scene_cleaned_nan.red)
-    scene_ndvi.values[~np.isfinite(scene_ndvi.values)] = -9999
-
     ndvi_difference = scene_ndvi - iteration_data
-    ndvi_difference.values[~np.isfinite(ndvi_difference.values)] = -9999
-
     ndvi_percentage_change = (scene_ndvi - iteration_data) / iteration_data
+
+    #convert to conventional nodata vals.
+    scene_ndvi.values[~np.isfinite(scene_ndvi.values)] = -9999
+    ndvi_difference.values[~np.isfinite(ndvi_difference.values)] = -9999
     ndvi_percentage_change.values[~np.isfinite(ndvi_percentage_change.values)] = -9999
 
     scene_ndvi_dataset = xr.Dataset({'scene_ndvi': scene_ndvi,
+                                     'baseline_ndvi': iteration_data,
                                      'ndvi_difference': ndvi_difference,
                                      'ndvi_percentage_change': ndvi_percentage_change},
                                      coords={'latitude': scene_data.latitude,
