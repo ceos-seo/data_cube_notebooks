@@ -377,7 +377,7 @@ def generate_ndvi_anomaly_chunk(time_num, chunk_num, processing_options=None, qu
         # update metadata. # here the clear mask has all the clean
         # pixels for each acquisition.
         for timeslice in range(clear_mask.shape[0]):
-            time = baseline_scenes[time_index + timeslice]
+            time = raw_data.time.values[timeslice] if type(raw_data.time.values[timeslice]) == datetime.datetime else datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
             clean_pixels = np.sum(
                 clear_mask[timeslice, :, :] == True)
             if time not in acquisition_metadata:

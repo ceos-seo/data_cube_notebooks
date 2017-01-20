@@ -461,7 +461,7 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
         # here the clear mask has all the clean pixels for each acquisition.
         # add to the comma seperated list of data.
         for timeslice in range(clean_mask.shape[0]):
-            time = datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
+            time = raw_data.time.values[timeslice] if type(raw_data.time.values[timeslice]) == datetime.datetime else datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
             clean_pixels = np.sum(clean_mask[timeslice, :, :] == True)
             if time not in acquisition_metadata:
                 acquisition_metadata[time] = {}
