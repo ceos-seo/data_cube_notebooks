@@ -1,0 +1,83 @@
+<!--
+Copyright 2016 United States Government as represented by the Administrator
+of the National Aeronautics and Space Administration. All Rights Reserved.
+
+Portion of this code is Copyright Geoscience Australia, Licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License
+at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+-->
+<!-- Author: AHDS
+     Creation date: 2016-09/08
+     Modified by:
+     Last modified date: -->
+{% extends "output_list_template.html" %}
+{% block table_rows %}
+        <tr>
+          <td>Time Submitted: </td>
+          <td class="right_aligned_text">{{ query.query_start }}</td>
+        </tr>
+        <tr>
+          <td>Time Finished: </td>
+          <td class="right_aligned_text">{{ query.query_end }}</td>
+        </tr>
+        <tr>
+          <td>Scene Count:</td>
+          <td class="right_aligned_text">{{ meta.scene_count }}</td>
+        </tr>
+        <tr>
+          <td>Total Pixel Count:</td>
+          <td class="right_aligned_text">{{ meta.pixel_count }}</td>
+        </tr>
+        <tr>
+          <td>Clean Pixel Count:</td>
+          <td class="right_aligned_text">{{ meta.clean_pixel_count }}</td>
+        </tr>
+        <tr>
+          <td>Clean Pixel Percentage:</td>
+          <td class="right_aligned_text">{{ meta.percentage_clean_pixels|floatformat:2 }}%</td>
+        </tr>
+        <tr>
+          <td>Latitude Range: </td>
+          <td class="right_aligned_text">({{ query.latitude_min }}, {{ query.latitude_max }})</td>
+        </tr>
+        <tr>
+          <td>Longitude Range: </td>
+          <td class="right_aligned_text">({{ query.longitude_min }}, {{ query.longitude_max }})</td>
+        </tr>
+        <tr>
+          <td>Scenes Selected: </td>
+          <td class="right_aligned_text">{{ query.time_end }}</td>
+        </tr>
+        <tr>
+          <td>Baseline Months:</td>
+          <td class="right_aligned_text">{{ query.get_baseline_name }}</td>
+        </tr>
+{% endblock %}
+
+{% block download_options %}
+<option value="result_path">NDVI Diff PNG</option>
+<option value="ndvi_percentage_change_path">NDVI % Change</option>
+<option value="baseline_ndvi_path">Baseline NDVI PNG</option>
+<option value="scene_ndvi_path">Scene NDVI PNG</option>
+<option value="result_mosaic_path">Mosaic PNG</option>
+<option value="data_netcdf_path">NDVI Anom netCDF</option>
+<option value="data_path">NDVI Anom GeoTIFF</option>
+{% endblock %}
+
+{% block download_function %}
+
+{% endblock %}

@@ -102,7 +102,7 @@ processing_algorithms = {
 
 
 @task(name="perform_tsm_analysis")
-def perform_tsm_analysis(query_id, user_id):
+def perform_tsm_analysis(query_id, user_id, single=False):
 
     print("Starting for query:" + query_id)
     # its fair to assume that the query_id will exist at this point, as if it wasn't it wouldn't
@@ -148,6 +148,10 @@ def perform_tsm_analysis(query_id, user_id):
             return
 
         processing_options = processing_algorithms['tsm']
+        #if its a single scene, load it all at once to prevent errors.
+        if single:
+            processing_options['time_chunks'] = None
+            processing_options['time_slices_per_iteration'] = None
 
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
@@ -459,7 +463,7 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
         # here the clear mask has all the clean pixels for each acquisition.
         # add to the comma seperated list of data.
         for timeslice in range(clean_mask.shape[0]):
-            time = acquisition_list[time_index + timeslice]
+            time = datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
             clean_pixels = np.sum(clean_mask[timeslice, :, :] == True)
             if time not in acquisition_metadata:
                 acquisition_metadata[time] = {}

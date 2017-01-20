@@ -106,7 +106,7 @@ processing_algorithms = {
 }
 
 @task(name="slip_task")
-def create_slip(query_id, user_id):
+def create_slip(query_id, user_id, single=False):
     """
     Creates metadata and result objects from a query id. gets the query, computes metadata for the
     parameters and saves the model. Uses the metadata to query the datacube for relevant data and
@@ -169,6 +169,10 @@ def create_slip(query_id, user_id):
             return
 
         processing_options = processing_algorithms[query.baseline]
+        #if its a single scene, load it all at once to prevent errors.
+        if single:
+            processing_options['time_chunks'] = None
+            processing_options['time_slices_per_iteration'] = None
 
         # Reversed time = True will make it so most recent = First, oldest = Last.
         #default is in order from oldest -> newwest.
@@ -408,7 +412,7 @@ def generate_slip_chunk(time_num, chunk_num, processing_options=None, query=None
             slip_slice = comparison_red_slope_filtered.isel(time=timeslice).red.values
             baseline_slice = baseline.isel(time=timeslice).red.values
             if len(slip_slice[slip_slice > 0]) > 0:
-                time = acquisition_list[time_index + timeslice]
+                time = datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
                 if time not in acquisition_metadata:
                     acquisition_metadata[time] = {}
                     acquisition_metadata[time]['clean_pixels'] = 0
