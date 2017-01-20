@@ -24,6 +24,7 @@ from django.template import loader, RequestContext
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
+from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 
@@ -54,7 +55,7 @@ def submit_feedback(request):
         form = SubmitFeedbackForm(request.POST)
         if form.is_valid():
             msg = EmailMessage()
-            msg['From'] = "help@ceos-cube.org"
+            msg['From'] = "admin@ceos-cube.org"
             msg['To'] = settings.ADMIN_EMAIL
             msg['Subject'] = form.cleaned_data.get('feedback_reason')
 
@@ -62,11 +63,11 @@ def submit_feedback(request):
 
             with smtplib.SMTP('localhost') as s:
                 s.send_message(msg)
-            
+
         form_class = SubmitFeedbackForm
         context = {'title': "Feedback", 'form': form_class, 'successful_submission': 'Feedback was successfuly submitted.  Thank you for your comments'}
         return render(request, 'submit_feedback.html', context)
-    
+
     else:
         form_class = SubmitFeedbackForm
         context = {'title': "Feedback", 'form': form_class}
