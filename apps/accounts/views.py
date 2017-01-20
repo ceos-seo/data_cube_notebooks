@@ -73,7 +73,7 @@ def lost_password(request):
             send_mail(_('DataCube Password Reset'),
                       _('Reset your password here: ') +
                       settings.BASE_HOST + "accounts/" + str(reset.url) + "/reset",
-                      'admin@ceos-v2.org',
+                      'admin@ceos-cube.orgceos-v2.org',
                       [form.cleaned_data['email']],
                       fail_silently=False)
 
@@ -214,7 +214,7 @@ def registration(request):
                 username=user.username, time=datetime.datetime.now())
             activation.save()
             if user is not None:
-                subject, from_email, to_email = "CEOS Datacube Account Activation", "admin@ceos.org", [user.email]
+                subject, from_email, to_email = "CEOS Datacube Account Activation", "admin@ceos-cube.org", [user.email]
 
 
                 msg = EmailMessage()
