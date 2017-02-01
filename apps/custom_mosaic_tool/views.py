@@ -24,13 +24,15 @@ from django.template import loader, RequestContext
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
+from django.forms.models import model_to_dict
 
 import json
 from datetime import datetime, timedelta
 
 from .models import ResultType, Result, Query, Metadata
-from data_cube_ui.models import Satellite, Area
-from .forms import DataSelectForm, GeospatialForm
+from data_cube_ui.models import Satellite, Area, Application
+from data_cube_ui.forms import GeospatialForm
+from .forms import DataSelectForm
 from .tasks import create_cloudfree_mosaic
 
 from .utils import create_query_from_post
@@ -73,13 +75,13 @@ def custom_mosaic_tool(request, area_id):
     user_id = 0
     if request.user.is_authenticated():
         user_id = request.user.username
-    satellites = Satellite.objects.all().order_by('satellite_id')
     area = Area.objects.get(area_id=area_id)
-
+    app = Application.objects.get(application_id="custom_mosaic_tool")
+    satellites = area.satellites.all() & app.satellites.all() #Satellite.objects.all().order_by('satellite_id')
     forms = {}
     for satellite in satellites:
         forms[satellite.satellite_id] = {'Data Selection': DataSelectForm(satellite_id=satellite.satellite_id, auto_id=satellite.satellite_id + "_%s"),
-                                         'Geospatial Bounds': GeospatialForm(area=area, auto_id=satellite.satellite_id + "_%s") }
+                                         'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s") }
     running_queries = Query.objects.filter(user_id=user_id, area_id=area_id, complete=False)
 
     context = {
@@ -113,7 +115,7 @@ def submit_new_request(request):
         try:
             query_id = create_query_from_post(user_id, request.POST)
             create_cloudfree_mosaic.delay(query_id, user_id)
-            response['request_id'] = query_id
+            response.update(model_to_dict(Query.objects.filter(query_id=query_id, user_id=user_id)[0]))
         except:
             response['msg'] = "ERROR"
             raise
@@ -148,9 +150,10 @@ def submit_new_single_request(request):
             query.title = "Single acquisition for " + request.POST['date']
             query.query_id = query.generate_query_id()
             query.save();
-            create_cloudfree_mosaic.delay(query.query_id, user_id)
-            response['request_id'] = query.query_id
+            create_cloudfree_mosaic.delay(query.query_id, user_id, single=True)
+            response.update(model_to_dict(query))
         except:
+            raise
             response['msg'] = "ERROR"
         return JsonResponse(response)
     else:
@@ -218,8 +221,7 @@ def get_result(request):
                 result.delete()
             elif result.status == "OK":
                 response['msg'] = "OK"
-                response['result'] = {'data_url': result.data_path, 'nc_url': result.data_netcdf_path, 'image_url': result.result_path, 'image_filled_url': result.result_filled_path, 'animation_url': result.animation_path,
-                                      'min_lat': result.latitude_min, 'max_lat': result.latitude_max, 'min_lon': result.longitude_min, 'max_lon': result.longitude_max, 'total_scenes': result.total_scenes, 'scenes_processed': result.scenes_processed}
+                response.update(model_to_dict(result))
                 # since there is a result, update all the currently running identical queries with complete=true;
                 Query.objects.filter(query_id=result.query_id).update(complete=True)
             else:

@@ -36,14 +36,14 @@ class TestViews(TestCase):
         json_data = {'time_start': "01/01/2005", 'time_end': "01/01/2006",'band_selection': "1", 'platform': "LANDSAT_7", 'result_type': "true_color", 'latitude_max': "1", 'latitude_min': "0", 'longitude_max': "35", 'longitude_min': "34", 'title': "Sample Title", 'description': "Sample Description", 'area_id': "kenya"}
         response = self.client.post(reverse('submit_new_request'), json_data)
         self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(force_text(response.content),{'msg': 'OK', 'request_id': '2005-01-01-2006-01-01-1-0-35-34-blue-LANDSAT_7--true_color'})
+        self.assertJSONEqual(force_text(response.content),{'msg': 'OK', 'query_id': '2005-01-01-2006-01-01-1-0-35-34-blue-LANDSAT_7--true_color'})
         
     def test_submit_new_request_logged_in_no_title_no_description(self):
         self.client.login(username='localuser', password='amadev12')
         json_data = {'time_start': "01/01/2005", 'time_end': "01/01/2006",'band_selection': "1", 'platform': "LANDSAT_7", 'result_type': "true_color", 'latitude_max': "1", 'latitude_min': "0", 'longitude_max': "35", 'longitude_min': "34", 'area_id': "kenya"}
         response = self.client.post(reverse('submit_new_request'), json_data)
         self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(force_text(response.content),{'msg': 'OK', 'request_id': '2005-01-01-2006-01-01-1-0-35-34-blue-LANDSAT_7--true_color'})
+        self.assertJSONEqual(force_text(response.content),{'msg': 'OK', 'query_id': '2005-01-01-2006-01-01-1-0-35-34-blue-LANDSAT_7--true_color'})
         
     def test_submit_new_request_logged_in_no_data_error(self):
         self.client.login(username='localuser', password='amadev12')
@@ -66,7 +66,7 @@ class TestViews(TestCase):
         json_data = {'query_id': '2005-01-01-2006-01-01-1-0-35-34-blue-LANDSAT_7--true_color', 'date': '01/01/2005'}
         response = self.client.post(reverse('submit_new_single_request'), json_data)
         self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(force_text(response.content), {'msg': 'OK', 'request_id': '2005-01-01-2005-01-02-1.0-0.0-35.0-34.0-blue-LANDSAT_7-ls7_ledaps-true_color'})
+        self.assertJSONEqual(force_text(response.content), {'msg': 'OK', 'query_id': '2005-01-01-2005-01-02-1.0-0.0-35.0-34.0-blue-LANDSAT_7-ls7_ledaps-true_color'})
     
     def test_submit_new_single_request_logged_in_no_query(self):
         self.client.login(username='localuser', password='amadev12')

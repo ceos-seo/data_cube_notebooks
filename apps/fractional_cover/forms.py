@@ -50,30 +50,5 @@ class DataSelectForm(forms.Form):
     description = forms.CharField(widget=forms.HiddenInput())
     def __init__(self, *args, **kwargs):
         super(DataSelectForm, self).__init__(*args, **kwargs)
-        compositor_list = [(compositor.compositor_id, compositor.compositor) for compositor in Compositor.objects.all()]
+        compositor_list = [(compositor.compositor_id, compositor.compositor_name) for compositor in Compositor.objects.all()]
         self.fields["compositor_selection"] = forms.ChoiceField(help_text='Select the method by which the "best" pixel will be chosen.', label="Compositing Method:", choices=compositor_list, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
-
-
-class GeospatialForm(forms.Form):
-    """
-    Django form for taking geospatial information for Query requests:
-        latitude_min
-        latitude_min
-        longitude_min
-        longitude_max
-        time_start
-        time_end
-    """
-
-    latitude_min = forms.FloatField(label='Min Latitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    latitude_max = forms.FloatField(label='Max Latitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    longitude_min = forms.FloatField(label='Min Longitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    longitude_max = forms.FloatField(label='Max Longitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
-    time_start = forms.DateField(label='Start Date', widget=forms.DateInput(attrs={'class': 'datepicker field-divided', 'placeholder': '01/01/2010', 'required': 'required'}))
-    time_end = forms.DateField(label='End Date', widget=forms.DateInput(attrs={'class': 'datepicker field-divided', 'placeholder': '01/02/2010', 'required': 'required'}))
-
-    def __init__(self, area=None, *args, **kwargs):
-        super(GeospatialForm, self).__init__(*args, **kwargs)
-        if area is not None:
-            self.fields['time_start'] = forms.DateField(initial=area.date_min.strftime("%m/%d/%Y"), label='Start Date', widget=forms.DateInput(attrs={'class': 'datepicker field-divided', 'required': 'required'}))
-            self.fields['time_end'] = forms.DateField(initial=area.date_max.strftime("%m/%d/%Y"), label='End Date', widget=forms.DateInput(attrs={'class': 'datepicker field-divided', 'required': 'required'}))

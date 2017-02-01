@@ -19,9 +19,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from .models import Area
-from apps.task_manager.models import Application
+from .models import Area, Application
 
-def countries(request):
-    return {'areas' : Area.objects.all().order_by('area_id'),
-            'apps' : Application.objects.all().order_by('application_name'),}
+def apps(request):
+    return {'apps' : Application.objects.all().order_by('application_name'),}

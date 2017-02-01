@@ -22,11 +22,3 @@
 from django.db import models
 
 # Create your models here.
-
-class Application(models.Model):
-    """
-    Database representation of the Application table that holds all of the UI Applications.
-    """
-
-    application_id = models.CharField(max_length=250, default="")
-    application_name = models.CharField(max_length=250, default="")

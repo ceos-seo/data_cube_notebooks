@@ -86,16 +86,15 @@ function show_result(checkbox, query_id, id) {
   switch(id) {
     case 0:
     default:
-      image_url = queries[query_id].image_url;
+      result_path = queries[query_id].result_path;
     break;
     case 1:
-      image_url = queries[query_id].mosaic_image_url;
+      result_path = queries[query_id].result_mosaic_path;
     break;
   }
-  //image_url = checkbox.checked ? queries[query_id].image_filled_url : queries[query_id].image_url;
   $('input:checkbox').removeAttr('checked');
   checkbox.checked = true;
-  add_result_to_map(query_id, image_url);
+  add_result_to_map(query_id, result_path);
   map.toggle_outline_by_id(query_id, true);
 }
 {% endblock %}

@@ -29,8 +29,7 @@ import pytz
 from .utils import isEmailAddressValid
 from .models import Activation, Reset
 from .forms import LoginForm, RegistrationForm, PasswordChangeForm, LostPasswordForm, PasswordResetForm
-from data_cube_ui.models import Area
-from apps.task_manager.models import Application
+from data_cube_ui.models import Area, Application
 
 # Create your views here.
 
@@ -74,7 +73,7 @@ def lost_password(request):
             send_mail(_('DataCube Password Reset'),
                       _('Reset your password here: ') +
                       settings.BASE_HOST + "accounts/" + str(reset.url) + "/reset",
-                      'admin@ceos-v2.org',
+                      'admin@ceos-cube.orgceos-v2.org',
                       [form.cleaned_data['email']],
                       fail_silently=False)
 
@@ -134,7 +133,6 @@ def reset(request, uuid):
                 return render(request, 'registration/reset.html', context)
 
     except:
-        raise
         form = LoginForm()
         form.cleaned_data = {}
         form.add_error(NON_FIELD_ERRORS, _("Invalid password reset url."))
@@ -216,7 +214,7 @@ def registration(request):
                 username=user.username, time=datetime.datetime.now())
             activation.save()
             if user is not None:
-                subject, from_email, to_email = "CEOS Datacube Account Activation", "admin@ceos.org", [user.email]
+                subject, from_email, to_email = "CEOS Datacube Account Activation", "admin@ceos-cube.org", [user.email]
 
 
                 msg = EmailMessage()

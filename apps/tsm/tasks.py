@@ -43,7 +43,7 @@ from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_cfmask_c
 from utils.dc_water_classifier import wofs_classify
 from utils.dc_tsm import tsm, mask_tsm
 
-from .utils import update_model_bounds_with_dataset
+from data_cube_ui.utils import update_model_bounds_with_dataset
 
 # Author: AHDS
 # Creation date: 2016-06-23
@@ -57,6 +57,11 @@ color_path = ['~/Datacube/data_cube_ui/utils/color_scales/ramp', '~/Datacube/dat
 base_result_path = '/datacube/ui_results/tsm/'
 base_temp_path = '/datacube/ui_results_temp/'
 
+products = ['ls5_ledaps_', 'ls7_ledaps_', 'ls8_ledaps_']
+platforms = ['LANDSAT_5', 'LANDSAT_7', 'LANDSAT_8']
+
+#default measurements. leaves out all qa bands.
+measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
 
 def addition(dataset, dataset_intermediate):
     """
@@ -97,20 +102,18 @@ processing_algorithms = {
 
 
 @task(name="perform_tsm_analysis")
-def perform_tsm_analysis(query_id, user_id):
+def perform_tsm_analysis(query_id, user_id, single=False):
 
     print("Starting for query:" + query_id)
     # its fair to assume that the query_id will exist at this point, as if it wasn't it wouldn't
     # start the task.
-    queries = Query.objects.filter(query_id=query_id, user_id=user_id)
+    query = Query.objects.get(query_id=query_id, user_id=user_id)
     # if there is a matching query other than the one we're using now then do nothing.
     # the ui section has already grabbed the result from the db.
-    if queries.count() > 1:
+    if Result.objects.filter(query_id=query.query_id).exists():
         print("Repeat query, client will receive cached result.")
-        if Result.objects.filter(query_id=query_id).count() > 0:
-            queries.update(complete=True)
         return
-    query = queries[0]
+
     print("Got the query, creating metadata.")
 
     result_type = ResultType.objects.get(
@@ -119,33 +122,36 @@ def perform_tsm_analysis(query_id, user_id):
     # creates the empty result.
     result = query.generate_result()
 
-    # do metadata before actually submitting the task.
-    metadata = dc.get_scene_metadata(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
-        query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
-    if not metadata:
-        error_with_message(
-            result, "There was an exception when handling this query.")
-        return
-
-    meta = query.generate_metadata(
-        scene_count=metadata['scene_count'], pixel_count=metadata['pixel_count'])
-
     # grabs the resolution.
-    product_details = dc.dc.list_products(
-    )[dc.dc.list_products().name == query.product]
+    if query.platform == "LANDSAT_ALL":
+        product_details = dc.dc.list_products(
+        )[dc.dc.list_products().name == products[0]+query.area_id]
+    else:
+        product_details = dc.dc.list_products(
+        )[dc.dc.list_products().name == query.product]
 
     # wrapping this in a try/catch, as it will throw a few different errors
     # having to do with memory etc.
     try:
-        # lists all acquisition dates for use in single tmeslice queries.
-        acquisitions = dc.list_acquisition_dates(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
-            query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
+        # If its a combined product, get all the data dates.
+        if query.platform == "LANDSAT_ALL":
+            acquisitions = []
+            for index in range(len(products)):
+                acquisitions.extend(dc.list_acquisition_dates(platforms[index], products[index]+query.area_id, time=(query.time_start, query.time_end), longitude=(
+                    query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max)))
+        else:
+            acquisitions = dc.list_acquisition_dates(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
+                query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
 
         if len(acquisitions) < 1:
             error_with_message(result, "There were no acquisitions for this parameter set.")
             return
 
         processing_options = processing_algorithms['tsm']
+        #if its a single scene, load it all at once to prevent errors.
+        if single:
+            processing_options['time_chunks'] = None
+            processing_options['time_slices_per_iteration'] = None
 
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
@@ -190,7 +196,6 @@ def perform_tsm_analysis(query_id, user_id):
                     print("Cancelled task.")
                     shutil.rmtree(base_temp_path + query.query_id)
                     query.delete()
-                    meta.delete()
                     result.delete()
                     return
                 if tile[0] is not None:
@@ -229,7 +234,6 @@ def perform_tsm_analysis(query_id, user_id):
                       print("Cancelled task.")
                       shutil.rmtree(base_temp_path + query.query_id)
                       query.delete()
-                      meta.delete()
                       result.delete()
                       return
                   animation_tiles = []
@@ -278,6 +282,10 @@ def perform_tsm_analysis(query_id, user_id):
         # populate metadata values.
         dates = list(acquisition_metadata.keys())
         dates.sort()
+
+        meta = query.generate_metadata(
+            scene_count=len(dates), pixel_count=len(latitude)*len(longitude))
+
         for date in reversed(dates):
             meta.acquisition_list += date.strftime("%m/%d/%Y") + ","
             meta.clean_pixels_per_acquisition += str(
@@ -340,7 +348,7 @@ def perform_tsm_analysis(query_id, user_id):
                     image = imageio.imread(
                         base_temp_path + query.query_id + '/' + str(index) + '.png')
                     writer.append_data(image)
-            result.tsm_animation_path = result_paths[2]
+            result.animation_path = result_paths[2]
 
         # get rid of all intermediate products since there are a lot.
         shutil.rmtree(base_temp_path + query.query_id)
@@ -367,7 +375,7 @@ def perform_tsm_analysis(query_id, user_id):
         update_model_bounds_with_dataset([result, meta, query], dataset_out)
         result.data_path = tif_path
         result.data_netcdf_path = netcdf_path
-        result.average_tsm_path = result_paths[0]
+        result.result_path = result_paths[0]
         result.clear_observations_path = result_paths[1]
         result.status = "OK"
         result.total_scenes = len(acquisitions)
@@ -421,10 +429,22 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
             end = acquisition_list[-1] if processing_options['reverse_time'] else acquisition_list[-1] + datetime.timedelta(seconds=1)
         time_range = (end, start) if processing_options['reverse_time'] else (start, end)
 
-        raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=(start, end), longitude=lon_range, latitude=lat_range)
+        raw_data = None
+
+        if query.platform == "LANDSAT_ALL":
+            datasets_in = []
+            for index in range(len(products)):
+                dataset = dc.get_dataset_by_extent(products[index]+query.area_id, product_type=None, platform=platforms[index], time=(start, end), longitude=lon_range, latitude=lat_range, measurements=measurements)
+                if 'time' in dataset:
+                    datasets_in.append(dataset.copy(deep=True))
+                dataset = None
+            if len(datasets_in) > 0:
+                raw_data = xr.concat(datasets_in, 'time')
+        else:
+            raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=(start, end), longitude=lon_range, latitude=lat_range, measurements=measurements)
 
         # get the actual data and perform analysis.
-        if "cf_mask" not in raw_data:
+        if raw_data is None or "cf_mask" not in raw_data:
             time_index = time_index + processing_options['time_slices_per_iteration']
             continue
         clean_mask = create_cfmask_clean_mask(raw_data.cf_mask)
@@ -441,7 +461,7 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
         # here the clear mask has all the clean pixels for each acquisition.
         # add to the comma seperated list of data.
         for timeslice in range(clean_mask.shape[0]):
-            time = acquisition_list[time_index + timeslice]
+            time = raw_data.time.values[timeslice] if type(raw_data.time.values[timeslice]) == datetime.datetime else datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
             clean_pixels = np.sum(clean_mask[timeslice, :, :] == True)
             if time not in acquisition_metadata:
                 acquisition_metadata[time] = {}
