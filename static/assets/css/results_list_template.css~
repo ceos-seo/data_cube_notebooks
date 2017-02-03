@@ -1,0 +1,17 @@
+#task_list
+{
+    min-height: 50px;
+    border: 1px solid coral;
+}
+
+#scenes_list
+{
+    min-height: 50px;
+    border: 1px solid coral;
+}
+
+#query_metadata
+{
+    min-height: 50px;
+    border: 1px solid coral;
+}

@@ -1,0 +1,35 @@
+#infoPanelContent
+{
+    height: 100%;
+    border: 1px solid lightgrey;
+    padding: 5px;
+}
+
+.panel-default>.panel-heading
+{
+    background-color: coral;
+    padding: 5px;
+    border: 1px solid coral;
+    margin: 0px;
+    color: white;
+}
+
+.panel-title
+{
+    font-weight: bold;
+}
+
+.panel-body
+{
+    border: 1px solid coral;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.image-display {
+    display: block;
+    margin: 0 auto;
+  	max-width: 100%;
+    max-height: 100%;
+    border: rgb(255,127,80) 2px outset;
+}

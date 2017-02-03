@@ -1,0 +1,12 @@
+/* Output box css */
+#output_list
+{
+    min-height: 450px;
+    max-height: 750px;
+    border: 1px solid coral;
+}
+
+#download_sel
+{
+    margin-top: 10px;
+}

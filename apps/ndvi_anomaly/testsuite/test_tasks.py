@@ -37,7 +37,7 @@ class TestTasks(TestCase):
         self.assertTrue(1)
         
         """
-        TODO(map) : If the question is ever answered on stack overflow we can hit a live db instead of a test db to test this.
+        NOTE(map) : If the question is ever answered on stack overflow we can hit a live db instead of a test db to test this.
     def test_create_cloudfree_mosaic_canceled_request(self):
         create_cloudfree_mosaic.delay('2015-01-01-2016-01-02-0.3--0.3-35.8-35.2-blue-LANDSAT_7--true_color','localuser')
         time.sleep(7)

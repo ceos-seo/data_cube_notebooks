@@ -32,6 +32,7 @@ from email.message import EmailMessage
 import smtplib
 
 from .forms import SubmitFeedbackForm
+from .models import Application
 
 def home(request):
     """
@@ -48,6 +49,16 @@ def home(request):
 
     }
     return render(request, 'index.html', context)
+
+@login_required
+def region_selection(request, app_id):
+    application = Application.objects.get(application_id=app_id)
+    areas = application.areas.all();
+    context = {
+        'app': app_id,
+        'areas': areas
+    }
+    return render(request, 'region_selection.html', context)
 
 @login_required
 def submit_feedback(request):

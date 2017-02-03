@@ -1,0 +1,133 @@
+/* Generic */
+.nav-tabs>li.active>a
+{
+    background-color: coral;
+    color: white;
+}
+
+.nav-tabs>li.active>a:focus
+			  {
+			      background-color: coral;
+			      color: white;			      
+			  }
+
+.nav-tabs>li.active>a:hover
+			  {
+			      background-color: coral;
+			      color: white;
+			  }
+
+.alternating li:nth-child(odd) {
+    background: rgba(255, 127, 80, 0.15);
+}
+
+.form-group
+{
+    padding-left: 10px;
+}
+
+/* Map css */
+.button_on_map {
+    position: absolute;
+    z-index: 10000;
+    right: 5px;
+    top: 5px;
+}
+
+.lat_lon_map_indicator {
+    position: absolute;
+    z-index: 10000;
+    right: 5px;
+    bottom: 5px;
+    font-size: 20px !important;
+}
+
+.map {
+    position: relative;
+    z-index: 98;
+    width: auto;
+    height: 100%;
+    padding: 0px;
+    overflow: hidden;
+    border-radius: 5px;
+    border: 1px solid darkgrey;
+    background-size: cover;
+    background-color: lightgray;
+}
+
+.image-display-vertically-centered {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: block;
+    margin: auto;
+    max-height: 100%;
+    max-width: 100%;
+    border: rgb(255, 127, 80) 2px outset;
+}
+
+.container-fluid
+{
+    height: 100%;
+}
+
+.row
+{
+    height: 100%;
+}
+
+.col-lg-9
+{
+    height: 100%;
+}
+
+h2
+{
+    font-size: 2em;
+    font-weight: bold;
+}
+
+h3
+{
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* Filter specific */
+#filters-panel
+{
+    padding-top: 10px;
+}
+
+.form-label
+{
+    font-size: 1.25em;
+    margin-bottom: 0px;
+}
+
+.form-horizontal .form-group
+{
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+}
+
+.btn-primary
+{
+    margin-top: 10px;
+}
+
+#running_queries
+{
+    min-height: 50px;
+    border: 1px solid coral;
+}
+
+#past_queries
+{
+    min-height: 150px;
+    max-height: 350px;
+    border: 1px solid coral;
+}

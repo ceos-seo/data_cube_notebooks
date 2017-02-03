@@ -44,6 +44,7 @@ urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^submit_feedback', views.submit_feedback, name='submit_feedback'),
     url(r'^admin/', admin.site.urls),
+    url(r'^(?P<app_id>[\w\-]+)/region_selection/$', views.region_selection, name='region_selection'),
     url(r'^custom_mosaic_tool/', include('apps.custom_mosaic_tool.urls')),
     url(r'^water_detection/', include('apps.water_detection.urls')),
     url(r'^tsm/', include('apps.tsm.urls')),

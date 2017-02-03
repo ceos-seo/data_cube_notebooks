@@ -1,0 +1,35 @@
+h2
+{
+    margin-top: 10px;
+    margin-bottom: 0px;
+}
+
+hr
+{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#task_list
+{
+    min-height: 150px;
+    max-height: 250px;
+    border: 1px solid coral;
+    overflow-y: auto;
+}
+
+#scenes_list
+{
+    min-height: 150px;
+    max-height: 250px;
+    border: 1px solid coral;
+    overflow-y: auto;
+}
+
+#query_metadata
+{
+    min-height: 150px;
+    max-height: 200px;
+    border: 1px solid coral;
+    overflow-y: auto;
+}

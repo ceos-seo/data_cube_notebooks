@@ -1,8 +1,41 @@
-{% extends "centered_form.html" %}
-{% load i18n %}
+{% extends "default.html" %}
+{% load bootstrap3 %}
 
-{% block form %}
-<form action="{% url 'registration' %}" method="post" id="registration-form">
+{% block css %}
+<link rel="stylesheet" href="/static/assets/css/registration.css"/>
+{% endblock %}
+
+
+{% block content %}
+<div id="main-content" class="container-fluid container-table no-footer">
+  <div class="row vertical-center-row">
+    <div class="col-lg-12" style="max-width: 400px;">
+      <div id="header">
+        <div id="branding">
+          <h1 id="site-name">Registration</h1>
+        </div>
+      </div>
+      <form id="registration-form" action="{% url 'registration' %}" method="post" class="form-horizontal">
+	{% csrf_token %}
+	<div class="form-group">
+	  {% for field in form.visible_fields %}
+	  <div class="col-lg-12" style="border: none;">
+	    {% bootstrap_field field %}
+	  </div>
+	  {% endfor %}
+	  {% if next %}
+	  <input type="hidden" name="next" value="{{ next }}" />
+	  {% endif %}
+    	  <div id="button-div" class="form-group">
+	    {% bootstrap_button "Register" button_type="submit" button_class="btn-primary"  %}
+	  </div>
+	</div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!--form action="{% url 'registration' %}" method="post" id="registration-form">
     {% csrf_token %} {% for field in form.visible_fields %}
     <div class="form-row comment_input">
         <label class="required" for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -14,8 +47,7 @@
     {% endif %}
     <div class="submit-row">
         <label>&nbsp;</label>
-        <input id="log-in-submit" type="submit" value="{% trans " Register and Log In " %}" />
+        <input id="log-in-submit" type="submit" value="" />
     </div>
-</form>
-
+</form-->
 {% endblock %}

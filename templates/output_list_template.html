@@ -24,6 +24,10 @@ under the License.
      Creation date: 2016-06-23
      Modified by:
      Last modified date: -->
+{% block css %}
+<link href="/static/assets/css/output_list_template.css" rel="stylesheet" type="text/css" media="screen, projection" />
+{% endblock %}
+
 <div id="output_list" class="boxed_list">
   {% for query, meta in data.items %}
     <h3 id="output_{{ query.query_id }}" onmousedown="outputClicked('{{ query.query_id }}')">{{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y fa" }}</h3>

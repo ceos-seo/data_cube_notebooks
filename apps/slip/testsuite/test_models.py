@@ -65,7 +65,7 @@ class TestMetadata(TestCase):
         self.assertEqual(actual_clean_pixel_percentage_list, expected_clean_pixel_percentage_list)
         self.assertTrue(actual_clean_pixel_percentage_list)
 
-    # TODO(map) : Not sure how to test yet.  Returning a ZIP that could be hard to test values for.
+    # NOTE(map) : Not sure how to test yet.  Returning a ZIP that could be hard to test values for.
     def test_acquisitions_dates_with_pixels_percentages(self):
         metadata = Metadata.objects.get(id = 1)
         actual_aquisition_dates_list = metadata.acquisitions_dates_with_pixels_percentages()

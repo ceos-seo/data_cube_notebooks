@@ -113,4 +113,3 @@ class ResultType(BaseResultType):
     submitted.
     """
     fill = models.CharField(max_length=25)
-    # TODO(map) : Some extra data may go here.
