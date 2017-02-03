@@ -328,7 +328,7 @@ def generate_slip_chunk(time_num, chunk_num, processing_options=None, query=None
     time_ranges = list(generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
 
     # holds some acquisition based metadata.
-    for time_range in time_ranges:
+    for time_index, time_range in enumerate(time_ranges):
 
         raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
         aster = dc.get_dataset_by_extent('terra_aster_gdm_'+query.area_id,

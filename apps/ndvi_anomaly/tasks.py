@@ -313,7 +313,7 @@ def generate_ndvi_anomaly_chunk(time_num, chunk_num, processing_options=None, qu
     #dc.load doesn't support generators so do it this way.
     time_ranges = list(generate_time_ranges(baseline_scenes, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
 
-    for time_range in time_ranges:
+    for time_index, time_range in enumerate(time_ranges):
 
         baseline_data = None
 

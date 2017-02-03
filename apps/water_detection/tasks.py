@@ -353,7 +353,7 @@ def generate_water_chunk(time_num, chunk_num, processing_options=None, query=Non
     time_ranges = list(generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
 
     # holds some acquisition based metadata.
-    for time_range in time_ranges:
+    for time_index, time_range in enumerate(time_ranges):
 
         raw_data = None
 
