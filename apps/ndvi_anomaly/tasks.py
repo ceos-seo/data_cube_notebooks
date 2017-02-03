@@ -41,7 +41,7 @@ from dateutil.tz import tzutc
 
 from utils.data_access_api import DataAccessApi
 from utils.dc_mosaic import create_mosaic
-from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask
+from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, create_single_band_rgb
 from utils.dc_utilities import split_task, fill_nodata, generate_time_ranges
 from utils.dc_baseline import generate_baseline
 from utils.dc_demutils import create_slope_mask

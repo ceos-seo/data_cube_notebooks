@@ -61,5 +61,5 @@ class GeospatialForm(GeospatialFormBase):
         super(GeospatialForm, self).__init__(*args, **kwargs)
         self.fields.pop('time_start')
         self.fields.pop('time_end')
-        scene_sel = [(str(index)+"-"+date.strftime("%Y/%m/%d %H:%M UTC"), date.strftime("%Y/%m/%d %H:%M UTC")) for index, date in enumerate(acquisition_list)]
+        scene_sel = reversed([(str(index)+"-"+date.strftime("%Y/%m/%d %H:%M UTC"), date.strftime("%Y/%m/%d %H:%M UTC")) for index, date in enumerate(acquisition_list)])
         self.fields['scene_selection'] = forms.ChoiceField(help_text='Select a scene to perform NDVI differencing on.', label="Scene Selection:", choices=scene_sel, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
