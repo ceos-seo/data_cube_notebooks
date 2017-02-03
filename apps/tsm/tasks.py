@@ -308,7 +308,7 @@ def perform_tsm_analysis(query_id, user_id, single=False):
         # we've got the tif, now do the png set..
         # uses gdal dem with custom color maps..
         for index in range(len(color_path)):
-            create_single_band_rgb(band=(index+1), tif_path=tiff_path, color_scale=color_path[index], output_path=result_paths[index], fill=result_type.fill)
+            create_single_band_rgb(band=(index+1), tif_path=tif_path, color_scale=color_path[index], output_path=result_paths[index], fill=result_type.fill)
 
         # update the results and finish up.
         update_model_bounds_with_dataset([result, meta, query], dataset_out)
