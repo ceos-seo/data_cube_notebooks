@@ -22,6 +22,8 @@
 # Django specific
 from celery.decorators import task
 from celery.signals import worker_process_init, worker_process_shutdown
+from celery import group
+from celery.task.control import revoke
 from .models import Query, Result, ResultType, Metadata
 from data_cube_ui.models import AnimationType
 
@@ -38,10 +40,10 @@ from collections import OrderedDict
 from dateutil.tz import tzutc
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_cfmask_clean_mask, perform_timeseries_analysis_iterative, split_task
+from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_cfmask_clean_mask, perform_timeseries_analysis_iterative, split_task, addition
 from utils.dc_water_classifier import wofs_classify
 
-from data_cube_ui.utils import update_model_bounds_with_dataset
+from data_cube_ui.utils import update_model_bounds_with_dataset, combine_metadata, cancel_task, error_with_message
 
 # Author: AHDS
 # Creation date: 2016-06-23
@@ -65,20 +67,6 @@ platforms = ['LANDSAT_5', 'LANDSAT_7', 'LANDSAT_8']
 
 #default measurements. leaves out all qa bands.
 measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
-
-def addition(dataset, dataset_intermediate):
-    """
-    functions used to combine time sliced data after being combined geographically.
-    This compounds the results of the time slice and recomputes the normalized data.
-    """
-    if dataset_intermediate is None:
-        return dataset.copy(deep=True)
-    data_vars = ["total_data", "total_clean"]
-    dataset_out = dataset_intermediate.copy(deep=True)
-    for key in data_vars:
-        dataset_out[key].values += dataset[key].values
-    dataset_out['normalized_data'].values = dataset_out["total_data"].values / dataset_out["total_clean"].values
-    return dataset_out
 
 # holds the different compositing algorithms. Most/least recent, max/min ndvi, median, etc.
 # all options are required. setting None to a option will have the algo/task splitting
@@ -148,7 +136,7 @@ def perform_water_analysis(query_id, user_id, single=False):
                 query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
 
         if len(acquisitions) < 1:
-            error_with_message(result, "There were no acquisitions for this parameter set.")
+            error_with_message(result, "There were no acquisitions for this parameter set.", base_temp_path)
             return
 
         processing_options = processing_algorithms['wofs']
@@ -160,7 +148,7 @@ def perform_water_analysis(query_id, user_id, single=False):
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
-        result.total_scenes = len(time_ranges) * len(lat_ranges)
+        result.total_scenes = len(time_ranges)
 
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
@@ -172,17 +160,11 @@ def perform_water_analysis(query_id, user_id, single=False):
             os.mkdir(base_temp_path + query.query_id)
             os.chmod(base_temp_path + query.query_id, 0o777)
 
-        time_chunk_tasks = []
         print("Time chunks: " + str(len(time_ranges)))
         print("Geo chunks: " + str(len(lat_ranges)))
-        # iterate over the time chunks.
-        for time_range_index in range(len(time_ranges)):
-            # iterate over the geographic chunks.
-            geo_chunk_tasks = []
-            for geographic_chunk_index in range(len(lat_ranges)):
-                geo_chunk_tasks.append(generate_water_chunk.delay(time_range_index, geographic_chunk_index, processing_options=processing_options, query=query, acquisition_list=time_ranges[
-                                       time_range_index], lat_range=lat_ranges[geographic_chunk_index], lon_range=lon_ranges[geographic_chunk_index]))
-            time_chunk_tasks.append(geo_chunk_tasks)
+        # create a group of geographic tasks for each time slice.
+        time_chunk_tasks = [group(generate_water_chunk.s(time_range_index, geographic_chunk_index, processing_options=processing_options, query=query, acquisition_list=time_ranges[time_range_index], lat_range=lat_ranges[
+                                  geographic_chunk_index], lon_range=lon_ranges[geographic_chunk_index], measurements=measurements) for geographic_chunk_index in range(len(lat_ranges))).apply_async() for time_range_index in range(len(time_ranges))]
 
         dataset_out = None
         acquisition_metadata = {}
@@ -191,49 +173,37 @@ def perform_water_analysis(query_id, user_id, single=False):
         for geographic_group in time_chunk_tasks:
             full_dataset = None
             tiles = []
-            for t in geographic_group:
-                tile = t.get()
-                # tile is [path, metadata]. Append tiles to list of tiles for
-                # concat, compile metadata.
-                if tile == "CANCEL":
-                    print("Cancelled task.")
-                    shutil.rmtree(base_temp_path + query.query_id)
-                    query.delete()
-                    result.delete()
+            # get the geographic chunk data and drop all None values
+            while not geographic_group.ready():
+                result.refresh_from_db()
+                if result.status == "CANCEL":
+                    #revoke all tasks. Running tasks will continue to execute.
+                    for task_group in time_chunk_tasks:
+                        for child in task_group.children:
+                            child.revoke()
+                    cancel_task(query, result, base_temp_path)
                     return
-                if tile[0] is not None:
-                    tiles.append(tile)
-                result.scenes_processed += 1
-                result.save()
+            group_data = [data for data in geographic_group.get()
+                          if data is not None]
+            result.scenes_processed += 1
+            result.save()
             print("Got results for a time slice, computing intermediate product..")
-            xr_tiles = []
-            for tile in tiles:
-                tile_metadata = tile[1]
-                for acquisition_date in tile_metadata:
-                    if acquisition_date in acquisition_metadata:
-                        acquisition_metadata[acquisition_date][
-                            'clean_pixels'] += tile_metadata[acquisition_date]['clean_pixels']
-                        acquisition_metadata[acquisition_date][
-                            'water_pixels'] += tile_metadata[acquisition_date]['water_pixels']
-                    else:
-                        acquisition_metadata[acquisition_date] = {'clean_pixels': tile_metadata[acquisition_date][
-                            'clean_pixels'], 'water_pixels': tile_metadata[acquisition_date]['water_pixels']}
-                xr_tiles.append(xr.open_dataset(tile[0]))
-            #combine tiles
-            full_dataset = xr.concat(reversed(xr_tiles), dim='latitude')
-            dataset = full_dataset.load()
+            acquisition_metadata = combine_metadata(acquisition_metadata, [tile[1] for tile in group_data])
+            dataset = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
 
             # combine all the intermediate products for the animation creation.
             if query.animated_product != "None":
                   print("Num of slices in this chunk: " +
                         str(len(time_ranges[time_range_index])))
                   for timeslice in range(len(time_ranges[time_range_index])):
-                      result = Result.objects.get(query_id=query.query_id)
+
+                      result.refresh_from_db()
                       if result.status == "CANCEL":
-                          print("Cancelled task.")
-                          shutil.rmtree(base_temp_path + query.query_id)
-                          query.delete()
-                          result.delete()
+                          #revoke all tasks. Running tasks will continue to execute.
+                          for task_group in time_chunk_tasks:
+                              for child in task_group.children:
+                                  child.revoke()
+                          cancel_task(query, result, base_temp_path)
                           return
                       animation_tiles = []
                       nc_paths = []
@@ -380,7 +350,7 @@ def perform_water_analysis(query_id, user_id, single=False):
 
     except:
         error_with_message(
-            result, "There was an exception when handling this query.")
+            result, "There was an exception when handling this query.", base_temp_path)
         raise
     # end error wrapping.
 
@@ -388,7 +358,7 @@ def perform_water_analysis(query_id, user_id, single=False):
 
 
 @task(name="generate_water_chunk")
-def generate_water_chunk(time_num, chunk_num, processing_options=None, query=None, acquisition_list=None, lat_range=None, lon_range=None):
+def generate_water_chunk(time_num, chunk_num, processing_options=None, query=None, acquisition_list=None, lat_range=None, lon_range=None, measurements=None):
     """
     responsible for generating a piece of a water_detection product. This grabs the x/y area specified in the lat/lon ranges, gets all data
     from acquisition_list, which is a list of acquisition dates, and creates the custom mosaic using the function named in processing_options.
@@ -479,17 +449,6 @@ def generate_water_chunk(time_num, chunk_num, processing_options=None, query=Non
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
     return [geo_path, acquisition_metadata]
 
-# Errors out under specific circumstances, used to pass error msgs to user.
-# uses the result path as a message container: TODO? Change this.
-def error_with_message(result, message):
-    if os.path.exists(base_temp_path + result.query_id):
-        shutil.rmtree(base_temp_path + result.query_id)
-    result.status = "ERROR"
-    result.data_path = message
-    result.save()
-    print(message)
-    return
-
 # Datacube instance to be initialized.
 # A seperate DC instance is created for each worker.
 dc = None
@@ -502,6 +461,9 @@ def init_worker(**kwargs):
     print("Creating DC instance for worker.")
     global dc
     dc = DataAccessApi()
+    if not os.path.exists(base_result_path):
+        os.mkdir(base_result_path)
+        os.chmod(base_result_path, 0o777)
 
 
 @worker_process_shutdown.connect

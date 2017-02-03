@@ -186,7 +186,8 @@ CELERY_ROUTES = {'generate_mosaic_chunk': {'queue': 'chunk_processing'},
                  'generate_tsm_chunk': {'queue': 'chunk_processing'},
                  'generate_fractional_cover_chunk': {'queue': 'chunk_processing'},
                  'generate_slip_chunk': {'queue': 'chunk_processing'},
-                 'generate_ndvi_anomaly_chunk': {'queue': 'chunk_processing'}}
+                 'generate_ndvi_anomaly_chunk': {'queue': 'chunk_processing'},
+                 'generate_chunk': {'queue': 'chunk_processing'}}
 
 BROKER_URL = 'redis://' + MASTER_NODE + ':6379'
 CELERY_RESULT_BACKEND = 'redis://' + MASTER_NODE + ':6379'

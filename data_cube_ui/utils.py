@@ -18,6 +18,9 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+import os
+import shutil
+
 
 # pulled from peterbe.com since there were benchmarks listed.
 # removes duplicates from python lists.
@@ -43,3 +46,44 @@ def map_ranges(value, leftMin, leftMax, rightMin, rightMax):
 
     # Convert the 0-1 range into a value in the right range.
     return rightMin + (valueScaled * rightSpan)
+
+#combines metadata with common indices and keys. Params: current meta, desired additions (list/iterable)
+#returns: updated meta
+def combine_metadata(metadata, additions):
+    for addition in additions:
+        for acquisition_date in addition:
+            if acquisition_date in metadata:
+                for key in metadata[acquisition_date]:
+                    metadata[acquisition_date][key] += addition[acquisition_date][key]
+            else:
+                metadata[acquisition_date] = addition[acquisition_date]
+    return metadata
+
+def cancel_task(query, result, base_path):
+    print("Cancelled task.")
+    try:
+        shutil.rmtree(base_temp_path + query.query_id)
+    except:
+        pass
+    query.delete()
+    result.delete()
+
+
+def error_with_message(result, message, base_path):
+    """
+    Errors out under specific circumstances, used to pass error msgs to user. Uses the result path as
+    a message container: TODO? Change this.
+
+    Args:
+        result (Result): The current result of the query being ran.
+        message (string): The message to be stored in the result object.
+
+    Returns:
+        Nothing is returned as the method is ran asynchronously.
+    """
+    if os.path.exists(base_path + result.query_id):
+        shutil.rmtree(base_path + result.query_id)
+    result.status = "ERROR"
+    result.result_path = message
+    result.save()
+    return
