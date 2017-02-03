@@ -268,7 +268,7 @@ def get_query_history(request, area_id):
     if request.user.is_authenticated():
         user_id = request.user.username
     history = Query.objects.filter(
-        user_id=user_id, area_id=area_id).order_by('-query_start')[:10]
+        user_id=user_id, area_id=area_id, complete=True).order_by('-query_start')[:10]
     context = {
         'query_history': history,
     }
