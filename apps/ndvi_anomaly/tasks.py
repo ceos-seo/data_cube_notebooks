@@ -42,7 +42,7 @@ from dateutil.tz import tzutc
 from utils.data_access_api import DataAccessApi
 from utils.dc_mosaic import create_mosaic
 from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask
-from utils.dc_utilities import split_task, fill_nodata
+from utils.dc_utilities import split_task, fill_nodata, generate_time_ranges
 from utils.dc_baseline import generate_baseline
 from utils.dc_demutils import create_slope_mask
 from utils.dc_water_classifier import wofs_classify
@@ -198,10 +198,12 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
 
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[2] for tile in group_data])
 
-            #TODO ERROR HANDLING FOR NO OVERLAP
-
             #create cf mosaic
-            dataset_mosaic = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
+            try:
+                dataset_mosaic = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
+            except:
+                error_with_message(result, "There is no overlap between the selected scene and the selected area.", base_temp_path)
+                return
             dataset_out_mosaic = processing_options['chunk_combination_method'](dataset_mosaic, dataset_out_mosaic)
 
             #now ndvi_anomaly.
@@ -263,10 +265,7 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
         # we've got the tif, now do the png set..
         # uses gdal dem with custom color maps..
         for index in range(len(color_paths)):
-            cmd = "gdaldem color-relief -of PNG -b " + \
-                str(index + 1) + " " + tif_path + " " + \
-                color_paths[index] + " " + result_paths[index]
-            os.system(cmd)
+            create_single_band_rgb(band=(index+1), tif_path=tif_path, color_scale=color_paths[index], output_path=result_paths[index], fill="black")
 
         # update the results and finish up.
         update_model_bounds_with_dataset([result, meta, query], dataset_out_mosaic)
@@ -299,49 +298,36 @@ def generate_ndvi_anomaly_chunk(time_num, chunk_num, processing_options=None, qu
     from acquisition_list, which is a list of acquisition dates, and creates the ndvi_anomaly using the function named in processing_options.
     saves the result to disk using time/chunk num, and returns the path and the acquisition date keyed metadata.
     """
+
+    #if the path has been removed, the task is cancelled and this is only running due to the prefetch.
+    if not os.path.exists(base_temp_path + query.query_id):
+        return None
+
     selected_scene = acquisition_list[0]
     baseline_scenes = acquisition_list[1:]
     time_index = 0
     iteration_data = None
     acquisition_metadata = {}
-
     print("Starting chunk: " + str(time_num) + " " + str(chunk_num))
-    while time_index < len(baseline_scenes):
-        # check if the task has been cancelled. if the result obj doesn't exist anymore then return.
-        try:
-            result = Result.objects.get(query_id=query.query_id)
-        except:
-            print("Cancelled task as result does not exist")
-            return
-        if result.status == "CANCEL":
-            print("Cancelling...")
-            return "CANCEL"
-        baseline_data = None
-        scene_data = None
-        # if everything needs to be loaded at once...
-        if processing_options['time_chunks'] is None and processing_options['time_slices_per_iteration'] == None:
-            datasets_in = []
-            for acquisition in baseline_scenes:
-                dataset = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=(acquisition, acquisition + datetime.timedelta(seconds=1)), longitude=lon_range, latitude=lat_range, measurements=measurements)
-                if 'time' in dataset:
-                    datasets_in.append(dataset.copy(deep=True))
-                dataset = None
-            if len(datasets_in) > 0:
-                baseline_data = xr.concat(datasets_in, 'time')
-        else:
-            # time ranges set based on if the baseline_scenes has been reversed or not. If it has, then the 'start' index is the later date, and must be handled appropriately.
-            start = baseline_scenes[time_index] + datetime.timedelta(seconds=1) if processing_options['reverse_time'] else baseline_scenes[time_index]
-            if processing_options['time_slices_per_iteration'] is not None and (time_index + processing_options['time_slices_per_iteration'] - 1) < len(baseline_scenes):
-                end = baseline_scenes[time_index + processing_options['time_slices_per_iteration'] - 1]
-            else:
-                end = baseline_scenes[-1] if processing_options['reverse_time'] else baseline_scenes[-1] + datetime.timedelta(seconds=1)
-            time_range = (end, start) if processing_options['reverse_time'] else (start, end)
 
-            baseline_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
+    #dc.load doesn't support generators so do it this way.
+    time_ranges = list(generate_time_ranges(baseline_scenes, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
+
+    for time_range in time_ranges:
+
+        baseline_data = None
+
+        datasets_in = []
+        for acquisition in baseline_scenes:
+            dataset = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=(acquisition, acquisition + datetime.timedelta(seconds=1)), longitude=lon_range, latitude=lat_range, measurements=measurements)
+            if 'time' in dataset:
+                datasets_in.append(dataset.copy(deep=True))
+            dataset = None
+        if len(datasets_in) > 0:
+            baseline_data = xr.concat(datasets_in, 'time')
 
         # if baseline or scene data isn't there, continue.
         if 'cf_mask' not in baseline_data:
-            time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
             continue
 
         clear_mask = create_cfmask_clean_mask(baseline_data.cf_mask)
@@ -365,12 +351,11 @@ def generate_ndvi_anomaly_chunk(time_num, chunk_num, processing_options=None, qu
 
         ndvi_baseline = (baseline_data.nir - baseline_data.red) / (baseline_data.nir + baseline_data.red)
         iteration_data = ndvi_baseline.mean('time') if processing_options['processing_method'] == 'mean' else ndvi_baseline.median('time') if processing_options['processing_method'] == 'median' else create_mosaic(ndvi_baseline, clean_mask=clear_mask, reverse_time=True, intermediate_product=None)
-        time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
 
     #load and clean up the selected scene. Just mosaicked as it does the cfmask corrections
     scene_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=(selected_scene - datetime.timedelta(hours=1), selected_scene + datetime.timedelta(hours=1)), longitude=lon_range, latitude=lat_range)
-    if 'cf_mask' not in scene_data or iteration_data is None:
-        return [None, None, None]
+    if 'cf_mask' not in scene_data or iteration_data is None or not os.path.exists(base_temp_path + query.query_id):
+        return None
     scene_cleaned = create_mosaic(scene_data, reverse_time=True, intermediate_product=None)
 
     #masks out nodata and water.
@@ -398,6 +383,9 @@ def generate_ndvi_anomaly_chunk(time_num, chunk_num, processing_options=None, qu
         str(time_num) + "_" + str(chunk_num) + ".nc"
     geo_path_ndvi = base_temp_path + query.query_id + "/geo_chunk_ndvi_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
+
+    if not os.path.exists(base_temp_path + query.query_id):
+        return None
 
     scene_cleaned.to_netcdf(geo_path)
     scene_ndvi_dataset.to_netcdf(geo_path_ndvi)

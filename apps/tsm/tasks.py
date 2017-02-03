@@ -41,7 +41,7 @@ from dateutil.tz import tzutc
 import imageio
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_cfmask_clean_mask, perform_timeseries_analysis_iterative, split_task, addition
+from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_cfmask_clean_mask, perform_timeseries_analysis_iterative, split_task, addition, generate_time_ranges
 from utils.dc_water_classifier import wofs_classify
 from utils.dc_tsm import tsm, mask_tsm
 
@@ -148,7 +148,7 @@ def perform_tsm_analysis(query_id, user_id, single=False):
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.
-        print("Getting data and creating mosaic")
+        print("Getting data and creating tsm")
         # create a temp folder that isn't on the nfs server so we can quickly
         # access/delete.
         if not os.path.exists(base_temp_path + query.query_id):
@@ -202,16 +202,11 @@ def perform_tsm_analysis(query_id, user_id, single=False):
                               child.revoke()
                       cancel_task(query, result, base_temp_path)
                       return
-                  animation_tiles = []
-                  nc_paths = []
-                  for geoslice in range(len(lat_ranges)):
-                      nc_path = base_temp_path + query.query_id + '/' + \
-                          str(time_range_index) + '/' + \
-                          str(geoslice) + str(timeslice) + ".nc"
-                      nc_paths.append(nc_path)
-                      animation_tiles.append(xr.open_dataset(nc_path))
-                  animated_data = xr.concat(
-                      reversed(animation_tiles), dim='latitude').load()
+                  nc_paths = [base_temp_path + query.query_id + '/' + \
+                      str(time_range_index) + '/' + \
+                      str(geoslice) + str(timeslice) + ".nc" for geoslice in range(len(lat_ranges))]
+
+                  animated_data = xr.concat(reversed([xr.open_dataset(nc_path) for nc_path in nc_paths]), dim='latitude').load()
                   #combine the timeslice vals with the intermediate for the true value @ that timeslice
                   if time_range_index > 0 and query.animated_product != "scene":
                       animated_data = processing_options['chunk_combination_method'](animated_data, dataset_out_tsm)
@@ -294,20 +289,8 @@ def perform_tsm_analysis(query_id, user_id, single=False):
 
                  animated_product = AnimationType.objects.get(
                      type_id=query.animated_product)
-                 # create pngs.
-                 cmd = "gdaldem color-relief -of PNG -b " + animated_product.band_number + " " + \
-                     geotiff_path + " " + \
-                         color_path[
-                             int(animated_product.band_number) - 1] + " " + png_path
-                 os.system(cmd)
 
-                 cmd = "convert -transparent \"#FFFFFF\" " + png_path + " " + png_path
-                 os.system(cmd)
-
-                 if result_type.fill is not "transparent":
-                     cmd = "convert " + png_path + " -background " + \
-                         result_type.fill + " -alpha remove " + png_path
-                     os.system(cmd)
+                create_single_band_rgb(band=animated_product.band_number, tif_path=geotiff_path, color_scale=color_path[int(animated_product.band_number) - 1], output_path=png_path, fill=result_type.fill)
 
             with imageio.get_writer(file_path + '_animation.gif', mode='I', duration=1.0) as writer:
                 for index in range(len(acquisitions)):
@@ -325,17 +308,7 @@ def perform_tsm_analysis(query_id, user_id, single=False):
         # we've got the tif, now do the png set..
         # uses gdal dem with custom color maps..
         for index in range(len(color_path)):
-            cmd = "gdaldem color-relief -of PNG -b " + \
-                str(index + 1) + " " + tif_path + " " + \
-                color_path[index] + " " + result_paths[index]
-            os.system(cmd)
-            cmd = "convert -transparent \"#FFFFFF\" " + \
-                result_paths[index] + " " + result_paths[index]
-            os.system(cmd)
-            if result_type.fill is not "transparent":
-                cmd = "convert " + result_paths[index] + " -background " + \
-                    result_type.fill + " -alpha remove " + result_paths[index]
-                os.system(cmd)
+            create_single_band_rgb(band=(index+1), tif_path=tiff_path, color_scale=color_path[index], output_path=result_paths[index], fill=result_type.fill)
 
         # update the results and finish up.
         update_model_bounds_with_dataset([result, meta, query], dataset_out)
@@ -368,6 +341,11 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
     from acquisition_list, which is a list of acquisition dates, and creates the custom mosaic using the function named in processing_options.
     saves the result to disk using time/chunk num, and returns the path and the acquisition date keyed metadata.
     """
+
+    #if the path has been removed, the task is cancelled and this is only running due to the prefetch.
+    if not os.path.exists(base_temp_path + query.query_id):
+        return None
+
     time_index = 0
     wofs_data = None
     tsm_data = None
@@ -375,44 +353,31 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
     tsm_analysis = None
     acquisition_metadata = {}
     print("Starting chunk: " + str(time_num) + " " + str(chunk_num))
-    # holds some acquisition based metadata.
-    while time_index < len(acquisition_list):
-        # check if the task has been cancelled. if the result obj doesn't exist anymore then return.
-        try:
-            result = Result.objects.get(query_id=query.query_id)
-        except:
-            print("Cancelled task as result does not exist")
-            return
-        if result.status == "CANCEL":
-            print("Cancelling...")
-            return "CANCEL"
 
-        # time ranges set based on if the acquisition_list has been reversed or not. If it has, then the 'start' index is the later date, and must be handled appropriately.
-        start = acquisition_list[time_index] + datetime.timedelta(seconds=1) if processing_options['reverse_time'] else acquisition_list[time_index]
-        if processing_options['time_slices_per_iteration'] is not None and (time_index + processing_options['time_slices_per_iteration'] - 1) < len(acquisition_list):
-            end = acquisition_list[time_index + processing_options['time_slices_per_iteration'] - 1]
-        else:
-            end = acquisition_list[-1] if processing_options['reverse_time'] else acquisition_list[-1] + datetime.timedelta(seconds=1)
-        time_range = (end, start) if processing_options['reverse_time'] else (start, end)
+    #dc.load doesn't support generators so do it this way.
+    time_ranges = list(generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
+
+    # holds some acquisition based metadata.
+    for time_range in time_ranges:
 
         raw_data = None
 
         if query.platform == "LANDSAT_ALL":
             datasets_in = []
             for index in range(len(products)):
-                dataset = dc.get_dataset_by_extent(products[index]+query.area_id, product_type=None, platform=platforms[index], time=(start, end), longitude=lon_range, latitude=lat_range, measurements=measurements)
+                dataset = dc.get_dataset_by_extent(products[index]+query.area_id, product_type=None, platform=platforms[index], time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
                 if 'time' in dataset:
                     datasets_in.append(dataset.copy(deep=True))
                 dataset = None
             if len(datasets_in) > 0:
                 raw_data = xr.concat(datasets_in, 'time')
         else:
-            raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=(start, end), longitude=lon_range, latitude=lat_range, measurements=measurements)
+            raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 
         # get the actual data and perform analysis.
         if raw_data is None or "cf_mask" not in raw_data:
-            time_index = time_index + processing_options['time_slices_per_iteration']
             continue
+
         clean_mask = create_cfmask_clean_mask(raw_data.cf_mask)
 
         wofs_data = processing_options['processing_method'](raw_data, clean_mask=clean_mask, enforce_float64=True)
@@ -442,18 +407,19 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
                     type_id=query.animated_product)
                 animated_data = tsm_data.isel(time=timeslice).drop(
                     "time") if animated_product.type_id == "scene" else tsm_analysis
+                if not os.path.exists(base_temp_path + query.query_id):
+                    return None
                 if not os.path.exists(base_temp_path + query.query_id + '/' + str(time_num)):
                     os.mkdir(base_temp_path + query.query_id +
                              '/' + str(time_num))
                 animated_data.to_netcdf(base_temp_path + query.query_id + '/' + str(
                     time_num) + '/' + str(chunk_num) + str(time_index + timeslice) + ".nc")
-        time_index = time_index + processing_options['time_slices_per_iteration']
 
     # Save this geographic chunk to disk.
     geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \
         str(time_num) + "_" + str(chunk_num)
-    if water_analysis is None:
-        return [None, None, None]
+    if water_analysis is None or not os.path.exists(base_temp_path + query.query_id):
+        return None
     water_analysis.to_netcdf(geo_path + "_water.nc")
     tsm_analysis.to_netcdf(geo_path + "_tsm.nc")
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))

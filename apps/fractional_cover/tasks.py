@@ -44,7 +44,7 @@ from utils.dc_mosaic import create_mosaic, create_median_mosaic, create_max_ndvi
 from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task
 from utils.dc_fractional_coverage_classifier import frac_coverage_classify
 
-from utils.dc_utilities import split_task, fill_nodata, min_value, max_value
+from utils.dc_utilities import split_task, fill_nodata, min_value, max_value, generate_time_ranges
 
 from data_cube_ui.utils import update_model_bounds_with_dataset, combine_metadata, map_ranges, cancel_task, error_with_message
 from data_cube_ui.tasks import generate_chunk
@@ -312,35 +312,27 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
     from acquisition_list, which is a list of acquisition dates, and creates the fractional_cover using the function named in processing_options.
     saves the result to disk using time/chunk num, and returns the path and the acquisition date keyed metadata.
     """
+
+    #if the path has been removed, the task is cancelled and this is only running due to the prefetch.
+    if not os.path.exists(base_temp_path + query.query_id):
+        return None
+
     time_index = 0
     iteration_data = None
     acquisition_metadata = {}
     print("Starting chunk: " + str(time_num) + " " + str(chunk_num))
-    # holds some acquisition based metadata.
-    while time_index < len(acquisition_list):
-        # check if the task has been cancelled. if the result obj doesn't exist anymore then return.
-        try:
-            result = Result.objects.get(query_id=query.query_id)
-        except:
-            print("Cancelled task as result does not exist")
-            return
-        if result.status == "CANCEL":
-            print("Cancelling...")
-            return "CANCEL"
 
-        # time ranges set based on if the acquisition_list has been reversed or not. If it has, then the 'start' index is the later date, and must be handled appropriately.
-        start = acquisition_list[time_index] + datetime.timedelta(seconds=1) if processing_options['reverse_time'] else acquisition_list[time_index]
-        if processing_options['time_slices_per_iteration'] is not None and (time_index + processing_options['time_slices_per_iteration'] - 1) < len(acquisition_list):
-            end = acquisition_list[time_index + processing_options['time_slices_per_iteration'] - 1]
-        else:
-            end = acquisition_list[-1] if processing_options['reverse_time'] else acquisition_list[-1] + datetime.timedelta(seconds=1)
-        time_range = (end, start) if processing_options['reverse_time'] else (start, end)
+    #dc.load doesn't support generators so do it this way.
+    time_ranges = list(generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
+
+    # holds some acquisition based metadata.
+    for time_range in time_ranges:
 
         raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 
         if "cf_mask" not in raw_data:
-            time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
             continue
+
         clear_mask = create_cfmask_clean_mask(raw_data.cf_mask)
 
         # update metadata. # here the clear mask has all the clean
@@ -355,14 +347,8 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
             acquisition_metadata[time][
                 'clean_pixels'] += clean_pixels
 
-        # Removes the cf mask variable from the dataset after the clear mask has been created.
-        # prevents the cf mask from being put through the mosaicing function as it doesn't fit
-        # the correct format w/ nodata values for mosaicing.
-        # raw_data = raw_data.drop('cf_mask')
-
         iteration_data = processing_options['processing_method'](
             raw_data, clean_mask=clear_mask, intermediate_product=iteration_data, reverse_time=processing_options['reverse_time'])
-        time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
 
     # Save this geographic chunk to disk.
     geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \
@@ -370,8 +356,8 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
     fractional_cover_path = base_temp_path + query.query_id + "/geo_chunk_fractional_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
     # if this is an empty chunk, just return an empty dataset.
-    if iteration_data is None:
-        return [None, None, None]
+    if iteration_data is None or not os.path.exists(base_temp_path + query.query_id):
+        return None
     iteration_data.to_netcdf(geo_path)
     ##################################################################
     # Compute fractional cover here.
@@ -380,6 +366,8 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
     clear_mask[iteration_data.cf_mask.values==1] = False
     fractional_cover = frac_coverage_classify(iteration_data, clean_mask=clear_mask)
     ##################################################################
+    if not os.path.exists(base_temp_path + query.query_id):
+        return None
     fractional_cover.to_netcdf(fractional_cover_path)
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
     return [geo_path, fractional_cover_path, acquisition_metadata]
