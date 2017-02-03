@@ -290,7 +290,7 @@ def perform_tsm_analysis(query_id, user_id, single=False):
                  animated_product = AnimationType.objects.get(
                      type_id=query.animated_product)
 
-                create_single_band_rgb(band=animated_product.band_number, tif_path=geotiff_path, color_scale=color_path[int(animated_product.band_number) - 1], output_path=png_path, fill=result_type.fill)
+                 create_single_band_rgb(band=animated_product.band_number, tif_path=geotiff_path, color_scale=color_path[int(animated_product.band_number) - 1], output_path=png_path, fill=result_type.fill)
 
             with imageio.get_writer(file_path + '_animation.gif', mode='I', duration=1.0) as writer:
                 for index in range(len(acquisitions)):
