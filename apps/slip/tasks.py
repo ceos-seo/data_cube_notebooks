@@ -41,7 +41,7 @@ from dateutil.tz import tzutc
 
 from utils.data_access_api import DataAccessApi
 from utils.dc_mosaic import create_mosaic
-from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task, fill_nodata
+from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task, fill_nodata, generate_time_ranges
 from utils.dc_baseline import generate_baseline
 from utils.dc_demutils import create_slope_mask
 
@@ -314,29 +314,21 @@ def generate_slip_chunk(time_num, chunk_num, processing_options=None, query=None
     from acquisition_list, which is a list of acquisition dates, and creates the slip using the function named in processing_options.
     saves the result to disk using time/chunk num, and returns the path and the acquisition date keyed metadata.
     """
+
+    #if the path has been removed, the task is cancelled and this is only running due to the prefetch.
+    if not os.path.exists(base_temp_path + query.query_id):
+        return None
+
     time_index = 0
     iteration_data = None
     acquisition_metadata = {}
     print("Starting chunk: " + str(time_num) + " " + str(chunk_num))
-    # holds some acquisition based metadata.
-    while time_index < len(acquisition_list):
-        # check if the task has been cancelled. if the result obj doesn't exist anymore then return.
-        try:
-            result = Result.objects.get(query_id=query.query_id)
-        except:
-            print("Cancelled task as result does not exist")
-            return
-        if result.status == "CANCEL":
-            print("Cancelling...")
-            return "CANCEL"
 
-        # time ranges set based on if the acquisition_list has been reversed or not. If it has, then the 'start' index is the later date, and must be handled appropriately.
-        start = acquisition_list[time_index] + datetime.timedelta(seconds=1) if processing_options['reverse_time'] else acquisition_list[time_index]
-        if processing_options['time_slices_per_iteration'] is not None and (time_index + processing_options['time_slices_per_iteration'] - 1) < len(acquisition_list):
-            end = acquisition_list[time_index + processing_options['time_slices_per_iteration'] - 1]
-        else:
-            end = acquisition_list[-1] if processing_options['reverse_time'] else acquisition_list[-1] + datetime.timedelta(seconds=1)
-        time_range = (end, start) if processing_options['reverse_time'] else (start, end)
+    #dc.load doesn't support generators so do it this way.
+    time_ranges = list(generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
+
+    # holds some acquisition based metadata.
+    for time_range in time_ranges:
 
         raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
         aster = dc.get_dataset_by_extent('terra_aster_gdm_'+query.area_id,
@@ -345,8 +337,8 @@ def generate_slip_chunk(time_num, chunk_num, processing_options=None, query=None
                     	measurements=['dem'])
         #Pretty much for metadata only.. Not all that useful, only kept for consistency.
         if "cf_mask" not in raw_data or "dem" not in aster:
-            time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
             continue
+
         clear_mask = create_cfmask_clean_mask(raw_data.cf_mask)
 
         #Mosaic.
@@ -397,8 +389,6 @@ def generate_slip_chunk(time_num, chunk_num, processing_options=None, query=None
             iteration_data[band].values[~comparison_red_slope_filtered.isnull()[band].values] = comparison_red_slope_filtered[band].values[~comparison_red_slope_filtered.isnull()[band].values]
             baseline_mosaic[band].values[~baseline_mosaic_data.isnull()[band].values] = baseline_mosaic_data[band].values[~baseline_mosaic_data.isnull()[band].values]
 
-        time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
-
     # Save this geographic chunk to disk.
     geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
@@ -407,8 +397,8 @@ def generate_slip_chunk(time_num, chunk_num, processing_options=None, query=None
     slip_path = base_temp_path + query.query_id + "/geo_chunk_slip_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
     # if this is an empty chunk, just return an empty dataset.
-    if iteration_data is None:
-        return [None, None, None, None]
+    if iteration_data is None or not os.path.exists(base_temp_path + query.query_id):
+        return None
     iteration_data.to_netcdf(geo_path)
     slip.to_netcdf(slip_path)
     baseline_mosaic.to_netcdf(geo_path_baseline)

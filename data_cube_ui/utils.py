@@ -62,7 +62,7 @@ def combine_metadata(metadata, additions):
 def cancel_task(query, result, base_path):
     print("Cancelled task.")
     try:
-        shutil.rmtree(base_temp_path + query.query_id)
+        shutil.rmtree(base_path + query.query_id)
     except:
         pass
     query.delete()
@@ -81,8 +81,11 @@ def error_with_message(result, message, base_path):
     Returns:
         Nothing is returned as the method is ran asynchronously.
     """
-    if os.path.exists(base_path + result.query_id):
+    print("Task error.")
+    try:
         shutil.rmtree(base_path + result.query_id)
+    except:
+        pass
     result.status = "ERROR"
     result.result_path = message
     result.save()
