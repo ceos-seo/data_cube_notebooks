@@ -22,6 +22,8 @@
 # Django specific
 from celery.decorators import task
 from celery.signals import worker_process_init, worker_process_shutdown
+from celery import group
+from celery.task.control import revoke
 from .models import Query, Result, Metadata
 
 import numpy as np
@@ -39,11 +41,12 @@ from dateutil.tz import tzutc
 
 from utils.data_access_api import DataAccessApi
 from utils.dc_mosaic import create_mosaic
-from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task
+from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask
+from utils.dc_utilities import split_task, fill_nodata
 from utils.dc_baseline import generate_baseline
 from utils.dc_demutils import create_slope_mask
 from utils.dc_water_classifier import wofs_classify
-from data_cube_ui.utils import update_model_bounds_with_dataset, map_ranges
+from data_cube_ui.utils import update_model_bounds_with_dataset, map_ranges, combine_metadata, cancel_task, error_with_message
 
 """
 Class for handling loading celery workers to perform tasks asynchronously.
@@ -67,23 +70,6 @@ dc = None
 
 #default measurements. leaves out all qa bands.
 measurements = ['red', 'nir', 'cf_mask']
-
-"""
-functions used to combine time sliced data after being combined geographically.
-Fill nodata uses the first timeslice as a base, then uses subsequent slices to
-fill in indices with nodata values.
-this should be used for recent/leastrecent + anything that is done in a single time chunk (median pixel?)
-things like max/min ndvi should be able to compound max/min ops between ddifferent timeslices so this will be
-different for that.
-"""
-def fill_nodata(dataset, dataset_intermediate):
-    if dataset_intermediate is None:
-        return dataset.copy(deep=True)
-    dataset_out = dataset_intermediate.copy(deep=True)
-    for key in list(dataset_out.data_vars):
-        # Get raw data for current variable and mask the data
-        dataset_out[key].values[dataset_out[key].values==-9999] = dataset[key].values[dataset_out[key].values==-9999]
-    return dataset_out
 
 #holds the different compositing algorithms. median, mean, mosaic?
 # all options are required. setting None to a option will have the algo/task splitting
@@ -134,7 +120,7 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
     result = query.generate_result()
 
     if query.platform == "LANDSAT_ALL":
-        error_with_message(result, "Combined products are not supported for NDVI Anomaly calculations.")
+        error_with_message(result, "Combined products are not supported for NDVI Anomaly calculations.", base_temp_path)
         return
 
     product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
@@ -154,7 +140,7 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
         #can I use pandas/dfs to do a 'groupby' on month?
         baseline_scenes = [baseline_scene for baseline_scene in baseline_scenes_base if baseline_scene.month in baseline_months]
         if len(baseline_scenes_base) < 1:
-            error_with_message(result, "Insufficient scene count for baseline length.")
+            error_with_message(result, "Insufficient scene count for baseline length.", base_temp_path)
             return
         #scene of interest being appended before processing: this is the MOST RECENT scene, e.g. index 0 after processing.
         baseline_scenes.append(acquisitions[scene])
@@ -170,7 +156,7 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
             query.longitude_min, query.longitude_max), acquisitions=baseline_scenes, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
-        result.total_scenes = len(time_ranges) * len(lat_ranges)
+        result.total_scenes = len(time_ranges)
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.
@@ -181,17 +167,12 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
             os.mkdir(base_temp_path + query.query_id)
             os.chmod(base_temp_path + query.query_id, 0o777)
 
-        time_chunk_tasks = []
         # iterate over the time chunks.
         print("Time chunks: " + str(len(time_ranges)))
         print("Geo chunks: " + str(len(lat_ranges)))
-        for time_range_index in range(len(time_ranges)):
-            # iterate over the geographic chunks.
-            geo_chunk_tasks = []
-            for geographic_chunk_index in range(len(lat_ranges)):
-                geo_chunk_tasks.append(generate_ndvi_anomaly_chunk.delay(time_range_index, geographic_chunk_index, processing_options=processing_options, query=query, acquisition_list=time_ranges[
-                                       time_range_index], lat_range=lat_ranges[geographic_chunk_index], lon_range=lon_ranges[geographic_chunk_index], measurements=measurements))
-            time_chunk_tasks.append(geo_chunk_tasks)
+        # create a group of geographic tasks for each time sliceself.
+        time_chunk_tasks = [group(generate_ndvi_anomaly_chunk.s(time_range_index, geographic_chunk_index, processing_options=processing_options, query=query, acquisition_list=time_ranges[time_range_index], lat_range=lat_ranges[
+                                  geographic_chunk_index], lon_range=lon_ranges[geographic_chunk_index], measurements=measurements) for geographic_chunk_index in range(len(lat_ranges))).apply_async() for time_range_index in range(len(time_ranges))]
 
         dataset_out_mosaic = None
         dataset_out_ndvi = None
@@ -199,41 +180,32 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
         for geographic_group in time_chunk_tasks:
             full_dataset = None
             tiles = []
-            for t in geographic_group:
-                tile = t.get()
-                if tile == "CANCEL":
-                    print("Cancelled task.")
-                    shutil.rmtree(base_temp_path + query.query_id)
-                    query.delete()
-                    result.delete()
+            # get the geographic chunk data and drop all None values
+            while not geographic_group.ready():
+                result.refresh_from_db()
+                if result.status == "CANCEL":
+                    #revoke all tasks. Running tasks will continue to execute.
+                    for task_group in time_chunk_tasks:
+                        for child in task_group.children:
+                            child.revoke()
+                    cancel_task(query, result, base_temp_path)
                     return
-                if tile[0] is not None:
-                    tiles.append(tile)
-                result.scenes_processed += 1
-                result.save()
+            group_data = [data for data in geographic_group.get()
+                          if data is not None]
+            result.scenes_processed += 1
+            result.save()
             print("Got results for a time slice, computing intermediate product..")
-            xr_tiles_mosaic = []
-            xr_tiles_ndvi = []
-            for tile in tiles:
-                tile_metadata = tile[2]
-                for acquisition_date in tile_metadata:
-                    if acquisition_date in acquisition_metadata:
-                        acquisition_metadata[acquisition_date]['clean_pixels'] += tile_metadata[acquisition_date]['clean_pixels']
-                    else:
-                        acquisition_metadata[acquisition_date] = {'clean_pixels': tile_metadata[acquisition_date]['clean_pixels']}
-                xr_tiles_mosaic.append(xr.open_dataset(tile[0]))
-                xr_tiles_ndvi.append(xr.open_dataset(tile[1]))
-            if len(xr_tiles_mosaic) < 1:
-                error_with_message(result, "There is no overlap between the selected scene and your area.")
-                return
+
+            acquisition_metadata = combine_metadata(acquisition_metadata, [tile[2] for tile in group_data])
+
+            #TODO ERROR HANDLING FOR NO OVERLAP
+
             #create cf mosaic
-            full_dataset_mosaic = xr.concat(reversed(xr_tiles_mosaic), dim='latitude')
-            dataset_mosaic = full_dataset_mosaic.load()
+            dataset_mosaic = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
             dataset_out_mosaic = processing_options['chunk_combination_method'](dataset_mosaic, dataset_out_mosaic)
 
             #now ndvi_anomaly.
-            full_dataset_ndvi = xr.concat(reversed(xr_tiles_ndvi), dim='latitude')
-            dataset_ndvi = full_dataset_ndvi.load()
+            dataset_ndvi = xr.concat(reversed([xr.open_dataset(tile[1]) for tile in group_data]), dim='latitude').load()
             dataset_out_ndvi = processing_options['chunk_combination_method'](dataset_ndvi, dataset_out_ndvi)
 
         latitude = dataset_out_mosaic.latitude
@@ -315,7 +287,7 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
         query.save()
     except:
         error_with_message(
-            result, "There was an exception when handling this query.")
+            result, "There was an exception when handling this query.", base_temp_path)
         raise
     # end error wrapping.
     return
@@ -377,7 +349,7 @@ def generate_ndvi_anomaly_chunk(time_num, chunk_num, processing_options=None, qu
         # update metadata. # here the clear mask has all the clean
         # pixels for each acquisition.
         for timeslice in range(clear_mask.shape[0]):
-            time = raw_data.time.values[timeslice] if type(raw_data.time.values[timeslice]) == datetime.datetime else datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
+            time = baseline_data.time.values[timeslice] if type(baseline_data.time.values[timeslice]) == datetime.datetime else datetime.datetime.utcfromtimestamp(baseline_data.time.values[timeslice].astype(int) * 1e-9)
             clean_pixels = np.sum(
                 clear_mask[timeslice, :, :] == True)
             if time not in acquisition_metadata:
@@ -433,26 +405,6 @@ def generate_ndvi_anomaly_chunk(time_num, chunk_num, processing_options=None, qu
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
     return [geo_path, geo_path_ndvi, acquisition_metadata]
 
-def error_with_message(result, message):
-    """
-    Errors out under specific circumstances, used to pass error msgs to user. Uses the result path as
-    a message container: TODO? Change this.
-
-    Args:
-        result (Result): The current result of the query being ran.
-        message (string): The message to be stored in the result object.
-
-    Returns:
-        Nothing is returned as the method is ran asynchronously.
-    """
-    if os.path.exists(base_temp_path + result.query_id):
-        shutil.rmtree(base_temp_path + result.query_id)
-    result.status = "ERROR"
-    result.result_path = message
-    result.save()
-    print(message)
-    return
-
 # Init/shutdown functions for handling dc instances.
 # this is done to prevent synchronization/conflicts between workers when
 # accessing DC resources.
@@ -465,6 +417,9 @@ def init_worker(**kwargs):
     print("Creating DC instance for worker.")
     global dc
     dc = DataAccessApi()
+    if not os.path.exists(base_result_path):
+        os.mkdir(base_result_path)
+        os.chmod(base_result_path, 0o777)
 
 
 @worker_process_shutdown.connect
