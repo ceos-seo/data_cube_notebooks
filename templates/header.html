@@ -25,50 +25,57 @@
      Modified by:
      Last modified date: -->
 
-<div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="/">CEOS Data Cube</a>
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">CEOS Data Cube</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <li class="divider-vertical visible-lg visible-md"></li>
+                {% if user.is_authenticated %}
+                <li class="visible-lg visible-md visible-xs">
+                    <a target="_blank"><span class="glyphicon glyphicon-user"></span> Logged in as: {{ user.username }}</a>
+                </li>
+                <li>
+                    <a href="{% url 'logout' %}?next=/"><span class="glyphicon glyphicon-log-out"></span> Logout</a>
+                </li>
+                {% else %}
+                <li>
+                    <a href="{% url 'login' %}?next=/"><span class="glyphicon glyphicon-log-in"></span> Log In</a>
+                </li>
+                {% endif %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="/">Home</a></li>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">Tools
+                    <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li class="dropdown-submenu">
+                            {% for app in apps %}
+                            <a id="{{ app.application_id }}" tabindex="-1" href="/{{ app.application_id }}/region_selection">{{ app.application_name }}</a>
+                            {% endfor %}
+                        </li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">Task Manager
+                    <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        {% for app in apps %}
+                        <li><a id="{{ app.application_id }}" tabindex="-1" href="/task_manager/{{ app.application_id }}">{{ app.application_name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                <li><a href="/submit_feedback">Submit Feedback</a></li>
+            </ul>
+        </div>
     </div>
-    <div id="navbar" class="collapse navbar-collapse">
-      <ul class="nav navbar-nav">
-	<li><a href="/">Home</a></li>
-      </ul>
-      <ul class="nav navbar-nav">
-	<li class="dropdown">
-	  <a class="dropdown-toggle" data-toggle="dropdown">Tools <span class="caret"></span></a>
-	  <ul class="dropdown-menu">
-	    <li class="dropdown-submenu">
-	      {% for app in apps %}
-	      <a id="{{ app.application_id }}" tabindex="-1" href="/{{ app.application_id }}/region_selection">{{ app.application_name }}</a>
-	      {% endfor %}
-            </li>
-	  </ul>
-	</li>
-      </ul>
-      <ul class="nav navbar-nav">
-	<li><a>Task Manager</a></li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right">
-	{% if user.is_authenticated %}
-	<li>
-	  <a class="user-info" target="_blank"><span class="glyphicon glyphicon-user"></span>Logged in as: {{ user.username }}</a>
-	</li>
-	<li>
-	  <a id="logout-button" href="{% url 'logout' %}?next=/"><span class="glyphicon glyphicon-log-out"></span>Logout</a>
-	</li>
-	{% else %}
-	<li>
-	  <a id="login-button" href="{% url 'login' %}?next=/" ><span class="glyphicon glyphicon-log-in"></span>Log In</a>
-	</li>
-	{% endif %}
-	</ul>
-    </div>
-  </div>
 </div>

@@ -37,19 +37,26 @@ under the License.
     {% bootstrap_css %}
     {% bootstrap_javascript %}
     <link rel="stylesheet" href="/static/assets/css/style_header.css"/>
-    <link rel="stylesheet" href="/static/assets/css/index.css"/>
+    <link rel="stylesheet" href="/static/assets/css/data_cube_style.css">
     {% block javascript %}
     {% endblock %}
     {% block css %}
     {% endblock %}
 </head>
 <body>
-  <div id="headerContent">
-    <header id="header-main">
-      {% include "header.html" %}
-    </header>
-  </div>
+  {% include "header.html" %}
   {% block content %}
   {% endblock %}
 </body>
+<script>
+  //Gives all dropdowns the scrolldown effect.
+  $('.dropdown').on('show.bs.dropdown', function() {
+    $(this).find('.dropdown-menu').first().stop(true, true).slideDown();
+  });
+
+  // Add slideUp animation to Bootstrap dropdown when collapsing.
+  $('.dropdown').on('hide.bs.dropdown', function() {
+    $(this).find('.dropdown-menu').first().stop(true, true).hide();
+  });
+</script>
 </html>

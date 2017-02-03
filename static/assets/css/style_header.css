@@ -1,74 +1,65 @@
-.navbar-fixed-top
-{
-    background-color: #444;
-    border-bottom: 3px solid #fdc207;
-    box-shadow: 0 2px 3px rgba(0,0,0,.5);
-    font-size: 1.75em;
+.navbar-inverse {
+  background-color: #444;
+  border-bottom: 3px solid #fdc207;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, .5);
 }
 
-.navbar-default .navbar-brand
-{
+.navbar-header .navbar-brand {
+  font-size: 25px;
+}
+
+.navbar-inverse .navbar-brand:hover {
+  color: #fff;
+}
+
+.navbar-inverse a {
+  font-size: 16px;
+}
+
+/* navbar font/size/color */
+.navbar-inverse .navbar-nav li a {
+  color: #fff;
+}
+
+.navbar-inverse .navbar-brand {
     color: white;
-    font-size: 1.25em;
     padding-right: 40px;
+    /* Brand with small cube logo. */
+    padding-left: 42px;
+    background: url(../icons/data_cube_icon.png) no-repeat center left;
 }
 
-.navbar-default .navbar-brand:hover
-{
-    color: white;
+/* navbar highlighted color */
+.navbar-inverse .navbar-nav .open .dropdown-menu > li > a:hover {
+  color: #fff;
 }
 
-.glyphicon
-{
-    padding-right: 5px;
+.navbar-inverse .navbar-nav > li > a:focus, .navbar-inverse .navbar-nav > li > a:hover {
+  color: #fff;
 }
 
-.navbar-default .navbar-nav>li>a
-{
-    color: white;
+.navbar-inverse .navbar-nav > .open > a, .navbar-inverse .navbar-nav > .open > a:focus, .navbar-inverse .navbar-nav > .open > a:hover {
+  background-color: #555;
+  color: #fff;
 }
 
-.navbar-right
-{
-    font-size: 0.6em;
+/* navbar divider between links and login/lang. */
+.navbar .divider-vertical {
+  height: 50px;
+  margin: 0 9px;
+  border-left: 1px solid #6c6c6c;
+  border-right: 1px solid #6c6c6c;
 }
 
-.navbar-default .navbar-nav>li>a:hover
-				     {
-					 background-color: #EEEEEE;
-					 color: black;
-				     }
-.dropdown-menu>li>a:focus, .dropdown-menu>li>a:hover
-						   {
-						       background-color: #BBBBBB;
-						   }
-						  
-.navbar-nav:hover
-{
-    cursor: pointer;   
+/*navbar dropdown content*/
+.navbar-nav li .dropdown-menu {
+  background-color: #555;
+  border-radius: 0 0 5px 5px;
+  border: 3px solid #fdc207;
+  border-top: none;
 }
 
-.open > a.dropdown-toggle
-{
-    background-color: #EEEEEE;
-    color: black;
-}
-
-.dropdown-menu
-{
-    background-color: #EEEEEE;
-    padding: 0px;
-    border: none;
-}
-
-.dropdown-submenu > a
-{
-    background-color: #EEEEEE;
-    color: black;
-}
-
-.dropdown-submenu > a:hover
-{
-    background-color: black;
-    color: white;
+/*navbar dropdown onhover color*/
+.navbar-nav li .dropdown-menu a:hover {
+  background-color: #666;
 }
