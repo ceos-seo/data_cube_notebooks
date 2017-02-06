@@ -50,7 +50,6 @@ ALLOWED_HOSTS = ['*']
 MASTER_NODE = '127.0.0.1'
 
 # Application definition
-
 BASE_HOST = "localhost:8000/"
 ADMIN_EMAIL = "admin@ceos-cube.org"
 EMAIL_HOST = 'localhost'

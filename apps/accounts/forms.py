@@ -28,13 +28,15 @@ class RegistrationForm(forms.Form):
         email_confirm = cleaned_data.get('confirm_email')
 
         if password != password_confirm:
-            self.add_error(NON_FIELD_ERRORS, _("Your passwords do not match, please try again."))
+            self.add_error('password', _("Your passwords do not match, please try again."))
+            self.add_error('confirm_password', _(""))
         elif email != email_confirm:
-            self.add_error(NON_FIELD_ERRORS, _("Your emails do not match, please try again."))
+            self.add_error('email', _("Your emails do not match, please try again."))
+            self.add_error('confirm_email', _(""))
         elif len(User.objects.filter(username=username)) != 0:
-            self.add_error(NON_FIELD_ERRORS, _("That username is already taken, please try another."))
+            self.add_error('username', _("That username is already taken, please try another."))
         elif len(User.objects.filter(email=email)) != 0:
-            self.add_error(NON_FIELD_ERRORS, _("This email is already registered to another account. Please log in or reset your password to obtain your username."))
+            self.add_error('email', _("This email is already registered to another account. Please log in or reset your password to obtain your username."))
 
 class PasswordChangeForm(forms.Form):
     password = forms.CharField(label=_('Password'), max_length=100, widget=forms.PasswordInput)
@@ -49,7 +51,8 @@ class PasswordChangeForm(forms.Form):
         new_password_confirm = cleaned_data.get('new_password_confirm')
 
         if new_password != new_password_confirm:
-            self.add_error(NON_FIELD_ERRORS, _("Your passwords do not match, please try again."))
+            self.add_error('new_password', _("Your passwords do not match, please try again."))
+            self.add_error('new_password_confirm', _(""))
 
 class LostPasswordForm(forms.Form):
     email = forms.EmailField(label=_('Email'))
@@ -62,10 +65,12 @@ class LostPasswordForm(forms.Form):
         email_confirm = cleaned_data.get('confirm_email')
 
         if email != email_confirm:
-            self.add_error(NON_FIELD_ERRORS, _("Your emails do not match, please try again."))
+            self.add_error('email', _("Your emails do not match, please try again."))
+            self.add_error('confirm_email', _(""))
         user = User.objects.filter(email=email)
         if len(user) == 0:
-            self.add_error(NON_FIELD_ERRORS, _("This email is not registered to any account. Please enter a valid email"))
+            self.add_error('email', _("This email is not registered to any account. Please enter a valid email"))
+            self.add_error('confirm_email', _(""))
 
 
 class PasswordResetForm(forms.Form):
@@ -79,4 +84,5 @@ class PasswordResetForm(forms.Form):
         new_password_confirm = cleaned_data.get('new_password_confirm')
 
         if new_password != new_password_confirm:
-            self.add_error(NON_FIELD_ERRORS, _("Your passwords do not match, please try again."))
+            self.add_error('new_password', _("Your passwords do not match, please try again."))
+            self.add_error('new_password_confirm', _(""))

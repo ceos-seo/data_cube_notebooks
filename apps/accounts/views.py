@@ -63,7 +63,6 @@ def activate(request, uuid):
 
 def lost_password(request):
     if request.method == "POST":
-        import pdb; pdb.set_trace()
         form = LostPasswordForm(request.POST)
         if form.is_valid():
             user = User.objects.filter(email=form.cleaned_data['email'])
@@ -176,7 +175,7 @@ def password_change(request):
                 }
                 return render(request, 'registration/login.html', context)
             else:
-                form.add_error(NON_FIELD_ERRORS, _("Your current password is incorrect, please try again."))
+                form.add_error('password', _("Your current password is incorrect, please try again."))
 
         # Return an 'invalid login' error message.
         context = {
