@@ -72,6 +72,8 @@ class Area(models.Model):
     main_imagery = models.CharField(max_length=250, default="")
     # detail imagery will be the image that the user ends up seeing.
     detail_imagery = models.CharField(max_length=250, default="")
+    #holds the thumbnail view for the region selection page.
+    thumbnail_imagery = models.CharField(max_length=250, default="")
     # holds the bounds for the detail imagery, as this will vary based on the
     # desired area etc.
     detail_latitude_min = models.FloatField(default=0)

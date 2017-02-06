@@ -10,7 +10,7 @@
         {% for area in areas %}
         <div class="col-lg-4">
             <a id="{{ area.area_name }}" href="/{{ app }}/{{ area.area_id }}" class="area_label">
-                <img src="/static/assets/images/place_holder2.jpg" alt="" class="img-reponsive img-circle">
+                <img src="{{ area.area_thumbnail }}" alt="" class="img-reponsive img-circle">
                 <div class="text_div">
                     {{ area.area_name }}
             </a>
