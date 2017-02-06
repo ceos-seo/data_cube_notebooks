@@ -21,7 +21,7 @@ Container begins here.
     display: table;
     height: calc(100% - 45px);
 }
-.container-table.no-footer {
+.no-footer {
     height: 100%;
 }
 
@@ -54,6 +54,12 @@ Rows/cols begin here.
     border-radius: 20px 20px 20px 20px;
     border: 1px solid #777;
     padding-bottom: 10px;
+}
+.fullscreen-row {
+  height:100%;
+}
+.fullscreen-row .fullscreen-col {
+  height:100%;
 }
 .col-centered {
     float: none;
