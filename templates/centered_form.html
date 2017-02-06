@@ -10,31 +10,20 @@
 {% endblock %}
 
 {% block content %}
-<div id="container" class="login">
-    <!-- Header -->
-    <div id="header">
-        <div id="branding">
-            <h1 id="site-name">{{ title }}</h1>
-        </div>
+<div class="container container-table no-footer">
+  <div class="row vertical-center-row">
+    <div class="col-lg-4 col-centered form-col">
+      <!-- Header -->
+      <div class="form-header">
+          <h4 class="form-title">{{ title }}</h1>
+      </div>
+      <!-- END Header -->
+      <!-- Content -->
+      <div class="form-content">
+        {% block form %} {% endblock %}
+        <!-- END Content -->
+      </div>
     </div>
-    <!-- END Header -->
-    <!-- Content -->
-    <div id="content" class="colM">
-        {% if form.errors %} {% for field in form %} {% for error in field.errors %}
-        <p class="errornote">
-            {{ error }}
-        </p>
-        {% endfor %} {% endfor %} {% for error in form.non_field_errors %}
-        <p class="errornote">
-            {{ error }}
-        </p>
-        {% endfor %} {% endif %}
-        <div id="content-main">
-            {% block form %} {% endblock %}
-        </div>
-        <br class="clear" />
-    </div>
-    <!-- END Content -->
-    <div id="footer"><a style="float:right; font-size: 18px;" href="{% url 'registration' %}">{% trans "Don't have an account? Register here." %}</a></div>
+  </div>
 </div>
 {% endblock %}

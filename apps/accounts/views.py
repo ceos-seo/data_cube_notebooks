@@ -316,6 +316,8 @@ def login(request):
                     }
                     return render(request, 'registration/login.html', context)
         form.add_error(NON_FIELD_ERRORS, _("Please enter a correct username and password combination."))
+        form.add_error('username', _(""))
+        form.add_error('password', _(""))
         # Return an 'invalid login' error message.
         context = {
             'title': _("Log in"),
