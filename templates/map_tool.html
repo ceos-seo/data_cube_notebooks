@@ -143,7 +143,7 @@
           max_lon_ids.push("{{ satellite.satellite_id }}_longitude_max");
         {% endfor %}
         //container id, min lat, max lat, min lon, max lon
-        map = new DrawMap("map-cesium", min_lat_ids, max_lat_ids, min_lon_ids, max_lon_ids);
+        //map = new DrawMap("map-cesium", min_lat_ids, max_lat_ids, min_lon_ids, max_lon_ids);
 
         //sets up the onchange, limits based on window._{{limits}}
         {% for satellite in satellites %}
@@ -206,12 +206,22 @@
 
     //add a task bar that includes an updatable progress bar, title, and cancel button w/ onclick functions.
     function add_task_bar(id, description) {
-        var ih = "<li id='task_" + id + "'><label for='task_" + id + "'>" + description + "</label><button id='cancel_" + id + "' style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Cancel</button><div class='progressbar_" +
-            id + "'></div></li>";
+        /*var ih = "<li id='task_" + id + "'><label for='task_" + id + "'>" + description + "</label><button class='pull-right' id='cancel_" + id + "' style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Cancel</button><div class='progressbar_" +
+            id + "'></div></li>";*/
+        var ih = "<li id='task_" + id + "'>" +
+                 "<label for='task_" + id + "'>" + description + "</label>" +
+                 "<button class='pull-right' id='cancel_" + id + "' style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Cancel</button>" +
+                 "<div class='progress'>" +
+                 "<div class='progress-bar active progressbar_" + id + " progress-bar-striped' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='width:10%'>" +
+                 "</div>" +
+                 "</div>" +
+                 "</li>";
+
         $("#running_queries").append(ih);
-        $("." + sanitize_id("progressbar_" + id)).progressbar({
+
+        /*$("." + sanitize_id("progressbar_" + id)).progressbar({
             value: 0
-        });
+        });*/
         $("#" + sanitize_id("cancel_" + id)).click(function() {
             workers[id].terminate();
             if (queries[id] != null)
@@ -233,9 +243,7 @@
 
     //updates the value on a progress bar by id.
     function update_progress_bar(id, value) {
-        $("." + sanitize_id("progressbar_" + id)).progressbar({
-            value: value
-        });
+        $("." + sanitize_id("progressbar_" + id)).css('width', value+'%').attr('aria-valuenow', value);
     }
 
     //Handles the actual panel - hides satellite forms not being used.
@@ -480,7 +488,8 @@
                     {% include info_panel %}
                 </div>
                 <div id="filters-panel" class="tab-pane fade">
-                    <select class="right_aligned" id="satellite_sel" name="satellite_sel" tabindex="1" data-native-menu="false" onchange="refreshPanel();">
+                    <label for="satellite_sel">Satellite</label>
+                    <select class="form-control" id="satellite_sel" name="satellite_sel" tabindex="1" data-native-menu="false" onchange="refreshPanel();">
                         {% for satellite in satellites %}
                         <option value="{{ satellite.satellite_id }}">{{satellite.satellite_name}}</option>
                         {% endfor %}
@@ -489,26 +498,30 @@
                     <form id="options_{{ satellite }}" action="" method="post" class="form-horizontal options satellite_dependent {{ satellite }}">
                         {% csrf_token %}
                         {% for label, form in form_collection.items %}
-                          <h3 class="form-label">{{ label }}:</h3>
-                          {% if form.two_column_format %}
-                            <div class="form-group">
-                                {% for field in form.visible_fields %}
-                                <div class="col-lg-6">
-                                    {% bootstrap_field field %}
-                                </div>
-                                {% endfor %}
-                            </div>
-                          {% else %}
-                            <div class="form-group">
-                                {% for field in form.visible_fields %}
+                          <div>
+                            <div class="page-header"><span class="form-section-header">{{ label }}:</span></div>
+                            {% if form.two_column_format %}
+                              {% for field in form.visible_fields %}
+                              <div class="col-lg-6">
+                                  {% bootstrap_field field %}
+                              </div>
+                              {% endfor %}
+                            {% else %}
+                              {% for field in form.visible_fields %}
                                 <div class="col-lg-12">
                                     {% bootstrap_field field show_help=False %}
                                 </div>
-                                {% endfor %}
-                            </div>
-                          {% endif %}
+                              {% endfor %}
+                            {% endif %}
+                          </div>
                         {% endfor %}
-                        {% bootstrap_button "Submit" button_type="submit" button_class="btn-primary" %}
+                        <div class="col-lg-12">
+                          {% buttons %}
+                            <button type="submit" class="btn btn-primary pull-right">
+                              Submit
+                            </button>
+                          {% endbuttons %}
+                        </div>
                         <!-- TODO(map) : Remove once Django button working > button id="submit-request-{{ satellite }}" type="submit" class="btn btn-primary">
 	      Submit
 	    </button-->
@@ -534,7 +547,6 @@
                     <hr>
                     <div id="results_list">
                         <!-- will be populated from a django template.  -->
-
                     </div>
                 </div>
                 <div id="output-panel" class="tab-pane fade">
@@ -552,10 +564,10 @@
           <div id="map-canvas" class="map">
               <button onclick="toggle_map_provider()" class="btn btn-default button_on_map">Toggle Map View</button>
               <div id="map-cesium" class="map">
-                  <div id="lat_lon_container" class="lat_lon_map_indicator" style="">(0.0000, 0.0000)</div>
+                  <span id="lat_lon_container" class="label label-default lat_lon_map_indicator">(0.0000, 0.0000)</span>
               </div>
               <div id="static-map" class="map">
-                <img id="static-map-img" src="{{ area.detail_imagery }}" alt="Submit a task and click the result in either the Results or Output panel to load a mosaic." class="image-display-vertically-centered">
+                <img id="static-map-img" class="image-display-vertically-centered" src="{{ area.detail_imagery }}" alt="Submit a task and click the result in either the Results or Output panel to load a mosaic.">
               </div>
           </div>
         </div>

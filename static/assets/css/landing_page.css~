@@ -1,9 +1,0 @@
-.col-sm-2
-{
-    background-color: lavender;
-}
-
-.col-sm-3
-{
-    background-color: lanvenderblush;
-}
