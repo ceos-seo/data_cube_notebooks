@@ -12,7 +12,7 @@
 {% block content %}
 <div class="container container-table no-footer">
   <div class="row vertical-center-row">
-    <div class="col-lg-4 col-centered form-col">
+    <div class="{% if wide %} col-lg-8 {% else %} col-lg-4 {% endif %} col-centered form-col">
       <!-- Header -->
       <div class="form-header">
           <h4 class="form-title">{{ title }}</h1>

@@ -7,9 +7,8 @@ from django.contrib.auth.password_validation import validate_password
 
 class SubmitFeedbackForm(forms.Form):
     reasons = [('General Comments', 'General Comments'), ('Bug Report','Bug Report'), ('Feature Request', 'Feature Request'), ('Problems With Account', 'Problems With Account')]
-
-    feedback = forms.CharField(label=('Additional Comments'), max_length=2500, widget=forms.Textarea(attrs={'cols': 65, 'rows': 30, 'style': 'resize: none;'}))
     feedback_reason = forms.ChoiceField(label='Reason for Feedback:', choices=reasons)
+    feedback = forms.CharField(label=('Additional Comments'), max_length=2500, widget=forms.Textarea(attrs={'cols': 65, 'rows': 30, 'style': 'resize: none;'}))
 
 class GeospatialForm(forms.Form):
     """
@@ -22,7 +21,7 @@ class GeospatialForm(forms.Form):
         time_end
     """
     two_column_format = True
-    
+
     latitude_min = forms.FloatField(label='Min Latitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
     latitude_max = forms.FloatField(label='Max Latitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
     longitude_min = forms.FloatField(label='Min Longitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))

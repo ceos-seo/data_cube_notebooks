@@ -202,13 +202,11 @@ Forms begin here.
 }
 
 /* Requred for captcha input. Captcha isn't done using normal django forms so normal classes aren't applied. */
-
 .form-group input, .letterboxed-content .tab-content select {
     color: #555;
 }
 
 /*Forms on white backgrounds that require darker text.*/
-
 .form-group-white {
     color: #555;
 }
@@ -223,6 +221,11 @@ Forms begin here.
 .checkbox-list div {
     text-align: right;
 }
+
+textarea.form-control {
+  max-height:500px;
+}
+
 
 /************************************************************************************
 
