@@ -25,26 +25,33 @@ under the License.
      Modified by:
      Last modified date: -->
 <!-- Requires other implementation of array queries, csrf token, query_event_listener.  -->
-<div id="query_history_container">
+<div id="query_history_container" class="panel-group">
   {% for query in query_history %}
-    <h3 id='past_{{ forloop.counter0 }}'>{{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y fa" }}</h3>
-    <div class="spaced_details">
-      <table id='query_history{{ forloop.counter0 }}'>
-        <!-- Contains a series of <tr></tr> elements that use the query django tags. -->
-        {% block table_rows %}
-        {% endblock %}
-      </table>
-      <button id="load{{forloop.counter0}}" class="centered" type="button" onclick="add_result_from_history('{{ query.query_id }}', '{{ query.title }}');">Load this result</button>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#query_history_container" href="#past{{ forloop.counter0 }}">
+        {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y fa" }}</a>
+      </h4>
     </div>
+    <div id="past{{ forloop.counter0 }}" class="panel-collapse collapse">
+      <div class="panel-body">
+        {% block table_rows %}
+
+        {% endblock %}
+        <button id="load{{forloop.counter0}}" class="btn btn-default pull-right" type="button" onclick="add_result_from_history('{{ query.query_id }}', '{{ query.title }}');">Load this result</button>
+      </div>
+    </div>
+  </div>
   {% endfor %}
 </div>
 <script>
 
-  $( "#query_history_container" ).accordion({
+  /*$( "#query_history_container" ).accordion({
       active: false,
       collapsible: true,
       heightStyle: "content"
-    });
+    });*/
 
   function add_result_from_history(query_id, query_type) {
     if (typeof(Worker) !== undefined) {

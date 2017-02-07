@@ -28,25 +28,33 @@ under the License.
 <link href="/static/assets/css/output_list_template.css" rel="stylesheet" type="text/css" media="screen, projection" />
 {% endblock %}
 
-<div id="output_list" class="boxed_list">
+<div id="output_list" class="boxed_list panel-group">
   {% for query, meta in data.items %}
-    <h3 id="output_{{ query.query_id }}" onmousedown="outputClicked('{{ query.query_id }}')">{{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y fa" }}</h3>
-    <div class="spaced_details">
-      <table>
-        <!-- Contains a series of <tr></tr> elements that use the query and meta django tags. -->
-        {% block table_rows %}
-        {% endblock %}
-      </table>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#output_list" href="#output_{{ forloop.counter0 }}" onmousedown="outputClicked('{{ query.query_id }}')">
+          {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y fa" }}</a>
+        </h4>
+      </div>
+      <div id="output_{{ forloop.counter0 }}" class="panel-collapse collapse">
+        <div class="panel-body">
+          {% block table_rows %}
+          {% endblock %}
+        </div>
+      </div>
     </div>
   {% endfor %}
 </div>
-<select id="download_sel" name="download_sel" tabindex="1" onchange="set_dl_url();">
-    <!-- Contains <option value=""></option> tags for all downloadable products.
-         Will be parsed with the download function.                             -->
-    {% block download_options %}
-    {% endblock %}
-</select>
-<a id="output_list_download_button" href="" target="_blank" download class="submitBlock tooltipped downloadButton" title="Download the selected mosaic in your chosen format.">Download Selected</a>
+<div class="form-inline">
+  <select class="form-control" id="download_sel" name="download_sel" tabindex="1" onchange="set_dl_url();">
+      <!-- Contains <option value=""></option> tags for all downloadable products.
+           Will be parsed with the download function.                             -->
+      {% block download_options %}
+      {% endblock %}
+  </select>
+  <a id="output_list_download_button" href="" target="_blank" download class="tooltipped btn btn-primary pull-right" title="Download the selected mosaic in your chosen format.">Download Selected</a>
+</div>
 <script>
   //This needs to include a function called download_product() that includes all the logic required to parse
   //the options in download_options.
@@ -54,12 +62,6 @@ under the License.
   {% endblock %}
 </script>
 <script>
-
-  $( "#output_list" ).accordion({
-    active: false,
-    collapsible: true,
-    heightStyle: "content"
-  });
 
   $(".tooltipped").tooltip();
 

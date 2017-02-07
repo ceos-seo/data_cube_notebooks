@@ -30,17 +30,25 @@ under the License.
 <link href="/static/assets/css/results_list_template.css" rel="stylesheet" type="text/css" media="screen, projection" />
 {% endblock %}
 
-<div id="task_list" class="boxed_list">
+<div id="task_list" class="boxed_list panel-group">
   {% for query in queries %}
-    <h3 id="result_{{ query.query_id }}" onmousedown="resultClicked('{{ query.query_id }}')">{{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y fa" }}</h3>
-    <div class="spaced_details">
-      <table>
-        <!-- Contains a series of <tr></tr> elements that use the query django tags. -->
-        {% block query_table_rows %}
-        {% endblock %}
-      </table>
-      <button class="left_aligned" type="button" onclick="remove_result('{{ query.query_id }}');">Delete</button>
-      <button class="right_aligned" type="button" onclick="toggle_visibility('{{ query.query_id }}');">Show/Hide</button>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#task_list" href="#completed_{{ forloop.counter0 }}" onmousedown="resultClicked('{{ query.query_id }}')">
+          {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y fa" }}</a>
+        </h4>
+      </div>
+      <div id="completed_{{ forloop.counter0 }}" class="panel-collapse collapse">
+        <div class="panel-body">
+          {% block query_table_rows %}
+
+          {% endblock %}
+          <!--button id="load{{forloop.counter0}}" class="btn btn-default pull-right" type="button" onclick="add_result_from_history('{{ query.query_id }}', '{{ query.title }}');">Load this result</button-->
+          <button class="btn btn-default pull-right" type="button" onclick="remove_result('{{ query.query_id }}');">Delete</button>
+          <button class="btn btn-default pull-right" type="button" onclick="toggle_visibility('{{ query.query_id }}');">Show/Hide</button>
+        </div>
+      </div>
     </div>
   {% endfor %}
 </div>
@@ -48,7 +56,7 @@ under the License.
 <hr>
 <div id='scenes_list' class="boxed_list">
   {% for metadata_entry in metadata_entries %}
-    <!-- Creates a dl block of metadata from each metadata entry.  -->
+    <!-- Creates a block of metadata from each metadata entry.  -->
     {% block metadata_dl_block %}
     {% endblock %}
   {% endfor %}
@@ -57,11 +65,9 @@ under the License.
 <hr>
 <div id='query_metadata' class="boxed_list spaced_details standalone_table">
   {% for metadata_entry in metadata_entries %}
-    <table id="meta_{{ metadata_entry.query_id }}" class="scene_meta">
-      <!-- Contains a series of <tr></tr> elements that use the meta django tags. -->
-      {% block meta_table_rows %}
-      {% endblock %}
-    </table>
+    <!-- Contains a series of <tr></tr> elements that use the meta django tags. -->
+    {% block meta_table_rows %}
+    {% endblock %}
   {% endfor %}
 </div>
 <script>
@@ -70,11 +76,6 @@ under the License.
 </script>
 <script>
 
-  $( "#task_list" ).accordion({
-    active: false,
-    collapsible: true,
-    heightStyle: "content"
-  });
   $(".tooltipped").tooltip();
 
   function resultClicked(query_id) {

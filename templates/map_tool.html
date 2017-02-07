@@ -33,7 +33,7 @@
 
 {% block javascript %}
 <!-- Jquery related.  -->
-<script src="/static/assets/js/jquery-ui-1.11.4.custom/external/jquery/jquery.js"></script>
+
 <script src="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
 <script src="/static/assets/js/jquery-ui-1.11.4.custom/jquery.multiselect.js"></script>
 <script type="text/javascript" src="/static/assets/js/jquery.blockUI.js"></script>
@@ -143,7 +143,7 @@
           max_lon_ids.push("{{ satellite.satellite_id }}_longitude_max");
         {% endfor %}
         //container id, min lat, max lat, min lon, max lon
-        //map = new DrawMap("map-cesium", min_lat_ids, max_lat_ids, min_lon_ids, max_lon_ids);
+        map = new DrawMap("map-cesium", min_lat_ids, max_lat_ids, min_lon_ids, max_lon_ids);
 
         //sets up the onchange, limits based on window._{{limits}}
         {% for satellite in satellites %}
@@ -212,7 +212,7 @@
                  "<label for='task_" + id + "'>" + description + "</label>" +
                  "<button class='pull-right' id='cancel_" + id + "' style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Cancel</button>" +
                  "<div class='progress'>" +
-                 "<div class='progress-bar active progressbar_" + id + " progress-bar-striped' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='width:10%'>" +
+                 "<div class='progress-bar active progressbar_" + id + " progress-bar-striped' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='width:0%'>" +
                  "</div>" +
                  "</div>" +
                  "</li>";
@@ -413,55 +413,42 @@
         var diffYears = Math.ceil(timeDiff / (1000 * 3600 * 24)) / 365;
         var volume = Math.abs(values['latitude_max'] - values['latitude_min']) * Math.abs(values['longitude_max'] - values['longitude_min']) * diffYears;
         if (volume > 24) {
-            alert('Submitting large tasks can cause server instability.')
-            //return;
-        }
-
-        request = $(this).serialize() + "&platform=" + $('#satellite_sel').val() + "&area_id={{ area.area_id }}";
-        //console.log(request)
-        //worker init w/ the serialized data.
-        if (typeof(Worker) !== undefined) {
-            var w = new Worker("/static/assets/js/dcw.js");
-
-            w.postMessage({
-                'tool_name': window.tool_name,
-                'msg': "NEW",
-                'form_data': request,
-                'csrf': csrftoken
-            });
-            //queries[queries.length] = null;
-            w.addEventListener("message", query_event_listener);
+            $("#largeTaskModal").modal()
         } else {
-            alert("This browser does not support webworkers.");
+          process_form(this);
         }
     }
-    //end query monitoring
 
-    $(document).ready(function() {
-        $('.extra-class').each(function(element) {
-            $(this).click(function() {
-                $.blockUI({
-                    message: $('#details-popup'),
-                    onBlock: function() {
-                        $(".blockPage").addClass("myCustomBlock");
-                    },
-                    onUnblock: function() {
-                        $('#details-popup').hide();
-                    }
-                });
-                $("#details-popup input[name*='title']").val($("#input-data form:visible input[name*='title']:hidden").val());
-                $("#details-popup textarea[name*='description']").val($("#input-data form:visible input[name*='description']:hidden").val());
-            });
-        });
-        $('#save-and-close').click(function() {
-            $("#input-data form:visible input[name*='title']:hidden").val($("#details-popup input[name*='title']").val());
-            $("#input-data form:visible input[name*='description']:hidden").val($("#details-popup textarea[name*='description']").val());
-            $.unblockUI();
-        });
-        $('#no-save-and-close').click(function() {
-            $.unblockUI();
-        });
-    });
+    function process_form(form) {
+      request = $(form).serialize() + "&platform=" + $('#satellite_sel').val() + "&area_id={{ area.area_id }}";
+      //console.log(request)
+      //worker init w/ the serialized data.
+      if (typeof(Worker) !== undefined) {
+          var w = new Worker("/static/assets/js/dcw.js");
+          jQuery(".additional_options_title").val("");
+          jQuery(".additional_options_description").val("");
+          save_options();
+          w.postMessage({
+              'tool_name': window.tool_name,
+              'msg': "NEW",
+              'form_data': request,
+              'csrf': csrftoken
+          });
+          //queries[queries.length] = null;
+          w.addEventListener("message", query_event_listener);
+      } else {
+          alert("This browser does not support webworkers.");
+      }
+    }
+
+    //end query monitoring
+    function save_options() {
+      title = jQuery("#additional_options_title").val();
+      description = jQuery("#additional_options_description").val();
+
+      jQuery(".hidden_form_title").val(title);
+      jQuery(".hidden_form_description").val(description);
+    }
 
     //required for ids with 'special' chars.
     function sanitize_id(id) {
@@ -478,16 +465,13 @@
             <div class="tab-content">
 
                 <ul class="nav nav-tabs">
-                    <li class="active"><a data-toggle="tab" href="#info-panel">Information</a></li>
-                    <li><a data-toggle="tab" href="#filters-panel">Filters</a></li>
+                    <li class="active"><a data-toggle="tab" href="#filters-panel">Filters</a></li>
+                    <li><a data-toggle="tab" href="#history-panel">History</a></li>
                     <li><a data-toggle="tab" href="#results-panel">Results</a></li>
                     <li><a data-toggle="tab" href="#output-panel">Output</a></li>
                 </ul>
 
-                <div id="info-panel" class="tab-pane fade in active">
-                    {% include info_panel %}
-                </div>
-                <div id="filters-panel" class="tab-pane fade">
+                <div id="filters-panel" class="tab-pane fade in active">
                     <label for="satellite_sel">Satellite</label>
                     <select class="form-control" id="satellite_sel" name="satellite_sel" tabindex="1" data-native-menu="false" onchange="refreshPanel();">
                         {% for satellite in satellites %}
@@ -498,7 +482,7 @@
                     <form id="options_{{ satellite }}" action="" method="post" class="form-horizontal options satellite_dependent {{ satellite }}">
                         {% csrf_token %}
                         {% for label, form in form_collection.items %}
-                          <div>
+                          <div class="col-lg-12">
                             <div class="page-header"><span class="form-section-header">{{ label }}:</span></div>
                             {% if form.two_column_format %}
                               {% for field in form.visible_fields %}
@@ -520,8 +504,11 @@
                             <button type="submit" class="btn btn-primary pull-right">
                               Submit
                             </button>
+                            <a class="btn btn-primary pull-right" style="margin-right:5px;" data-toggle="modal" data-target="#additionalOptionsModal" href="#">Additional Options</a>
                           {% endbuttons %}
                         </div>
+                        <input class="hidden_form_title" type="hidden" name="title">
+                        <input class="hidden_form_description" type="hidden" name="description">
                         <!-- TODO(map) : Remove once Django button working > button id="submit-request-{{ satellite }}" type="submit" class="btn btn-primary">
 	      Submit
 	    </button-->
@@ -535,11 +522,12 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="fieldSet">
-                        <h3>Task History</h3>
-                        <div id='past_queries' class="boxed_list">
+                </div>
+                <div id="history-panel" class="tab-pane fade">
+                    <h2>Task History</h2>
+                    <hr>
+                    <div id='past_queries' class="boxed_list">
 
-                        </div>
                     </div>
                 </div>
                 <div id="results-panel" class="tab-pane fade">
@@ -571,6 +559,49 @@
               </div>
           </div>
         </div>
+    </div>
+    <!-- Modal -->
+    <div id="additionalOptionsModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Additional Options</h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="">Title</label>
+              <input class="form-control" name="title" id="additional_options_title" type="text">
+            </div>
+            <div class="form-group">
+              <label for="">Description</label>
+              <textarea class="form-control" name="description" id="additional_options_description" cols="30" rows="10"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" onclick="save_options()" class="btn btn-default" data-dismiss="modal">Save and Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="largeTaskModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Large Task Submission</h4>
+          </div>
+          <div class="modal-body">
+            <p>Submitting large tasks may take significantly longer than smaller tasks and may impact performance for other users. Additionally the final product may cause problems with the map view, though the products will still be available for download. Continue?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+            <button type="button" onclick="process_form(jQuery('.options.satellite_dependent:visible'))" class="btn btn-default" data-dismiss="modal">Continue</button>
+          </div>
+        </div>
+      </div>
     </div>
 </div>
 {% endblock %}

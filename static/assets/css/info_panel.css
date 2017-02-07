@@ -7,22 +7,16 @@
 
 .panel-default>.panel-heading
 {
-    background-color: coral;
-    padding: 5px;
-    border: 1px solid coral;
-    margin: 0px;
-    color: white;
+
 }
 
-.panel-title
+.panel-title.info-panel
 {
     font-weight: bold;
 }
 
 .panel-body
 {
-    border: 1px solid coral;
-    max-height: 500px;
     overflow-y: auto;
 }
 

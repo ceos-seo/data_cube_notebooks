@@ -72,21 +72,9 @@
     padding-bottom: 10px;
 }
 
-.form-horizontal .form-group
-{
-    padding-top: 0px;
-    padding-bottom: 0px;
-    margin-bottom: 0px;
-}
-
-.btn-primary
-{
-    margin-top: 10px;
-}
-
 #running_queries
 {
-    height: 60px;
+    height: 225px;
     border: 1px solid coral;
     padding-left: 0;
     list-style: none;
@@ -103,9 +91,25 @@
 
 #past_queries
 {
-    min-height: 140px;
-    max-height: 350px;
+    height:775px;
     border: 1px solid coral;
+    overflow-y:auto;
+}
+
+.right_aligned_text {
+    text-align: right;
+}
+
+.form-horizontal .form-group
+{
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+}
+
+.btn-primary
+{
+    margin-top: 10px;
 }
 
 /* Generic */
@@ -129,4 +133,36 @@
 
 .alternating li:nth-child(odd) {
     background: rgba(255, 127, 80, 0.15);
+}
+
+.helper {
+    float: left;
+    display: inline-block;
+}
+.helper a {
+    display: block;
+    height: 15px;
+    width: 15px;
+    font-size: 12px;
+    text-align: center;
+    background: #ccc;
+    color: #000;
+    border-radius: 15px;
+    cursor: pointer;
+}
+.helper a:hover {
+    background: #28597a;
+    color: #fff;
+    cursor: pointer;
+}
+.helper_filler {
+    display: inline-block;
+}
+.helper_filler a {
+    display: block;
+    line-height: 20px;
+    height: 15px;
+    width: 15px;
+    background-color: transparent;
+    color: transparent;
 }

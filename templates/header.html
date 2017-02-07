@@ -34,13 +34,14 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">CEOS Data Cube</a>
+            <a class="navbar-brand visible-lg visible-md visible-sm" href="/">CEOS Data Cube</a>
+            <a class="navbar-brand visible-xs" href="/"></a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
             <ul class="nav navbar-nav navbar-right">
                 <li class="divider-vertical visible-lg visible-md"></li>
                 {% if user.is_authenticated %}
-                <li class="visible-lg visible-md visible-xs">
+                <li class="visible-lg visible-xs">
                     <a target="_blank"><span class="glyphicon glyphicon-user"></span> Logged in as: {{ user.username }}</a>
                 </li>
                 <li>
@@ -74,7 +75,7 @@
                         {% endfor %}
                     </ul>
                 </li>
-                <li><a href="/submit_feedback">Submit Feedback</a></li>
+                <li class="visible-lg visible-md visible-xs" ><a href="/submit_feedback">Submit Feedback</a></li>
             </ul>
         </div>
     </div>

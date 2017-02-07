@@ -1,5 +1,6 @@
 h2
 {
+    font-size: 20px;
     margin-top: 10px;
     margin-bottom: 0px;
 }
@@ -12,24 +13,33 @@ hr
 
 #task_list
 {
-    min-height: 150px;
-    max-height: 250px;
+    height: 290px;
     border: 1px solid coral;
     overflow-y: auto;
 }
 
 #scenes_list
 {
-    min-height: 150px;
-    max-height: 250px;
+    height: 250px;
     border: 1px solid coral;
     overflow-y: auto;
 }
 
 #query_metadata
 {
-    min-height: 150px;
-    max-height: 200px;
+    height: 150px;
     border: 1px solid coral;
     overflow-y: auto;
+}
+
+.scene_list_table {
+  margin-bottom: 0px;
+}
+
+.scene_list_table tbody tr td {
+  border-top: none;
+}
+
+.scene_list_table tbody tr td:first-child {
+
 }
