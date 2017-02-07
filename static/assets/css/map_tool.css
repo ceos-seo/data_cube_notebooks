@@ -173,8 +173,15 @@ hr
   margin-bottom: 0px;
 }
 
+.scene_list_table thead tr th {
+  padding-bottom: 0;
+}
+
 .scene_list_table tbody tr td {
   border-top: none;
+  padding: 2px;
+  padding-left: 25px;
+  padding-right: 10px;
 }
 
 
