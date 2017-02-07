@@ -35,8 +35,6 @@
 <!-- Jquery related.  -->
 
 <script src="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
-<script src="/static/assets/js/jquery-ui-1.11.4.custom/jquery.multiselect.js"></script>
-<script type="text/javascript" src="/static/assets/js/jquery.blockUI.js"></script>
 
 <!-- Cesium related.  -->
 <script src="/static/assets/js/Cesium-1.23/Build/CesiumUnminified/Cesium.js"></script>
@@ -100,12 +98,6 @@
         }
         //End persistent tasks.
         //start dynamically generated form customization
-        $(".multiselect").multiselect({
-            noneSelectedText: "Select at least one band.",
-            selectedList: 3,
-            //classes: 'tooltipped'
-        });
-        $(".ui-multiselect-close").remove();
         {% for satellite in satellites %}
           //$("#{{ satellite.satellite_id }}_band_selection_ms").css('float', 'right');
           $("#{{ satellite.satellite_id }}_band_selection_ms").css('width', '100%');
@@ -487,7 +479,7 @@
                             {% if form.two_column_format %}
                               {% for field in form.visible_fields %}
                               <div class="col-lg-6">
-                                  {% bootstrap_field field %}
+                                  {% bootstrap_field field show_help=False%}
                               </div>
                               {% endfor %}
                             {% else %}

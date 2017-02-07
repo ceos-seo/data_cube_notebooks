@@ -26,48 +26,88 @@ under the License.
      Last modified date: -->
 {% extends "results_list_template.html" %}
 {% block query_table_rows %}
-<tr>
-  <td>Time Submitted: </td>
-  <td class="right_aligned_text">{{ query.query_start }}</td>
-</tr>
-<tr>
-  <td>Time Finished: </td>
-  <td class="right_aligned_text">{{ query.query_end }}</td>
-</tr>
-<tr>
-  <td>Latitude Range: </td>
-  <td class="right_aligned_text">({{ query.latitude_min }}, {{ query.latitude_max }})</td>
-</tr>
-<tr>
-  <td>Longitude Range: </td>
-  <td class="right_aligned_text">({{ query.longitude_min }}, {{ query.longitude_max }})</td>
-</tr>
-<tr>
-  <td>Time Range: </td>
-  <td class="right_aligned_text">({{ query.time_start|date:"m/d/Y" }}, {{ query.time_end|date:"m/d/Y" }})</td>
-</tr>
-<tr>
-  <td>Show Water Percentages:</td>
-  <td class="right_aligned_text"><input type="checkbox" checked='true' name="show_water_percentages" onclick="show_result(this, '{{ query.query_id }}', 0)"></td>
-</tr>
-<tr>
-  <td>Show Water Observations:</td>
-  <td class="right_aligned_text"><input type="checkbox" name="show_water_observations" onclick="show_result(this, '{{ query.query_id }}', 1)"></td>
-</tr>
-<tr>
-  <td>Show Clear Observations:</td>
-  <td class="right_aligned_text"><input type="checkbox" name="show_clear_observations" onclick="show_result(this, '{{ query.query_id }}', 2)"></td>
-</tr>
+<table class="table table-striped table-bordered">
+  <tbody>
+    <tr>
+      <td>Time Submitted: </td>
+      <td class="right_aligned_text">{{ query.query_start }}</td>
+    </tr>
+    <tr>
+      <td>Time Finished: </td>
+      <td class="right_aligned_text">{{ query.query_end }}</td>
+    </tr>
+    <tr>
+      <td>Latitude Range: </td>
+      <td class="right_aligned_text">({{ query.latitude_min }}, {{ query.latitude_max }})</td>
+    </tr>
+    <tr>
+      <td>Longitude Range: </td>
+      <td class="right_aligned_text">({{ query.longitude_min }}, {{ query.longitude_max }})</td>
+    </tr>
+    <tr>
+      <td>Time Range: </td>
+      <td class="right_aligned_text">({{ query.time_start|date:"m/d/Y" }}, {{ query.time_end|date:"m/d/Y" }})</td>
+    </tr>
+    <tr>
+      <td>Show Water Percentages:</td>
+      <td class="right_aligned_text"><input type="checkbox" checked='true' name="show_water_percentages" onclick="show_result(this, '{{ query.query_id }}', 0)"></td>
+    </tr>
+    <tr>
+      <td>Show Water Observations:</td>
+      <td class="right_aligned_text"><input type="checkbox" name="show_water_observations" onclick="show_result(this, '{{ query.query_id }}', 1)"></td>
+    </tr>
+    <tr>
+      <td>Show Clear Observations:</td>
+      <td class="right_aligned_text"><input type="checkbox" name="show_clear_observations" onclick="show_result(this, '{{ query.query_id }}', 2)"></td>
+    </tr>
+  </tbody>
+</table>
+{% endblock %}
+{% block metadata_dl_block %}
+<ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ metadata_entry.query_id }}">
+    {% for acquisition, pixels, water_pixels, pixel_percentage in metadata_entry.acquisitions_dates_with_pixels_percentages %}
+      <li>
+        <table id="meta_{{ metadata_entry.query_id }}" class="table scene_list_table">
+          <tbody>
+            <thead>
+              <th>{{ acquisition }}</th>
+              <th class="right_aligned_text"><button class="tooltipped" title="Load this single scene. This will hide the current result." onclick="load_scene_from_query('{{ metadata_entry.query_id }}', '{{ acquisition }}')" style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Load this scene</button></th>
+            </thead>
+            <tr>
+              <td>Clean pixels:</td>
+              <td class="right_aligned_text">{{ pixels }}</td>
+            </tr>
+            <tr>
+              <td>Total Pixels:</td>
+              <td class="right_aligned_text">{{ metadata_entry.pixel_count }}</td>
+            </tr>
+            <tr>
+              <td>Water pixels:</td>
+              <td class="right_aligned_text">{{ water_pixels }}</td>
+            </tr>
+            <tr>
+              <td>Clean Pixel Percentage:</td>
+              <td class="right_aligned_text">{{ pixel_percentage|floatformat:2 }}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    {% endfor %}
+  </ul>
 {% endblock %}
 {% block meta_table_rows %}
-<tr>
-  <td>Scene Count:</td>
-  <td class="right_aligned_text">{{ metadata_entry.scene_count }}</td>
-</tr>
-<tr>
-  <td>Total Pixel Count:</td>
-  <td class="right_aligned_text">{{ metadata_entry.pixel_count }}</td>
-</tr>
+<table id="meta_{{ metadata_entry.query_id }}" class="table table-striped table-bordered scene_meta">
+  <tbody>
+    <tr>
+      <td>Scene Count:</td>
+      <td class="right_aligned_text">{{ metadata_entry.scene_count }}</td>
+    </tr>
+    <tr>
+      <td>Total Pixel Count:</td>
+      <td class="right_aligned_text">{{ metadata_entry.pixel_count }}</td>
+    </tr>
+  </tbody>
+</table>
 {% endblock %}
 {% block functions_block %}
 //toggles the nodata highlighting based on a checkbox.
@@ -91,15 +131,4 @@ function show_result(checkbox, query_id, id) {
   add_result_to_map(query_id, result_path);
   map.toggle_outline_by_id(query_id, true);
 }
-{% endblock %}
-{% block metadata_dl_block %}
-{% for acquisition, pixels, water_pixels, pixel_percentage in metadata_entry.acquisitions_dates_with_pixels_percentages %}
-  <dl class="scenes_list" id="scenes_{{ metadata_entry.query_id }}">
-    <dt>{{ acquisition }} <span><button class="tooltipped" title="Load this single scene. This will hide the current result." onclick="load_scene_from_query('{{ metadata_entry.query_id }}', '{{ acquisition }}')" style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Load this scene</button></span></dt>
-    <dd>Clean pixels: <span>{{ pixels }}</span></dd>
-    <dd>Water pixels: <span>{{ water_pixels }}</span></dd>
-    <dd>Total Pixels: <span>{{ metadata_entry.pixel_count }}</span></dd>
-    <dd>Clean Pixel Percentage: <span>{{ pixel_percentage|floatformat:2 }}%</span></dd>
-  </dl>
-{% endfor %}
 {% endblock %}

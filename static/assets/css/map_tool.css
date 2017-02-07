@@ -1,3 +1,88 @@
+h2
+{
+    font-size: 20px;
+    margin-top: 10px;
+    margin-bottom: 0px;
+}
+
+hr
+{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+/* Filter specific */
+#filters-panel
+{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+#running_queries
+{
+    height: 225px;
+    border: 1px solid coral;
+    padding-left: 0;
+    list-style: none;
+    overflow-y: auto;
+}
+
+#running_queries li {
+  padding: 2px;
+}
+
+#running_queries li .progress {
+  margin-bottom: 0px;
+}
+
+#past_queries
+{
+    height:775px;
+    border: 1px solid coral;
+    overflow-y:auto;
+}
+
+#task_list
+{
+    height: 290px;
+    border: 1px solid coral;
+    overflow-y: auto;
+}
+
+#scenes_list
+{
+    height: 250px;
+    border: 1px solid coral;
+    overflow-y: auto;
+}
+
+#query_metadata
+{
+    height: 150px;
+    border: 1px solid coral;
+    overflow-y: auto;
+}
+
+#infoPanelContent
+{
+    height: 100%;
+    border: 1px solid lightgrey;
+    padding: 5px;
+}
+
+/* Output box css */
+#output_list
+{
+    height: 725px;
+    border: 1px solid coral;
+    margin-bottom: 0px;
+}
+
+#download_sel
+{
+    margin-top: 10px;
+}
+
 /* Map css */
 .button_on_map {
     position: absolute;
@@ -25,7 +110,7 @@
 
 .map {
     position: relative;
-    z-index: 98;
+    z-index: 1;
     width: auto;
     height: 100%;
     padding: 0px;
@@ -65,36 +150,33 @@
   padding-top: 10px;
 }
 
-/* Filter specific */
-#filters-panel
+.panel-title.info-panel
 {
-    padding-top: 10px;
-    padding-bottom: 10px;
+    font-weight: bold;
 }
 
-#running_queries
+.panel-body
 {
-    height: 225px;
-    border: 1px solid coral;
-    padding-left: 0;
-    list-style: none;
     overflow-y: auto;
 }
 
-#running_queries li {
-  padding: 2px;
+.image-display {
+    display: block;
+    margin: 0 auto;
+  	max-width: 100%;
+    max-height: 100%;
+    border: rgb(255,127,80) 2px outset;
 }
 
-#running_queries li .progress {
+
+.scene_list_table {
   margin-bottom: 0px;
 }
 
-#past_queries
-{
-    height:775px;
-    border: 1px solid coral;
-    overflow-y:auto;
+.scene_list_table tbody tr td {
+  border-top: none;
 }
+
 
 .right_aligned_text {
     text-align: right;
