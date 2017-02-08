@@ -288,3 +288,16 @@ class ResultType(models.Model):
 
     class Meta:
         abstract = True
+
+class ToolInfo(models.Model):
+    """
+    Stores images and information for the region selection page for each tool.  Information includes
+    the descriptions seen on the page as well as their respective images.
+    """
+
+    image_path = models.CharField(max_length=100)
+    image_title = models.CharField(max_length=50)
+    image_description = models.CharField(max_length=500)
+
+    # TODO(map) : Need to ensure this is working correctly.
+    application = models.ForeignKey(Application)
