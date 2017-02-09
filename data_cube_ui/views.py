@@ -61,7 +61,7 @@ def region_selection(request, app_id):
         'tool_descriptions': tool_info,
         'areas': areas
     }
-    return render(request, 'region_selection.html', context)
+    return render(request, 'map_tool/region_selection.html', context)
 
 @login_required
 def submit_feedback(request):

@@ -143,7 +143,7 @@ def get_task_manager(request, app_id):
         'application_id': app_id,
     }
 
-    return render(request, 'task_manager.html', context)
+    return render(request, 'task_manager/task_manager.html', context)
 
 
 @login_required
@@ -169,7 +169,7 @@ def get_query_details(request, app_id, requested_query_id):
     queries = applications[app_id].Query
     metas = applications[app_id].Metadata
     results = applications[app_id].Result
-    template = app_id + "/query_details.html"
+    template = "map_tool/" + app_id + "/query_details.html"
 
     query = queries.objects.get(id=requested_query_id)
     metadata = metas.objects.get(query_id=query.query_id)

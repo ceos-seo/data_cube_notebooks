@@ -86,14 +86,14 @@ def fractional_cover(request, area_id):
 
     context = {
         'tool_name': 'fractional_cover',
-        'info_panel': 'fractional_cover/info_panel.html',
+        'info_panel': 'map_tool/fractional_cover/info_panel.html',
         'satellites': satellites,
         'forms': forms,
         'running_queries': running_queries,
         'area': area
     }
 
-    return render(request, 'map_tool.html', context)
+    return render(request, 'map_tool/map_tool.html', context)
 
 @login_required
 def submit_new_request(request):
@@ -255,7 +255,7 @@ def get_query_history(request, area_id):
     context = {
         'query_history': history,
     }
-    return render(request, 'fractional_cover/query_history.html', context)
+    return render(request, 'map_tool/fractional_cover/query_history.html', context)
 
 
 @login_required
@@ -290,7 +290,7 @@ def get_results_list(request, area_id):
             'queries': queries,
             'metadata_entries': metadata_entries
         }
-        return render(request, 'fractional_cover/results_list.html', context)
+        return render(request, 'map_tool/fractional_cover/results_list.html', context)
     return HttpResponse("Invalid Request.")
 
 @login_required
@@ -324,5 +324,5 @@ def get_output_list(request, area_id):
             #'metadata_entries': metadata_entries
             'data': data
         }
-        return render(request, 'fractional_cover/output_list.html', context)
+        return render(request, 'map_tool/fractional_cover/output_list.html', context)
     return HttpResponse("Invalid Request.")

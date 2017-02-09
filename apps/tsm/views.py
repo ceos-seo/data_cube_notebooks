@@ -89,14 +89,14 @@ def tsm(request, area_id):
 
     context = {
         'tool_name': 'tsm',
-        'info_panel': 'tsm/info_panel.html',
+        'info_panel': 'map_tool/tsm/info_panel.html',
         'satellites': satellites,
         'forms': forms,
         'running_queries': running_queries,
         'area': area
     }
 
-    return render(request, 'map_tool.html', context)
+    return render(request, 'map_tool/map_tool.html', context)
 
 
 def submit_new_request(request):
@@ -272,7 +272,7 @@ def get_query_history(request, area_id):
     context = {
         'query_history': history,
     }
-    return render(request, 'tsm/query_history.html', context)
+    return render(request, 'map_tool/tsm/query_history.html', context)
 
 
 @login_required
@@ -307,7 +307,7 @@ def get_results_list(request, area_id):
             'queries': queries,
             'metadata_entries': metadata_entries
         }
-        return render(request, 'tsm/results_list.html', context)
+        return render(request, 'map_tool/tsm/results_list.html', context)
     return HttpResponse("Invalid Request.")
 
 
@@ -342,5 +342,5 @@ def get_output_list(request, area_id):
             #'metadata_entries': metadata_entries
             'data': data
         }
-        return render(request, 'tsm/output_list.html', context)
+        return render(request, 'map_tool/tsm/output_list.html', context)
     return HttpResponse("Invalid Request.")

@@ -99,7 +99,7 @@ def sample_geo_app(request, area_id):
         'area': area
     }
 
-    return render(request, 'map_tool.html', context)
+    return render(request, 'map_tool/map_tool.html', context)
 
 @login_required
 def submit_new_request(request):
