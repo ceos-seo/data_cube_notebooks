@@ -10,30 +10,30 @@
     <div class="col-lg-12 carousel-col">
       <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="20000">
 
-	<!-- Wrapper for slides -->
-	<div class="carousel-inner" role="listbox">
+      	<!-- Wrapper for slides -->
+      	<div class="carousel-inner" role="listbox">
 
-	  {% for tool_description in tool_descriptions %}
-	  {% if forloop.first %}
-	  <div class="item active" style="max-height: 300px" data-keyboard="false" data-pause="hover">
-            <img src="{{ tool_description.image_path }}" alt="">
-            <div class="carousel-caption">
-              <h3>{{ tool_description.image_title }}</h3>
-              <p>{{ tool_description.image_description }}</p>
-            </div>
-	  </div>
-	  {% else %}
-	  <div class="item" style="max-height: 300px" data-keyboard="false" data-pause="hover">
-            <img src="{{ tool_description.image_path }}" alt="">
-            <div class="carousel-caption">
-              <h3>{{ tool_description.image_title }}</h3>
-              <p>{{ tool_description.image_description }}</p>
-            </div>
-	  </div>      
-	  {% endif %}
-	  {% endfor %}
-	</div>
-	
+      	  {% for tool_description in tool_descriptions %}
+      	  {% if forloop.first %}
+      	  <div class="item active" style="max-height: 300px" data-keyboard="false" data-pause="hover">
+                  <img src="{{ tool_description.image_path }}" alt="">
+                  <div class="carousel-caption">
+                    <h3>{{ tool_description.image_title }}</h3>
+                    <p>{{ tool_description.image_description }}</p>
+                  </div>
+      	  </div>
+      	  {% else %}
+      	  <div class="item" style="max-height: 300px" data-keyboard="false" data-pause="hover">
+                  <img src="{{ tool_description.image_path }}" alt="">
+                  <div class="carousel-caption">
+                    <h3>{{ tool_description.image_title }}</h3>
+                    <p>{{ tool_description.image_description }}</p>
+                  </div>
+      	  </div>
+      	  {% endif %}
+      	  {% endfor %}
+      	</div>
+
       </div>
 
       <!-- Left and right controls -->

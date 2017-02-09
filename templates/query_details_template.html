@@ -22,45 +22,53 @@ License for the specific language governing permissions and limitations
 under the License.
 -->
 {% block javascript %}
-<!-- Jquery UI/jQuery -->
-<link href="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.css" rel="stylesheet" />
-<link href="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.min.css" rel="stylesheet" />
-<link href="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.structure.css" rel="stylesheet" />
-<link href="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.structure.min.css" rel="stylesheet" />
-<link href="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.theme.css" rel="stylesheet" />
-<link href="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.theme.min.css" rel="stylesheet" />
-<link href="/static/assets/js/jquery-ui-1.11.4.custom/jquery.multiselect.filter.css" rel="stylesheet" />
-<link href="/static/assets/js/jquery-ui-1.11.4.custom/jquery.multiselect.css" rel="stylesheet" />
+<script>
+  jQuery(function() {
+    $('#carousel').carousel({
+      interval: 4000
+    });
 
-<!-- Site specific css.  -->
-<link href="/static/assets/css/style.css" rel="stylesheet" type="text/css" media="screen, projection" />
-<link rel="stylesheet" href="/static/assets/css/style_header.css" type="text/css" media="screen, projection" />
-<link rel="stylesheet" href="/static/assets/css/query_details.css" type="text/css" media="screen, projection" />
+    // handles the carousel thumbnails
+    $('[id^=carousel-selector-]').click( function(){
+      var id_selector = $(this).attr("id");
+      var id = id_selector.substr(id_selector.length -1);
+      id = parseInt(id);
+      $('#carousel').carousel(id);
+      $('[id^=carousel-selector-]').removeClass('selected');
+      $(this).addClass('selected');
+    });
 
-<!-- Cesium Related.  -->
-<link href="/static/assets/js/Cesium-1.19/Build/CesiumUnminified/Widgets/widgets.css" rel="stylesheet" type="text/css" />
-<link href="/static/assets/js/Cesium-1.19/Build/CesiumUnminified/Widgets/lighter.css" rel="stylesheet" type="text/css" />
+    // when the carousel slides, auto update
+    $('#carousel').on('slide.bs.carousel', function (e) {
+      var id = $('.item.active').data('slide-number');
+      id = parseInt(id);
+      $('[id^=carousel-caption-]').removeClass('selected');
+      $('[id=carousel-caption-'+id+']').addClass('selected');
+    });
+
+    // when the carousel slides, auto update
+    $('#carousel').on('slid.bs.carousel', function (e) {
+      var id = $('.item.active').data('slide-number');
+      id = parseInt(id);
+      $('[id^=carousel-selector-]').removeClass('selected');
+      $('[id=carousel-selector-'+id+']').addClass('selected');
+    });
+  });
+</script>
 {% endblock %}
 {% block css %}
+<!-- Site specific css.  -->
+<link rel="stylesheet" href="/static/assets/css/query_details.css" type="text/css" media="screen, projection" />
 {% endblock %}
 {% block content %}
-<div id="main-content">
-  <div id="left-content" class="left-content">
-    <div class="left-content-label" >
-      Query Details
-    </div>
-    <div class="sub-content">
+<div class="container-fluid no-footer">
+  <div class="row fullscreen-row">
+    <div class="col-lg-6 fullscreen-col">
       {% block query_details %}
       {% endblock %}
     </div>
-  </div>
-  <div id="right-content" class="right-content">
-    <div id="image-div" class="image-content">
+    <div class="col-lg-6 fullscreen-col visible-lg">
       {% block image_display %}
-      {% endblock %}
-    </div>
-    <div id="scene-list-content" class="scene-list-content">
-      {% block scenes_block %}
       {% endblock %}
     </div>
   </div>

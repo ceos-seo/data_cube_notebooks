@@ -128,6 +128,21 @@ class Application(models.Model):
     areas = models.ManyToManyField(Area)
     satellites = models.ManyToManyField(Satellite)
 
+    def __str__(self):
+        return self.application_id
+
+class ToolInfo(models.Model):
+    """
+    Stores images and information for the region selection page for each tool.  Information includes
+    the descriptions seen on the page as well as their respective images.
+    """
+
+    image_path = models.CharField(max_length=100)
+    image_title = models.CharField(max_length=50)
+    image_description = models.CharField(max_length=500)
+
+    application = models.ForeignKey(Application)
+
 ##############################################################################################################
 # Begin base classes for apps - Query, metadata, results, result types. Extends only in the case of app
 # specific elements.
@@ -288,16 +303,3 @@ class ResultType(models.Model):
 
     class Meta:
         abstract = True
-
-class ToolInfo(models.Model):
-    """
-    Stores images and information for the region selection page for each tool.  Information includes
-    the descriptions seen on the page as well as their respective images.
-    """
-
-    image_path = models.CharField(max_length=100)
-    image_title = models.CharField(max_length=50)
-    image_description = models.CharField(max_length=500)
-
-    # TODO(map) : Need to ensure this is working correctly.
-    application = models.ForeignKey(Application)

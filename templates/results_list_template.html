@@ -101,7 +101,7 @@ under the License.
             'csrf': csrftoken
         });
         w.addEventListener("message", query_event_listener);
-        $("#tabs_main").tabs("option", "active", 1);
+        $('#tabs_main li:eq(0) a').tab('show') 
     } else {
         alert("This browser does not support webworkers.");
     }
