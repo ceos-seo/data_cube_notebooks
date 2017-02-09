@@ -69,12 +69,14 @@ def lost_password(request):
             reset = Reset(username=user[0].username, time=datetime.datetime.now())
             reset.save()
 
-            send_mail(_('DataCube Password Reset'),
-                      _('Reset your password here: ') +
-                      settings.BASE_HOST + "accounts/" + str(reset.url) + "/reset",
-                      'admin@ceos-cube.orgceos-v2.org',
-                      [form.cleaned_data['email']],
-                      fail_silently=False)
+            msg = EmailMessage()
+            msg['From'] = 'admin@ceos-cube.org'
+            msg['To'] = form.cleaned_data['email']
+            msg['Subject'] = _('DataCube Password Reset')
+            msg.set_content(_('Reset your password here: ') + settings.BASE_HOST + "/accounts/" + str(reset.url) + "/reset")
+            # Sending the email:
+            with smtplib.SMTP('localhost') as s:
+                s.send_message(msg)
 
             form = LoginForm()
             form.cleaned_data = {}

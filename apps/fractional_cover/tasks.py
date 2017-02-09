@@ -22,6 +22,8 @@
 # Django specific
 from celery.decorators import task
 from celery.signals import worker_process_init, worker_process_shutdown
+from celery import group
+from celery.task.control import revoke
 from .models import Query, Result, Metadata
 
 import numpy as np
@@ -42,7 +44,10 @@ from utils.dc_mosaic import create_mosaic, create_median_mosaic, create_max_ndvi
 from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task
 from utils.dc_fractional_coverage_classifier import frac_coverage_classify
 
-from data_cube_ui.utils import update_model_bounds_with_dataset, map_ranges
+from utils.dc_utilities import split_task, fill_nodata, min_value, max_value, generate_time_ranges
+
+from data_cube_ui.utils import update_model_bounds_with_dataset, combine_metadata, map_ranges, cancel_task, error_with_message
+from data_cube_ui.tasks import generate_chunk
 
 """
 Class for handling loading celery workers to perform tasks asynchronously.
@@ -64,41 +69,6 @@ dc = None
 #default measurements. leaves out all qa bands.
 measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
 
-"""
-functions used to combine time sliced data after being combined geographically.
-Fill nodata uses the first timeslice as a base, then uses subsequent slices to
-fill in indices with nodata values.
-this should be used for recent/leastrecent + anything that is done in a single time chunk (median pixel?)
-things like max/min ndvi should be able to compound max/min ops between ddifferent timeslices so this will be
-different for that.
-"""
-def fill_nodata(dataset, dataset_intermediate):
-    if dataset_intermediate is None:
-        return dataset.copy(deep=True)
-    dataset_out = dataset_intermediate.copy(deep=True)
-    for key in list(dataset_out.data_vars):
-        # Get raw data for current variable and mask the data
-        dataset_out[key].values[dataset_out[key].values==-9999] = dataset[key].values[dataset_out[key].values==-9999]
-    return dataset_out
-
-def max_value(dataset, dataset_intermediate):
-    if dataset_intermediate is None:
-        return dataset.copy(deep=True)
-    dataset_out = dataset_intermediate.copy(deep=True)
-    for key in list(dataset_out.data_vars):
-        # Get raw data for current variable and mask the data
-        dataset_out[key].values[dataset.ndvi.values > dataset_out.ndvi.values] = dataset[key].values[dataset.ndvi.values > dataset_out.ndvi.values]
-    return dataset_out
-
-def min_value(dataset, dataset_intermediate):
-    if dataset_intermediate is None:
-        return dataset.copy(deep=True)
-    dataset_out = dataset_intermediate.copy(deep=True)
-    for key in list(dataset_out.data_vars):
-        # Get raw data for current variable and mask the data
-        dataset_out[key].values[dataset.ndvi.values < dataset_out.ndvi.values] = dataset[key].values[dataset.ndvi.values < dataset_out.ndvi.values]
-    return dataset_out
-
 #holds the different compositing algorithms. Most/least recent, max/min ndvi, median, etc.
 # all options are required. setting None to a option will have the algo/task splitting
 # process disregard it.
@@ -110,7 +80,8 @@ processing_algorithms = {
         'time_slices_per_iteration': 5,
         'reverse_time': True,
         'chunk_combination_method': fill_nodata,
-        'processing_method': create_mosaic
+        'processing_method': create_mosaic,
+        'base_path': base_temp_path
     },
     'least_recent': {
         'geo_chunk_size': 0.10,
@@ -118,7 +89,8 @@ processing_algorithms = {
         'time_slices_per_iteration': 1,
         'reverse_time': False,
         'chunk_combination_method': fill_nodata,
-        'processing_method': create_mosaic
+        'processing_method': create_mosaic,
+        'base_path': base_temp_path
     },
     'max_ndvi': {
         'geo_chunk_size': 0.10,
@@ -126,7 +98,8 @@ processing_algorithms = {
         'time_slices_per_iteration': 5,
         'reverse_time': False,
         'chunk_combination_method': max_value,
-        'processing_method': create_max_ndvi_mosaic
+        'processing_method': create_max_ndvi_mosaic,
+        'base_path': base_temp_path
     },
     'min_ndvi': {
         'geo_chunk_size': 0.10,
@@ -134,7 +107,8 @@ processing_algorithms = {
         'time_slices_per_iteration': 5,
         'reverse_time': False,
         'chunk_combination_method': min_value,
-        'processing_method': create_min_ndvi_mosaic
+        'processing_method': create_min_ndvi_mosaic,
+        'base_path': base_temp_path
     },
     'median_pixel': {
         'geo_chunk_size': 0.01,
@@ -142,7 +116,8 @@ processing_algorithms = {
         'time_slices_per_iteration': None,
         'reverse_time': False,
         'chunk_combination_method': fill_nodata,
-        'processing_method': create_median_mosaic
+        'processing_method': create_median_mosaic,
+        'base_path': base_temp_path
     },
 }
 
@@ -180,7 +155,7 @@ def create_fractional_cover(query_id, user_id, single=False):
     result = query.generate_result()
 
     if query.platform == "LANDSAT_ALL":
-        error_with_message(result, "Combined products are not supported for fractional cover calculations.")
+        error_with_message(result, "Combined products are not supported for fractional cover calculations.", base_temp_path)
         return
 
     product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
@@ -192,7 +167,7 @@ def create_fractional_cover(query_id, user_id, single=False):
             query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
 
         if len(acquisitions) < 1:
-            error_with_message(result, "There were no acquisitions for this parameter set.")
+            error_with_message(result, "There were no acquisitions for this parameter set.", base_temp_path)
             return
 
         processing_options = processing_algorithms[query.compositor]
@@ -206,7 +181,7 @@ def create_fractional_cover(query_id, user_id, single=False):
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
-        result.total_scenes = len(time_ranges) * len(lat_ranges)
+        result.total_scenes = len(time_ranges)
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.
@@ -217,17 +192,12 @@ def create_fractional_cover(query_id, user_id, single=False):
             os.mkdir(base_temp_path + query.query_id)
             os.chmod(base_temp_path + query.query_id, 0o777)
 
-        time_chunk_tasks = []
         # iterate over the time chunks.
         print("Time chunks: " + str(len(time_ranges)))
         print("Geo chunks: " + str(len(lat_ranges)))
-        for time_range_index in range(len(time_ranges)):
-            # iterate over the geographic chunks.
-            geo_chunk_tasks = []
-            for geographic_chunk_index in range(len(lat_ranges)):
-                geo_chunk_tasks.append(generate_fractional_cover_chunk.delay(time_range_index, geographic_chunk_index, processing_options=processing_options, query=query, acquisition_list=time_ranges[
-                                       time_range_index], lat_range=lat_ranges[geographic_chunk_index], lon_range=lon_ranges[geographic_chunk_index], measurements=measurements))
-            time_chunk_tasks.append(geo_chunk_tasks)
+        # create a group of geographic tasks for each time slice.
+        time_chunk_tasks = [group(generate_fractional_cover_chunk.s(time_range_index, geographic_chunk_index, processing_options=processing_options, query=query, acquisition_list=time_ranges[time_range_index], lat_range=lat_ranges[
+                                  geographic_chunk_index], lon_range=lon_ranges[geographic_chunk_index], measurements=measurements) for geographic_chunk_index in range(len(lat_ranges))).apply_async() for time_range_index in range(len(time_ranges))]
 
         # holds some acquisition based metadata. dict of objs keyed by date
         dataset_out_mosaic = None
@@ -236,38 +206,27 @@ def create_fractional_cover(query_id, user_id, single=False):
         for geographic_group in time_chunk_tasks:
             full_dataset = None
             tiles = []
-            for t in geographic_group:
-                tile = t.get()
-                # tile is [path, metadata]. Append tiles to list of tiles for concat, compile metadata.
-                if tile == "CANCEL":
-                    print("Cancelled task.")
-                    shutil.rmtree(base_temp_path + query.query_id)
-                    query.delete()
-                    result.delete()
+            # get the geographic chunk data and drop all None values
+            while not geographic_group.ready():
+                result.refresh_from_db()
+                if result.status == "CANCEL":
+                    #revoke all tasks. Running tasks will continue to execute.
+                    for task_group in time_chunk_tasks:
+                        for child in task_group.children:
+                            child.revoke()
+                    cancel_task(query, result, base_temp_path)
                     return
-                if tile[0] is not None:
-                    tiles.append(tile)
-                result.scenes_processed += 1
-                result.save()
+            group_data = [data for data in geographic_group.get()
+                          if data is not None]
+            result.scenes_processed += 1
+            result.save()
             print("Got results for a time slice, computing intermediate product..")
-            xr_tiles_mosaic = []
-            xr_tiles_fractional_cover = []
-            for tile in tiles:
-                tile_metadata = tile[2]
-                for acquisition_date in tile_metadata:
-                    if acquisition_date in acquisition_metadata:
-                        acquisition_metadata[acquisition_date]['clean_pixels'] += tile_metadata[acquisition_date]['clean_pixels']
-                    else:
-                        acquisition_metadata[acquisition_date] = {'clean_pixels': tile_metadata[acquisition_date]['clean_pixels']}
-                xr_tiles_mosaic.append(xr.open_dataset(tile[0]))
-                xr_tiles_fractional_cover.append(xr.open_dataset(tile[1]))
-            #create cf mosaic
-            full_dataset_mosaic = xr.concat(reversed(xr_tiles_mosaic), dim='latitude')
-            dataset_mosaic = full_dataset_mosaic.load()
+            acquisition_metadata = combine_metadata(acquisition_metadata, [tile[2] for tile in group_data])
+
+            dataset_mosaic = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
             dataset_out_mosaic = processing_options['chunk_combination_method'](dataset_mosaic, dataset_out_mosaic)
-            #now frac.
-            full_dataset_fractional_cover = xr.concat(reversed(xr_tiles_fractional_cover), dim='latitude')
-            dataset_fractional_cover = full_dataset_fractional_cover.load()
+
+            dataset_fractional_cover = xr.concat(reversed([xr.open_dataset(tile[1]) for tile in group_data]), dim='latitude').load()
             dataset_out_fractional_cover = processing_options['chunk_combination_method'](dataset_fractional_cover, dataset_out_fractional_cover)
 
         latitude = dataset_out_mosaic.latitude
@@ -341,7 +300,7 @@ def create_fractional_cover(query_id, user_id, single=False):
         query.save()
     except:
         error_with_message(
-            result, "There was an exception when handling this query.")
+            result, "There was an exception when handling this query.", base_temp_path)
         raise
     # end error wrapping.
     return
@@ -353,35 +312,27 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
     from acquisition_list, which is a list of acquisition dates, and creates the fractional_cover using the function named in processing_options.
     saves the result to disk using time/chunk num, and returns the path and the acquisition date keyed metadata.
     """
+
+    #if the path has been removed, the task is cancelled and this is only running due to the prefetch.
+    if not os.path.exists(base_temp_path + query.query_id):
+        return None
+
     time_index = 0
     iteration_data = None
     acquisition_metadata = {}
     print("Starting chunk: " + str(time_num) + " " + str(chunk_num))
-    # holds some acquisition based metadata.
-    while time_index < len(acquisition_list):
-        # check if the task has been cancelled. if the result obj doesn't exist anymore then return.
-        try:
-            result = Result.objects.get(query_id=query.query_id)
-        except:
-            print("Cancelled task as result does not exist")
-            return
-        if result.status == "CANCEL":
-            print("Cancelling...")
-            return "CANCEL"
 
-        # time ranges set based on if the acquisition_list has been reversed or not. If it has, then the 'start' index is the later date, and must be handled appropriately.
-        start = acquisition_list[time_index] + datetime.timedelta(seconds=1) if processing_options['reverse_time'] else acquisition_list[time_index]
-        if processing_options['time_slices_per_iteration'] is not None and (time_index + processing_options['time_slices_per_iteration'] - 1) < len(acquisition_list):
-            end = acquisition_list[time_index + processing_options['time_slices_per_iteration'] - 1]
-        else:
-            end = acquisition_list[-1] if processing_options['reverse_time'] else acquisition_list[-1] + datetime.timedelta(seconds=1)
-        time_range = (end, start) if processing_options['reverse_time'] else (start, end)
+    #dc.load doesn't support generators so do it this way.
+    time_ranges = list(generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
+
+    # holds some acquisition based metadata.
+    for time_index, time_range in enumerate(time_ranges):
 
         raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 
         if "cf_mask" not in raw_data:
-            time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
             continue
+
         clear_mask = create_cfmask_clean_mask(raw_data.cf_mask)
 
         # update metadata. # here the clear mask has all the clean
@@ -396,14 +347,8 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
             acquisition_metadata[time][
                 'clean_pixels'] += clean_pixels
 
-        # Removes the cf mask variable from the dataset after the clear mask has been created.
-        # prevents the cf mask from being put through the mosaicing function as it doesn't fit
-        # the correct format w/ nodata values for mosaicing.
-        # raw_data = raw_data.drop('cf_mask')
-
         iteration_data = processing_options['processing_method'](
             raw_data, clean_mask=clear_mask, intermediate_product=iteration_data, reverse_time=processing_options['reverse_time'])
-        time_index = time_index + (processing_options['time_slices_per_iteration'] if processing_options['time_slices_per_iteration'] is not None else 10000)
 
     # Save this geographic chunk to disk.
     geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \
@@ -411,8 +356,8 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
     fractional_cover_path = base_temp_path + query.query_id + "/geo_chunk_fractional_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
     # if this is an empty chunk, just return an empty dataset.
-    if iteration_data is None:
-        return [None, None, None]
+    if iteration_data is None or not os.path.exists(base_temp_path + query.query_id):
+        return None
     iteration_data.to_netcdf(geo_path)
     ##################################################################
     # Compute fractional cover here.
@@ -421,29 +366,11 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
     clear_mask[iteration_data.cf_mask.values==1] = False
     fractional_cover = frac_coverage_classify(iteration_data, clean_mask=clear_mask)
     ##################################################################
+    if not os.path.exists(base_temp_path + query.query_id):
+        return None
     fractional_cover.to_netcdf(fractional_cover_path)
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
     return [geo_path, fractional_cover_path, acquisition_metadata]
-
-def error_with_message(result, message):
-    """
-    Errors out under specific circumstances, used to pass error msgs to user. Uses the result path as
-    a message container: TODO? Change this.
-
-    Args:
-        result (Result): The current result of the query being ran.
-        message (string): The message to be stored in the result object.
-
-    Returns:
-        Nothing is returned as the method is ran asynchronously.
-    """
-    if os.path.exists(base_temp_path + result.query_id):
-        shutil.rmtree(base_temp_path + result.query_id)
-    result.status = "ERROR"
-    result.result_path = message
-    result.save()
-    print(message)
-    return
 
 # Init/shutdown functions for handling dc instances.
 # this is done to prevent synchronization/conflicts between workers when
@@ -457,6 +384,9 @@ def init_worker(**kwargs):
     print("Creating DC instance for worker.")
     global dc
     dc = DataAccessApi()
+    if not os.path.exists(base_result_path):
+        os.mkdir(base_result_path)
+        os.chmod(base_result_path, 0o777)
 
 
 @worker_process_shutdown.connect
