@@ -51,12 +51,12 @@ under the License.
 <script>
   //Gives all dropdowns the scrolldown effect.
   $('.dropdown').on('show.bs.dropdown', function() {
-    $(this).find('.dropdown-menu').first().stop(true, true).slideDown();
+    $(this).find('.dropdown-menu').first().stop(true, true).slideDown('fast');
   });
 
   // Add slideUp animation to Bootstrap dropdown when collapsing.
   $('.dropdown').on('hide.bs.dropdown', function() {
-    $(this).find('.dropdown-menu').first().stop(true, true).hide();
+    $(this).find('.dropdown-menu').first().stop(true, true).hide('fast');
   });
 </script>
 </html>
