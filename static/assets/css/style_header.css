@@ -1,3 +1,8 @@
+.container-fluid.header {
+  margin-left: 25px;
+  margin-right: 25px;
+}
+
 .navbar-inverse {
   background-color: #444;
   border-bottom: 3px solid #fdc207;
