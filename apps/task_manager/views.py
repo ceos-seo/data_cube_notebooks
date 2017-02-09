@@ -129,7 +129,8 @@ def get_task_manager(request, app_id):
     for query in queries.objects.all().order_by('-query_start')[:100]:
         data = list()
         for v in headers_dictionary['ModelBase']:
-            data.append(str(query.__dict__[v]))
+            data_val = query.__dict__[v].strftime("%m-%d-%Y") if type(query.__dict__[v]) == datetime else round(query.__dict__[v], 4) if type(query.__dict__[v]) == float else query.__dict__[v]
+            data.append(str(data_val))
             data_dictionary[query] = data
 
     formatted_headers_dictionary = OrderedDict()
