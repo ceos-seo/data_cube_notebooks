@@ -57,9 +57,9 @@ under the License.
     <h2 class="page-header">Query Parameters</h2>
     <dl class="dl-horizontal">
       <dt>(Lat, Lon) Min</dt>
-      <dd>({{query.latitude_min}} , {{query.longitude_min}})</dd>
+      <dd>({{query.latitude_min|floatformat:6}} , {{query.longitude_min|floatformat:6}})</dd>
       <dt>(Lat, Lon) Max</dt>
-      <dd>({{query.latitude_max}} , {{query.longitude_max}})</dd>
+      <dd>({{query.latitude_max|floatformat:6}} , {{query.longitude_max|floatformat:6}})</dd>
       <dt>Query Type</dt>
       <dd>{{query.query_type}}</dd>
       <dt>Animation Type</dt>
