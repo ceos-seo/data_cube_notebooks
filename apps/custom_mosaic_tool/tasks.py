@@ -75,7 +75,7 @@ platforms = ['LANDSAT_5', 'LANDSAT_7', 'LANDSAT_8']
 processing_algorithms = {
     'most_recent': {
         'geo_chunk_size': 0.5,
-        'time_chunks': None,
+        'time_chunks': 5,
         'time_slices_per_iteration': 5,
         'reverse_time': True,
         'chunk_combination_method': fill_nodata,
