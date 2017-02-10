@@ -75,7 +75,7 @@ platforms = ['LANDSAT_5', 'LANDSAT_7', 'LANDSAT_8']
 processing_algorithms = {
     'most_recent': {
         'geo_chunk_size': 0.5,
-        'time_chunks': 5,
+        'time_chunks': None,
         'time_slices_per_iteration': 5,
         'reverse_time': True,
         'chunk_combination_method': fill_nodata,
@@ -183,7 +183,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             processing_options['time_chunks'] = None
             processing_options['time_slices_per_iteration'] = None
 
-        if query.animated_product != "None" or query.platform == "LANDSAT_ALL":
+        if query.animated_product != "None":
             processing_options["time_slices_per_iteration"] = 1
 
         if query.animated_product != "None" and query.compositor == "median_pixel":
@@ -195,6 +195,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         #default is in order from oldest -> newwest.
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
+
         result.total_scenes = len(time_ranges)
         result.save()
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
@@ -405,14 +406,6 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
                 dataset = dc.get_dataset_by_extent(products[index]+query.area_id, product_type=None, platform=platforms[index], time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
                 if 'time' in dataset:
                     dataset['satellite'] = xr.DataArray(np.full(dataset.cf_mask.values.shape, index, dtype="int16"), dims=('time', 'latitude', 'longitude'))
-                    timestamp_data = np.full(dataset.cf_mask.values.shape, 0, dtype="int32")
-                    date_data = np.full(dataset.cf_mask.values.shape, 0, dtype="int32")
-                    for index, time in enumerate(dataset.time.values):
-                        timestamp_data[index::] = time.timestamp() if type(time) == datetime.datetime else time.astype(int) * 1e-9
-                        date = time if type(time) == datetime.datetime else datetime.datetime.utcfromtimestamp(time.astype(int) * 1e-9)
-                        date_data[index::] = int(date.strftime("%Y%m%d"))
-                    dataset['timestamp'] = xr.DataArray(timestamp_data, dims=('time', 'latitude', 'longitude'))
-                    dataset['date'] = xr.DataArray(date_data, dims=('time', 'latitude', 'longitude'))
                     datasets_in.append(dataset.copy(deep=True))
                 dataset = None
             if len(datasets_in) > 0:
@@ -420,9 +413,19 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
                 raw_data = combined_data.reindex({'time':sorted(combined_data.time.values)})
         else:
             raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
+            raw_data['satellite'] = xr.DataArray(np.full(raw_data.cf_mask.values.shape, platforms.index(query.platform), dtype="int16"), dims=('time', 'latitude', 'longitude'))
 
         if "cf_mask" not in raw_data:
             continue
+
+        timestamp_data = np.full(raw_data.cf_mask.values.shape, 0, dtype="int32")
+        date_data = np.full(raw_data.cf_mask.values.shape, 0, dtype="int32")
+        for index, time in enumerate(raw_data.time.values):
+            timestamp_data[index::] = time.timestamp() if type(time) == datetime.datetime else time.astype(int) * 1e-9
+            date = time if type(time) == datetime.datetime else datetime.datetime.utcfromtimestamp(time.astype(int) * 1e-9)
+            date_data[index::] = int(date.strftime("%Y%m%d"))
+        raw_data['timestamp'] = xr.DataArray(timestamp_data, dims=('time', 'latitude', 'longitude'))
+        raw_data['date'] = xr.DataArray(date_data, dims=('time', 'latitude', 'longitude'))
 
         clear_mask = create_cfmask_clean_mask(raw_data.cf_mask)
 
