@@ -182,6 +182,7 @@ def create_fractional_cover(query_id, user_id, single=False):
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
         result.total_scenes = len(time_ranges)
+        result.save()
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.

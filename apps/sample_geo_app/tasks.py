@@ -215,7 +215,8 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
-        result.total_scenes = len(time_ranges) * len(lat_ranges)
+        result.total_scenes = len(time_ranges)
+result.save() * len(lat_ranges)
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.

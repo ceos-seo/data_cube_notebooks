@@ -65,6 +65,9 @@ dc = None
 #default measurements. leaves out all qa bands.
 measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
 
+products = ['ls5_ledaps_', 'ls7_ledaps_', 'ls8_ledaps_']
+platforms = ['LANDSAT_5', 'LANDSAT_7', 'LANDSAT_8']
+
 #holds the different compositing algorithms. Most/least recent, max/min ndvi, median, etc.
 # all options are required. setting None to a option will have the algo/task splitting
 # process disregard it.
@@ -72,7 +75,7 @@ measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
 processing_algorithms = {
     'most_recent': {
         'geo_chunk_size': 0.5,
-        'time_chunks': 5,
+        'time_chunks': 8,
         'time_slices_per_iteration': 5,
         'reverse_time': True,
         'chunk_combination_method': fill_nodata,
@@ -147,18 +150,27 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
     # creates the empty result.
     result = query.generate_result()
 
+    #if query.platform == "LANDSAT_ALL":
+    #    error_with_message(result, "Combined products are not supported for custom mosaics.", base_temp_path)
+    #    return
     if query.platform == "LANDSAT_ALL":
-        error_with_message(result, "Combined products are not supported for custom mosaics.", base_temp_path)
-        return
-
-    product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
+        product_details = dc.dc.list_products(
+        )[dc.dc.list_products().name == products[1]+query.area_id]
+    else:
+        product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
 
     # wrapping this in a try/catch, as it will throw a few different errors
     # having to do with memory etc.
     try:
         # lists all acquisition dates for use in single tmeslice queries.
-        acquisitions = dc.list_acquisition_dates(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
-            query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
+        if query.platform == "LANDSAT_ALL":
+            acquisitions = []
+            for index in range(len(products)):
+                acquisitions.extend(dc.list_acquisition_dates(platforms[index], products[index]+query.area_id, time=(query.time_start, query.time_end), longitude=(
+                    query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max)))
+        else:
+            acquisitions = dc.list_acquisition_dates(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
+                query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
 
         if len(acquisitions) < 1:
             error_with_message(result, "There were no acquisitions for this parameter set.", base_temp_path)
@@ -171,7 +183,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             processing_options['time_chunks'] = None
             processing_options['time_slices_per_iteration'] = None
 
-        if query.animated_product != "None":
+        if query.animated_product != "None" or query.platform == "LANDSAT_ALL":
             processing_options["time_slices_per_iteration"] = 1
 
         if query.animated_product != "None" and query.compositor == "median_pixel":
@@ -183,8 +195,8 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         #default is in order from oldest -> newwest.
         lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
-
         result.total_scenes = len(time_ranges)
+        result.save()
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.
@@ -228,7 +240,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[1] for tile in group_data])
             dataset = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
-
+            print(dataset)
             # combine all the intermediate products for the animation creation.
             if query.animated_product != "None":
                   print("Num of slices in this chunk: " +
@@ -283,6 +295,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
             time_range_index += 1
             dataset_out = processing_options['chunk_combination_method'](dataset, dataset_out)
+            print(dataset_out)
 
         latitude = dataset_out.latitude
         longitude = dataset_out.longitude
@@ -339,7 +352,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                         x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'],
                         band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2'])
         dataset_out.to_netcdf(netcdf_path)
-
+        print(dataset_out)
         # we've got the tif, now do the png.
         bands = [measurements.index(result_type.red)+1, measurements.index(result_type.green)+1, measurements.index(result_type.blue)+1]
         create_rgb_png_from_tiff(tif_path, png_path, png_filled_path=png_filled_path, fill_color=result_type.fill, bands=bands, scale=(0, 4096))
@@ -385,7 +398,26 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
     time_ranges = list(generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
 
     for time_index, time_range in enumerate(time_ranges):
-        raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
+
+        if query.platform == "LANDSAT_ALL":
+            datasets_in = []
+            for index in range(len(products)):
+                dataset = dc.get_dataset_by_extent(products[index]+query.area_id, product_type=None, platform=platforms[index], time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
+                if 'time' in dataset:
+                    satellite_flag = xr.DataArray(np.full(dataset.cf_mask.values.shape, index), dims=('time', 'latitude', 'longitude'))
+                    dataset['satellite'] = satellite_flag
+                    date_data = np.full(dataset.cf_mask.values.shape, 0)
+                    for index, time in enumerate(dataset.time.values):
+                        date_data[index::] = time.timestamp() if type(time) == datetime.datetime else time.astype(int) * 1e-9
+                    date_flag = xr.DataArray(date_data, dims=('time', 'latitude', 'longitude'))
+                    dataset['date'] = date_flag
+                    datasets_in.append(dataset.copy(deep=True))
+                dataset = None
+            if len(datasets_in) > 0:
+                combined_data = xr.concat(datasets_in, 'time')
+                raw_data = combined_data.reindex({'time':sorted(combined_data.time.values)})
+        else:
+            raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 
         if "cf_mask" not in raw_data:
             continue
@@ -431,6 +463,7 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
     if iteration_data is None or not os.path.exists(base_temp_path + query.query_id):
         return None
     iteration_data.to_netcdf(geo_path)
+    print(iteration_data)
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
     return [geo_path, acquisition_metadata]
 
