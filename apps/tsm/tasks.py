@@ -371,7 +371,8 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
                     datasets_in.append(dataset.copy(deep=True))
                 dataset = None
             if len(datasets_in) > 0:
-                raw_data = xr.concat(datasets_in, 'time')
+                combined_data = xr.concat(datasets_in, 'time')
+                raw_data = combined_data.reindex({'time':sorted(combined_data.time.values)})
         else:
             raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 

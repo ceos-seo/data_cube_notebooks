@@ -87,7 +87,20 @@ class Metadata(BaseMetadata):
     """
     Extends base metadata.
     """
-    pass
+    satellite_list = models.CharField(max_length=100000, default="")
+
+    def satellite_list_as_list(self):
+        return self.satellite_list.rstrip(',').split(',')
+
+    def metadata_as_zip4(self):
+        """
+        Creates a zip file with a number of lists included as the content
+
+        Returns:
+            zip file: Zip file combining three different lists (acquisition_list_as_list(),
+            clean_pixels_list_as_list(), clean_pixels_percentages_as_list())
+        """
+        return zip(self.acquisition_list_as_list(), self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list(), self.satellite_list_as_list())
 
 class Result(BaseResult):
     """

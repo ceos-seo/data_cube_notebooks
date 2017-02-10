@@ -75,7 +75,7 @@ platforms = ['LANDSAT_5', 'LANDSAT_7', 'LANDSAT_8']
 processing_algorithms = {
     'most_recent': {
         'geo_chunk_size': 0.5,
-        'time_chunks': 8,
+        'time_chunks': 5,
         'time_slices_per_iteration': 5,
         'reverse_time': True,
         'chunk_combination_method': fill_nodata,
@@ -240,7 +240,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[1] for tile in group_data])
             dataset = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
-            print(dataset)
+
             # combine all the intermediate products for the animation creation.
             if query.animated_product != "None":
                   print("Num of slices in this chunk: " +
@@ -295,7 +295,6 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
             time_range_index += 1
             dataset_out = processing_options['chunk_combination_method'](dataset, dataset_out)
-            print(dataset_out)
 
         latitude = dataset_out.latitude
         longitude = dataset_out.longitude
@@ -315,6 +314,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
         for date in reversed(dates):
             meta.acquisition_list += date.strftime("%m/%d/%Y") + ","
+            meta.satellite_list += acquisition_metadata[date]['satellite'] + ","
             meta.clean_pixels_per_acquisition += str(
                 acquisition_metadata[date]['clean_pixels']) + ","
             meta.clean_pixel_percentages_per_acquisition += str(
@@ -347,12 +347,12 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
         # remove intermediates
         shutil.rmtree(base_temp_path + query.query_id)
-
-        save_to_geotiff(tif_path, gdal.GDT_Int16, dataset_out, geotransform, get_spatial_ref(crs),
+        save_to_geotiff(tif_path, gdal.GDT_Int32, dataset_out.astype('int32'), geotransform, get_spatial_ref(crs),
                         x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'],
-                        band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2'])
+                        band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'satellite', 'timestamp', 'date'])
+
         dataset_out.to_netcdf(netcdf_path)
-        print(dataset_out)
+
         # we've got the tif, now do the png.
         bands = [measurements.index(result_type.red)+1, measurements.index(result_type.green)+1, measurements.index(result_type.blue)+1]
         create_rgb_png_from_tiff(tif_path, png_path, png_filled_path=png_filled_path, fill_color=result_type.fill, bands=bands, scale=(0, 4096))
@@ -404,13 +404,15 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
             for index in range(len(products)):
                 dataset = dc.get_dataset_by_extent(products[index]+query.area_id, product_type=None, platform=platforms[index], time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
                 if 'time' in dataset:
-                    satellite_flag = xr.DataArray(np.full(dataset.cf_mask.values.shape, index), dims=('time', 'latitude', 'longitude'))
-                    dataset['satellite'] = satellite_flag
-                    date_data = np.full(dataset.cf_mask.values.shape, 0)
+                    dataset['satellite'] = xr.DataArray(np.full(dataset.cf_mask.values.shape, index, dtype="int16"), dims=('time', 'latitude', 'longitude'))
+                    timestamp_data = np.full(dataset.cf_mask.values.shape, 0, dtype="int32")
+                    date_data = np.full(dataset.cf_mask.values.shape, 0, dtype="int32")
                     for index, time in enumerate(dataset.time.values):
-                        date_data[index::] = time.timestamp() if type(time) == datetime.datetime else time.astype(int) * 1e-9
-                    date_flag = xr.DataArray(date_data, dims=('time', 'latitude', 'longitude'))
-                    dataset['date'] = date_flag
+                        timestamp_data[index::] = time.timestamp() if type(time) == datetime.datetime else time.astype(int) * 1e-9
+                        date = time if type(time) == datetime.datetime else datetime.datetime.utcfromtimestamp(time.astype(int) * 1e-9)
+                        date_data[index::] = int(date.strftime("%Y%m%d"))
+                    dataset['timestamp'] = xr.DataArray(timestamp_data, dims=('time', 'latitude', 'longitude'))
+                    dataset['date'] = xr.DataArray(date_data, dims=('time', 'latitude', 'longitude'))
                     datasets_in.append(dataset.copy(deep=True))
                 dataset = None
             if len(datasets_in) > 0:
@@ -436,6 +438,7 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
             if time not in acquisition_metadata:
                 acquisition_metadata[time] = {}
                 acquisition_metadata[time]['clean_pixels'] = 0
+                acquisition_metadata[time]['satellite'] = platforms[np.unique(raw_data.satellite.isel(time=timeslice).values)[0]]
             acquisition_metadata[time][
                 'clean_pixels'] += clean_pixels
 
@@ -463,7 +466,6 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
     if iteration_data is None or not os.path.exists(base_temp_path + query.query_id):
         return None
     iteration_data.to_netcdf(geo_path)
-    print(iteration_data)
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
     return [geo_path, acquisition_metadata]
 
