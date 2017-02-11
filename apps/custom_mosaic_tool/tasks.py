@@ -239,6 +239,9 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             result.save()
             print("Got results for a time slice, computing intermediate product..")
 
+            if len(group_data) < 1:
+                time_range_index += 1
+                continue
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[1] for tile in group_data])
             dataset = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
 
@@ -413,7 +416,8 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
                 raw_data = combined_data.reindex({'time':sorted(combined_data.time.values)})
         else:
             raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
-            raw_data['satellite'] = xr.DataArray(np.full(raw_data.cf_mask.values.shape, platforms.index(query.platform), dtype="int16"), dims=('time', 'latitude', 'longitude'))
+            if "cf_mask" in raw_data:
+                raw_data['satellite'] = xr.DataArray(np.full(raw_data.cf_mask.values.shape, platforms.index(query.platform), dtype="int16"), dims=('time', 'latitude', 'longitude'))
 
         if "cf_mask" not in raw_data:
             continue

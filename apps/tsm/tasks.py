@@ -185,7 +185,9 @@ def perform_tsm_analysis(query_id, user_id, single=False):
             result.scenes_processed += 1
             result.save()
             print("Got results for a time slice, computing intermediate product..")
-
+            if len(group_data) < 1:
+                time_range_index += 1
+                continue
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[2] for tile in group_data])
             dataset_water = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
             dataset_tsm = xr.concat(reversed([xr.open_dataset(tile[1]) for tile in group_data]), dim='latitude').load()
