@@ -445,7 +445,7 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
             if time not in acquisition_metadata:
                 acquisition_metadata[time] = {}
                 acquisition_metadata[time]['clean_pixels'] = 0
-                acquisition_metadata[time]['satellite'] = platforms[np.unique(raw_data.satellite.isel(time=timeslice).values)[0]]
+                acquisition_metadata[time]['satellite'] = platforms[np.unique(raw_data.satellite.isel(time=timeslice).values)[0]] if np.unique(raw_data.satellite.isel(time=timeslice).values)[0] > -1 else "NODATA"
             acquisition_metadata[time][
                 'clean_pixels'] += clean_pixels
 
