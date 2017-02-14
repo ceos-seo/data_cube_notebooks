@@ -439,4 +439,4 @@ def shutdown_worker(**kwargs):
 
     print('Closing DC instance for worker.')
     global dc
-    dc = None
+    dc.close()

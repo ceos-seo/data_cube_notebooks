@@ -421,7 +421,7 @@ def shutdown_worker(**kwargs):
 
     print('Closing DC instance for worker.')
     global dc
-    dc = None
+    dc.close()
 
 @task(name="get_acquisition_list")
 def get_acquisition_list(area, satellite):
