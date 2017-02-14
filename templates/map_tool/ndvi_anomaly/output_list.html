@@ -71,7 +71,31 @@ under the License.
   </tbody>
 </table>
 {% endblock %}
-
+{% block data_guide_rows %}
+  <tr>
+    <td>1</td>
+    <td>Scene NDVI</td>
+    <td>[-1, 1] <div class="helper tooltipped" title="Normalized Difference Vegetation Index (NDVI) value for the selected scene."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Baseline NDVI</td>
+    <td>[-1, 1] <div class="helper tooltipped" title="Normalized Difference Vegetation Index (NDVI) value for the baseline mosaic."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>NDVI Anomaly</td>
+    <td>[-2, 2] <div class="helper tooltipped" title="The difference between the selected scene's NDVI value and the baseline NDVI value."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>NDVI Percentage Change</td>
+    <td>[-2, 2] <div class="helper tooltipped" title="Percentage change between the selected scene's NDVI value and the baseline NDVI value multiplied by 100. Values are technically unbound for very small -> very large transitions, but generally land in this range."><a> ?</a></div></td>
+  </tr>
+{% endblock %}
+{% block url_block %}
+http://cropmonitor.org/pages/data-eo-data.php?id=ndvi
+{% endblock %}
 {% block download_options %}
 <option value="result_path">NDVI Diff PNG</option>
 <option value="ndvi_percentage_change_path">NDVI % Change</option>

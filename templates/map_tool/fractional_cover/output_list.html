@@ -71,7 +71,26 @@ under the License.
   </tbody>
 </table>
 {% endblock %}
-
+{% block data_guide_rows %}
+  <tr>
+    <td>1</td>
+    <td>Bare Soil</td>
+    <td>[0, 100] <div class="helper tooltipped" title="Valid range between 0 and 100 signifying what percentage of a pixel is classified as bare soil."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Non-Photosynthetic Vegetation</td>
+    <td>[0, 100] <div class="helper tooltipped" title="Valid range between 0 and 100 signifying what percentage of a pixel is classified as non photosynthetic vegetation."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Photosynthetic Vegetation</td>
+    <td>[0, 100] <div class="helper tooltipped" title="Valid range between 0 and 100 signifying what percentage of a pixel is classified as photosynthetic vegetation."><a> ?</a></div></td>
+  </tr>
+{% endblock %}
+{% block url_block %}
+http://remote-sensing.nci.org.au/u39/public/html/modis/fractionalcover-clw/
+{% endblock %}
 {% block download_options %}
 <option value="result_path">Frac Cover PNG</option>
 <option value="result_mosaic_path">Mosaic PNG</option>

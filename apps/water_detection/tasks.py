@@ -301,8 +301,11 @@ def perform_water_analysis(query_id, user_id, single=False):
         # get rid of all intermediate products since there are a lot.
         shutil.rmtree(base_temp_path + query.query_id)
 
+        #rename a default var to a more specific label
+        dataset_out = dataset_out.rename({'normalized_data':'normalized_water', 'total_data': 'water_observations'})
+
         save_to_geotiff(tif_path, gdal.GDT_Float64, dataset_out, geotransform, get_spatial_ref(crs),
-                        x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'], band_order=['normalized_data', 'total_data', 'total_clean'])
+                        x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'], band_order=['normalized_water', 'water_observations', 'total_clean'])
         dataset_out.to_netcdf(netcdf_path)
 
         # we've got the tif, now do the png set..

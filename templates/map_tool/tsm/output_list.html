@@ -63,7 +63,21 @@ under the License.
   </tbody>
 </table>
 {% endblock %}
-
+{% block data_guide_rows %}
+  <tr>
+    <td>1</td>
+    <td>Average TSM</td>
+    <td>0+ <div class="helper tooltipped" title="Contains the average TSM value over the specified time period in grams per liter."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Clean Acquisitions</td>
+    <td>0+ <div class="helper tooltipped" title="The number of acquisitions for each pixel that were considered clean (cloud/shadow/snow free) for the TSM operation."><a> ?</a></div></td>
+  </tr>
+{% endblock %}
+{% block url_block %}
+http://www.sciencedirect.com/science/article/pii/S0034425716301560
+{% endblock %}
 {% block download_options %}
 <option value="result_path">Average TSM</option>
 <option value="clear_observations_path">Clear Observations</option>

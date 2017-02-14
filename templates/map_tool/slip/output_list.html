@@ -75,7 +75,31 @@ under the License.
   </tbody>
 </table>
 {% endblock %}
-
+{% block data_guide_rows %}
+  <tr>
+    <td>1</td>
+    <td>Red</td>
+    <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Pixels with a SLIP mask value of 1 have a value of 4096 for coloring purposes."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Green</td>
+    <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Blue</td>
+    <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>SLIP Mask</td>
+    <td>[0, 1] <div class="helper tooltipped" title="SLIP mask signifying the pixels that are classified as SLIP pixels."><a> ?</a></div></td>
+  </tr>
+{% endblock %}
+{% block url_block %}
+http://cropmonitor.org/pages/data-eo-data.php?id=ndvi
+{% endblock %}
 {% block download_options %}
 <option value="result_path">SLIP PNG</option>
 <option value="result_mosaic_path">Mosaic PNG</option>

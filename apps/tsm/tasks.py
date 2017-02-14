@@ -302,10 +302,13 @@ def perform_tsm_analysis(query_id, user_id, single=False):
                     writer.append_data(image)
             result.animation_path = result_paths[2]
 
+        #rename data vars
+        dataset_out = dataset_out.rename({'normalized_data':'average_tsm'})
+
         # get rid of all intermediate products since there are a lot.
         shutil.rmtree(base_temp_path + query.query_id)
         save_to_geotiff(tif_path, gdal.GDT_Float64, dataset_out, geotransform, get_spatial_ref(crs),
-                        x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'], band_order=['normalized_data', 'total_clean'])
+                        x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'], band_order=['average_tsm', 'total_clean'])
         dataset_out.to_netcdf(netcdf_path)
 
         # we've got the tif, now do the png set..
@@ -424,8 +427,10 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
         str(time_num) + "_" + str(chunk_num)
     if water_analysis is None or not os.path.exists(base_temp_path + query.query_id):
         return None
+
     water_analysis.to_netcdf(geo_path + "_water.nc")
     tsm_analysis.to_netcdf(geo_path + "_tsm.nc")
+
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
     return [geo_path + "_water.nc", geo_path + "_tsm.nc", acquisition_metadata]
 
