@@ -66,6 +66,7 @@ under the License.
   </div>
   <div class="col-lg-6">
     <h2 class="page-header">Query Outputs</h2>
+    {% if user.is_authenticated %}
     <dl class="dl-horizontal">
       <dt>Fractional Cover Path</dt>
       <dd><a href={{result.result_path}} target="_blank">View image</a></dd>
@@ -76,6 +77,9 @@ under the License.
       <dt>GeoTIFF Path</dt>
       <dd><a href={{result.data_path}}>Download tif</a></dd>
     </dl>
+    {% else %}
+      <p>Please log in to download data products.</p>
+    {% endif %}
   </div>
 </div>
 <div class="row">
