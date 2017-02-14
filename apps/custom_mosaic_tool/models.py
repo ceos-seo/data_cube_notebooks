@@ -73,7 +73,7 @@ class Query(BaseQuery):
 
     def generate_metadata(self, scene_count=0, pixel_count=0):
         meta = Metadata(query_id=self.query_id, scene_count=scene_count, pixel_count=pixel_count,
-                        latitude_min=self.latitude_min, latitude_max=self.latitude_max, longitude_min=self.longitude_min, longitude_max=self.longitude_max)
+                        latitude_min=self.latitude_min, latitude_max=self.latitude_max, longitude_min=self.longitude_min, longitude_max=self.longitude_max, satellite_list="")
         meta.save()
         return meta
 

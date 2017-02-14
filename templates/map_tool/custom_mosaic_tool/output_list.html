@@ -71,7 +71,58 @@ under the License.
   </tbody>
 </table>
 {% endblock %}
-
+{% block data_guide_rows %}
+  <tr>
+    <td>1</td>
+    <td>Blue</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Green</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Red</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>NIR</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>SWIR1</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>SWIR2</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>7</td>
+    <td>CF_Mask</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>8</td>
+    <td>Satellite</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>9</td>
+    <td>Timestamp (Unix)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>10</td>
+    <td>Date (%Y%m%d format)</td>
+    <td></td>
+  </tr>
+{% endblock %}
 {% block download_options %}
 <option value="result_path">Mosaic PNG</option>
 <option value="result_filled_path">Filled Mosaic PNG</option>

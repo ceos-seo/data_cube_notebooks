@@ -45,6 +45,23 @@ under the License.
     </div>
   {% endfor %}
 </div>
+<h2>Data Guide</h2>
+<hr>
+<div id="data_guide" class="boxed_list">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Band</th>
+        <th>Data</th>
+        <th>More information</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% block data_guide_rows %}
+      {% endblock %}
+    </tbody>
+  </table>
+</div>
 <div class="form-inline">
   <select class="form-control" id="download_sel" name="download_sel" tabindex="1" onchange="set_dl_url();">
       <!-- Contains <option value=""></option> tags for all downloadable products.

@@ -90,7 +90,8 @@ def ndvi_anomaly(request, area_id):
         'satellites': satellites,
         'forms': forms,
         'running_queries': running_queries,
-        'area': area
+        'area': area,
+        'application': app,
     }
 
     return render(request, 'map_tool/map_tool.html', context)

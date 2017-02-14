@@ -418,7 +418,6 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
             raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
             if "cf_mask" in raw_data:
                 raw_data['satellite'] = xr.DataArray(np.full(raw_data.cf_mask.values.shape, platforms.index(query.platform), dtype="int16"), dims=('time', 'latitude', 'longitude'))
-
         if "cf_mask" not in raw_data:
             continue
 
