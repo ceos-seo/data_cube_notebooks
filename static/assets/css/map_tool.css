@@ -73,17 +73,21 @@ hr
 /* Output box css */
 #output_list
 {
-    height: 425px;
+    height: 400px;
     overflow-y: auto;
     border: 1px solid coral;
     margin-bottom: 0px;
 }
 
 #data_guide {
-  height: 300px;
+  height: 275px;
   overflow-y: auto;
   border: 1px solid coral;
   margin-bottom: 0px;
+}
+
+#data_guide .helper {
+  float: none;
 }
 
 #download_sel

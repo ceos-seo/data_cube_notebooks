@@ -45,23 +45,6 @@ under the License.
     </div>
   {% endfor %}
 </div>
-<h2>Data Guide</h2>
-<hr>
-<div id="data_guide" class="boxed_list">
-  <table class="table table-striped table-hover">
-    <thead>
-      <tr>
-        <th>Band</th>
-        <th>Data</th>
-        <th>More information</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% block data_guide_rows %}
-      {% endblock %}
-    </tbody>
-  </table>
-</div>
 <div class="form-inline">
   <select class="form-control" id="download_sel" name="download_sel" tabindex="1" onchange="set_dl_url();">
       <!-- Contains <option value=""></option> tags for all downloadable products.
@@ -71,13 +54,29 @@ under the License.
   </select>
   <a id="output_list_download_button" href="" target="_blank" download class="tooltipped btn btn-primary pull-right" title="Download the selected mosaic in your chosen format.">Download Selected</a>
 </div>
+<h2>Data Guide</h2>
+<hr>
+<div id="data_guide" class="boxed_list">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Band</th>
+        <th>Data</th>
+        <th>Valid Range</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% block data_guide_rows %}
+      {% endblock %}
+    </tbody>
+  </table>
+</div>
+<a href="{% block url_block %}{% endblock %}">More information</a>
 <script>
   //This needs to include a function called download_product() that includes all the logic required to parse
   //the options in download_options.
   {% block download_function %}
   {% endblock %}
-</script>
-<script>
 
   $(".tooltipped").tooltip();
 

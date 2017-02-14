@@ -75,53 +75,56 @@ under the License.
   <tr>
     <td>1</td>
     <td>Blue</td>
-    <td></td>
+    <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>2</td>
     <td>Green</td>
-    <td></td>
+    <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>3</td>
     <td>Red</td>
-    <td></td>
+    <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>4</td>
     <td>NIR</td>
-    <td></td>
+    <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>5</td>
     <td>SWIR1</td>
-    <td></td>
+    <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>6</td>
     <td>SWIR2</td>
-    <td></td>
+    <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>7</td>
     <td>CF_Mask</td>
-    <td></td>
+    <td>[0, 4] <div class="helper tooltipped" title="0 - Clear, 1 - Water, 2 - Cloud Shadow, 3 - Snow, 4 - Cloud. Our mosaics filter out values that are not 0/1 (land/water). Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>8</td>
-    <td>Satellite</td>
-    <td></td>
+    <td>Satellite Mask</td>
+    <td>[0,2] <div class="helper tooltipped" title="0 - Landsat 5, 1 - Landsat 7, 2 - Landsat 8"><a> ?</a></div></td>
   </tr>
   <tr>
     <td>9</td>
     <td>Timestamp (Unix)</td>
-    <td></td>
+    <td>Timestamp of acquisition (per pixel) <div class="helper tooltipped" title="Unix timestamp of the acquisition that the pixel's final value came from. This is useful for creating colored images."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>10</td>
     <td>Date (%Y%m%d format)</td>
-    <td></td>
+    <td>Date of acquisition (per pixel) <div class="helper tooltipped" title="Concatenated date (e.g. 20160101) of the acquisition that the pixel's final value came from."><a> ?</a></div></td>
   </tr>
+{% endblock %}
+{% block url_block %}
+https://landsat.usgs.gov/landsat-surface-reflectance-high-level-data-products
 {% endblock %}
 {% block download_options %}
 <option value="result_path">Mosaic PNG</option>
