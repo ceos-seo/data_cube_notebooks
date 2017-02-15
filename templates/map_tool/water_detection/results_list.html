@@ -30,11 +30,11 @@ under the License.
   <tbody>
     <tr>
       <td>Time Submitted: </td>
-      <td class="right_aligned_text">{{ query.query_start }}</td>
+      <td class="right_aligned_text">{{ query.query_start|date:"m/d/Y H:i" }}</td>
     </tr>
     <tr>
       <td>Time Finished: </td>
-      <td class="right_aligned_text">{{ query.query_end }}</td>
+      <td class="right_aligned_text">{{ query.query_end|date:"m/d/Y H:i" }}</td>
     </tr>
     <tr>
       <td>Latitude Range: </td>

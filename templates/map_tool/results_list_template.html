@@ -35,7 +35,7 @@ under the License.
       <div class="panel-heading">
         <h4 class="panel-title">
           <a data-toggle="collapse" data-parent="#task_list" href="#completed_{{ forloop.counter0 }}" onmousedown="resultClicked('{{ query.query_id }}')">
-          {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y fa" }}</a>
+          {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y H:i" }}</a>
         </h4>
       </div>
       <div id="completed_{{ forloop.counter0 }}" class="panel-collapse collapse">
@@ -101,7 +101,7 @@ under the License.
             'csrf': csrftoken
         });
         w.addEventListener("message", query_event_listener);
-        $('#tabs_main li:eq(0) a').tab('show') 
+        $('#tabs_main li:eq(0) a').tab('show')
     } else {
         alert("This browser does not support webworkers.");
     }
