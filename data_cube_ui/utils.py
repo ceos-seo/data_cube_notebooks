@@ -83,7 +83,8 @@ def error_with_message(result, message, base_path):
     """
     print("Task error.")
     try:
-        shutil.rmtree(base_path + result.query_id)
+        pass
+        #shutil.rmtree(base_path + result.query_id)
     except:
         pass
     result.status = "ERROR"

@@ -19,19 +19,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""
-WSGI config for data_cube_ui project.
+from django.conf.urls import url
 
-It exposes the WSGI callable as a module-level variable named ``application``.
+from . import views
 
-For more information on this file, see
-https://docs.djangoproject.com/en/1.9/howto/deployment/wsgi/
-"""
+# Author: AHDS
+# Creation date: 2016-06-23
+# Modified by:
+# Last modified date:
 
-import os
-
-from django.core.wsgi import get_wsgi_application
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "data_cube_ui.settings")
-
-application = get_wsgi_application()
+urlpatterns = [
+    url(r'^submit$', views.submit_new_request, name='submit_new_request'),
+    url(r'^submit_single$', views.submit_new_single_request, name='submit_new_single_request'),
+    url(r'^cancel$', views.cancel_request, name='cancel_request'),
+    url(r'^result$', views.get_result, name='get_result'),
+    url(r'^(?P<area_id>[\w\-]+)/query_history$', views.get_query_history, name='get_query_history'),
+    url(r'^(?P<area_id>[\w\-]+)/results_list$', views.get_results_list, name='get_results_list'),
+    url(r'^(?P<area_id>[\w\-]+)/output_list$', views.get_output_list, name='get_output_list'),
+    url(r'^(?P<area_id>[\w\-]+)/$', views.coastal_change, name='coastal_change')
+]

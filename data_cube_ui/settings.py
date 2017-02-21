@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'apps.tsm',
     'apps.fractional_cover',
     'apps.slip',
+    'apps.coastal_change',
     'apps.ndvi_anomaly',
     'data_cube_ui',
     'apps.accounts',
@@ -102,6 +103,7 @@ TEMPLATES = [
             os.path.join(BASE_DIR, 'templates/water_detection').replace('\\','/'),
             os.path.join(BASE_DIR, 'templates/tsm').replace('\\','/'),
             os.path.join(BASE_DIR, 'templates/slip').replace('\\','/'),
+            os.path.join(BASE_DIR, 'templates/coastal_change').replace('\\','/'),
             os.path.join(BASE_DIR, 'templates/ndvi_anomaly').replace('\\','/'),
         ],
         'APP_DIRS': True,
@@ -127,8 +129,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'datacube',
-	'USER': 'dc_user',
-	'PASSWORD': 'dcuser1',
+	'USER': 'localuser',
+	'PASSWORD': 'amadev1',
 	'HOST': MASTER_NODE
     }
 }
@@ -185,6 +187,7 @@ CELERY_ROUTES = {'generate_mosaic_chunk': {'queue': 'chunk_processing'},
                  'generate_tsm_chunk': {'queue': 'chunk_processing'},
                  'generate_fractional_cover_chunk': {'queue': 'chunk_processing'},
                  'generate_slip_chunk': {'queue': 'chunk_processing'},
+                 'generate_coastal_change_chunk': {'queue': 'chunk_processing'},
                  'generate_ndvi_anomaly_chunk': {'queue': 'chunk_processing'},
                  'generate_chunk': {'queue': 'chunk_processing'}}
 
