@@ -56,12 +56,12 @@ function getSingleResult(e) {
 	request.send('query_id=' + e.data.query_id + '&date=' + e.data.date);
 
 	if (request.status != 200) {
-			error("There was a problem submitting your task, please check your connection");
+			error("There was a problem submitting your task, please check your connection:: 200!");
 			return;
 	} else {
 			var response = JSON.parse(request.response);
 			if(response.msg == "ERROR") {
-				error("There was a problem submitting your task, please try again.");
+				error("There was a problem submitting your task, please try again.:: Parse!");
 				return;
 			}
 			query_obj['query_id'] = response.query_id;
@@ -104,12 +104,12 @@ function addNewQuery() {
     request.send(query_obj['query_data']);
 		query_obj['query_id'] = -1;
     if (request.status != 200) {
-        error("There was a problem submitting your task, please check your connection");
+        error("There was a problem submitting your task, please check your connection:: 200 new!");
 				return;
     } else {
         var response = JSON.parse(request.response);
 				if(response.msg == "ERROR") {
-					error("There was a problem submitting your task, please try again.");
+					error("There was a problem submitting your task, please try again. JSON parse new!");
 					return;
 				}
         query_obj['query_id'] = response.query_id;
@@ -132,7 +132,7 @@ function checkQuery() {
     request.setRequestHeader("X-CSRFToken", csrftoken);
     request.send("query_id=" + query_obj['query_id']);
     if (request.status != 200) {
-				error("There was a problem submitting your task, please check your connection");
+				error("There was a problem submitting your task, please check your connection: 200 CHekc!");
 				return;
     } else {
         var response = JSON.parse(request.response);
@@ -140,7 +140,7 @@ function checkQuery() {
 					if(response.error_msg)
 						error(response.error_msg);
 					else
-						error("There was a problem with your task, please try again.");
+						error("There was a problem with your task, please try again. JSON Check!");
 						return;
 				}
         if (response.msg == "WAIT") {

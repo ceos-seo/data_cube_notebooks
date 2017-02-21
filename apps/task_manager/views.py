@@ -40,6 +40,7 @@ import apps.tsm.models as tsm
 import apps.fractional_cover.models as fractional_cover
 import apps.slip.models as slip
 import apps.ndvi_anomaly.models as ndvi_anomaly
+import apps.coastal_change.models as coastal_change
 
 from collections import OrderedDict
 
@@ -52,7 +53,9 @@ applications = {'custom_mosaic_tool': custom_mosaic_tool,
         'tsm': tsm,
         'fractional_cover': fractional_cover,
         'slip': slip,
-        'ndvi_anomaly': ndvi_anomaly}
+        'ndvi_anomaly': ndvi_anomaly,
+	'coastal_change': coastal_change
+}
 
 def build_headers_dictionary(model):
     """
