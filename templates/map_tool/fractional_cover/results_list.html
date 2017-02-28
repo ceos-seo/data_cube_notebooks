@@ -68,7 +68,7 @@ under the License.
   <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ metadata_entry.query_id }}">
     {% for acquisition, pixels, pixel_percentage in metadata_entry.acquisitions_dates_with_pixels_percentages %}
       <li>
-        <table id="meta_{{ metadata_entry.query_id }}" class="table scene_list_table">
+        <table class="table scene_list_table">
           <tbody>
             <thead>
               <th>{{ acquisition }}</th>

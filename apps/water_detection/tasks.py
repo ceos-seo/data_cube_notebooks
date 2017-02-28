@@ -214,7 +214,7 @@ def perform_water_analysis(query_id, user_id, single=False):
                           str(time_range_index) + '/' + \
                           str(geoslice) + str(timeslice) + ".nc" for geoslice in range(len(lat_ranges))]
 
-                      animated_data = xr.concat(reversed([xr.open_dataset(nc_path) for nc_path in nc_paths]), dim='latitude').load()
+                      animated_data = xr.concat(reversed([xr.open_dataset(nc_path) for nc_path in nc_paths if os.path.exists(nc_path)]), dim='latitude').load()
                       #combine the timeslice vals with the intermediate for the true value @ that timeslice
                       if time_range_index > 0 and query.animated_product != "scene":
                           animated_data = processing_options[
@@ -244,7 +244,8 @@ def perform_water_analysis(query_id, user_id, single=False):
 
                       # remove all the intermediates for this timeslice
                       for path in nc_paths:
-                          os.remove(path)
+                          if os.path.exists(path):
+                            os.remove(path)
                       os.remove(tif_path)
                   # remove the tiff.. some of these can be >1gb, so having one
                   # per scene is too much.
