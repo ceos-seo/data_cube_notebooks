@@ -447,10 +447,13 @@ def init_worker(**kwargs):
     print("Creating DC instance for worker.")
     global dc
     dc = DataAccessApi()
+    if not os.path.exists(base_result_path):
+        os.mkdir(base_result_path)
+        os.chmod(base_result_path, 0o777)
 
 
 @worker_process_shutdown.connect
 def shutdown_worker(**kwargs):
     print('Closing DC instance for worker.')
     global dc
-    dc.close()
+    dc.dc.close()
