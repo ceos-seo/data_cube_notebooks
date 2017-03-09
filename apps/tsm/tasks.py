@@ -369,15 +369,7 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
         raw_data = None
 
         if query.platform == "LANDSAT_ALL":
-            datasets_in = []
-            for index in range(len(products)):
-                dataset = dc.get_dataset_by_extent(products[index]+query.area_id, product_type=None, platform=platforms[index], time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
-                if 'time' in dataset:
-                    datasets_in.append(dataset.copy(deep=True))
-                dataset = None
-            if len(datasets_in) > 0:
-                combined_data = xr.concat(datasets_in, 'time')
-                raw_data = combined_data.reindex({'time':sorted(combined_data.time.values)})
+            raw_data = dc.get_stacked_datasets_by_extent([product+query.area_id for product in products], product_type=None, platforms=platforms, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
         else:
             raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 
