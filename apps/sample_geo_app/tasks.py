@@ -439,7 +439,8 @@ def init_worker(**kwargs):
 
     print("Creating DC instance for worker.")
     global dc
-    dc = DataAccessApi()
+    from django.conf import settings
+    dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf')
 
 
 @worker_process_shutdown.connect

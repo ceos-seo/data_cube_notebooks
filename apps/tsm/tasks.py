@@ -26,6 +26,7 @@ from celery import group
 from celery.task.control import revoke
 from .models import Query, Result, ResultType, Metadata
 from data_cube_ui.models import AnimationType
+from django.conf import settings
 
 import numpy as np
 import xarray as xr
@@ -54,7 +55,7 @@ from data_cube_ui.utils import update_model_bounds_with_dataset, combine_metadat
 
 # constants up top for easy access/modification
 # hardcoded colors input path..
-color_path = ['~/Datacube/data_cube_ui/utils/color_scales/ramp', '~/Datacube/data_cube_ui/utils/color_scales/au_clear_observations']
+color_path = ['/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ramp', '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_clear_observations']
 
 base_result_path = '/datacube/ui_results/tsm/'
 base_temp_path = '/datacube/ui_results_temp/'
@@ -438,7 +439,8 @@ dc = None
 def init_worker(**kwargs):
     print("Creating DC instance for worker.")
     global dc
-    dc = DataAccessApi()
+    from django.conf import settings
+    dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf')
     if not os.path.exists(base_result_path):
         os.mkdir(base_result_path)
         os.chmod(base_result_path, 0o777)
