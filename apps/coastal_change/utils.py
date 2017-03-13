@@ -47,6 +47,9 @@ def coastline_classification(dataset, water_band = 'wofs'):
 def adjust_color(color, scale = 4096):  
     return int(float(color * scale)/255.0)
 
+def darken_color(color, scale = 0.8):
+    return [int(float(x * scale)) for x in color]
+
 def create_query_from_post(user_id, post):
     """
     Takes post data from a request with a user id and creates a model.
@@ -69,11 +72,13 @@ def create_query_from_post(user_id, post):
                   longitude_min=post['longitude_min'],
                   time_start=post['old'],
                   time_end=post['new'],
+                  animation_setting = post['animation_setting'],
                   platform=post['platform'],
                   product_setting=post['product_setting'],
-                  area_id=post['area_id'])
+                  area_id=post['area_id'],
+                  )
 
-    query.title = "PlaceHolder 001" + "Coastal Change" if 'title' not in post or post['title'] == '' else post['title']
+    query.title = "Coastal Change Products" if 'title' not in post or post['title'] == '' else post['title']
     query.description = "None" if 'description' not in post or post['description'] == '' else post['description']
 
     query.product = Satellite.objects.get(satellite_id=query.platform).product_prefix + Area.objects.get(area_id=query.area_id).area_id

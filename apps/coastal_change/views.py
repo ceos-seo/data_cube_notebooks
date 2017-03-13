@@ -30,7 +30,7 @@ import json
 from datetime import datetime, timedelta
 
 from .models import Result, Query, Metadata
-from .forms import DataSelectForm, AreaExtentForm, TwoDateForm, ProductSelectionForm
+from .forms import AnimationToggleForm, AreaExtentForm, TwoDateForm, ProductSelectionForm
 from .tasks import create_coastal_change
 from data_cube_ui.models import Satellite, Area, Application
 
@@ -38,9 +38,6 @@ from .utils import create_query_from_post
 
 from collections import OrderedDict
 
-"""
-Class holding all the views for the slip app in the project.
-"""
 
 # Author: AHDS
 # Creation date: 2016-06-23
@@ -79,9 +76,14 @@ def coastal_change(request, area_id):
     satellites = area.satellites.all() & app.satellites.all() #Satellite.objects.all().order_by('satellite_id')
     forms = {}
     for satellite in satellites:
-        forms[satellite.satellite_id] = { 'Geospatial Bounds': AreaExtentForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s"),
+        forms[satellite.satellite_id] = { 
+        'Geospatial Bounds': AreaExtentForm(satellite=satellite,
+            auto_id=satellite.satellite_id + "_%s"
+            ),
+         'Product Animation': AnimationToggleForm(auto_id=satellite.satellite_id + "_%s"),
          'Target Dates': TwoDateForm(auto_id=satellite.satellite_id + "_%s"),
-         'Processing Options' : ProductSelectionForm(auto_id=satellite.satellite_id + "_%s")}
+         'Processing Options' : ProductSelectionForm(auto_id=satellite.satellite_id + "_%s")
+         }
     running_queries = Query.objects.filter(user_id=user_id, area_id=area_id, complete=False)
 
     context = {
@@ -123,6 +125,8 @@ def submit_new_request(request):
     else:
         return JsonResponse({'msg': "ERROR"})
 
+
+## NOT SURE WHAT THIS IS
 @login_required
 def submit_new_single_request(request):
     """
@@ -135,21 +139,25 @@ def submit_new_single_request(request):
     """
 
     user_id = 0
+
     if request.user.is_authenticated():
         user_id = request.user.username
+
     if request.method == 'POST':
         response = {}
         response['msg'] = "OK"
         try:
             #Get the query that this is a derivation of, clone it by setting pk to none.
-            query = Query.objects.filter(query_id=request.POST['query_id'], user_id=user_id)[0]
-            query.pk = None
+            query            = Query.objects.filter(query_id=request.POST['query_id'], user_id=user_id)[0]
+            query.pk         = None
             query.time_start = datetime.strptime(request.POST['date'], '%m/%d/%Y')
-            query.time_end = query.time_start + timedelta(days=1)
-            query.complete = False
-            query.title = "Single acquisition for " + request.POST['date']
-            query.query_id = query.generate_query_id()
+            query.time_end   = query.time_start + timedelta(days=1)
+            query.complete   = False
+            query.title      = "Single acquisition for " + request.POST['date']
+            query.query_id   = query.generate_query_id()
+
             query.save();
+
             create_coastal_change.delay(query.query_id, user_id, single=True)
             response.update(model_to_dict(query))
         except:

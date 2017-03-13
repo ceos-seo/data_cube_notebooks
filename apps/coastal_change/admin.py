@@ -38,7 +38,16 @@ class MetadataAdmin(admin.ModelAdmin):
     list_display = ('query_id',)
 
 class ResultAdmin(admin.ModelAdmin):
-    list_display = ('result_path','status','latitude_min','latitude_max','longitude_min','longitude_max','latitude_max','latitude_min','longitude_max','longitude_min')
+    list_display = ('result_path',
+                    'status',
+                    'latitude_min',
+                    'latitude_max',
+                    'longitude_min',
+                    'longitude_max',
+                    'latitude_max',
+                    'latitude_min',
+                    'longitude_max',
+                    'longitude_min')
 
 class SatelliteAdmin(admin.ModelAdmin):
     list_display = ('satellite_id','satellite_name')

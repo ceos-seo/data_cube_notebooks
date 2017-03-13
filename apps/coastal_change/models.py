@@ -40,10 +40,11 @@ class Query(BaseQuery):
     Stores a single instance of a Query object that contains all the information for requests
     submitted.
     """
-    
     time_end = models.IntegerField()
     time_start = models.IntegerField()
-    product_setting = models.CharField(max_length = 25)
+    
+    animation_setting = models.CharField(max_length = 25, default="None")
+    product_setting   = models.CharField(max_length = 25)
 
     def generate_query_id(self):
         """
@@ -53,21 +54,49 @@ class Query(BaseQuery):
         Returns:
             query_id (string): The ID of the query built up by object attributes.
         """
-        query_id = str(self.time_start) + '-' + str(self.time_end) + '-' + str(self.latitude_max) + '-' + str(
-            self.latitude_min) + '-' + str(self.longitude_max) + '-' + str(self.longitude_min) + '-' + self.platform + '-' + self.product
-        return query_id
+
+        query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{platform}-{product}'
+        return query_id.format(start = self.time_start,
+                    end      = self.time_end,
+                    lat_max  = self.latitude_max,
+                    lat_min  = self.latitude_min,
+                    lon_max  = self.longitude_max,
+                    lon_min  = self.longitude_min,
+                    platform = self.platform,
+                    product  = self.product
+                    )
+
 
     def generate_metadata(self, scene_count=0, pixel_count=0):
-        meta = Metadata(query_id=self.query_id, scene_count=scene_count, pixel_count=pixel_count,
-                        latitude_min=self.latitude_min, latitude_max=self.latitude_max, longitude_min=self.longitude_min, longitude_max=self.longitude_max)
+        meta = Metadata( query_id=self.query_id,
+                            scene_count   = scene_count, 
+                            pixel_count   = pixel_count,
+                            latitude_min  = self.latitude_min, 
+                            latitude_max  = self.latitude_max, 
+                            longitude_min = self.longitude_min, 
+                            longitude_max = self.longitude_max
+                        )
         meta.save()
         return meta
 
     def generate_result(self):
-        result = Result(query_id=self.query_id, result_path="", data_path="", latitude_min=self.latitude_min,
-                        latitude_max=self.latitude_max, longitude_min=self.longitude_min, longitude_max=self.longitude_max, total_scenes=0, scenes_processed=0, status="WAIT")
+        result = Result( query_id=self.query_id,
+                            result_path      = "",
+                            data_path        = "", 
+                            latitude_min     =self.latitude_min,
+                            latitude_max     =self.latitude_max, 
+                            longitude_min    =self.longitude_min, 
+                            longitude_max    =self.longitude_max, 
+                            total_scenes     = 0,
+                            scenes_processed = 0, 
+                            status="WAIT"
+                        )
         result.save()
         return result
+
+    # def get_animation_type_name(self):
+    #     return AnimationType.objects.get(type_id=self.animated_product).type_name
+
 
 
 class Metadata(BaseMetadata):
@@ -75,18 +104,6 @@ class Metadata(BaseMetadata):
     Stores a single instance of a Query object that contains all the information for requests
     submitted.
     """
-
-    slip_pixels_per_acquisition = models.CharField(max_length=100000, default="")
-
-    def slip_pixels_list_as_list(self):
-        """
-        Splits the list of clean pixels into a list.
-
-        Returns:
-            clean_pixels_per_acquisition (list): List representation of the acquisitions from the
-            database.
-        """
-        return self.slip_pixels_per_acquisition.rstrip(',').split(',')
 
     def acquisitions_dates_with_pixels_percentages(self):
         """
@@ -105,7 +122,12 @@ class Result(BaseResult):
     """
 
     # result path + other data. More to come.
-    result_mosaic_path = models.CharField(max_length=250, default="")
+    result_mosaic_path    = models.CharField(max_length=250, default="")
+    coastal_change_path   = models.CharField(max_length=250, default="")
+    coastline_change_path = models.CharField(max_length=250, default="")
+    coastline_anim_path   = models.CharField(max_length=250, default="")
+    water_anim_path       = models.CharField(max_length=250, default="")   
+    
     # baseline_mosaic_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
     data_path = models.CharField(max_length=250, default="")

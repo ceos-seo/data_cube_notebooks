@@ -26,7 +26,9 @@ under the License.
      Last modified date: -->
 {% extends "output_list_template.html" %}
 {% block table_rows %}
-        <tr>
+  <p> Foobar </p>
+
+<!--         <tr>
           <td>Time Submitted: </td>
           <td class="right_aligned_text">{{ query.query_start }}</td>
         </tr>
@@ -61,23 +63,16 @@ under the License.
         <tr>
           <td>Time Range: </td>
           <td class="right_aligned_text">({{ query.time_start|date:"m/d/Y" }}, {{ query.time_end|date:"m/d/Y" }})</td>
-        </tr>
-        <tr>
-          <td>Baseline Method:</td>
-          <td class="right_aligned_text">{{ query.get_baseline_name }}</td>
-        </tr>
-        <tr>
-          <td>Baseline Length:</td>
-          <td class="right_aligned_text">{{ query.baseline_length }}</td>
-        </tr>
+        </tr> -->
+       
 {% endblock %}
 
 {% block download_options %}
-<option value="result_path">SLIP PNG</option>
-<option value="result_mosaic_path">Mosaic PNG</option>
+<option value="result_path">Result PNG</option>
+<!-- <option value="result_mosaic_path">Mosaic PNG</option>
 <option value="baseline_mosaic_path">Baseline PNG</option>
 <option value="data_netcdf_path">SLIP netCDF</option>
-<option value="data_path">SLIP GeoTIFF</option>
+<option value="data_path">SLIP GeoTIFF</option> -->
 {% endblock %}
 
 {% block download_function %}

@@ -39,7 +39,7 @@ import datetime
 from collections import OrderedDict
 from dateutil.tz import tzutc
 import numpy as np
-from .utils import coastline_classification, split_by_year_and_append_stationary_year,adjust_color
+from .utils import coastline_classification, split_by_year_and_append_stationary_year,adjust_color,darken_color
 
 from utils.data_access_api import DataAccessApi
 from utils.dc_mosaic import create_mosaic
@@ -56,6 +56,8 @@ BASE_RESULT_PATH = '/datacube/ui_results/coastal_change/'
 BASE_TEMP_PATH = '/datacube/ui_results_temp/'
 
 GREEN        = [89,255,61]
+GREEN        = darken_color(GREEN,.8)
+
 NEW_MOSAIC   = (True)
 NEW_BOUNDARY = (True)
 PINK         = [[255,8,74],[252,8,74],[230,98,137],[255,147,172],[255,192,205]][0]
@@ -119,6 +121,8 @@ def create_coastal_change(query_id, user_id, single=False):
         time        = (start,end)
         longitude   = (query.longitude_min, query.longitude_max)
         latitude    = (query.latitude_min, query.latitude_max)
+        display_pref   = query.product_setting
+        animation_pref = query.animation_setting 
         ######################################################################
 
         ## Select chunking process using details from query ##################
@@ -315,6 +319,19 @@ def create_coastal_change(query_id, user_id, single=False):
 
         dataset_out_coastal_boundary.to_netcdf(netcdf_path)
 
+        # Build Animation!
+        if animation_pref == 'yearly':
+            print("=====-----=====-----=====-----")
+            times = [item for sublist in time_ranges for item in sublist]
+            max_year = max(times).year
+            min_year = min(times).year
+            time_range = range(min_year , max_year + 1)
+            
+
+        else:
+            pass
+
+
         #Build Result Object #################################################
 
         meta = query.generate_metadata()
@@ -322,13 +339,21 @@ def create_coastal_change(query_id, user_id, single=False):
 
         result.result_mosaic_path       = mosaic_png_path
         result.coastal_change_path      = coastal_change_png_path 
-        result.boundary_change_path     = coastal_boundary_png_path
+        result.coastline_change_path    = coastal_boundary_png_path
 
         result.data_path        = tif_path
         result.data_netcdf_path = netcdf_path
         result.status           = "OK"
         result.total_scenes     = len(acquisitions)
-        result.result_path      = coastal_change_png_path
+
+        #Select what UI ends up displaying
+        if   display_pref == 'change':
+            result.result_path      = coastal_change_png_path
+        elif display_pref == 'boundary':
+            result.result_path      = coastal_boundary_png_path
+        else:
+            print("!!!!!!!!!!!!!!!!")
+            print(display_pref)
         result.save()
 
         print("Finished processing results")
@@ -375,7 +400,7 @@ def generate_coastal_change_chunk(time_num,
     stationary_key = nearest_key(time_dict, year_stationary)
     most_recent_key = [key for key in time_dict.keys() if key is not stationary_key][-1]
 
-    stationary_acquisitions = time_dict[stationary_key]
+    stationary_acquisitions  = time_dict[stationary_key]
     most_recent_acquisitions = time_dict[most_recent_key]
 
     ##Loading Data #############################################
@@ -455,6 +480,7 @@ def generate_coastal_change_chunk(time_num,
 
     ##Coastal Boundary Visual Raster #############################
     boundary = target.copy(deep = True)
+    boundary = boundary
     boundary.red.values[new_coastline.wofs.values == 1]     = adjust_color(BLUE[0])
     boundary.green.values[new_coastline.wofs.values == 1]   = adjust_color(BLUE[1])
     boundary.blue.values[new_coastline.wofs.values == 1]    = adjust_color(BLUE[2])
