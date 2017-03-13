@@ -55,6 +55,8 @@ ADMIN_EMAIL = "admin@ceos-cube.org"
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = '25'
 
+LOCAL_USER = "localuser"
+
 INSTALLED_APPS = [
     'apps.custom_mosaic_tool',
     'apps.water_detection',
@@ -176,7 +178,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '/static/'
 
 STATICFILES_DIRS = [
-    '/home/localuser/Datacube/data_cube_ui/static',
+    '/home/' + LOCAL_USER + '/Datacube/data_cube_ui/static',
 ]
 
 # CELERY STUFF

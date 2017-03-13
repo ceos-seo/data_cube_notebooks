@@ -226,7 +226,7 @@ def registration(request):
                 # It is possible to use msg.add_alternative() to add HTML content too
                 html_content = ""
                 activation_url = settings.BASE_HOST + "/accounts/" + str(activation.url) + "/activate"
-                with open('/home/localuser/Datacube/data_cube_ui/static/assets/media/email_template.html') as f:
+                with open('/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/static/assets/media/email_template.html') as f:
                     for line in f:
                         if (line == "\t\t\tAVAILABLE_TOOLS\n"):
                             for app in Application.objects.all():
@@ -243,7 +243,7 @@ def registration(request):
                 html_content = html_content.replace("ACTIVATION_URL", activation_url);
                 msg.add_alternative(html_content, subtype='html')
                 # Attaching content:
-                fp = open('/home/localuser/Datacube/data_cube_ui/static/assets/media/banner.png','rb')
+                fp = open('/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/static/assets/media/banner.png','rb')
                 att = MIMEImage(fp.read()) # Or use MIMEImage, etc
                 fp.close()
                 # The following line is to control the filename of the attached file

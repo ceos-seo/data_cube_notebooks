@@ -25,6 +25,7 @@ from celery.signals import worker_process_init, worker_process_shutdown
 from celery import group
 from celery.task.control import revoke
 from .models import Query, Result, Metadata
+from django.conf import settings
 
 import numpy as np
 import math
@@ -59,7 +60,7 @@ Class for handling loading celery workers to perform tasks asynchronously.
 
 # constants up top for easy access/modification
 # hardcoded colors input path..
-color_paths = ['~/Datacube/data_cube_ui/utils/color_scales/ndvi', '~/Datacube/data_cube_ui/utils/color_scales/ndvi', '~/Datacube/data_cube_ui/utils/color_scales/ndvi_difference', '~/Datacube/data_cube_ui/utils/color_scales/ndvi_percentage_change']
+color_paths = ['/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ndvi', '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ndvi', '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ndvi_difference', '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ndvi_percentage_change']
 
 base_result_path = '/datacube/ui_results/ndvi_anomaly/'
 base_temp_path = '/datacube/ui_results_temp/'
@@ -407,7 +408,8 @@ def init_worker(**kwargs):
 
     print("Creating DC instance for worker.")
     global dc
-    dc = DataAccessApi()
+    from django.conf import settings
+    dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf')
     if not os.path.exists(base_result_path):
         os.mkdir(base_result_path)
         os.chmod(base_result_path, 0o777)
@@ -421,7 +423,7 @@ def shutdown_worker(**kwargs):
 
     print('Closing DC instance for worker.')
     global dc
-    dc.close()
+    dc.dc.close()
 
 @task(name="get_acquisition_list")
 def get_acquisition_list(area, satellite):

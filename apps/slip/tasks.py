@@ -425,7 +425,8 @@ def init_worker(**kwargs):
 
     print("Creating DC instance for worker.")
     global dc
-    dc = DataAccessApi()
+    from django.conf import settings
+    dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf')
     if not os.path.exists(base_result_path):
         os.mkdir(base_result_path)
         os.chmod(base_result_path, 0o777)
@@ -439,4 +440,4 @@ def shutdown_worker(**kwargs):
 
     print('Closing DC instance for worker.')
     global dc
-    dc.close()
+    dc.dc.close()

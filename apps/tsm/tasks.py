@@ -26,6 +26,7 @@ from celery import group
 from celery.task.control import revoke
 from .models import Query, Result, ResultType, Metadata
 from data_cube_ui.models import AnimationType
+from django.conf import settings
 
 import numpy as np
 import xarray as xr
@@ -54,7 +55,7 @@ from data_cube_ui.utils import update_model_bounds_with_dataset, combine_metadat
 
 # constants up top for easy access/modification
 # hardcoded colors input path..
-color_path = ['~/Datacube/data_cube_ui/utils/color_scales/ramp', '~/Datacube/data_cube_ui/utils/color_scales/au_clear_observations']
+color_path = ['/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ramp', '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_clear_observations']
 
 base_result_path = '/datacube/ui_results/tsm/'
 base_temp_path = '/datacube/ui_results_temp/'
@@ -369,15 +370,7 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
         raw_data = None
 
         if query.platform == "LANDSAT_ALL":
-            datasets_in = []
-            for index in range(len(products)):
-                dataset = dc.get_dataset_by_extent(products[index]+query.area_id, product_type=None, platform=platforms[index], time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
-                if 'time' in dataset:
-                    datasets_in.append(dataset.copy(deep=True))
-                dataset = None
-            if len(datasets_in) > 0:
-                combined_data = xr.concat(datasets_in, 'time')
-                raw_data = combined_data.reindex({'time':sorted(combined_data.time.values)})
+            raw_data = dc.get_stacked_datasets_by_extent([product+query.area_id for product in products], product_type=None, platforms=platforms, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
         else:
             raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 
@@ -446,11 +439,15 @@ dc = None
 def init_worker(**kwargs):
     print("Creating DC instance for worker.")
     global dc
-    dc = DataAccessApi()
+    from django.conf import settings
+    dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf')
+    if not os.path.exists(base_result_path):
+        os.mkdir(base_result_path)
+        os.chmod(base_result_path, 0o777)
 
 
 @worker_process_shutdown.connect
 def shutdown_worker(**kwargs):
     print('Closing DC instance for worker.')
     global dc
-    dc.close()
+    dc.dc.close()
