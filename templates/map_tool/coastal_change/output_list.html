@@ -24,7 +24,7 @@ under the License.
      Creation date: 2016-09/08
      Modified by:
      Last modified date: -->
-{% extends "output_list_template.html" %}
+{% extends "map_tool/output_list_template.html" %}
 {% block table_rows %}
   <p> Foobar </p>
 
@@ -64,7 +64,7 @@ under the License.
           <td>Time Range: </td>
           <td class="right_aligned_text">({{ query.time_start|date:"m/d/Y" }}, {{ query.time_end|date:"m/d/Y" }})</td>
         </tr> -->
-       
+
 {% endblock %}
 
 {% block download_options %}

@@ -76,7 +76,7 @@ def coastal_change(request, area_id):
     satellites = area.satellites.all() & app.satellites.all() #Satellite.objects.all().order_by('satellite_id')
     forms = {}
     for satellite in satellites:
-        forms[satellite.satellite_id] = { 
+        forms[satellite.satellite_id] = {
         'Geospatial Bounds': AreaExtentForm(satellite=satellite,
             auto_id=satellite.satellite_id + "_%s"
             ),
