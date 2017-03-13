@@ -157,6 +157,7 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
             query.longitude_min, query.longitude_max), acquisitions=baseline_scenes, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
         result.total_scenes = len(time_ranges)
+        result.save()
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.
@@ -195,7 +196,9 @@ def create_ndvi_anomaly(query_id, user_id, single=False):
             result.scenes_processed += 1
             result.save()
             print("Got results for a time slice, computing intermediate product..")
-
+            if len(group_data) < 1:
+                time_range_index += 1
+                continue
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[2] for tile in group_data])
 
             #create cf mosaic
@@ -418,7 +421,7 @@ def shutdown_worker(**kwargs):
 
     print('Closing DC instance for worker.')
     global dc
-    dc = None
+    dc.close()
 
 @task(name="get_acquisition_list")
 def get_acquisition_list(area, satellite):

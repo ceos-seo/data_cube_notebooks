@@ -35,9 +35,9 @@ under the License.
       <dt>Status</dt>
       <dd>{% if query.complete %} Complete {% else %} Running... {% endif %}</dd>
       <dt>Start Time</dt>
-      <dd>{{query.query_start}}</dd>
+      <dd>{{ query.query_start|date:"m/d/Y H:i" }}</dd>
       <dt>End Time</dt>
-      <dd>{{query.query_end}}</dd>
+      <dd>{{ query.query_end|date:"m/d/Y H:i" }}</dd>
     </dl>
   </div>
   <div class="col-lg-6">
@@ -68,6 +68,7 @@ under the License.
   </div>
   <div class="col-lg-6">
     <h2 class="page-header">Query Outputs</h2>
+    {% if user.is_authenticated %}
     <dl class="dl-horizontal">
       <dt>Average TSM Path</dt>
       <dd><a href={{result.result_path}} target="_blank">View image</a></dd>
@@ -82,6 +83,9 @@ under the License.
       <dd><a href="{{result.animation_path}}">Download .gif</a></dd>
       {% endif %}
     </dl>
+    {% else %}
+      <p>Please log in to download data products.</p>
+    {% endif %}
   </div>
 </div>
 <div class="row">

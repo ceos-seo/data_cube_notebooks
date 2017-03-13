@@ -54,7 +54,10 @@ def combine_metadata(metadata, additions):
         for acquisition_date in addition:
             if acquisition_date in metadata:
                 for key in metadata[acquisition_date]:
-                    metadata[acquisition_date][key] += addition[acquisition_date][key]
+                    if isinstance(metadata[acquisition_date][key], str):
+                        metadata[acquisition_date][key] = addition[acquisition_date][key]
+                    else:
+                        metadata[acquisition_date][key] += addition[acquisition_date][key]
             else:
                 metadata[acquisition_date] = addition[acquisition_date]
     return metadata

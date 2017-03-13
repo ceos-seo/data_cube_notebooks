@@ -149,6 +149,7 @@ def perform_water_analysis(query_id, user_id, single=False):
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
         result.total_scenes = len(time_ranges)
+        result.save()
 
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
@@ -188,6 +189,9 @@ def perform_water_analysis(query_id, user_id, single=False):
             result.scenes_processed += 1
             result.save()
             print("Got results for a time slice, computing intermediate product..")
+            if len(group_data) < 1:
+                time_range_index += 1
+                continue
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[1] for tile in group_data])
             dataset = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
 
@@ -210,7 +214,7 @@ def perform_water_analysis(query_id, user_id, single=False):
                           str(time_range_index) + '/' + \
                           str(geoslice) + str(timeslice) + ".nc" for geoslice in range(len(lat_ranges))]
 
-                      animated_data = xr.concat(reversed([xr.open_dataset(nc_path) for nc_path in nc_paths]), dim='latitude').load()
+                      animated_data = xr.concat(reversed([xr.open_dataset(nc_path) for nc_path in nc_paths if os.path.exists(nc_path)]), dim='latitude').load()
                       #combine the timeslice vals with the intermediate for the true value @ that timeslice
                       if time_range_index > 0 and query.animated_product != "scene":
                           animated_data = processing_options[
@@ -240,7 +244,8 @@ def perform_water_analysis(query_id, user_id, single=False):
 
                       # remove all the intermediates for this timeslice
                       for path in nc_paths:
-                          os.remove(path)
+                          if os.path.exists(path):
+                            os.remove(path)
                       os.remove(tif_path)
                   # remove the tiff.. some of these can be >1gb, so having one
                   # per scene is too much.
@@ -297,8 +302,11 @@ def perform_water_analysis(query_id, user_id, single=False):
         # get rid of all intermediate products since there are a lot.
         shutil.rmtree(base_temp_path + query.query_id)
 
+        #rename a default var to a more specific label
+        dataset_out = dataset_out.rename({'normalized_data':'normalized_water', 'total_data': 'water_observations'})
+
         save_to_geotiff(tif_path, gdal.GDT_Float64, dataset_out, geotransform, get_spatial_ref(crs),
-                        x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'], band_order=['normalized_data', 'total_data', 'total_clean'])
+                        x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'], band_order=['normalized_water', 'water_observations', 'total_clean'])
         dataset_out.to_netcdf(netcdf_path)
 
         # we've got the tif, now do the png set..
@@ -365,7 +373,8 @@ def generate_water_chunk(time_num, chunk_num, processing_options=None, query=Non
                     datasets_in.append(dataset.copy(deep=True))
                 dataset = None
             if len(datasets_in) > 0:
-                raw_data = xr.concat(datasets_in, 'time')
+                combined_data = xr.concat(datasets_in, 'time')
+                raw_data = combined_data.reindex({'time':sorted(combined_data.time.values)})
         else:
             raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 
@@ -437,4 +446,4 @@ def init_worker(**kwargs):
 def shutdown_worker(**kwargs):
     print('Closing DC instance for worker.')
     global dc
-    dc = None
+    dc.close()

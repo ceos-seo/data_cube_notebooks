@@ -33,7 +33,7 @@ under the License.
       <div class="panel-heading">
         <h4 class="panel-title">
           <a data-toggle="collapse" data-parent="#output_list" href="#output_{{ forloop.counter0 }}" onmousedown="outputClicked('{{ query.query_id }}')">
-          {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y fa" }}</a>
+          {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y H:i" }}</a>
         </h4>
       </div>
       <div id="output_{{ forloop.counter0 }}" class="panel-collapse collapse">
@@ -54,13 +54,29 @@ under the License.
   </select>
   <a id="output_list_download_button" href="" target="_blank" download class="tooltipped btn btn-primary pull-right" title="Download the selected mosaic in your chosen format.">Download Selected</a>
 </div>
+<h2>Data Guide</h2>
+<hr>
+<div id="data_guide" class="boxed_list">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Band</th>
+        <th>Data</th>
+        <th>Valid Range</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% block data_guide_rows %}
+      {% endblock %}
+    </tbody>
+  </table>
+</div>
+<a href="{% block url_block %}{% endblock %}" target="_blank">More information</a>
 <script>
   //This needs to include a function called download_product() that includes all the logic required to parse
   //the options in download_options.
   {% block download_function %}
   {% endblock %}
-</script>
-<script>
 
   $(".tooltipped").tooltip();
 

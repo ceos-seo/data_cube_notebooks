@@ -30,11 +30,11 @@ under the License.
   <tbody>
     <tr>
       <td>Time Submitted: </td>
-      <td class="right_aligned_text">{{ query.query_start }}</td>
+      <td class="right_aligned_text">{{ query.query_start|date:"m/d/Y H:i" }}</td>
     </tr>
     <tr>
       <td>Time Finished: </td>
-      <td class="right_aligned_text">{{ query.query_end }}</td>
+      <td class="right_aligned_text">{{ query.query_end|date:"m/d/Y H:i" }}</td>
     </tr>
     <tr>
       <td>Scene Count:</td>
@@ -63,7 +63,26 @@ under the License.
   </tbody>
 </table>
 {% endblock %}
-
+{% block data_guide_rows %}
+  <tr>
+    <td>1</td>
+    <td>Normalized Water Percentage</td>
+    <td>[0, 1] <div class="helper tooltipped" title="Contains normalized water percentage for each pixel. This is calculated by dividing the number of water observations by the number of clean acquisitions."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Water Observations</td>
+    <td>0+ <div class="helper tooltipped" title="The number of acquisitions for each pixel that were considered clean (cloud/shadow/snow free) for the WOfS operation."><a> ?</a></div></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Clean Acquisitions</td>
+    <td>0+ <div class="helper tooltipped" title="The number of acquisitions for each pixel that were considered clean (cloud/shadow/snow free) for the TSM operation."><a> ?</a></div></td>
+  </tr>
+{% endblock %}
+{% block url_block %}
+http://www.sciencedirect.com/science/article/pii/S0034425715301929
+{% endblock %}
 {% block download_options %}
 <option value="result_path">Water Percentages</option>
 <option value="water_observations_path">Water Observations</option>

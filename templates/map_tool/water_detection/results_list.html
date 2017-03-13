@@ -30,11 +30,11 @@ under the License.
   <tbody>
     <tr>
       <td>Time Submitted: </td>
-      <td class="right_aligned_text">{{ query.query_start }}</td>
+      <td class="right_aligned_text">{{ query.query_start|date:"m/d/Y H:i" }}</td>
     </tr>
     <tr>
       <td>Time Finished: </td>
-      <td class="right_aligned_text">{{ query.query_end }}</td>
+      <td class="right_aligned_text">{{ query.query_end|date:"m/d/Y H:i" }}</td>
     </tr>
     <tr>
       <td>Latitude Range: </td>
@@ -67,7 +67,7 @@ under the License.
 <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ metadata_entry.query_id }}">
     {% for acquisition, pixels, water_pixels, pixel_percentage in metadata_entry.acquisitions_dates_with_pixels_percentages %}
       <li>
-        <table id="meta_{{ metadata_entry.query_id }}" class="table scene_list_table">
+        <table class="table scene_list_table">
           <tbody>
             <thead>
               <th>{{ acquisition }}</th>

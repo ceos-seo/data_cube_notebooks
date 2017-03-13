@@ -73,9 +73,21 @@ hr
 /* Output box css */
 #output_list
 {
-    height: 725px;
+    height: 400px;
+    overflow-y: auto;
     border: 1px solid coral;
     margin-bottom: 0px;
+}
+
+#data_guide {
+  height: 275px;
+  overflow-y: auto;
+  border: 1px solid coral;
+  margin-bottom: 0px;
+}
+
+#data_guide .helper {
+  float: none;
 }
 
 #download_sel
@@ -84,11 +96,76 @@ hr
 }
 
 /* Map css */
-.button_on_map {
-    position: absolute;
-    z-index: 10000;
-    right: 5px;
-    top: 5px;
+.buttons_on_map {
+  position: absolute;
+  z-index: 10000;
+  right: 5px;
+  top: 8px;
+}
+
+.map_button {
+  display: inline-block;
+  position: relative;
+  background: #303336;
+  border: 1px solid #444;
+  color: #edffff;
+  fill: #edffff;
+  border-radius: 4px;
+  padding: 2px 3px;
+  cursor: pointer;
+  overflow: hidden;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.map_button:focus {
+    color: #fff; /* For text buttons */
+    fill: #fff; /* For SVG buttons */
+    border-color: #ea4;
+    outline: none;
+}
+
+.map_button:hover {
+    color: #fff; /* For text buttons */
+    fill: #fff; /* For SVG buttons */
+    background: #48b;
+    border-color: #aef;
+    box-shadow: 0 0 8px #fff;
+}
+
+.map_button:active {
+    color: #000; /* For text buttons */
+    fill: #000; /* For SVG buttons */
+    background: #adf;
+    border-color: #fff;
+    box-shadow: 0 0 8px #fff;
+}
+
+.panel_on_map {
+  position: absolute;
+  z-index: 10000;
+  right:5px;
+  top: 45px;
+  border: 1px solid #444;
+  background-color: rgba(38, 38, 38, 0.75);
+  padding: 5px;
+  border-radius: 10px;
+  color:white;
+}
+
+.glyphicon_container {
+  text-decoration: none;
+}
+
+.glyphicon.map_icon {
+  font-size: 27px;
+  display: block;
+  text-align: center;
+  margin: 0;
+  color: #fff;
+  cursor:pointer;
 }
 
 .lat_lon_map_indicator {

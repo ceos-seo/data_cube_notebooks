@@ -144,6 +144,7 @@ def perform_tsm_analysis(query_id, user_id, single=False):
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
         result.total_scenes = len(time_ranges)
+        result.save()
 
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
@@ -184,7 +185,9 @@ def perform_tsm_analysis(query_id, user_id, single=False):
             result.scenes_processed += 1
             result.save()
             print("Got results for a time slice, computing intermediate product..")
-
+            if len(group_data) < 1:
+                time_range_index += 1
+                continue
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[2] for tile in group_data])
             dataset_water = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
             dataset_tsm = xr.concat(reversed([xr.open_dataset(tile[1]) for tile in group_data]), dim='latitude').load()
@@ -299,10 +302,13 @@ def perform_tsm_analysis(query_id, user_id, single=False):
                     writer.append_data(image)
             result.animation_path = result_paths[2]
 
+        #rename data vars
+        dataset_out = dataset_out.rename({'normalized_data':'average_tsm'})
+
         # get rid of all intermediate products since there are a lot.
         shutil.rmtree(base_temp_path + query.query_id)
         save_to_geotiff(tif_path, gdal.GDT_Float64, dataset_out, geotransform, get_spatial_ref(crs),
-                        x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'], band_order=['normalized_data', 'total_clean'])
+                        x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'], band_order=['average_tsm', 'total_clean'])
         dataset_out.to_netcdf(netcdf_path)
 
         # we've got the tif, now do the png set..
@@ -370,7 +376,8 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
                     datasets_in.append(dataset.copy(deep=True))
                 dataset = None
             if len(datasets_in) > 0:
-                raw_data = xr.concat(datasets_in, 'time')
+                combined_data = xr.concat(datasets_in, 'time')
+                raw_data = combined_data.reindex({'time':sorted(combined_data.time.values)})
         else:
             raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 
@@ -420,8 +427,10 @@ def generate_tsm_chunk(time_num, chunk_num, processing_options=None, query=None,
         str(time_num) + "_" + str(chunk_num)
     if water_analysis is None or not os.path.exists(base_temp_path + query.query_id):
         return None
+
     water_analysis.to_netcdf(geo_path + "_water.nc")
     tsm_analysis.to_netcdf(geo_path + "_tsm.nc")
+
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
     return [geo_path + "_water.nc", geo_path + "_tsm.nc", acquisition_metadata]
 
@@ -444,4 +453,4 @@ def init_worker(**kwargs):
 def shutdown_worker(**kwargs):
     print('Closing DC instance for worker.')
     global dc
-    dc = None
+    dc.close()

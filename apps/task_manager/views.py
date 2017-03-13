@@ -105,7 +105,6 @@ def format_headers(unformatted_dict):
     return formatted_headers
 
 
-@login_required
 def get_task_manager(request, app_id):
     """
     View method for returning and rending the HTML for the task manager in the application.
@@ -149,8 +148,6 @@ def get_task_manager(request, app_id):
 
     return render(request, 'task_manager/task_manager.html', context)
 
-
-@login_required
 def get_query_details(request, app_id, requested_query_id):
     """
     Returns the rendered html with appropriate data for a Query and its Metadata and Results.

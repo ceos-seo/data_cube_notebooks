@@ -65,6 +65,9 @@ dc = None
 #default measurements. leaves out all qa bands.
 measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
 
+products = ['ls5_ledaps_', 'ls7_ledaps_', 'ls8_ledaps_']
+platforms = ['LANDSAT_5', 'LANDSAT_7', 'LANDSAT_8']
+
 #holds the different compositing algorithms. Most/least recent, max/min ndvi, median, etc.
 # all options are required. setting None to a option will have the algo/task splitting
 # process disregard it.
@@ -147,18 +150,27 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
     # creates the empty result.
     result = query.generate_result()
 
+    #if query.platform == "LANDSAT_ALL":
+    #    error_with_message(result, "Combined products are not supported for custom mosaics.", base_temp_path)
+    #    return
     if query.platform == "LANDSAT_ALL":
-        error_with_message(result, "Combined products are not supported for custom mosaics.", base_temp_path)
-        return
-
-    product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
+        product_details = dc.dc.list_products(
+        )[dc.dc.list_products().name == products[1]+query.area_id]
+    else:
+        product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
 
     # wrapping this in a try/catch, as it will throw a few different errors
     # having to do with memory etc.
     try:
         # lists all acquisition dates for use in single tmeslice queries.
-        acquisitions = dc.list_acquisition_dates(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
-            query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
+        if query.platform == "LANDSAT_ALL":
+            acquisitions = []
+            for index in range(len(products)):
+                acquisitions.extend(dc.list_acquisition_dates(platforms[index], products[index]+query.area_id, time=(query.time_start, query.time_end), longitude=(
+                    query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max)))
+        else:
+            acquisitions = dc.list_acquisition_dates(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
+                query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
 
         if len(acquisitions) < 1:
             error_with_message(result, "There were no acquisitions for this parameter set.", base_temp_path)
@@ -185,6 +197,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
         result.total_scenes = len(time_ranges)
+        result.save()
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.
@@ -226,6 +239,9 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             result.save()
             print("Got results for a time slice, computing intermediate product..")
 
+            if len(group_data) < 1:
+                time_range_index += 1
+                continue
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[1] for tile in group_data])
             dataset = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
 
@@ -302,6 +318,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
         for date in reversed(dates):
             meta.acquisition_list += date.strftime("%m/%d/%Y") + ","
+            meta.satellite_list += acquisition_metadata[date]['satellite'] + ","
             meta.clean_pixels_per_acquisition += str(
                 acquisition_metadata[date]['clean_pixels']) + ","
             meta.clean_pixel_percentages_per_acquisition += str(
@@ -334,10 +351,10 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
         # remove intermediates
         shutil.rmtree(base_temp_path + query.query_id)
-
-        save_to_geotiff(tif_path, gdal.GDT_Int16, dataset_out, geotransform, get_spatial_ref(crs),
+        save_to_geotiff(tif_path, gdal.GDT_Int32, dataset_out.astype('int32'), geotransform, get_spatial_ref(crs),
                         x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'],
-                        band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2'])
+                        band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'satellite', 'timestamp', 'date'])
+
         dataset_out.to_netcdf(netcdf_path)
 
         # we've got the tif, now do the png.
@@ -385,10 +402,33 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
     time_ranges = list(generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
 
     for time_index, time_range in enumerate(time_ranges):
-        raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
 
+        if query.platform == "LANDSAT_ALL":
+            datasets_in = []
+            for index in range(len(products)):
+                dataset = dc.get_dataset_by_extent(products[index]+query.area_id, product_type=None, platform=platforms[index], time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
+                if 'time' in dataset:
+                    dataset['satellite'] = xr.DataArray(np.full(dataset.cf_mask.values.shape, index, dtype="int16"), dims=('time', 'latitude', 'longitude'))
+                    datasets_in.append(dataset.copy(deep=True))
+                dataset = None
+            if len(datasets_in) > 0:
+                combined_data = xr.concat(datasets_in, 'time')
+                raw_data = combined_data.reindex({'time':sorted(combined_data.time.values)})
+        else:
+            raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
+            if "cf_mask" in raw_data:
+                raw_data['satellite'] = xr.DataArray(np.full(raw_data.cf_mask.values.shape, platforms.index(query.platform), dtype="int16"), dims=('time', 'latitude', 'longitude'))
         if "cf_mask" not in raw_data:
             continue
+
+        timestamp_data = np.full(raw_data.cf_mask.values.shape, 0, dtype="int32")
+        date_data = np.full(raw_data.cf_mask.values.shape, 0, dtype="int32")
+        for index, time in enumerate(raw_data.time.values):
+            timestamp_data[index::] = time.timestamp() if type(time) == datetime.datetime else time.astype(int) * 1e-9
+            date = time if type(time) == datetime.datetime else datetime.datetime.utcfromtimestamp(time.astype(int) * 1e-9)
+            date_data[index::] = int(date.strftime("%Y%m%d"))
+        raw_data['timestamp'] = xr.DataArray(timestamp_data, dims=('time', 'latitude', 'longitude'))
+        raw_data['date'] = xr.DataArray(date_data, dims=('time', 'latitude', 'longitude'))
 
         clear_mask = create_cfmask_clean_mask(raw_data.cf_mask)
 
@@ -404,6 +444,7 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
             if time not in acquisition_metadata:
                 acquisition_metadata[time] = {}
                 acquisition_metadata[time]['clean_pixels'] = 0
+                acquisition_metadata[time]['satellite'] = platforms[np.unique(raw_data.satellite.isel(time=timeslice).values)[0]] if np.unique(raw_data.satellite.isel(time=timeslice).values)[0] > -1 else "NODATA"
             acquisition_metadata[time][
                 'clean_pixels'] += clean_pixels
 
@@ -460,4 +501,4 @@ def shutdown_worker(**kwargs):
 
     print('Closing DC instance for worker.')
     global dc
-    dc = None
+    dc.close()

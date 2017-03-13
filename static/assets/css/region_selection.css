@@ -37,6 +37,11 @@ body
     padding: 10px 0px 10px 0px;
 }
 
+.carousel-caption p {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 /* Rows of images */
 #areas
 {
@@ -84,4 +89,3 @@ body
     bottom: 0;
     width: 25%;
 }
-    

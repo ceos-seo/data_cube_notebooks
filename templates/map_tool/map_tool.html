@@ -162,6 +162,11 @@
         {% endfor %}
 
         $(".options").on('submit', handleFormSubmission);
+
+        var $mapButtons = $('#mapButtons');
+        $mapButtons.on('show.bs.collapse','.collapse', function() {
+            $mapButtons.find('.collapse.in').removeClass('in').attr("aria-expanded","false");
+        });
     });
 
     // Sets up django with csrf.
@@ -542,13 +547,36 @@
         </div>
         <div class="col-lg-9 fullscreen-col seamless-col">
           <div id="map-canvas" class="map">
-              <button onclick="toggle_map_provider()" class="btn btn-default button_on_map">Toggle Map View</button>
-              <div id="map-cesium" class="map">
-                  <span id="lat_lon_container" class="label label-default lat_lon_map_indicator">(0.0000, 0.0000)</span>
+            <div id="mapButtons">
+              <!-- bad if statement in the style, but having that gap looks pretty bad. Real
+                   solution would be to group the cesium button with the icons but that wont' work as we still want the buttons
+                   if the cesium window is disabled. -->
+              <div class="buttons_on_map" style="{% if not application.color_scale %}right: 44px;{% endif %}">
+                <button class="map_button tooltipped" title="Toggle globe view" onclick="toggle_map_provider()"><span class="glyphicon map_icon glyphicon-globe"></span></button>
+                <button class="map_button tooltipped" data-toggle="collapse" data-target="#geographic_context" style="text-decoration:none;" title="Show geographic context" onclick=""><span class="glyphicon map_icon glyphicon-map-marker tooltipped"></span></button>
+                {% if application.color_scale %}<button class="map_button tooltipped" data-toggle="collapse" data-target="#color_scales" style="text-decoration:none;" title="Show color scale(s)" onclick=""><span class="glyphicon map_icon glyphicon-tint tooltipped"></span></button>{% endif %}
               </div>
-              <div id="static-map" class="map">
-                <img id="static-map-img" class="image-display-vertically-centered" src="{{ area.detail_imagery }}" alt="Submit a task and click the result in either the Results or Output panel to load a mosaic.">
+              {% if application.color_scale %}
+              <div id="color_scales" class="collapse panel_on_map col-lg-4">
+                <div class="page-header">
+                  <span class="form-section-header">Color Scale(s)</span>
+                </div>
+                <img class="img-responsive thumbnail" src="{{application.color_scale}}" alt="">
               </div>
+              {% endif %}
+              <div id="geographic_context" class="collapse panel_on_map col-lg-4">
+                <div class="page-header">
+                  <span class="form-section-header">Geographic Context</span>
+                </div>
+                <img class="img-responsive thumbnail" src="{{area.thumbnail_imagery}}" alt="">
+              </div>
+            </div>
+            <div id="map-cesium" class="map">
+                <span id="lat_lon_container" class="label label-default lat_lon_map_indicator">(0.0000, 0.0000)</span>
+            </div>
+            <div id="static-map" class="map">
+              <img id="static-map-img" class="image-display-vertically-centered" src="{{ area.detail_imagery }}" alt="Submit a task and click the result in either the Results or Output panel to load a mosaic.">
+            </div>
           </div>
         </div>
     </div>

@@ -165,6 +165,7 @@ def create_slip(query_id, user_id, single=False):
             query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
 
         result.total_scenes = len(time_ranges)
+        result.save()
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.
@@ -205,6 +206,11 @@ def create_slip(query_id, user_id, single=False):
             result.scenes_processed += 1
             result.save()
             print("Got results for a time slice, computing intermediate product..")
+
+            if len(group_data) < 1:
+                time_range_index += 1
+                continue
+
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[3] for tile in group_data])
 
             #create cf mosaic
@@ -282,7 +288,7 @@ def create_slip(query_id, user_id, single=False):
         dataset_out_slip.to_netcdf(netcdf_path)
         save_to_geotiff(tif_path, gdal.GDT_Int32, dataset_out_slip, geotransform, get_spatial_ref(crs),
                         x_pixels=dataset_out_mosaic.dims['longitude'], y_pixels=dataset_out_mosaic.dims['latitude'],
-                        band_order=['red', 'green', 'blue'])
+                        band_order=['red', 'green', 'blue', 'slip'])
         create_rgb_png_from_tiff(tif_path, slip_png_path, png_filled_path=None, fill_color=None, scale=(0, 4096), bands=[1,2,3])
 
         # update the results and finish up.
@@ -388,7 +394,10 @@ def generate_slip_chunk(time_num, chunk_num, processing_options=None, query=None
             slip[band].values[comparison_red_slope_filtered.isnull()[band].values] = iteration_data[band].values[comparison_red_slope_filtered.isnull()[band].values]
             iteration_data[band].values[~comparison_red_slope_filtered.isnull()[band].values] = comparison_red_slope_filtered[band].values[~comparison_red_slope_filtered.isnull()[band].values]
             baseline_mosaic[band].values[~baseline_mosaic_data.isnull()[band].values] = baseline_mosaic_data[band].values[~baseline_mosaic_data.isnull()[band].values]
-
+        slip_mask = slip.red.copy(deep=True)
+        slip_mask.values[~comparison_red_slope_filtered.isnull().red.values] = 1
+        slip_mask.values[comparison_red_slope_filtered.isnull().red.values] = 0
+        slip['slip'] = slip_mask.astype('int16')
     # Save this geographic chunk to disk.
     geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
@@ -430,4 +439,4 @@ def shutdown_worker(**kwargs):
 
     print('Closing DC instance for worker.')
     global dc
-    dc = None
+    dc.close()
