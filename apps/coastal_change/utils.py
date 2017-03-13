@@ -44,7 +44,7 @@ def coastline_classification(dataset, water_band = 'wofs'):
     ds.wofs.values[ np.isnan(ds.wofs.values)] = 0
     return ds
 
-def adjust_color(color, scale = 4096):  
+def adjust_color(color, scale = 4096):
     return int(float(color * scale)/255.0)
 
 def darken_color(color, scale = 0.8):
@@ -64,7 +64,7 @@ def create_query_from_post(user_id, post):
         query_id (string): The ID of the query that has been created.
     """
     # hardcoded product, user id. Will be changed.
-    query = Query(query_start=datetime.now(), 
+    query = Query(query_start=datetime.now(),
                   query_end=datetime.now(), user_id=user_id,
                   latitude_max=post['latitude_max'],
                   latitude_min=post['latitude_min'],
@@ -74,7 +74,6 @@ def create_query_from_post(user_id, post):
                   time_end=post['new'],
                   animation_setting = post['animation_setting'],
                   platform=post['platform'],
-                  product_setting=post['product_setting'],
                   area_id=post['area_id'],
                   )
 
@@ -105,7 +104,7 @@ def nearest_key(the_dict, key):
         if i in the_dict.keys():
             return i
 
-def split_task_by_year(resolution=0.000269, 
+def split_task_by_year(resolution=0.000269,
     latitude=None,
     longitude=None,
     acquisitions=None,
@@ -137,9 +136,9 @@ def split_by_year_and_append_stationary_year(resolution=0.000269,
         longitude=longitude,
         acquisitions=acquisitions,
         geo_chunk_size=geo_chunk_size,
-        reverse_time=reverse_time)        
+        reverse_time=reverse_time)
 
     year_dict = group_by_year(acquisitions)
     key = nearest_key(year_dict, year_stationary)
-    augmented_time_ranges = [year + year_dict[key] for year in yearly_time_ranges if year[0].year != key]   
+    augmented_time_ranges = [year + year_dict[key] for year in yearly_time_ranges if year[0].year != key]
     return lat_range, lon_range, augmented_time_ranges
