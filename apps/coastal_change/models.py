@@ -42,9 +42,8 @@ class Query(BaseQuery):
     """
     time_end = models.IntegerField()
     time_start = models.IntegerField()
-    
+
     animation_setting = models.CharField(max_length = 25, default="None")
-    product_setting   = models.CharField(max_length = 25)
 
     def generate_query_id(self):
         """
@@ -69,11 +68,11 @@ class Query(BaseQuery):
 
     def generate_metadata(self, scene_count=0, pixel_count=0):
         meta = Metadata( query_id=self.query_id,
-                            scene_count   = scene_count, 
+                            scene_count   = scene_count,
                             pixel_count   = pixel_count,
-                            latitude_min  = self.latitude_min, 
-                            latitude_max  = self.latitude_max, 
-                            longitude_min = self.longitude_min, 
+                            latitude_min  = self.latitude_min,
+                            latitude_max  = self.latitude_max,
+                            longitude_min = self.longitude_min,
                             longitude_max = self.longitude_max
                         )
         meta.save()
@@ -82,13 +81,13 @@ class Query(BaseQuery):
     def generate_result(self):
         result = Result( query_id=self.query_id,
                             result_path      = "",
-                            data_path        = "", 
+                            data_path        = "",
                             latitude_min     =self.latitude_min,
-                            latitude_max     =self.latitude_max, 
-                            longitude_min    =self.longitude_min, 
-                            longitude_max    =self.longitude_max, 
+                            latitude_max     =self.latitude_max,
+                            longitude_min    =self.longitude_min,
+                            longitude_max    =self.longitude_max,
                             total_scenes     = 0,
-                            scenes_processed = 0, 
+                            scenes_processed = 0,
                             status="WAIT"
                         )
         result.save()
@@ -113,7 +112,7 @@ class Metadata(BaseMetadata):
             zip file: Zip file combining three different lists (acquisition_list_as_list(),
             clean_pixels_list_as_list(), clean_pixels_percentages_as_list())
         """
-        return zip(self.acquisition_list_as_list(), self.clean_pixels_list_as_list(), self.slip_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
+        return zip(self.acquisition_list_as_list(), self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
 
 class Result(BaseResult):
     """
@@ -122,12 +121,10 @@ class Result(BaseResult):
     """
 
     # result path + other data. More to come.
+    result_coastal_change_path   = models.CharField(max_length=250, default="")
     result_mosaic_path    = models.CharField(max_length=250, default="")
-    coastal_change_path   = models.CharField(max_length=250, default="")
-    coastline_change_path = models.CharField(max_length=250, default="")
-    coastline_anim_path   = models.CharField(max_length=250, default="")
-    water_anim_path       = models.CharField(max_length=250, default="")   
-    
+    animation_path   = models.CharField(max_length=250, default="")
+
     # baseline_mosaic_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
     data_path = models.CharField(max_length=250, default="")

@@ -30,7 +30,7 @@ import json
 from datetime import datetime, timedelta
 
 from .models import Result, Query, Metadata
-from .forms import AnimationToggleForm, AreaExtentForm, TwoDateForm, ProductSelectionForm
+from .forms import AnimationToggleForm, AreaExtentForm, TwoDateForm
 from .tasks import create_coastal_change
 from data_cube_ui.models import Satellite, Area, Application
 
@@ -81,8 +81,7 @@ def coastal_change(request, area_id):
             auto_id=satellite.satellite_id + "_%s"
             ),
          'Product Animation': AnimationToggleForm(auto_id=satellite.satellite_id + "_%s"),
-         'Target Dates': TwoDateForm(auto_id=satellite.satellite_id + "_%s"),
-         'Processing Options' : ProductSelectionForm(auto_id=satellite.satellite_id + "_%s")
+         'Target Dates': TwoDateForm(auto_id=satellite.satellite_id + "_%s")
          }
     running_queries = Query.objects.filter(user_id=user_id, area_id=area_id, complete=False)
 

@@ -16,7 +16,7 @@ class AreaExtentForm(forms.Form):
     latitude_max = forms.FloatField(label='Max Latitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
     longitude_min = forms.FloatField(label='Min Longitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
     longitude_max = forms.FloatField(label='Max Longitude', widget = forms.NumberInput(attrs={'class': 'field-divided', 'step': "any", 'required': 'required'}))
- 
+
     def __init__(self, satellite=None, *args, **kwargs):
         super(AreaExtentForm, self).__init__(*args, **kwargs)
 
@@ -37,7 +37,7 @@ class TwoDateForm(forms.Form):
         super(TwoDateForm, self).__init__(*args, **kwargs)
 
 class AnimationToggleForm(forms.Form):
-    two_column_format = False   
+    two_column_format = False
 
     animation_setting = forms.ChoiceField(help_text='Animation Produced',
         label="animation:",
@@ -46,20 +46,3 @@ class AnimationToggleForm(forms.Form):
 
     def __init__(self, satellite=None, *args, **kwargs):
         super(AnimationToggleForm, self).__init__(*args, **kwargs)
-
-
-class ProductSelectionForm(forms.Form):
-    two_column_format = False
-
-
-    product_setting = forms.ChoiceField(help_text='Select your prefered product.',
-        label="product:",
-        choices=[
-            ('change','Coastal Change'), 
-            ('boundary','Coastal Boundary Change')
-        ],
-        widget=forms.Select(attrs={'class': 'tooltipped'})
-    )
-
-    def __init__(self, satellite=None, *args, **kwargs):
-        super(ProductSelectionForm, self).__init__(*args, **kwargs)
