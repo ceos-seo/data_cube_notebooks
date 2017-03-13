@@ -129,8 +129,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'datacube',
-	'USER': 'localuser',
-	'PASSWORD': 'amadev1',
+	'USER': 'dc_user',
+	'PASSWORD': 'dcuser1',
 	'HOST': MASTER_NODE
     }
 }
