@@ -513,6 +513,9 @@ def generate_coastal_change_chunk(time_num,
     return [geo_path, coastal_change_path , boundary_change_path]
 
 
+# Init/shutdown functions for handling dc instances.
+# this is done to prevent synchronization/conflicts between workers when
+# accessing DC resources.
 @worker_process_init.connect
 def init_worker(**kwargs):
     """
@@ -521,10 +524,11 @@ def init_worker(**kwargs):
 
     print("Creating DC instance for worker.")
     global dc
-    dc = DataAccessApi()
-    if not os.path.exists(BASE_RESULT_PATH):
-        os.mkdir(BASE_RESULT_PATH)
-        os.chmod(BASE_RESULT_PATH, 0o777)
+    from django.conf import settings
+    dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf')
+    if not os.path.exists(base_result_path):
+        os.mkdir(base_result_path)
+        os.chmod(base_result_path, 0o777)
 
 
 @worker_process_shutdown.connect
@@ -535,4 +539,4 @@ def shutdown_worker(**kwargs):
 
     print('Closing DC instance for worker.')
     global dc
-    dc = None
+    dc.dc.close()
