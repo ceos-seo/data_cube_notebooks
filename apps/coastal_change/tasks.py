@@ -66,15 +66,7 @@ MEASUREMENTS = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
 
 
 processing_algorithms = {
-    'change' : {
-        'geo_chunk_size': 0.05,
-        'time_chunks': None,
-        'time_slices_per_iteration': None,
-        'reverse_time': True,
-        'chunk_combination_method': fill_nodata,
-        'processing_method': None
-    },
-    'boundary' : {
+    'coastal_change' : {
         'geo_chunk_size': 0.05,
         'time_chunks': None,
         'time_slices_per_iteration': None,
@@ -83,6 +75,10 @@ processing_algorithms = {
         'processing_method': None
     }
 }
+
+def pause_thread():
+    while True:
+        pass
 
 def _is_cached(query):
     if Result.objects.filter(query_id=query.query_id).exists():
@@ -113,20 +109,19 @@ def create_coastal_change(query_id, user_id, single=False):
 
     try:
         ## Extract Info from query ############################################
-        platform    = query.platform
-        product     = query.product
-        resolution  = product_details.resolution.values[0][1]
-        start       = datetime.datetime(int(query.time_start), 1, 1)
-        end         = datetime.datetime(int(query.time_end) + 1, 1, 1)
-        time        = (start,end)
-        longitude   = (query.longitude_min, query.longitude_max)
-        latitude    = (query.latitude_min, query.latitude_max)
-        display_pref   = query.product_setting
-        animation_pref = query.animation_setting
+        platform        = query.platform
+        product         = query.product
+        resolution      = product_details.resolution.values[0][1]
+        start           = datetime.datetime(int(query.time_start), 1, 1)
+        end             = datetime.datetime(int(query.time_end) + 1, 1, 1)
+        time            = (start,end)
+        longitude       = (query.longitude_min, query.longitude_max)
+        latitude        = (query.latitude_min, query.latitude_max)
+        animation_pref  = query.animation_setting
         ######################################################################
 
         ## Select chunking process using details from query ##################
-        processing_options = processing_algorithms[query.product_setting]
+        processing_options = processing_algorithms['coastal_change']
         ######################################################################
 
         ## Get Acquisition data ##############################################
@@ -337,23 +332,17 @@ def create_coastal_change(query_id, user_id, single=False):
         meta = query.generate_metadata()
         update_model_bounds_with_dataset([result, meta, query], dataset_out_mosaic)
 
+
+        result.result_path      = coastal_boundary_png_path
         result.result_mosaic_path       = mosaic_png_path
-        result.coastal_change_path      = coastal_change_png_path
-        result.coastline_change_path    = coastal_boundary_png_path
+        result.result_coastal_change_path      = coastal_change_png_path
 
         result.data_path        = tif_path
         result.data_netcdf_path = netcdf_path
         result.status           = "OK"
         result.total_scenes     = len(acquisitions)
 
-        #Select what UI ends up displaying
-        if   display_pref == 'change':
-            result.result_path      = coastal_change_png_path
-        elif display_pref == 'boundary':
-            result.result_path      = coastal_boundary_png_path
-        else:
-            print("!!!!!!!!!!!!!!!!")
-            print(display_pref)
+
         result.save()
 
         print("Finished processing results")
@@ -395,7 +384,6 @@ def generate_coastal_change_chunk(time_num,
     acquisition_metadata    = {}
 
     ## Building Time Ranges ####################################
-
     time_dict = group_by_year(acquisition_list)
     stationary_key = nearest_key(time_dict, year_stationary)
     most_recent_key = [key for key in time_dict.keys() if key is not stationary_key][-1]
@@ -415,6 +403,8 @@ def generate_coastal_change_chunk(time_num,
             measurements=measurements)
     old_landsat = old_landsat.where(old_landsat >= 0)
 
+
+
     print("___Loading___\n" + str((min(most_recent_acquisitions).year, max(most_recent_acquisitions).year)))
     new_landsat = dc.get_dataset_by_extent(product,
             product_type=None,
@@ -425,10 +415,14 @@ def generate_coastal_change_chunk(time_num,
             measurements=measurements)
     new_landsat = new_landsat.where(new_landsat >= 0)
 
+
+    print("VvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVv")
+    print(most_recent_acquisitions)
+
     ##Build Mosaic ###############################################
     old_clear_mask = create_cfmask_clean_mask(old_landsat.cf_mask)
     old_landsat.drop(['cf_mask'])
-
+    
     new_clear_mask = create_cfmask_clean_mask(new_landsat.cf_mask)
     new_landsat.drop(['cf_mask'])
 
@@ -444,12 +438,13 @@ def generate_coastal_change_chunk(time_num,
 
     ##Build Wofs #####################################
     old_water = wofs_classify(old_mosaic, mosaic=True)
-    old_water[old_mosaic.swir2.values > 100] = np.nan
     old_water = old_water.where(old_water >= 0)
+    # old_water = old_water.where(old_mosaic.swir2 < 300)
 
     new_water = wofs_classify(new_mosaic, mosaic=True)
-    new_water[new_mosaic.swir2.values > 100] = np.nan
     new_water = new_water.where(new_water >= 0)
+    # new_water = new_water.where(new_mosaic.swir2 < 300)
+
 
     ##########################
     old_landsat.drop(['nir','swir1','swir2'])
@@ -472,24 +467,24 @@ def generate_coastal_change_chunk(time_num,
 
     ##Coastal Change visual Raster ###############################
     change = target.copy(deep =True)
-    change.red.values[coastal_change.wofs.values == 1]      = adjust_color(PINK[0])
-    change.green.values[coastal_change.wofs.values == 1]    = adjust_color(PINK[1])
-    change.blue.values[coastal_change.wofs.values == 1]     = adjust_color(PINK[2])
+    change.red.values[coastal_change.wofs.values    == 1]      = adjust_color(PINK[0])
+    change.green.values[coastal_change.wofs.values  == 1]    = adjust_color(PINK[1])
+    change.blue.values[coastal_change.wofs.values   == 1]     = adjust_color(PINK[2])
 
-    change.red.values[coastal_change.wofs.values == -1]     = adjust_color(GREEN[0])
-    change.green.values[coastal_change.wofs.values == -1]   = adjust_color(GREEN[1])
-    change.blue.values[coastal_change.wofs.values == -1]    = adjust_color(GREEN[2])
+    change.red.values[coastal_change.wofs.values    == -1]     = adjust_color(GREEN[0])
+    change.green.values[coastal_change.wofs.values  == -1]   = adjust_color(GREEN[1])
+    change.blue.values[coastal_change.wofs.values   == -1]    = adjust_color(GREEN[2])
 
     ##Coastal Boundary Visual Raster #############################
     boundary = target.copy(deep = True)
     boundary = boundary
-    boundary.red.values[new_coastline.wofs.values == 1]     = adjust_color(BLUE[0])
+    boundary.red.values[new_coastline.wofs.values   == 1]     = adjust_color(BLUE[0])
     boundary.green.values[new_coastline.wofs.values == 1]   = adjust_color(BLUE[1])
-    boundary.blue.values[new_coastline.wofs.values == 1]    = adjust_color(BLUE[2])
+    boundary.blue.values[new_coastline.wofs.values  == 1]    = adjust_color(BLUE[2])
 
-    boundary.red.values[old_coastline.wofs.values == 1]     = adjust_color(GREEN[0])
+    boundary.red.values[old_coastline.wofs.values   == 1]     = adjust_color(GREEN[0])
     boundary.green.values[old_coastline.wofs.values == 1]   = adjust_color(GREEN[1])
-    boundary.blue.values[old_coastline.wofs.values == 1]    = adjust_color(GREEN[2])
+    boundary.blue.values[old_coastline.wofs.values  == 1]    = adjust_color(GREEN[2])
 
     ##WRITE TO TEMPORARY DIR ###############################
     if not os.path.exists(BASE_TEMP_PATH + query.query_id):
@@ -528,9 +523,9 @@ def init_worker(**kwargs):
     global dc
     from django.conf import settings
     dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf')
-    if not os.path.exists(base_result_path):
-        os.mkdir(base_result_path)
-        os.chmod(base_result_path, 0o777)
+    if not os.path.exists(BASE_RESULT_PATH):
+        os.mkdir(BASE_RESULT_PATH)
+        os.chmod(BASE_RESULT_PATH, 0o777)
 
 
 @worker_process_shutdown.connect
