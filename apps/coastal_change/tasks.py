@@ -39,16 +39,43 @@ import datetime
 from collections import OrderedDict
 from dateutil.tz import tzutc
 import numpy as np
-from .utils import nearest_key, group_by_year, coastline_classification, split_by_year_and_append_stationary_year,adjust_color,darken_color
+
+from .utils import(
+    nearest_key,
+    group_by_year,
+    coastline_classification, 
+    split_by_year_and_append_stationary_year,
+    adjust_color,
+    darken_color,
+    year_in_list_of_acquisitions,
+    most_recent_in_list_of_acquisitions
+    )
+
+from dateutil.relativedelta import relativedelta
 
 from utils.data_access_api import DataAccessApi
 from utils.dc_mosaic import create_mosaic
-from utils.dc_utilities import get_spatial_ref,  save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task, fill_nodata, generate_time_ranges
+
+from utils.dc_utilities import(
+    get_spatial_ref,
+    save_to_geotiff,
+    create_rgb_png_from_tiff,
+    create_cfmask_clean_mask,
+    split_task, fill_nodata,
+    generate_time_ranges
+    )
+
 from utils.dc_baseline import generate_baseline
 from utils.dc_demutils import create_slope_mask
 from utils.dc_water_classifier import wofs_classify
 
-from data_cube_ui.utils import update_model_bounds_with_dataset, map_ranges, combine_metadata, cancel_task, error_with_message
+from data_cube_ui.utils import(
+    update_model_bounds_with_dataset, 
+    map_ranges, 
+    combine_metadata, 
+    cancel_task, 
+    error_with_message
+    )
 
 dc = None
 
@@ -113,8 +140,8 @@ def create_coastal_change(query_id, user_id, single=False):
         product         = query.product
         resolution      = product_details.resolution.values[0][1]
         start           = datetime.datetime(int(query.time_start), 1, 1)
-        end             = datetime.datetime(int(query.time_end) + 1, 1, 1)
-        time            = (start,end)
+        end             = datetime.datetime(int(query.time_end), 1, 1)
+        time            = (start,end + relativedelta(years = 1) )
         longitude       = (query.longitude_min, query.longitude_max)
         latitude        = (query.latitude_min, query.latitude_max)
         animation_pref  = query.animation_setting
@@ -138,6 +165,17 @@ def create_coastal_change(query_id, user_id, single=False):
             processing_options['time_chunks'] = None
             processing_options['time_slices_per_iteration'] = None
 
+
+        ## Check if start date and end date have acquisitions ################
+        latest_acquisition = most_recent_in_list_of_acquisitions(acquisitions)
+
+        if end.year > latest_acquisition.year:
+            raw_err_message = "Your end date is out of bounds! You've picked the year {choice},The latest acquistion that exists can be found at {actual}."
+            err_message = raw_err_message.format(choice = end.year,actual = latest_acquisition )
+            error_with_message(result, err_message, BASE_TEMP_PATH)
+            return
+        ######################################################################
+
         ## This is how chunk sizes are defined ###############################
         lat_ranges, lon_ranges, time_ranges = split_by_year_and_append_stationary_year(
             resolution     = resolution,
@@ -150,6 +188,10 @@ def create_coastal_change(query_id, user_id, single=False):
         ######################################################################
 
         result.total_scenes = len(time_ranges)
+
+        if animation_pref == "none":
+            most_recent  = max(time_ranges, key = lambda x: max([int(y.year) for y in x]))
+            time_ranges  = [most_recent]
 
         if os.path.exists(BASE_TEMP_PATH + query.query_id) == False:
             os.mkdir(BASE_TEMP_PATH + query.query_id)
@@ -322,7 +364,6 @@ def create_coastal_change(query_id, user_id, single=False):
             min_year = min(times).year
             time_range = range(min_year , max_year + 1)
 
-
         else:
             pass
 
@@ -385,9 +426,10 @@ def generate_coastal_change_chunk(time_num,
 
     ## Building Time Ranges ####################################
     time_dict = group_by_year(acquisition_list)
-    stationary_key = nearest_key(time_dict, year_stationary)
-    most_recent_key = [key for key in time_dict.keys() if key is not stationary_key][-1]
+    stationary_key =  min([int(key) for key in time_dict.keys()])
+    most_recent_key = max([int(key) for key in time_dict.keys()])
 
+    # most_recent_key = [key for key in time_dict.keys() if int(key) is not stationary_key][-1]
     stationary_acquisitions  = time_dict[stationary_key]
     most_recent_acquisitions = time_dict[most_recent_key]
 
@@ -416,8 +458,8 @@ def generate_coastal_change_chunk(time_num,
     new_landsat = new_landsat.where(new_landsat >= 0)
 
 
-    print("VvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVv")
-    print(most_recent_acquisitions)
+    # print("VvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVv")
+    # print(most_recent_acquisitions)
 
     ##Build Mosaic ###############################################
     old_clear_mask = create_cfmask_clean_mask(old_landsat.cf_mask)
@@ -444,8 +486,6 @@ def generate_coastal_change_chunk(time_num,
     new_water = wofs_classify(new_mosaic, mosaic=True)
     new_water = new_water.where(new_water >= 0)
     # new_water = new_water.where(new_mosaic.swir2 < 300)
-
-
     ##########################
     old_landsat.drop(['nir','swir1','swir2'])
     old_mosaic.drop( ['nir','swir1','swir2'])
