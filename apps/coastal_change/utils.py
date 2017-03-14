@@ -54,7 +54,8 @@ def coastline_classification_2(dataset, water_band = 'wofs'):
     ds.wofs.values[(~np.isnan(ds[water_band].values)) & (ds.wofs.values == 1)] = 1
     ds.wofs.values[convolved < 0] = 0
     ds.wofs.values[convolved > 6] = 0
-    
+    ds.rename({"wofs": "coastline"}, inplace = True)
+
     return ds
 
 def adjust_color(color, scale = 4096):

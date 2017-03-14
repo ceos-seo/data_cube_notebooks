@@ -493,7 +493,9 @@ def generate_coastal_change_chunk(time_num,
 
     ##Coastal Change Calculation #################################
     coastal_change  = new_water - old_water
-    coastal_change = coastal_change.where(coastal_change.wofs != 0)
+    coastal_change.rename({"wofs":"wofs_change"}, inplace = True)
+
+    coastal_change = coastal_change.where(coastal_change.wofs_change != 0)
 
     ##Coastal Boundary Calculation ###############################
     print("___Coastline___")
@@ -513,25 +515,25 @@ def generate_coastal_change_chunk(time_num,
 
     ##Coastal Change visual Raster ###############################
     change = target.copy(deep =True)
-    change.red.values[coastal_change.wofs.values    == 1]      = adjust_color(PINK[0])
-    change.green.values[coastal_change.wofs.values  == 1]    = adjust_color(PINK[1])
-    change.blue.values[coastal_change.wofs.values   == 1]     = adjust_color(PINK[2])
+    change.red.values[coastal_change.wofs_change.values    == 1]      = adjust_color(PINK[0])
+    change.green.values[coastal_change.wofs_change.values  == 1]    = adjust_color(PINK[1])
+    change.blue.values[coastal_change.wofs_change.values   == 1]     = adjust_color(PINK[2])
 
-    change.red.values[coastal_change.wofs.values    == -1]     = adjust_color(GREEN[0])
-    change.green.values[coastal_change.wofs.values  == -1]   = adjust_color(GREEN[1])
-    change.blue.values[coastal_change.wofs.values   == -1]    = adjust_color(GREEN[2])
+    change.red.values[coastal_change.wofs_change.values    == -1]     = adjust_color(GREEN[0])
+    change.green.values[coastal_change.wofs_change.values  == -1]   = adjust_color(GREEN[1])
+    change.blue.values[coastal_change.wofs_change.values   == -1]    = adjust_color(GREEN[2])
 
     ##Coastal Boundary Visual Raster #############################
     boundary = target.copy(deep = True)
     boundary = boundary
 
-    boundary.red.values[new_coastline.wofs.values   == 1]     = adjust_color(BLUE[0])
-    boundary.green.values[new_coastline.wofs.values == 1]   = adjust_color(BLUE[1])
-    boundary.blue.values[new_coastline.wofs.values  == 1]    = adjust_color(BLUE[2])
+    boundary.red.values[new_coastline.coastline.values   == 1]     = adjust_color(BLUE[0])
+    boundary.green.values[new_coastline.coastline.values == 1]   = adjust_color(BLUE[1])
+    boundary.blue.values[new_coastline.coastline.values  == 1]    = adjust_color(BLUE[2])
 
-    boundary.red.values[old_coastline.wofs.values   == 1]     = adjust_color(GREEN[0])
-    boundary.green.values[old_coastline.wofs.values == 1]   = adjust_color(GREEN[1])
-    boundary.blue.values[old_coastline.wofs.values  == 1]    = adjust_color(GREEN[2])
+    boundary.red.values[old_coastline.coastline.values   == 1]     = adjust_color(GREEN[0])
+    boundary.green.values[old_coastline.coastline.values == 1]   = adjust_color(GREEN[1])
+    boundary.blue.values[old_coastline.coastline.values  == 1]    = adjust_color(GREEN[2])
    
     ##WRITE TO TEMPORARY DIR ###############################
     if not os.path.exists(BASE_TEMP_PATH + query.query_id):
