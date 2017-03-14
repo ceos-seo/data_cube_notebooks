@@ -111,6 +111,26 @@ def split_task_by_year(resolution=0.000269,
     geo_chunk_size=None,
     reverse_time=False):
 
+    ''' 
+        Along with Lat-Lon Ranges, this function returns a list of lists to be used for time chunking.
+        The sublists contain acquisition dates for a given year.
+        The sublists are sorted such that the most recent year comes first in the list
+
+        IE.  
+
+        [[
+        datetime.datetime(2016, 1, 8, 10, 11, 2),
+        datetime.datetime(2016, 1, 24, 10, 11, 15),
+        datetime.datetime(2016, 2, 9, 10, 11, 22)
+        ],[
+        datetime.datetime(2015, 1, 5, 10, 8, 3),
+        datetime.datetime(2015, 1, 21, 10, 8, 4)
+        ],[
+        datetime.datetime(2014, 1, 2, 10, 5, 57)
+        ]]
+
+    '''
+
     lat_range, lon_range, __ = split_task(resolution=resolution,
         latitude=latitude,
         longitude=longitude,
@@ -121,7 +141,21 @@ def split_task_by_year(resolution=0.000269,
 
     times = list( dict_to_iterable( group_by_year( acquisitions )))
     times = list(reversed(sorted(times)))
+
     return lat_range,lon_range,times
+
+def year_in_list_of_acquisitions(acquisitions,year):
+    for a in acquisitions:
+        if a.year == year:
+            return True
+    return False
+
+def most_recent_in_list_of_acquisitions(acquisitions):
+    greatest = datetime.min 
+    for a in acquisitions:
+        if a > greatest:
+            greatest = a
+    return greatest
 
 def split_by_year_and_append_stationary_year(resolution=0.000269,
         latitude=None,
@@ -139,6 +173,11 @@ def split_by_year_and_append_stationary_year(resolution=0.000269,
         reverse_time=reverse_time)
 
     year_dict = group_by_year(acquisitions)
+
+    stationary = min([int(year) for year in year_dict.keys()]) 
+    greatest = max([int(year) for year in year_dict.keys()])     
     key = nearest_key(year_dict, year_stationary)
-    augmented_time_ranges = [year + year_dict[key] for year in yearly_time_ranges if year[0].year != key]
+
+    augmented_time_ranges = [year + year_dict[key] for year in yearly_time_ranges if int(year[0].year) != int(key)]
+    
     return lat_range, lon_range, augmented_time_ranges
