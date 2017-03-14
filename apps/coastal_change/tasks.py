@@ -44,6 +44,7 @@ from .utils import(
     nearest_key,
     group_by_year,
     coastline_classification,
+    coastline_classification_2,
     split_by_year_and_append_stationary_year,
     adjust_color,
     darken_color,
@@ -91,7 +92,6 @@ PINK         = [[255,8,74],[252,8,74],[230,98,137],[255,147,172],[255,192,205]][
 BLUE         = [[13,222,255],[139,237,236],[0,20,225],[30,144,255]][-1]
 MEASUREMENTS = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
 
-
 processing_algorithms = {
     'coastal_change' : {
         'geo_chunk_size': 0.05,
@@ -129,8 +129,8 @@ def create_coastal_change(query_id, user_id, single=False):
     query = _fetch_query_object(query_id, user_id)
 
     if _is_cached(query) == True:
-       # return
-       pass
+       return
+       
 
     result = query.generate_result()
     product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
@@ -445,7 +445,7 @@ def generate_coastal_change_chunk(time_num,
             latitude=lat_range,
             measurements=measurements)
     old_landsat = old_landsat.where(old_landsat >= 0)
-    print("Loaded")
+    print("___Loaded")
 
 
 
@@ -458,48 +458,27 @@ def generate_coastal_change_chunk(time_num,
             latitude=lat_range,
             measurements=measurements)
     new_landsat = new_landsat.where(new_landsat >= 0)
-    print("Loaded")
+    print("___Loaded")
 
 
-    ##Build Mosaic ###############################################
-    # old_clear_mask = create_cfmask_clean_mask(old_landsat.cf_mask)
-    # old_landsat.drop(['cf_mask'])
-    
-    # new_clear_mask = create_cfmask_clean_mask(new_landsat.cf_mask)
-    # new_landsat.drop(['cf_mask'])
 
     print("___Mosaic___")
     print("old")    
-
     old_mosaic = create_mosaic(old_landsat)
-    # old_mosaic = create_mosaic(old_landsat,
-    #     clean_mask=old_clear_mask,
-    #     reverse_time=True,
-    #     intermediate_product=old_mosaic)
+
     print("___Mosaic___")
     print("new")    
-    new_mosaic = create_mosaic(new_landsat)
-    # new_mosaic = create_mosaic(new_landsat,
-    #     clean_mask=new_clear_mask,
-    #     reverse_time=True,
-    #     intermediate_product=new_mosaic)
+    new_mosaic = create_median_mosaic(new_landsat)
 
     ##Build Wofs #####################################
     print("___Wofs___")
     print("old")    
     old_water = wofs_classify(old_mosaic, mosaic=True)
-    # old_water = old_water.where(old_water >= 0)
 
-    # old_water.wofs.values[old_mosaic.swir2.values > 100] = np.nan
-    # old_water = old_water.where(old_mosaic.swir2 < 300)
     print("___Wofs___")
     print("new")    
     new_water = wofs_classify(new_mosaic, mosaic=True)
-    # new_water = new_water.where(new_water >= 0)
 
-    # new_water.wofs.values[new_mosaic.swir2.values > 100] = np.nan
-
-    # new_water = new_water.where(new_mosaic.swir2 < 300)
     ##########################
     print("___Drop___")
     print("old")    
@@ -520,11 +499,11 @@ def generate_coastal_change_chunk(time_num,
     print("___Coastline___")
     print("old")    
     
-    new_coastline = coastline_classification(new_water)
+    new_coastline = coastline_classification_2(new_water)
   
     print("___Coastline___")
     print("new")  
-    old_coastline = coastline_classification(old_water)
+    old_coastline = coastline_classification_2(old_water)
 
     print("___Painting___")
      
@@ -545,6 +524,7 @@ def generate_coastal_change_chunk(time_num,
     ##Coastal Boundary Visual Raster #############################
     boundary = target.copy(deep = True)
     boundary = boundary
+
     boundary.red.values[new_coastline.wofs.values   == 1]     = adjust_color(BLUE[0])
     boundary.green.values[new_coastline.wofs.values == 1]   = adjust_color(BLUE[1])
     boundary.blue.values[new_coastline.wofs.values  == 1]    = adjust_color(BLUE[2])
@@ -552,7 +532,7 @@ def generate_coastal_change_chunk(time_num,
     boundary.red.values[old_coastline.wofs.values   == 1]     = adjust_color(GREEN[0])
     boundary.green.values[old_coastline.wofs.values == 1]   = adjust_color(GREEN[1])
     boundary.blue.values[old_coastline.wofs.values  == 1]    = adjust_color(GREEN[2])
-
+   
     ##WRITE TO TEMPORARY DIR ###############################
     if not os.path.exists(BASE_TEMP_PATH + query.query_id):
         return None

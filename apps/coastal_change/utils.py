@@ -46,6 +46,17 @@ def coastline_classification(dataset, water_band = 'wofs'):
 
     return ds
 
+def coastline_classification_2(dataset, water_band = 'wofs'):
+    kern = np.array([[1,1,1],[1,0.001,1],[1,1,1]])
+    convolved = conv.convolve(dataset[water_band], kern, mode ='constant')//1
+
+    ds = dataset.copy(deep = True)
+    ds.wofs.values[(~np.isnan(ds[water_band].values)) & (ds.wofs.values == 1)] = 1
+    ds.wofs.values[convolved < 0] = 0
+    ds.wofs.values[convolved > 6] = 0
+    
+    return ds
+
 def adjust_color(color, scale = 4096):
     return int(float(color * scale)/255.0)
 
