@@ -43,7 +43,7 @@ import numpy as np
 from .utils import(
     nearest_key,
     group_by_year,
-    coastline_classification, 
+    coastline_classification,
     split_by_year_and_append_stationary_year,
     adjust_color,
     darken_color,
@@ -54,7 +54,7 @@ from .utils import(
 from dateutil.relativedelta import relativedelta
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_mosaic import create_mosaic
+from utils.dc_mosaic import create_mosaic, create_median_mosaic
 
 from utils.dc_utilities import(
     get_spatial_ref,
@@ -129,7 +129,8 @@ def create_coastal_change(query_id, user_id, single=False):
     query = _fetch_query_object(query_id, user_id)
 
     if _is_cached(query) == True:
-       return
+       # return
+       pass
 
     result = query.generate_result()
     product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
@@ -444,6 +445,7 @@ def generate_coastal_change_chunk(time_num,
             latitude=lat_range,
             measurements=measurements)
     old_landsat = old_landsat.where(old_landsat >= 0)
+    print("Loaded")
 
 
 
@@ -456,41 +458,57 @@ def generate_coastal_change_chunk(time_num,
             latitude=lat_range,
             measurements=measurements)
     new_landsat = new_landsat.where(new_landsat >= 0)
+    print("Loaded")
 
-
-    # print("VvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVv")
-    # print(most_recent_acquisitions)
 
     ##Build Mosaic ###############################################
-    old_clear_mask = create_cfmask_clean_mask(old_landsat.cf_mask)
-    old_landsat.drop(['cf_mask'])
+    # old_clear_mask = create_cfmask_clean_mask(old_landsat.cf_mask)
+    # old_landsat.drop(['cf_mask'])
     
-    new_clear_mask = create_cfmask_clean_mask(new_landsat.cf_mask)
-    new_landsat.drop(['cf_mask'])
+    # new_clear_mask = create_cfmask_clean_mask(new_landsat.cf_mask)
+    # new_landsat.drop(['cf_mask'])
 
-    old_mosaic = create_mosaic(old_landsat,
-        clean_mask=old_clear_mask,
-        reverse_time=True,
-        intermediate_product=old_mosaic)
+    print("___Mosaic___")
+    print("old")    
 
-    new_mosaic = create_mosaic(new_landsat,
-        clean_mask=new_clear_mask,
-        reverse_time=True,
-        intermediate_product=new_mosaic)
+    old_mosaic = create_mosaic(old_landsat)
+    # old_mosaic = create_mosaic(old_landsat,
+    #     clean_mask=old_clear_mask,
+    #     reverse_time=True,
+    #     intermediate_product=old_mosaic)
+    print("___Mosaic___")
+    print("new")    
+    new_mosaic = create_mosaic(new_landsat)
+    # new_mosaic = create_mosaic(new_landsat,
+    #     clean_mask=new_clear_mask,
+    #     reverse_time=True,
+    #     intermediate_product=new_mosaic)
 
     ##Build Wofs #####################################
+    print("___Wofs___")
+    print("old")    
     old_water = wofs_classify(old_mosaic, mosaic=True)
-    old_water = old_water.where(old_water >= 0)
-    # old_water = old_water.where(old_mosaic.swir2 < 300)
+    # old_water = old_water.where(old_water >= 0)
 
+    # old_water.wofs.values[old_mosaic.swir2.values > 100] = np.nan
+    # old_water = old_water.where(old_mosaic.swir2 < 300)
+    print("___Wofs___")
+    print("new")    
     new_water = wofs_classify(new_mosaic, mosaic=True)
-    new_water = new_water.where(new_water >= 0)
+    # new_water = new_water.where(new_water >= 0)
+
+    # new_water.wofs.values[new_mosaic.swir2.values > 100] = np.nan
+
     # new_water = new_water.where(new_mosaic.swir2 < 300)
     ##########################
+    print("___Drop___")
+    print("old")    
     old_landsat.drop(['nir','swir1','swir2'])
     old_mosaic.drop( ['nir','swir1','swir2'])
 
     ##########################
+    print("___Drop___")
+    print("new")    
     new_landsat.drop( ['nir','swir1','swir2'])
     new_mosaic.drop(  ['nir','swir1','swir2'])
 
@@ -499,8 +517,17 @@ def generate_coastal_change_chunk(time_num,
     coastal_change = coastal_change.where(coastal_change.wofs != 0)
 
     ##Coastal Boundary Calculation ###############################
+    print("___Coastline___")
+    print("old")    
+    
     new_coastline = coastline_classification(new_water)
+  
+    print("___Coastline___")
+    print("new")  
     old_coastline = coastline_classification(old_water)
+
+    print("___Painting___")
+     
 
     ##DISPLAY NEWEST VS OLDEST MOSAIC#############################
     target = new_mosaic if NEW_MOSAIC else old_mosaic
