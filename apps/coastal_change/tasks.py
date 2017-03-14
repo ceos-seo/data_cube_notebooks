@@ -444,9 +444,11 @@ def generate_coastal_change_chunk(time_num,
 
     ##Build Wofs #####################################
     old_water = wofs_classify(old_mosaic, mosaic=True)
+    old_water[old_mosaic.swir2.values > 100] = np.nan
     old_water = old_water.where(old_water >= 0)
 
     new_water = wofs_classify(new_mosaic, mosaic=True)
+    new_water[new_mosaic.swir2.values > 100] = np.nan
     new_water = new_water.where(new_water >= 0)
 
     ##########################
