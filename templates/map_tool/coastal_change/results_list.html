@@ -103,17 +103,20 @@ under the License.
       <td>Total Pixel Count:</td>
       <td class="right_aligned_text">{{ metadata_entry.pixel_count }}</td>
     </tr>
+
+
     <tr>
-      <td>Clean Pixel Count:</td>
-      <td class="right_aligned_text">{{ metadata_entry.clean_pixel_count }}</td>
+      <td>Land <span class="glyphicon">&#xe092;</span> Ocean :</td>
+      <td class="right_aligned_text">{{metadata_entry.land_converted }}</td>
     </tr>
     <tr>
-      <td>Clean Pixel Percentage:</td>
-      <td class="right_aligned_text">{{ metadata_entry.percentage_clean_pixels|floatformat:2 }}%</td>
+      <td>Ocean <span class="glyphicon">&#xe092;</span> Land:</td>
+      <td class="right_aligned_text">{{metadata_entry.sea_converted }}</td>
     </tr>
   </tbody>
 </table>
 {% endblock %}
+
 {% block functions_block %}
 //toggles the nodata highlighting based on a checkbox.
 //outline is shown as visible

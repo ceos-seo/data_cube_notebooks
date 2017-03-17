@@ -54,7 +54,8 @@ class Query(BaseQuery):
             query_id (string): The ID of the query built up by object attributes.
         """
 
-        query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{platform}-{product}'
+        query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{platform}-{product}-{anim}'
+
         return query_id.format(start = self.time_start,
                     end      = self.time_end,
                     lat_max  = self.latitude_max,
@@ -62,7 +63,8 @@ class Query(BaseQuery):
                     lon_max  = self.longitude_max,
                     lon_min  = self.longitude_min,
                     platform = self.platform,
-                    product  = self.product
+                    product  = self.product,
+                    anim     = self.animation_setting
                     )
 
 
@@ -103,6 +105,14 @@ class Metadata(BaseMetadata):
     Stores a single instance of a Query object that contains all the information for requests
     submitted.
     """
+    land_converted =  models.CharField(max_length=100000, default="")
+    sea_converted  =  models.CharField(max_length=100000, default="")
+
+    def get_land_converted(self):
+        return self.land_converted
+
+    def get_sea_converted(self):
+        return self.sea_converted
 
     def acquisitions_dates_with_pixels_percentages(self):
         """

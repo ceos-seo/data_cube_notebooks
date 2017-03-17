@@ -49,7 +49,10 @@ from .utils import(
     adjust_color,
     darken_color,
     year_in_list_of_acquisitions,
-    most_recent_in_list_of_acquisitions
+    most_recent_in_list_of_acquisitions,
+    DPrint,
+    extract_landsat_scene_metadata,
+    extract_coastal_change_metadata
     )
 
 from dateutil.relativedelta import relativedelta
@@ -201,6 +204,8 @@ def create_coastal_change(query_id, user_id, single=False):
 
         print(">>>>>>>>>>>_Delegating_Coastal_Change_Tasks_>>>>>>>>>>>>:")
 
+        end_range_for_meta_data = (end - relativedelta(days=1), end + relativedelta(years=1))
+
         ## This is where tasks are created and and sent for processing
         time_chunk_tasks = [group(generate_coastal_change_chunk.s(time_range_index,
                                         geographic_chunk_index,
@@ -212,7 +217,8 @@ def create_coastal_change(query_id, user_id, single=False):
                                         lat_range=lat_ranges[geographic_chunk_index],
                                         lon_range=lon_ranges[geographic_chunk_index],
                                         measurements=MEASUREMENTS,
-                                        year_stationary = start.year
+                                        year_stationary = start.year,
+                                        end_range = end_range_for_meta_data
                                         ) for geographic_chunk_index in range(len(lat_ranges))).apply_async() for time_range_index in range(len(time_ranges))]
 
         ##########################################################################################
@@ -227,6 +233,9 @@ def create_coastal_change(query_id, user_id, single=False):
         acquisition_metadata        = {}
 
         ### Rebuild product from results.
+
+        global_meta_data = {'scenes':{},'coastal_change':{}}
+
         for geographic_group in time_chunk_tasks:
             full_dataset = None
             tiles = []
@@ -264,6 +273,55 @@ def create_coastal_change(query_id, user_id, single=False):
             dataset_coastal_boundary = xr.concat(reversed([xr.open_dataset(tile[2]) for tile in group_data]), dim='latitude').load()
             dataset_out_coastal_boundary = fill_nodata(dataset_coastal_boundary, dataset_out_coastal_boundary)
 
+            list_of_metadata = [tile[3] for tile in group_data]
+              #           "total_pixels"  : total_pixels,
+              #           "clear_pixels"  : clear_pixels,
+              #           "clear_percent" : clear_percent,
+              #           'date'          : date
+
+              # scene'][id]
+
+            ## A lot of metadata was computed on a per/chunk basis.
+            ## This function takes that fragmented metadata and compounds it into a single dictionary called global_metadata
+
+            for data in list_of_metadata:
+                scenes = data['scene']
+                for key in scenes.keys():  
+                    if key not in global_meta_data['scenes']:
+                        global_meta_data['scenes'][key] = {'total_pixels': 0, 'clear_pixels': 0}  
+                    global_meta_data['scenes'][key]["total_pixels"] = global_meta_data['scenes'][key]["total_pixels"] + scenes[key]["total_pixels"]
+                    global_meta_data['scenes'][key]["clear_pixels"] = global_meta_data['scenes'][key]["clear_pixels"] + scenes[key]["clear_pixels"]
+                
+                task = data['coastal_change'] 
+
+                if not global_meta_data['coastal_change']:
+                        global_meta_data['coastal_change'] = {'sea_converted': 0, 'land_converted':0}
+            
+                global_meta_data[ 'coastal_change' ][ 'sea_converted' ] = global_meta_data[ 'coastal_change' ][ 'sea_converted'  ] + task['sea_converted']
+                global_meta_data[ 'coastal_change' ][ 'land_converted' ]  = global_meta_data[ 'coastal_change' ][ 'land_converted'  ]  + task['land_converted'] 
+
+        print("||||||||||||||||||||||||||||||||||||||||||||||||||||||")
+        print(global_meta_data[ 'coastal_change' ])   
+        dates = list(global_meta_data['scenes'].keys())
+        dates.sort()
+
+        meta = query.generate_metadata(
+            scene_count=len(dates), 
+            pixel_count=len(dataset_mosaic.latitude)*len(dataset_mosaic.longitude)
+        )
+
+        for date in reversed(dates):
+            meta.acquisition_list += date.strftime("%m/%d/%Y") + ","
+            meta.clean_pixels_per_acquisition += str(
+                global_meta_data['scenes'][date]['clear_pixels']) + ","
+            meta.clean_pixel_percentages_per_acquisition += str(
+                global_meta_data['scenes'][date]['clear_pixels'] * 100 / meta.pixel_count) + ","
+
+        meta.land_converted = global_meta_data["coastal_change"]['land_converted']
+        meta.sea_converted = global_meta_data["coastal_change"]['sea_converted']
+        meta.save()
+
+        print(global_meta_data['scenes'])
 
         latitude = dataset_out_mosaic.latitude
         longitude = dataset_out_mosaic.longitude
@@ -371,19 +429,18 @@ def create_coastal_change(query_id, user_id, single=False):
 
         #Build Result Object #################################################
 
-        meta = query.generate_metadata()
+        # meta = query.generate_metadata()
         update_model_bounds_with_dataset([result, meta, query], dataset_out_mosaic)
 
 
-        result.result_path      = coastal_boundary_png_path
-        result.result_mosaic_path       = mosaic_png_path
+        result.result_path                     = coastal_boundary_png_path
+        result.result_mosaic_path              = mosaic_png_path
         result.result_coastal_change_path      = coastal_change_png_path
 
         result.data_path        = tif_path
         result.data_netcdf_path = netcdf_path
         result.status           = "OK"
         result.total_scenes     = len(acquisitions)
-
 
         result.save()
 
@@ -415,10 +472,29 @@ def generate_coastal_change_chunk(time_num,
  measurements=None,
  platform = None,
  product = None,
- year_stationary = None):
+ year_stationary = None,
+ end_range = None):
 
     if not os.path.exists(BASE_TEMP_PATH + query.query_id):
         return None
+
+    ## These are print objects. I toggle them on and off to adjust how verbose this task is.  
+    task_print = DPrint(True) # Outputs status of product generation steps
+    meta_print = DPrint(True, pretty = True) # Outputs status of meta-data generation steps
+
+
+    ##meta data###########
+    
+    #per scene
+    per_scene_clear_pixel   = 0
+    percentage_clear_pixel  = 0
+    per_scene_water_pixel   = 0
+    cf_mask_per_scene       = 0
+
+    #per task
+
+
+    #######################
 
     time_index              = 0
     old_mosaic              = None
@@ -436,7 +512,7 @@ def generate_coastal_change_chunk(time_num,
 
     ##Loading Data #############################################
 
-    print("___Loading___\n" + str((min(stationary_acquisitions).year, max(stationary_acquisitions).year)))
+    task_print("___Loading___\n" + str((min(stationary_acquisitions).year, max(stationary_acquisitions).year)))
     old_landsat = dc.get_dataset_by_extent(product,
             product_type=None,
             platform=platform,
@@ -445,11 +521,9 @@ def generate_coastal_change_chunk(time_num,
             latitude=lat_range,
             measurements=measurements)
     old_landsat = old_landsat.where(old_landsat >= 0)
-    print("___Loaded")
+    task_print("___Loaded")
 
-
-
-    print("___Loading___\n" + str((min(most_recent_acquisitions).year, max(most_recent_acquisitions).year)))
+    task_print("___Loading___\n" + str((min(most_recent_acquisitions).year, max(most_recent_acquisitions).year)))
     new_landsat = dc.get_dataset_by_extent(product,
             product_type=None,
             platform=platform,
@@ -458,36 +532,34 @@ def generate_coastal_change_chunk(time_num,
             latitude=lat_range,
             measurements=measurements)
     new_landsat = new_landsat.where(new_landsat >= 0)
-    print("___Loaded")
+    task_print("___Loaded")
 
-
-
-    print("___Mosaic___")
-    print("old")    
+    task_print("___Mosaic___")
+    task_print("old")    
     old_mosaic = create_mosaic(old_landsat)
 
-    print("___Mosaic___")
-    print("new")    
+    task_print("___Mosaic___")
+    task_print("new")    
     new_mosaic = create_median_mosaic(new_landsat)
 
     ##Build Wofs #####################################
-    print("___Wofs___")
-    print("old")    
+    task_print("___Wofs___")
+    task_print("old")    
     old_water = wofs_classify(old_mosaic, mosaic=True)
 
-    print("___Wofs___")
-    print("new")    
+    task_print("___Wofs___")
+    task_print("new")    
     new_water = wofs_classify(new_mosaic, mosaic=True)
 
     ##########################
-    print("___Drop___")
-    print("old")    
+    task_print("___Drop___")
+    task_print("old")    
     old_landsat.drop(['nir','swir1','swir2'])
     old_mosaic.drop( ['nir','swir1','swir2'])
 
     ##########################
-    print("___Drop___")
-    print("new")    
+    task_print("___Drop___")
+    task_print("new")    
     new_landsat.drop( ['nir','swir1','swir2'])
     new_mosaic.drop(  ['nir','swir1','swir2'])
 
@@ -498,16 +570,16 @@ def generate_coastal_change_chunk(time_num,
     coastal_change = coastal_change.where(coastal_change.wofs_change != 0)
 
     ##Coastal Boundary Calculation ###############################
-    print("___Coastline___")
-    print("old")    
+    task_print("___Coastline___")
+    task_print("old")    
     
     new_coastline = coastline_classification_2(new_water)
   
-    print("___Coastline___")
-    print("new")  
+    task_print("___Coastline___")
+    task_print("new")  
     old_coastline = coastline_classification_2(old_water)
 
-    print("___Painting___")
+    task_print("___Painting___")
      
 
     ##DISPLAY NEWEST VS OLDEST MOSAIC#############################
@@ -515,12 +587,12 @@ def generate_coastal_change_chunk(time_num,
 
     ##Coastal Change visual Raster ###############################
     change = target.copy(deep =True)
-    change.red.values[coastal_change.wofs_change.values    == 1]      = adjust_color(PINK[0])
-    change.green.values[coastal_change.wofs_change.values  == 1]    = adjust_color(PINK[1])
+    change.red.values[coastal_change.wofs_change.values    == 1]     = adjust_color(PINK[0])
+    change.green.values[coastal_change.wofs_change.values  == 1]     = adjust_color(PINK[1])
     change.blue.values[coastal_change.wofs_change.values   == 1]     = adjust_color(PINK[2])
 
-    change.red.values[coastal_change.wofs_change.values    == -1]     = adjust_color(GREEN[0])
-    change.green.values[coastal_change.wofs_change.values  == -1]   = adjust_color(GREEN[1])
+    change.red.values[coastal_change.wofs_change.values    == -1]    = adjust_color(GREEN[0])
+    change.green.values[coastal_change.wofs_change.values  == -1]    = adjust_color(GREEN[1])
     change.blue.values[coastal_change.wofs_change.values   == -1]    = adjust_color(GREEN[2])
 
     ##Coastal Boundary Visual Raster #############################
@@ -528,12 +600,12 @@ def generate_coastal_change_chunk(time_num,
     boundary = boundary
 
     boundary.red.values[new_coastline.coastline.values   == 1]     = adjust_color(BLUE[0])
-    boundary.green.values[new_coastline.coastline.values == 1]   = adjust_color(BLUE[1])
-    boundary.blue.values[new_coastline.coastline.values  == 1]    = adjust_color(BLUE[2])
+    boundary.green.values[new_coastline.coastline.values == 1]     = adjust_color(BLUE[1])
+    boundary.blue.values[new_coastline.coastline.values  == 1]     = adjust_color(BLUE[2])
 
     boundary.red.values[old_coastline.coastline.values   == 1]     = adjust_color(GREEN[0])
-    boundary.green.values[old_coastline.coastline.values == 1]   = adjust_color(GREEN[1])
-    boundary.blue.values[old_coastline.coastline.values  == 1]    = adjust_color(GREEN[2])
+    boundary.green.values[old_coastline.coastline.values == 1]     = adjust_color(GREEN[1])
+    boundary.blue.values[old_coastline.coastline.values  == 1]     = adjust_color(GREEN[2])
    
     ##WRITE TO TEMPORARY DIR ###############################
     if not os.path.exists(BASE_TEMP_PATH + query.query_id):
@@ -546,18 +618,49 @@ def generate_coastal_change_chunk(time_num,
     coastal_change_path = BASE_TEMP_PATH + query.query_id + "/change_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
 
-    print("WRITING::: Target ||" + str(geo_path))
+    task_print("WRITING::: Target ||" + str(geo_path))
     target.to_netcdf(geo_path)
 
-    print("WRITING::: Coastal Change ||" + str(coastal_change_path))
+    task_print("WRITING::: Coastal Change ||" + str(coastal_change_path))
     change.to_netcdf(coastal_change_path)
 
-    print("WRITING::: Boundary Change ||" + str(boundary_change_path))
+    task_print("WRITING::: Boundary Change ||" + str(boundary_change_path))
     boundary.to_netcdf(boundary_change_path)
 
-    print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
-    return [geo_path, coastal_change_path , boundary_change_path]
+    task_print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
 
+    print(most_recent_key)
+
+    ### META DATA #################################################################
+
+    meta_data = {"scene":{}, "coastal_change": {"land_converted": 0, "sea_converted": 0}}
+
+
+    latest_year = datetime.datetime(most_recent_key,2,2)
+    date_floor = end_range[0]
+    date_ceil  = end_range[1]
+
+    if (latest_year >= date_floor) & (latest_year <= date_ceil): 
+
+        meta_print("Generating per scene meta-data for old_landsat")
+        old_acquisition_meta_data = extract_landsat_scene_metadata(old_landsat)
+
+        meta_print("Generating per scene meta-data for new_landsat")
+        new_acquisition_meta_data = extract_landsat_scene_metadata(new_landsat)
+
+        meta_print("Generating metadata for coastal change product")
+        task_meta_data = extract_coastal_change_metadata(coastal_change)
+
+        old_and_new_acquisition_meta_data = {'scene':{
+            **old_acquisition_meta_data['scene'], 
+            **new_acquisition_meta_data['scene']
+            }}
+
+        meta_data = {**old_and_new_acquisition_meta_data, **task_meta_data}
+
+    #################################################################################
+
+    return [geo_path, coastal_change_path , boundary_change_path, meta_data]
 
 # Init/shutdown functions for handling dc instances.
 # this is done to prevent synchronization/conflicts between workers when
@@ -586,3 +689,4 @@ def shutdown_worker(**kwargs):
     print('Closing DC instance for worker.')
     global dc
     dc.dc.close()
+

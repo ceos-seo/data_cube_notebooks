@@ -18,7 +18,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
+import pprint
 from .models import Query
 from data_cube_ui.models import Area, Satellite
 from datetime import datetime
@@ -35,20 +35,106 @@ application.
 # Author: OW
 # Creation date: 2017-02-14
 
+def count_not_nan(np_array):
+    return np.count_nonzero(~np.isnan(np_array))
+
+    
+def count_nan(np_array):
+    return np.count_nonzero(np.isnan(np_array))
+
+
+def n64_to_datetime(n64):
+    b = n64.astype(object)
+    return datetime.fromtimestamp(int(b/1000000000))
+
+
+def count_pixels(array, element):
+    return np.count_nonzero(array == element)
+
+
+class DPrint:
+    '''This class is designed a debugging feature and may be removed in the future.'''
+    def __init__(self, truth, pretty = False):
+        self.debug_mode = True
+        if pretty == True:
+            pp = pprint.PrettyPrinter(indent=4)
+            self.print_statement = pp.pprint
+        else:
+            self.print_statement = print
+    def __call__(self, *args, **kwargs):
+        if self.debug_mode == True:
+            self.print_statement(*args)
+
+
+def merge_two_dicts(x, y):
+    """Given two dicts, merge them into a new dict as a shallow copy.
+    
+    See more at:  
+        http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
+
+    """
+    z = x.copy()
+    z.update(y)
+    return z
+
+
+def extract_landsat_scene_metadata(landsat_xarray, no_data = -9999):
+    times  = (time for time in landsat_xarray.time.values)  
+    scenes = ( landsat_xarray.sel(time = time) for time in times ) 
+
+    metadata = {"scene":{}}
+
+    for number, scene in enumerate(scenes):
+        total_pixels ,clear_pixels , clear_percent = [-1]*3
+
+        date = n64_to_datetime(scene.time.values)
+
+        id = date
+        total_pixels  = count_not_nan(scene.red.values)
+        clear_pixels  = count_not_nan(scene.where((scene.cf_mask < 2) & (scene >= 0)).red.values)
+        clear_percent = (float(clear_pixels)/float(total_pixels)) * 100
+
+        metadata['scene'][id] = {
+            "total_pixels":total_pixels,
+            "clear_pixels": clear_pixels,
+            "clear_percent": clear_percent,
+            'date': date
+            }
+
+    return metadata
+
+
+def extract_coastal_change_metadata(wofs_difference_xarray, no_data = -9999):
+    
+    metadata = {"coastal_change": {}}
+    
+    sea_converted  = count_pixels(wofs_difference_xarray.wofs_change.values, -1)
+    land_converted = count_pixels(wofs_difference_xarray.wofs_change.values,  1)
+
+    metadata['coastal_change'] = {
+        "sea_converted": sea_converted,
+        "land_converted": land_converted,
+    }    
+    
+    return metadata
+
+
 def coastline_classification(dataset, water_band = 'wofs'):
     kern = np.array([[1,1,1],[1,0.001,1],[1,1,1]])
     convolved = conv.convolve(dataset[water_band], kern, mode ='constant')//1
 
     ds = dataset.where(convolved>0)
-    ds = ds.where(convolved<5)
+    ds = ds.where(convolved<6)
     ds.wofs.values[~np.isnan(ds.wofs.values)] = 1
     ds.wofs.values[ np.isnan(ds.wofs.values)] = 0
+    ds.rename({"wofs": "coastline"}, inplace = True)
 
     return ds
 
+
 def coastline_classification_2(dataset, water_band = 'wofs'):
     kern = np.array([[1,1,1],[1,0.001,1],[1,1,1]])
-    convolved = conv.convolve(dataset[water_band], kern, mode ='constant')//1
+    convolved = conv.convolve(dataset[water_band], kern, mode ='constant',cval = -999)//1
 
     ds = dataset.copy(deep = True)
     ds.wofs.values[(~np.isnan(ds[water_band].values)) & (ds.wofs.values == 1)] = 1
@@ -57,6 +143,10 @@ def coastline_classification_2(dataset, water_band = 'wofs'):
     ds.rename({"wofs": "coastline"}, inplace = True)
 
     return ds
+
+
+def count_nans(dataset, band = None):
+    np.count_nonzero(~np.isnan(data))
 
 def adjust_color(color, scale = 4096):
     return int(float(color * scale)/255.0)
