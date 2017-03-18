@@ -24,7 +24,6 @@ from django import forms
 import datetime
 
 from data_cube_ui.models import Baseline
-
 """
 File designed to house the different forms for taking in user input in the web application.  Forms
 allow for input validation and passing of data.  Includes forms for creating Queries to be ran.
@@ -35,7 +34,8 @@ allow for input validation and passing of data.  Includes forms for creating Que
 # Modified by:
 # Last modified date:
 
-years_range = list(range(1990, datetime.datetime.now().year+1))
+years_range = list(range(1990, datetime.datetime.now().year + 1))
+
 
 class DataSelectForm(forms.Form):
     """
@@ -49,9 +49,17 @@ class DataSelectForm(forms.Form):
     title = forms.CharField(widget=forms.HiddenInput())
     description = forms.CharField(widget=forms.HiddenInput())
 
-    baseline_length = forms.ChoiceField(help_text='Select the number of acquisitions that will be used to create the baseline', label="Baseline Length (Acquisitions):", choices=[(number, number) for number in range(1,11)], widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+    baseline_length = forms.ChoiceField(
+        help_text='Select the number of acquisitions that will be used to create the baseline',
+        label="Baseline Length (Acquisitions):",
+        choices=[(number, number) for number in range(1, 11)],
+        widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
     def __init__(self, *args, **kwargs):
         super(DataSelectForm, self).__init__(*args, **kwargs)
         baseline_list = [(baseline.baseline_id, baseline.baseline_name) for baseline in Baseline.objects.all()]
-        self.fields["baseline_selection"] = forms.ChoiceField(help_text='Select the method by which the baseline will be created.', label="Baseline Method:", choices=baseline_list, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+        self.fields["baseline_selection"] = forms.ChoiceField(
+            help_text='Select the method by which the baseline will be created.',
+            label="Baseline Method:",
+            choices=baseline_list,
+            widget=forms.Select(attrs={'class': 'field-long tooltipped'}))

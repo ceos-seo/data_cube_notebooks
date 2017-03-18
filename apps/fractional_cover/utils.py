@@ -22,7 +22,6 @@
 from .models import Query
 from data_cube_ui.models import Area, Satellite
 from datetime import datetime
-
 """
 Utility class designed to take repeated functional code and abstract out for reuse through
 application.
@@ -52,17 +51,26 @@ def create_query_from_post(user_id, post):
     end = datetime.strptime(post['time_end'], '%m/%d/%Y')
 
     # hardcoded product, user id. Will be changed.
-    query = Query(query_start=datetime.now(), query_end=datetime.now(), user_id=user_id,
-                  latitude_max=post['latitude_max'], latitude_min=post['latitude_min'],
-                  longitude_max=post['longitude_max'], longitude_min=post['longitude_min'],
-                  time_start=start, time_end=end,
-                  platform=post['platform'], compositor=post['compositor_selection'],
-                  area_id=post['area_id'])
+    query = Query(
+        query_start=datetime.now(),
+        query_end=datetime.now(),
+        user_id=user_id,
+        latitude_max=post['latitude_max'],
+        latitude_min=post['latitude_min'],
+        longitude_max=post['longitude_max'],
+        longitude_min=post['longitude_min'],
+        time_start=start,
+        time_end=end,
+        platform=post['platform'],
+        compositor=post['compositor_selection'],
+        area_id=post['area_id'])
 
-    query.title = query.get_compositor_name() + " Frac. Cover" if 'title' not in post or post['title'] == '' else post['title']
+    query.title = query.get_compositor_name() + " Frac. Cover" if 'title' not in post or post['title'] == '' else post[
+        'title']
     query.description = "None" if 'description' not in post or post['description'] == '' else post['description']
 
-    query.product = Satellite.objects.get(satellite_id=query.platform).product_prefix + Area.objects.get(area_id=query.area_id).area_id
+    query.product = Satellite.objects.get(satellite_id=query.platform).product_prefix + Area.objects.get(
+        area_id=query.area_id).area_id
     query.query_id = query.generate_query_id()
     if not Query.objects.filter(query_id=query.query_id).exists():
         query.save()

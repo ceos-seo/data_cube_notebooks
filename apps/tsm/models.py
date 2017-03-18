@@ -22,7 +22,6 @@
 from django.db import models
 from data_cube_ui.models import AnimationType
 from data_cube_ui.models import Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as BaseResultType
-
 """
 Models file that holds all the classes representative of the database tabeles.  Allows for queries
 to be created for basic CRUD operations.
@@ -71,26 +70,44 @@ class Query(BaseQuery):
         """
 
         query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{platform}-{product}-{query_type}-{animation}'
-        return query_id.format(start=self.time_start.strftime("%Y-%m-%d"),
-                               end=self.time_end.strftime("%Y-%m-%d"),
-                               lat_max=self.latitude_max,
-                               lat_min=self.latitude_min,
-                               lon_max=self.longitude_max,
-                               lon_min=self.longitude_min,
-                               platform=self.platform,
-                               product=self.product,
-                               query_type=self.query_type,
-                               animation=self.animated_product)
+        return query_id.format(
+            start=self.time_start.strftime("%Y-%m-%d"),
+            end=self.time_end.strftime("%Y-%m-%d"),
+            lat_max=self.latitude_max,
+            lat_min=self.latitude_min,
+            lon_max=self.longitude_max,
+            lon_min=self.longitude_min,
+            platform=self.platform,
+            product=self.product,
+            query_type=self.query_type,
+            animation=self.animated_product)
 
     def generate_metadata(self, scene_count=0, pixel_count=0):
-        meta = Metadata(query_id=self.query_id, scene_count=scene_count, pixel_count=pixel_count,
-                        latitude_min=self.latitude_min, latitude_max=self.latitude_max, longitude_min=self.longitude_min, longitude_max=self.longitude_max)
+        meta = Metadata(
+            query_id=self.query_id,
+            scene_count=scene_count,
+            pixel_count=pixel_count,
+            latitude_min=self.latitude_min,
+            latitude_max=self.latitude_max,
+            longitude_min=self.longitude_min,
+            longitude_max=self.longitude_max)
         meta.save()
         return meta
 
     def generate_result(self):
-        result =  Result(query_id=self.query_id, result_path="", clear_observations_path="", data_path="", data_netcdf_path="", latitude_min=self.latitude_min,
-                        latitude_max=self.latitude_max, longitude_min=self.longitude_min, longitude_max=self.longitude_max, total_scenes=0, scenes_processed=0, status="WAIT")
+        result = Result(
+            query_id=self.query_id,
+            result_path="",
+            clear_observations_path="",
+            data_path="",
+            data_netcdf_path="",
+            latitude_min=self.latitude_min,
+            latitude_max=self.latitude_max,
+            longitude_min=self.longitude_min,
+            longitude_max=self.longitude_max,
+            total_scenes=0,
+            scenes_processed=0,
+            status="WAIT")
         result.save()
         return result
 
@@ -102,6 +119,7 @@ class Metadata(BaseMetadata):
     """
 
     pass
+
 
 class Result(BaseResult):
     """

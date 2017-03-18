@@ -23,34 +23,45 @@ from django.contrib import admin
 from .models import Query, Metadata, Result, ResultType
 from data_cube_ui.models import Satellite, Area, AnimationType
 
+
 class QueryAdmin(admin.ModelAdmin):
-    list_display = ('id','title','user_id','platform','time_start_display','time_end_display')
+    list_display = ('id', 'title', 'user_id', 'platform', 'time_start_display', 'time_end_display')
 
     def time_start_display(self, obj):
         return obj.time_start.strftime("%m/%d/%Y")
+
     time_start_display.admin_order_field = 'time_start'
 
     def time_end_display(self, obj):
         return obj.time_end.strftime("%m/%d/%Y")
+
     time_end_display.admin_order_field = 'time_end'
+
 
 class MetadataAdmin(admin.ModelAdmin):
     list_display = ('query_id',)
 
+
 class ResultAdmin(admin.ModelAdmin):
-    list_display = ('data_path','status','latitude_min','latitude_max','longitude_min','longitude_max','latitude_max','latitude_min','longitude_max','longitude_min')
+    list_display = ('data_path', 'status', 'latitude_min', 'latitude_max', 'longitude_min', 'longitude_max',
+                    'latitude_max', 'latitude_min', 'longitude_max', 'longitude_min')
+
 
 class ResultTypeAdmin(admin.ModelAdmin):
-    list_display = ('satellite_id','result_id','result_type')
+    list_display = ('satellite_id', 'result_id', 'result_type')
+
 
 class SatelliteAdmin(admin.ModelAdmin):
-    list_display = ('satellite_id','satellite_name')
+    list_display = ('satellite_id', 'satellite_name')
+
 
 class AreaAdmin(admin.ModelAdmin):
-    list_display = ('area_id','area_name')
+    list_display = ('area_id', 'area_name')
+
 
 class AnimationTypeAdmin(admin.ModelAdmin):
     list_display = ('type_id', 'type_name')
+
 
 # Register your models here.
 admin.site.register(Query, QueryAdmin)

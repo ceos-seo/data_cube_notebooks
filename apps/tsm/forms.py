@@ -25,7 +25,6 @@ import datetime
 
 from .models import ResultType
 from data_cube_ui.models import AnimationType
-
 """
 File designed to house the different forms for taking in user input in the web application.  Forms
 allow for input validation and passing of data.  Includes forms for creating Queries to be ran.
@@ -49,8 +48,7 @@ class DataSelectForm(forms.Form):
     """
 
     # these are done in the init funct.
-    result_type = forms.ChoiceField(
-        label='Image Background Color:', widget=forms.Select(attrs={'class': 'field-long'}))
+    result_type = forms.ChoiceField(label='Image Background Color:', widget=forms.Select(attrs={'class': 'field-long'}))
 
     title = forms.CharField(widget=forms.HiddenInput())
     description = forms.CharField(widget=forms.HiddenInput())
@@ -59,13 +57,19 @@ class DataSelectForm(forms.Form):
         super(DataSelectForm, self).__init__(*args, **kwargs)
 
         if satellite_id is not None:
-            result_types = ResultType.objects.filter(
-                satellite_id=satellite_id)
-            result_list = [(result.result_id, result.result_type)
-                                for result in result_types]
-            self.fields["result_type"] = forms.ChoiceField(help_text='Select background color of the image that you would like displayed.',
-                                                           label='Background Color:', choices=result_list, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+            result_types = ResultType.objects.filter(satellite_id=satellite_id)
+            result_list = [(result.result_id, result.result_type) for result in result_types]
+            self.fields["result_type"] = forms.ChoiceField(
+                help_text='Select background color of the image that you would like displayed.',
+                label='Background Color:',
+                choices=result_list,
+                widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
             animation_list = [(animation_type.type_id, animation_type.type_name)
-                            for animation_type in AnimationType.objects.filter(app_name__in=["tsm", "all"]).order_by('app_name', 'type_id')]
-            self.fields["animated_product"] = forms.ChoiceField(label='Generate Time Series Animation', widget=forms.Select(
-        attrs={'class': 'field-long tooltipped'}), choices=animation_list, help_text='Generate a .gif containing tsm values for every scene. Use the output tab to download this result.')
+                              for animation_type in AnimationType.objects.filter(app_name__in=["tsm", "all"]).order_by(
+                                  'app_name', 'type_id')]
+            self.fields["animated_product"] = forms.ChoiceField(
+                label='Generate Time Series Animation',
+                widget=forms.Select(attrs={'class': 'field-long tooltipped'}),
+                choices=animation_list,
+                help_text='Generate a .gif containing tsm values for every scene. Use the output tab to download this result.'
+            )

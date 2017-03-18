@@ -44,7 +44,6 @@ from utils.dc_mosaic import create_mosaic, create_median_mosaic, create_max_ndvi
 from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task, fill_nodata, max_value, min_value, generate_time_ranges
 
 from data_cube_ui.utils import update_model_bounds_with_dataset, combine_metadata, cancel_task, error_with_message
-
 """
 Class for handling loading celery workers to perform tasks asynchronously.
 """
@@ -115,6 +114,7 @@ processing_algorithms = {
     }
 }
 
+
 @task(name="get_data_task")
 def create_cloudfree_mosaic(query_id, user_id, single=False):
     """
@@ -154,8 +154,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
     #    error_with_message(result, "Combined products are not supported for custom mosaics.", base_temp_path)
     #    return
     if query.platform == "LANDSAT_ALL":
-        product_details = dc.dc.list_products(
-        )[dc.dc.list_products().name == products[1]+query.area_id]
+        product_details = dc.dc.list_products()[dc.dc.list_products().name == products[1] + query.area_id]
     else:
         product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
 
@@ -166,11 +165,20 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         if query.platform == "LANDSAT_ALL":
             acquisitions = []
             for index in range(len(products)):
-                acquisitions.extend(dc.list_acquisition_dates(platforms[index], products[index]+query.area_id, time=(query.time_start, query.time_end), longitude=(
-                    query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max)))
+                acquisitions.extend(
+                    dc.list_acquisition_dates(
+                        platforms[index],
+                        products[index] + query.area_id,
+                        time=(query.time_start, query.time_end),
+                        longitude=(query.longitude_min, query.longitude_max),
+                        latitude=(query.latitude_min, query.latitude_max)))
         else:
-            acquisitions = dc.list_acquisition_dates(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
-                query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
+            acquisitions = dc.list_acquisition_dates(
+                query.platform,
+                query.product,
+                time=(query.time_start, query.time_end),
+                longitude=(query.longitude_min, query.longitude_max),
+                latitude=(query.latitude_min, query.latitude_max))
 
         if len(acquisitions) < 1:
             error_with_message(result, "There were no acquisitions for this parameter set.", base_temp_path)
@@ -187,14 +195,19 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             processing_options["time_slices_per_iteration"] = 1
 
         if query.animated_product != "None" and query.compositor == "median_pixel":
-            error_with_message(
-                result, "Animations are not supported for median pixel operations.", base_temp_path)
+            error_with_message(result, "Animations are not supported for median pixel operations.", base_temp_path)
             return
 
         # Reversed time = True will make it so most recent = First, oldest = Last.
         #default is in order from oldest -> newwest.
-        lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
-            query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
+        lat_ranges, lon_ranges, time_ranges = split_task(
+            resolution=product_details.resolution.values[0][1],
+            latitude=(query.latitude_min, query.latitude_max),
+            longitude=(query.longitude_min, query.longitude_max),
+            acquisitions=acquisitions,
+            geo_chunk_size=processing_options['geo_chunk_size'],
+            time_chunks=processing_options['time_chunks'],
+            reverse_time=processing_options['reverse_time'])
 
         result.total_scenes = len(time_ranges)
         result.save()
@@ -212,8 +225,19 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         print("Time chunks: " + str(len(time_ranges)))
         print("Geo chunks: " + str(len(lat_ranges)))
         # create a group of geographic tasks for each time slice.
-        time_chunk_tasks = [group(generate_mosaic_chunk.s(time_range_index, geographic_chunk_index, processing_options=processing_options, query=query, acquisition_list=time_ranges[time_range_index], lat_range=lat_ranges[
-                                  geographic_chunk_index], lon_range=lon_ranges[geographic_chunk_index], measurements=measurements) for geographic_chunk_index in range(len(lat_ranges))).apply_async() for time_range_index in range(len(time_ranges))]
+        time_chunk_tasks = [
+            group(
+                generate_mosaic_chunk.s(
+                    time_range_index,
+                    geographic_chunk_index,
+                    processing_options=processing_options,
+                    query=query,
+                    acquisition_list=time_ranges[time_range_index],
+                    lat_range=lat_ranges[geographic_chunk_index],
+                    lon_range=lon_ranges[geographic_chunk_index],
+                    measurements=measurements) for geographic_chunk_index in range(len(lat_ranges))).apply_async()
+            for time_range_index in range(len(time_ranges))
+        ]
 
         # holds some acquisition based metadata. dict of objs keyed by date
         dataset_out = None
@@ -233,8 +257,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                             child.revoke()
                     cancel_task(query, result, base_temp_path)
                     return
-            group_data = [data for data in geographic_group.get()
-                          if data is not None]
+            group_data = [data for data in geographic_group.get() if data is not None]
             result.scenes_processed += 1
             result.save()
             print("Got results for a time slice, computing intermediate product..")
@@ -247,55 +270,66 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
             # combine all the intermediate products for the animation creation.
             if query.animated_product != "None":
-                  print("Num of slices in this chunk: " +
-                        str(len(time_ranges[time_range_index])))
-                  for timeslice in range(len(time_ranges[time_range_index])):
-                      result.refresh_from_db()
-                      if result.status == "CANCEL":
-                          #revoke all tasks. Running tasks will continue to execute.
-                          for task_group in time_chunk_tasks:
-                              for child in task_group.children:
-                                  child.revoke()
-                          cancel_task(query, result, base_temp_path)
-                          return
+                print("Num of slices in this chunk: " + str(len(time_ranges[time_range_index])))
+                for timeslice in range(len(time_ranges[time_range_index])):
+                    result.refresh_from_db()
+                    if result.status == "CANCEL":
+                        #revoke all tasks. Running tasks will continue to execute.
+                        for task_group in time_chunk_tasks:
+                            for child in task_group.children:
+                                child.revoke()
+                        cancel_task(query, result, base_temp_path)
+                        return
 
-                      nc_paths = [base_temp_path + query.query_id + '/' + \
-                          str(time_range_index) + '/' + \
-                          str(geoslice) + str(timeslice) + ".nc" for geoslice in range(len(lat_ranges))]
+                    nc_paths = [base_temp_path + query.query_id + '/' + \
+                        str(time_range_index) + '/' + \
+                        str(geoslice) + str(timeslice) + ".nc" for geoslice in range(len(lat_ranges))]
 
-                      animated_data = xr.concat(reversed([xr.open_dataset(nc_path) for nc_path in nc_paths]), dim='latitude').load()
+                    animated_data = xr.concat(
+                        reversed([xr.open_dataset(nc_path) for nc_path in nc_paths]), dim='latitude').load()
 
-                      #combine the timeslice vals with the intermediate for the true value @ that timeslice
-                      if time_range_index > 0 and query.animated_product != "scene":
-                          animated_data = processing_options['chunk_combination_method'](animated_data, dataset_out)
+                    #combine the timeslice vals with the intermediate for the true value @ that timeslice
+                    if time_range_index > 0 and query.animated_product != "scene":
+                        animated_data = processing_options['chunk_combination_method'](animated_data, dataset_out)
 
-                      tif_path = base_temp_path + query.query_id + '/' + \
-                          str(time_range_index) + '/' + \
-                          str(animation_tile_count) + '.tif'
-                      png_path = base_temp_path + query.query_id + \
-                          '/' + str(animation_tile_count) + '.png'
-                      animation_tile_count += 1
+                    tif_path = base_temp_path + query.query_id + '/' + \
+                        str(time_range_index) + '/' + \
+                        str(animation_tile_count) + '.tif'
+                    png_path = base_temp_path + query.query_id + \
+                        '/' + str(animation_tile_count) + '.png'
+                    animation_tile_count += 1
 
-                      # get metadata needed for tif creation.
-                      geotransform = [dataset.longitude.values[0], product_details.resolution.values[0][1],
-                                      0.0, dataset.latitude.values[0], 0.0, product_details.resolution.values[0][0]]
-                      crs = str("EPSG:4326")
+                    # get metadata needed for tif creation.
+                    geotransform = [
+                        dataset.longitude.values[0], product_details.resolution.values[0][1], 0.0,
+                        dataset.latitude.values[0], 0.0, product_details.resolution.values[0][0]
+                    ]
+                    crs = str("EPSG:4326")
 
-                      save_to_geotiff(tif_path, gdal.GDT_Float64, animated_data, geotransform, crs,
-                                      x_pixels=animated_data.dims['longitude'], y_pixels=animated_data.dims['latitude'], band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2'])
-                      animated_data = None
+                    save_to_geotiff(
+                        tif_path,
+                        gdal.GDT_Float64,
+                        animated_data,
+                        geotransform,
+                        crs,
+                        x_pixels=animated_data.dims['longitude'],
+                        y_pixels=animated_data.dims['latitude'],
+                        band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2'])
+                    animated_data = None
 
-                      bands = [measurements.index(result_type.red)+1, measurements.index(result_type.green)+1, measurements.index(result_type.blue)+1]
-                      create_rgb_png_from_tiff(tif_path, png_path, bands=bands, scale=(0, 4096))
+                    bands = [
+                        measurements.index(result_type.red) + 1, measurements.index(result_type.green) + 1,
+                        measurements.index(result_type.blue) + 1
+                    ]
+                    create_rgb_png_from_tiff(tif_path, png_path, bands=bands, scale=(0, 4096))
 
-                      # remove all the intermediates for this timeslice
-                      for path in nc_paths:
-                          os.remove(path)
-                      os.remove(tif_path)
-                  # remove the tiff.. some of these can be >1gb, so having one
-                  # per scene is too much.
-                  shutil.rmtree(base_temp_path + query.query_id +
-                                '/' + str(time_range_index))
+                    # remove all the intermediates for this timeslice
+                    for path in nc_paths:
+                        os.remove(path)
+                    os.remove(tif_path)
+                # remove the tiff.. some of these can be >1gb, so having one
+                # per scene is too much.
+                shutil.rmtree(base_temp_path + query.query_id + '/' + str(time_range_index))
 
             time_range_index += 1
             dataset_out = processing_options['chunk_combination_method'](dataset, dataset_out)
@@ -304,8 +338,10 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         longitude = dataset_out.longitude
 
         # grabs the resolution.
-        geotransform = [longitude.values[0], product_details.resolution.values[0][1],
-                        0.0, latitude.values[0], 0.0, product_details.resolution.values[0][0]]
+        geotransform = [
+            longitude.values[0], product_details.resolution.values[0][1], 0.0, latitude.values[0], 0.0,
+            product_details.resolution.values[0][0]
+        ]
         #hardcoded crs for now. This is not ideal. Should maybe store this in the db with product type?
         crs = str("EPSG:4326")
 
@@ -313,16 +349,14 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         dates = list(acquisition_metadata.keys())
         dates.sort()
 
-        meta = query.generate_metadata(
-            scene_count=len(dates), pixel_count=len(latitude)*len(longitude))
+        meta = query.generate_metadata(scene_count=len(dates), pixel_count=len(latitude) * len(longitude))
 
         for date in reversed(dates):
             meta.acquisition_list += date.strftime("%m/%d/%Y") + ","
             meta.satellite_list += acquisition_metadata[date]['satellite'] + ","
-            meta.clean_pixels_per_acquisition += str(
-                acquisition_metadata[date]['clean_pixels']) + ","
-            meta.clean_pixel_percentages_per_acquisition += str(
-                acquisition_metadata[date]['clean_pixels'] * 100 / meta.pixel_count) + ","
+            meta.clean_pixels_per_acquisition += str(acquisition_metadata[date]['clean_pixels']) + ","
+            meta.clean_pixel_percentages_per_acquisition += str(acquisition_metadata[date]['clean_pixels'] * 100 /
+                                                                meta.pixel_count) + ","
 
         # Count clean pixels and correct for the number of measurements.
         clean_pixels = np.sum(dataset_out[measurements[0]].values != -9999)
@@ -342,24 +376,39 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         if query.animated_product != "None":
             import imageio
             with imageio.get_writer(file_path + '_mosaic_animation.gif', mode='I', duration=1.0) as writer:
-                time_slices = reversed(range(len(acquisitions))) if processing_options['reverse_time'] and query.animated_product == "scene" else range(len(acquisitions))
+                time_slices = reversed(range(len(acquisitions))) if processing_options[
+                    'reverse_time'] and query.animated_product == "scene" else range(len(acquisitions))
                 for index in time_slices:
-                    image = imageio.imread(
-                        base_temp_path + query.query_id + '/' + str(index) + '.png')
+                    image = imageio.imread(base_temp_path + query.query_id + '/' + str(index) + '.png')
                     writer.append_data(image)
             result.animation_path = animation_path
 
         # remove intermediates
         shutil.rmtree(base_temp_path + query.query_id)
-        save_to_geotiff(tif_path, gdal.GDT_Int32, dataset_out.astype('int32'), geotransform, get_spatial_ref(crs),
-                        x_pixels=dataset_out.dims['longitude'], y_pixels=dataset_out.dims['latitude'],
-                        band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'satellite', 'timestamp', 'date'])
+        save_to_geotiff(
+            tif_path,
+            gdal.GDT_Int32,
+            dataset_out.astype('int32'),
+            geotransform,
+            get_spatial_ref(crs),
+            x_pixels=dataset_out.dims['longitude'],
+            y_pixels=dataset_out.dims['latitude'],
+            band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'satellite', 'timestamp', 'date'])
 
         dataset_out.to_netcdf(netcdf_path)
 
         # we've got the tif, now do the png.
-        bands = [measurements.index(result_type.red)+1, measurements.index(result_type.green)+1, measurements.index(result_type.blue)+1]
-        create_rgb_png_from_tiff(tif_path, png_path, png_filled_path=png_filled_path, fill_color=result_type.fill, bands=bands, scale=(0, 4096))
+        bands = [
+            measurements.index(result_type.red) + 1, measurements.index(result_type.green) + 1, measurements.index(
+                result_type.blue) + 1
+        ]
+        create_rgb_png_from_tiff(
+            tif_path,
+            png_path,
+            png_filled_path=png_filled_path,
+            fill_color=result_type.fill,
+            bands=bands,
+            scale=(0, 4096))
 
         # update the results and finish up.
         update_model_bounds_with_dataset([result, meta, query], dataset_out)
@@ -376,14 +425,21 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         query.query_end = datetime.datetime.now()
         query.save()
     except:
-        error_with_message(
-            result, "There was an exception when handling this query.", base_temp_path)
+        error_with_message(result, "There was an exception when handling this query.", base_temp_path)
         raise
     # end error wrapping.
     return
 
+
 @task(name="generate_mosaic_chunk")
-def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=None, acquisition_list=None, lat_range=None, lon_range=None, measurements=None):
+def generate_mosaic_chunk(time_num,
+                          chunk_num,
+                          processing_options=None,
+                          query=None,
+                          acquisition_list=None,
+                          lat_range=None,
+                          lon_range=None,
+                          measurements=None):
     """
     responsible for generating a piece of a custom mosaic product. This grabs the x/y area specified in the lat/lon ranges, gets all data
     from acquisition_list, which is a list of acquisition dates, and creates the custom mosaic using the function named in processing_options.
@@ -399,16 +455,34 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
     print("Starting chunk: " + str(time_num) + " " + str(chunk_num))
 
     #dc.load doesn't support generators so do it this way.
-    time_ranges = list(generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
+    time_ranges = list(
+        generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options[
+            'time_slices_per_iteration']))
 
     for time_index, time_range in enumerate(time_ranges):
 
         if query.platform == "LANDSAT_ALL":
-            raw_data = dc.get_stacked_datasets_by_extent([product+query.area_id for product in products], product_type=None, platforms=platforms, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
+            raw_data = dc.get_stacked_datasets_by_extent(
+                [product + query.area_id for product in products],
+                product_type=None,
+                platforms=platforms,
+                time=time_range,
+                longitude=lon_range,
+                latitude=lat_range,
+                measurements=measurements)
         else:
-            raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
+            raw_data = dc.get_dataset_by_extent(
+                query.product,
+                product_type=None,
+                platform=query.platform,
+                time=time_range,
+                longitude=lon_range,
+                latitude=lat_range,
+                measurements=measurements)
             if "cf_mask" in raw_data:
-                raw_data['satellite'] = xr.DataArray(np.full(raw_data.cf_mask.values.shape, platforms.index(query.platform), dtype="int16"), dims=('time', 'latitude', 'longitude'))
+                raw_data['satellite'] = xr.DataArray(
+                    np.full(raw_data.cf_mask.values.shape, platforms.index(query.platform), dtype="int16"),
+                    dims=('time', 'latitude', 'longitude'))
         if "cf_mask" not in raw_data:
             continue
 
@@ -416,45 +490,49 @@ def generate_mosaic_chunk(time_num, chunk_num, processing_options=None, query=No
         date_data = np.full(raw_data.cf_mask.values.shape, 0, dtype="int32")
         for index, time in enumerate(raw_data.time.values):
             timestamp_data[index::] = time.timestamp() if type(time) == datetime.datetime else time.astype(int) * 1e-9
-            date = time if type(time) == datetime.datetime else datetime.datetime.utcfromtimestamp(time.astype(int) * 1e-9)
+            date = time if type(time) == datetime.datetime else datetime.datetime.utcfromtimestamp(
+                time.astype(int) * 1e-9)
             date_data[index::] = int(date.strftime("%Y%m%d"))
         raw_data['timestamp'] = xr.DataArray(timestamp_data, dims=('time', 'latitude', 'longitude'))
         raw_data['date'] = xr.DataArray(date_data, dims=('time', 'latitude', 'longitude'))
 
         clear_mask = create_cfmask_clean_mask(raw_data.cf_mask)
 
-        iteration_data = processing_options['processing_method'](
-            raw_data, clean_mask=clear_mask, intermediate_product=iteration_data, reverse_time=processing_options['reverse_time'])
+        iteration_data = processing_options['processing_method'](raw_data,
+                                                                 clean_mask=clear_mask,
+                                                                 intermediate_product=iteration_data,
+                                                                 reverse_time=processing_options['reverse_time'])
 
         # update metadata. # here the clear mask has all the clean
         # pixels for each acquisition.
         for timeslice in range(clear_mask.shape[0]):
-            time = raw_data.time.values[timeslice] if type(raw_data.time.values[timeslice]) == datetime.datetime else datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
-            clean_pixels = np.sum(
-                clear_mask[timeslice, :, :] == True)
+            time = raw_data.time.values[timeslice] if type(
+                raw_data.time.values[timeslice]) == datetime.datetime else datetime.datetime.utcfromtimestamp(
+                    raw_data.time.values[timeslice].astype(int) * 1e-9)
+            clean_pixels = np.sum(clear_mask[timeslice, :, :] == True)
             if time not in acquisition_metadata:
                 acquisition_metadata[time] = {}
                 acquisition_metadata[time]['clean_pixels'] = 0
-                acquisition_metadata[time]['satellite'] = platforms[np.unique(raw_data.satellite.isel(time=timeslice).values)[0]] if np.unique(raw_data.satellite.isel(time=timeslice).values)[0] > -1 else "NODATA"
-            acquisition_metadata[time][
-                'clean_pixels'] += clean_pixels
+                acquisition_metadata[time]['satellite'] = platforms[np.unique(
+                    raw_data.satellite.isel(time=timeslice).values)[0]] if np.unique(
+                        raw_data.satellite.isel(time=timeslice).values)[0] > -1 else "NODATA"
+            acquisition_metadata[time]['clean_pixels'] += clean_pixels
 
             # create the files requied for animation..
             # if the dir doesn't exist, create it, then fill with a .png/.tif
             # from the scene data.
             if query.animated_product != "None":
-                animated_data = raw_data.isel(time=timeslice).drop(
-                    "time").astype("int16").copy(deep=True) if query.animated_product == "scene" else iteration_data.copy(deep=True)
+                animated_data = raw_data.isel(time=timeslice).drop("time").astype("int16").copy(
+                    deep=True) if query.animated_product == "scene" else iteration_data.copy(deep=True)
                 animated_data.attrs = OrderedDict()
                 #if the path has been removed, the task is cancelled and this is only running due to the prefetch.
                 if not os.path.exists(base_temp_path + query.query_id):
                     return None
                 else:
                     if not os.path.exists(base_temp_path + query.query_id + '/' + str(time_num)):
-                        os.mkdir(base_temp_path + query.query_id +
-                                 '/' + str(time_num))
-                    animated_data.to_netcdf(base_temp_path + query.query_id + '/' + str(
-                        time_num) + '/' + str(chunk_num) + str(time_index + timeslice) + ".nc")
+                        os.mkdir(base_temp_path + query.query_id + '/' + str(time_num))
+                    animated_data.to_netcdf(base_temp_path + query.query_id + '/' + str(time_num) + '/' + str(chunk_num)
+                                            + str(time_index + timeslice) + ".nc")
 
     # Save this geographic chunk to disk.
     geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \

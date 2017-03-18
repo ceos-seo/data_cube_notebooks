@@ -25,7 +25,6 @@ import datetime
 
 from .models import ResultType
 from data_cube_ui.models import Area, Compositor, AnimationType
-
 """
 File designed to house the different forms for taking in user input in the web application.  Forms
 allow for input validation and passing of data.  Includes forms for creating Queries to be ran.
@@ -35,6 +34,7 @@ allow for input validation and passing of data.  Includes forms for creating Que
 # Creation date: 2016-06-23
 # Modified by:
 # Last modified date:
+
 
 class DataSelectForm(forms.Form):
     """
@@ -47,7 +47,8 @@ class DataSelectForm(forms.Form):
     """
 
     #these are done in the init funct.
-    result_type = forms.ChoiceField(label='Result Type (Map view/png):', widget=forms.Select(attrs={'class': 'field-long'}))
+    result_type = forms.ChoiceField(
+        label='Result Type (Map view/png):', widget=forms.Select(attrs={'class': 'field-long'}))
 
     title = forms.CharField(widget=forms.HiddenInput())
     description = forms.CharField(widget=forms.HiddenInput())
@@ -59,12 +60,26 @@ class DataSelectForm(forms.Form):
             result_types = ResultType.objects.filter(satellite_id=satellite_id)
 
             results_list = [(result.result_id, result.result_type) for result in result_types]
-            self.fields["result_type"] = forms.ChoiceField(help_text='Select the type of image you would like displayed.', label='Result Type (Map view/png):', choices=results_list, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+            self.fields["result_type"] = forms.ChoiceField(
+                help_text='Select the type of image you would like displayed.',
+                label='Result Type (Map view/png):',
+                choices=results_list,
+                widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
-            compositor_list = [(compositor.compositor_id, compositor.compositor_name) for compositor in Compositor.objects.all()]
-            self.fields["compositor_selection"] = forms.ChoiceField(help_text='Select the method by which the "best" pixel will be chosen.', label="Compositing Method:", choices=compositor_list, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+            compositor_list = [(compositor.compositor_id, compositor.compositor_name)
+                               for compositor in Compositor.objects.all()]
+            self.fields["compositor_selection"] = forms.ChoiceField(
+                help_text='Select the method by which the "best" pixel will be chosen.',
+                label="Compositing Method:",
+                choices=compositor_list,
+                widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
             animation_list = [(animation_type.type_id, animation_type.type_name)
-                            for animation_type in AnimationType.objects.filter(app_name__in=["custom_mosaic_tool", "all"]).order_by('app_name', 'type_id')]
-            self.fields["animated_product"] = forms.ChoiceField(label='Generate Time Series Animation', widget=forms.Select(
-                attrs={'class': 'field-long tooltipped'}), choices=animation_list, help_text='Generate a .gif containing either scene data or the cumulative mosaic over time. This is not compatible with median pixel mosaics.')
+                              for animation_type in AnimationType.objects.filter(
+                                  app_name__in=["custom_mosaic_tool", "all"]).order_by('app_name', 'type_id')]
+            self.fields["animated_product"] = forms.ChoiceField(
+                label='Generate Time Series Animation',
+                widget=forms.Select(attrs={'class': 'field-long tooltipped'}),
+                choices=animation_list,
+                help_text='Generate a .gif containing either scene data or the cumulative mosaic over time. This is not compatible with median pixel mosaics.'
+            )

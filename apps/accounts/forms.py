@@ -7,9 +7,11 @@ from django.contrib.auth.password_validation import validate_password
 
 alphanumeric = RegexValidator(r'^[0-9a-zA-Z]*$', 'Only alphanumeric characters are allowed.')
 
+
 class LoginForm(forms.Form):
     username = forms.CharField(label=_('Username'), max_length=100)
     password = forms.CharField(label=_('Password'), max_length=100, widget=forms.PasswordInput)
+
 
 class RegistrationForm(forms.Form):
     username = forms.CharField(label=_('Username'), max_length=100, validators=[alphanumeric])
@@ -38,6 +40,7 @@ class RegistrationForm(forms.Form):
         elif len(User.objects.filter(email=email)) != 0:
             self.add_error('email', _("This email is already registered to another account. Please log in or reset your password to obtain your username."))
 
+
 class PasswordChangeForm(forms.Form):
     password = forms.CharField(label=_('Password'), max_length=100, widget=forms.PasswordInput)
     new_password = forms.CharField(label=_('New Password'), max_length=100, widget=forms.PasswordInput, validators=[validate_password])
@@ -53,6 +56,7 @@ class PasswordChangeForm(forms.Form):
         if new_password != new_password_confirm:
             self.add_error('new_password', _("Your passwords do not match, please try again."))
             self.add_error('new_password_confirm', _(""))
+
 
 class LostPasswordForm(forms.Form):
     email = forms.EmailField(label=_('Email'))

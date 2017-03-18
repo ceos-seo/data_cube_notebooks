@@ -3,7 +3,8 @@ from django.core.exceptions import ValidationError
 import string
 import random
 
-def isEmailAddressValid( email ):
+
+def isEmailAddressValid(email):
     try:
         EmailField().clean(email)
         return True

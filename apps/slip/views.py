@@ -38,7 +38,6 @@ from data_cube_ui.models import Satellite, Area, Application
 from .utils import create_query_from_post
 
 from collections import OrderedDict
-
 """
 Class holding all the views for the slip app in the project.
 """
@@ -47,6 +46,7 @@ Class holding all the views for the slip app in the project.
 # Creation date: 2016-06-23
 # Modified by: MAP
 # Last modified date:
+
 
 @login_required
 def slip(request, area_id):
@@ -77,11 +77,13 @@ def slip(request, area_id):
         user_id = request.user.username
     area = Area.objects.get(area_id=area_id)
     app = Application.objects.get(application_id="slip")
-    satellites = area.satellites.all() & app.satellites.all() #Satellite.objects.all().order_by('satellite_id')
+    satellites = area.satellites.all() & app.satellites.all()  #Satellite.objects.all().order_by('satellite_id')
     forms = {}
     for satellite in satellites:
-        forms[satellite.satellite_id] = {'Data Selection': DataSelectForm(auto_id=satellite.satellite_id + "_%s"),
-                                         'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s") }
+        forms[satellite.satellite_id] = {
+            'Data Selection': DataSelectForm(auto_id=satellite.satellite_id + "_%s"),
+            'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s")
+        }
     running_queries = Query.objects.filter(user_id=user_id, area_id=area_id, complete=False)
 
     context = {
@@ -95,6 +97,7 @@ def slip(request, area_id):
     }
 
     return render(request, 'map_tool/map_tool.html', context)
+
 
 @login_required
 def submit_new_request(request):
@@ -124,6 +127,7 @@ def submit_new_request(request):
     else:
         return JsonResponse({'msg': "ERROR"})
 
+
 @login_required
 def submit_new_single_request(request):
     """
@@ -150,7 +154,7 @@ def submit_new_single_request(request):
             query.complete = False
             query.title = "Single acquisition for " + request.POST['date']
             query.query_id = query.generate_query_id()
-            query.save();
+            query.save()
             create_slip.delay(query.query_id, user_id, single=True)
             response.update(model_to_dict(query))
         except:
@@ -158,6 +162,7 @@ def submit_new_single_request(request):
         return JsonResponse(response)
     else:
         return JsonResponse({'msg': "ERROR"})
+
 
 @login_required
 def cancel_request(request):
@@ -188,6 +193,7 @@ def cancel_request(request):
         return JsonResponse(response)
     else:
         return JsonResponse({'msg': "ERROR"})
+
 
 @login_required
 def get_result(request):
@@ -226,8 +232,7 @@ def get_result(request):
                 Query.objects.filter(query_id=result.query_id).update(complete=True)
             else:
                 response['msg'] = "WAIT"
-                response['result'] = {
-                    'total_scenes': result.total_scenes, 'scenes_processed': result.scenes_processed}
+                response['result'] = {'total_scenes': result.total_scenes, 'scenes_processed': result.scenes_processed}
         return JsonResponse(response)
     return JsonResponse({'msg': "ERROR"})
 
@@ -251,8 +256,7 @@ def get_query_history(request, area_id):
     user_id = 0
     if request.user.is_authenticated():
         user_id = request.user.username
-    history = Query.objects.filter(
-        user_id=user_id, area_id=area_id, complete=True).order_by('-query_start')[:10]
+    history = Query.objects.filter(user_id=user_id, area_id=area_id, complete=True).order_by('-query_start')[:10]
     context = {
         'query_history': history,
     }
@@ -284,15 +288,12 @@ def get_results_list(request, area_id):
         metadata_entries = []
         for query_id in query_ids:
             queries.append(Query.objects.filter(query_id=query_id).order_by('-query_start')[0])
-            metadata_entries.append(
-                Metadata.objects.filter(query_id=query_id)[0])
+            metadata_entries.append(Metadata.objects.filter(query_id=query_id)[0])
 
-        context = {
-            'queries': queries,
-            'metadata_entries': metadata_entries
-        }
+        context = {'queries': queries, 'metadata_entries': metadata_entries}
         return render(request, 'map_tool/slip/results_list.html', context)
     return HttpResponse("Invalid Request.")
+
 
 @login_required
 def get_output_list(request, area_id):

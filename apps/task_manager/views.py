@@ -27,7 +27,6 @@ from django.contrib import messages
 
 import json
 from datetime import datetime, timedelta
-
 """
 from apps.custom_mosaic_tool.models import Result as cm_result, Query as cm_query, Metadata as cm_meta
 from apps.water_detection.models import Query as wd_query, Result as wd_result, Metadata as wd_meta
@@ -43,19 +42,20 @@ import apps.ndvi_anomaly.models as ndvi_anomaly
 import apps.coastal_change.models as coastal_change
 
 from collections import OrderedDict
-
 """
 Class holding all the views for the Task_Manager application in the UI Suite.
 """
 
-applications = {'custom_mosaic_tool': custom_mosaic_tool,
-        'water_detection': water_detection,
-        'tsm': tsm,
-        'fractional_cover': fractional_cover,
-        'slip': slip,
-        'ndvi_anomaly': ndvi_anomaly,
-	'coastal_change': coastal_change
+applications = {
+    'custom_mosaic_tool': custom_mosaic_tool,
+    'water_detection': water_detection,
+    'tsm': tsm,
+    'fractional_cover': fractional_cover,
+    'slip': slip,
+    'ndvi_anomaly': ndvi_anomaly,
+    'coastal_change': coastal_change
 }
+
 
 def build_headers_dictionary(model):
     """
@@ -131,7 +131,8 @@ def get_task_manager(request, app_id):
     for query in queries.objects.all().order_by('-query_start')[:100]:
         data = list()
         for v in headers_dictionary['ModelBase']:
-            data_val = query.__dict__[v].strftime("%m-%d-%Y") if type(query.__dict__[v]) == datetime else round(query.__dict__[v], 4) if type(query.__dict__[v]) == float else query.__dict__[v]
+            data_val = query.__dict__[v].strftime("%m-%d-%Y") if type(query.__dict__[v]) == datetime else round(
+                query.__dict__[v], 4) if type(query.__dict__[v]) == float else query.__dict__[v]
             data.append(str(data_val))
             data_dictionary[query] = data
 
@@ -147,6 +148,7 @@ def get_task_manager(request, app_id):
     }
 
     return render(request, 'task_manager/task_manager.html', context)
+
 
 def get_query_details(request, app_id, requested_query_id):
     """

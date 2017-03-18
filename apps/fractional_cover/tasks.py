@@ -48,7 +48,6 @@ from utils.dc_utilities import split_task, fill_nodata, min_value, max_value, ge
 
 from data_cube_ui.utils import update_model_bounds_with_dataset, combine_metadata, map_ranges, cancel_task, error_with_message
 from data_cube_ui.tasks import generate_chunk
-
 """
 Class for handling loading celery workers to perform tasks asynchronously.
 """
@@ -121,6 +120,7 @@ processing_algorithms = {
     },
 }
 
+
 @task(name="fractional_cover_task")
 def create_fractional_cover(query_id, user_id, single=False):
     """
@@ -155,7 +155,8 @@ def create_fractional_cover(query_id, user_id, single=False):
     result = query.generate_result()
 
     if query.platform == "LANDSAT_ALL":
-        error_with_message(result, "Combined products are not supported for fractional cover calculations.", base_temp_path)
+        error_with_message(result, "Combined products are not supported for fractional cover calculations.",
+                           base_temp_path)
         return
 
     product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
@@ -163,8 +164,12 @@ def create_fractional_cover(query_id, user_id, single=False):
     # having to do with memory etc.
     try:
         # lists all acquisition dates for use in single tmeslice queries.
-        acquisitions = dc.list_acquisition_dates(query.platform, query.product, time=(query.time_start, query.time_end), longitude=(
-            query.longitude_min, query.longitude_max), latitude=(query.latitude_min, query.latitude_max))
+        acquisitions = dc.list_acquisition_dates(
+            query.platform,
+            query.product,
+            time=(query.time_start, query.time_end),
+            longitude=(query.longitude_min, query.longitude_max),
+            latitude=(query.latitude_min, query.latitude_max))
 
         if len(acquisitions) < 1:
             error_with_message(result, "There were no acquisitions for this parameter set.", base_temp_path)
@@ -178,8 +183,14 @@ def create_fractional_cover(query_id, user_id, single=False):
 
         # Reversed time = True will make it so most recent = First, oldest = Last.
         #default is in order from oldest -> newwest.
-        lat_ranges, lon_ranges, time_ranges = split_task(resolution=product_details.resolution.values[0][1], latitude=(query.latitude_min, query.latitude_max), longitude=(
-            query.longitude_min, query.longitude_max), acquisitions=acquisitions, geo_chunk_size=processing_options['geo_chunk_size'], time_chunks=processing_options['time_chunks'], reverse_time=processing_options['reverse_time'])
+        lat_ranges, lon_ranges, time_ranges = split_task(
+            resolution=product_details.resolution.values[0][1],
+            latitude=(query.latitude_min, query.latitude_max),
+            longitude=(query.longitude_min, query.longitude_max),
+            acquisitions=acquisitions,
+            geo_chunk_size=processing_options['geo_chunk_size'],
+            time_chunks=processing_options['time_chunks'],
+            reverse_time=processing_options['reverse_time'])
 
         result.total_scenes = len(time_ranges)
         result.save()
@@ -197,8 +208,19 @@ def create_fractional_cover(query_id, user_id, single=False):
         print("Time chunks: " + str(len(time_ranges)))
         print("Geo chunks: " + str(len(lat_ranges)))
         # create a group of geographic tasks for each time slice.
-        time_chunk_tasks = [group(generate_fractional_cover_chunk.s(time_range_index, geographic_chunk_index, processing_options=processing_options, query=query, acquisition_list=time_ranges[time_range_index], lat_range=lat_ranges[
-                                  geographic_chunk_index], lon_range=lon_ranges[geographic_chunk_index], measurements=measurements) for geographic_chunk_index in range(len(lat_ranges))).apply_async() for time_range_index in range(len(time_ranges))]
+        time_chunk_tasks = [
+            group(
+                generate_fractional_cover_chunk.s(
+                    time_range_index,
+                    geographic_chunk_index,
+                    processing_options=processing_options,
+                    query=query,
+                    acquisition_list=time_ranges[time_range_index],
+                    lat_range=lat_ranges[geographic_chunk_index],
+                    lon_range=lon_ranges[geographic_chunk_index],
+                    measurements=measurements) for geographic_chunk_index in range(len(lat_ranges))).apply_async()
+            for time_range_index in range(len(time_ranges))
+        ]
 
         # holds some acquisition based metadata. dict of objs keyed by date
         dataset_out_mosaic = None
@@ -217,8 +239,7 @@ def create_fractional_cover(query_id, user_id, single=False):
                             child.revoke()
                     cancel_task(query, result, base_temp_path)
                     return
-            group_data = [data for data in geographic_group.get()
-                          if data is not None]
+            group_data = [data for data in geographic_group.get() if data is not None]
             result.scenes_processed += 1
             result.save()
             print("Got results for a time slice, computing intermediate product..")
@@ -227,18 +248,23 @@ def create_fractional_cover(query_id, user_id, single=False):
                 continue
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[2] for tile in group_data])
 
-            dataset_mosaic = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
+            dataset_mosaic = xr.concat(
+                reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
             dataset_out_mosaic = processing_options['chunk_combination_method'](dataset_mosaic, dataset_out_mosaic)
 
-            dataset_fractional_cover = xr.concat(reversed([xr.open_dataset(tile[1]) for tile in group_data]), dim='latitude').load()
-            dataset_out_fractional_cover = processing_options['chunk_combination_method'](dataset_fractional_cover, dataset_out_fractional_cover)
+            dataset_fractional_cover = xr.concat(
+                reversed([xr.open_dataset(tile[1]) for tile in group_data]), dim='latitude').load()
+            dataset_out_fractional_cover = processing_options['chunk_combination_method'](dataset_fractional_cover,
+                                                                                          dataset_out_fractional_cover)
 
         latitude = dataset_out_mosaic.latitude
         longitude = dataset_out_mosaic.longitude
 
         # grabs the resolution.
-        geotransform = [longitude.values[0], product_details.resolution.values[0][1],
-                        0.0, latitude.values[0], 0.0, product_details.resolution.values[0][0]]
+        geotransform = [
+            longitude.values[0], product_details.resolution.values[0][1], 0.0, latitude.values[0], 0.0,
+            product_details.resolution.values[0][0]
+        ]
         #hardcoded crs for now. This is not ideal. Should maybe store this in the db with product type?
         crs = str("EPSG:4326")
 
@@ -249,15 +275,13 @@ def create_fractional_cover(query_id, user_id, single=False):
         dates = list(acquisition_metadata.keys())
         dates.sort()
 
-        meta = query.generate_metadata(
-            scene_count=len(dates), pixel_count=len(latitude)*len(longitude))
+        meta = query.generate_metadata(scene_count=len(dates), pixel_count=len(latitude) * len(longitude))
 
         for date in reversed(dates):
             meta.acquisition_list += date.strftime("%m/%d/%Y") + ","
-            meta.clean_pixels_per_acquisition += str(
-                acquisition_metadata[date]['clean_pixels']) + ","
-            meta.clean_pixel_percentages_per_acquisition += str(
-                acquisition_metadata[date]['clean_pixels'] * 100 / meta.pixel_count) + ","
+            meta.clean_pixels_per_acquisition += str(acquisition_metadata[date]['clean_pixels']) + ","
+            meta.clean_pixel_percentages_per_acquisition += str(acquisition_metadata[date]['clean_pixels'] * 100 /
+                                                                meta.pixel_count) + ","
 
         # Count clean pixels and correct for the number of measurements.
         clean_pixels = np.sum(dataset_out_mosaic[measurements[0]].values != -9999)
@@ -274,19 +298,33 @@ def create_fractional_cover(query_id, user_id, single=False):
 
         print("Creating query results.")
         #Mosaic
-        save_to_geotiff(tif_path, gdal.GDT_Int16, dataset_out_mosaic, geotransform, get_spatial_ref(crs),
-                        x_pixels=dataset_out_mosaic.dims['longitude'], y_pixels=dataset_out_mosaic.dims['latitude'],
-                        band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2'])
+        save_to_geotiff(
+            tif_path,
+            gdal.GDT_Int16,
+            dataset_out_mosaic,
+            geotransform,
+            get_spatial_ref(crs),
+            x_pixels=dataset_out_mosaic.dims['longitude'],
+            y_pixels=dataset_out_mosaic.dims['latitude'],
+            band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2'])
         # we've got the tif, now do the png. -> RGB
         bands = [3, 2, 1]
-        create_rgb_png_from_tiff(tif_path, mosaic_png_path, png_filled_path=None, fill_color=None, bands=bands, scale=(0, 4096))
+        create_rgb_png_from_tiff(
+            tif_path, mosaic_png_path, png_filled_path=None, fill_color=None, bands=bands, scale=(0, 4096))
 
         #fractional_cover
         dataset_out_fractional_cover.to_netcdf(netcdf_path)
-        save_to_geotiff(tif_path, gdal.GDT_Int32, dataset_out_fractional_cover, geotransform, get_spatial_ref(crs),
-                        x_pixels=dataset_out_mosaic.dims['longitude'], y_pixels=dataset_out_mosaic.dims['latitude'],
-                        band_order=['bs', 'pv', 'npv'])
-        create_rgb_png_from_tiff(tif_path, fractional_cover_png_path, png_filled_path=None, fill_color=None, scale=None, bands=[1,2,3])
+        save_to_geotiff(
+            tif_path,
+            gdal.GDT_Int32,
+            dataset_out_fractional_cover,
+            geotransform,
+            get_spatial_ref(crs),
+            x_pixels=dataset_out_mosaic.dims['longitude'],
+            y_pixels=dataset_out_mosaic.dims['latitude'],
+            band_order=['bs', 'pv', 'npv'])
+        create_rgb_png_from_tiff(
+            tif_path, fractional_cover_png_path, png_filled_path=None, fill_color=None, scale=None, bands=[1, 2, 3])
 
         # update the results and finish up.
         update_model_bounds_with_dataset([result, meta, query], dataset_out_mosaic)
@@ -303,14 +341,21 @@ def create_fractional_cover(query_id, user_id, single=False):
         query.query_end = datetime.datetime.now()
         query.save()
     except:
-        error_with_message(
-            result, "There was an exception when handling this query.", base_temp_path)
+        error_with_message(result, "There was an exception when handling this query.", base_temp_path)
         raise
     # end error wrapping.
     return
 
+
 @task(name="generate_fractional_cover_chunk")
-def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None, query=None, acquisition_list=None, lat_range=None, lon_range=None, measurements=None):
+def generate_fractional_cover_chunk(time_num,
+                                    chunk_num,
+                                    processing_options=None,
+                                    query=None,
+                                    acquisition_list=None,
+                                    lat_range=None,
+                                    lon_range=None,
+                                    measurements=None):
     """
     responsible for generating a piece of a fractional_cover product. This grabs the x/y area specified in the lat/lon ranges, gets all data
     from acquisition_list, which is a list of acquisition dates, and creates the fractional_cover using the function named in processing_options.
@@ -327,12 +372,21 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
     print("Starting chunk: " + str(time_num) + " " + str(chunk_num))
 
     #dc.load doesn't support generators so do it this way.
-    time_ranges = list(generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options['time_slices_per_iteration']))
+    time_ranges = list(
+        generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options[
+            'time_slices_per_iteration']))
 
     # holds some acquisition based metadata.
     for time_index, time_range in enumerate(time_ranges):
 
-        raw_data = dc.get_dataset_by_extent(query.product, product_type=None, platform=query.platform, time=time_range, longitude=lon_range, latitude=lat_range, measurements=measurements)
+        raw_data = dc.get_dataset_by_extent(
+            query.product,
+            product_type=None,
+            platform=query.platform,
+            time=time_range,
+            longitude=lon_range,
+            latitude=lat_range,
+            measurements=measurements)
 
         if "cf_mask" not in raw_data:
             continue
@@ -342,17 +396,19 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
         # update metadata. # here the clear mask has all the clean
         # pixels for each acquisition.
         for timeslice in range(clear_mask.shape[0]):
-            time = raw_data.time.values[timeslice] if type(raw_data.time.values[timeslice]) == datetime.datetime else datetime.datetime.utcfromtimestamp(raw_data.time.values[timeslice].astype(int) * 1e-9)
-            clean_pixels = np.sum(
-                clear_mask[timeslice, :, :] == True)
+            time = raw_data.time.values[timeslice] if type(
+                raw_data.time.values[timeslice]) == datetime.datetime else datetime.datetime.utcfromtimestamp(
+                    raw_data.time.values[timeslice].astype(int) * 1e-9)
+            clean_pixels = np.sum(clear_mask[timeslice, :, :] == True)
             if time not in acquisition_metadata:
                 acquisition_metadata[time] = {}
                 acquisition_metadata[time]['clean_pixels'] = 0
-            acquisition_metadata[time][
-                'clean_pixels'] += clean_pixels
+            acquisition_metadata[time]['clean_pixels'] += clean_pixels
 
-        iteration_data = processing_options['processing_method'](
-            raw_data, clean_mask=clear_mask, intermediate_product=iteration_data, reverse_time=processing_options['reverse_time'])
+        iteration_data = processing_options['processing_method'](raw_data,
+                                                                 clean_mask=clear_mask,
+                                                                 intermediate_product=iteration_data,
+                                                                 reverse_time=processing_options['reverse_time'])
 
     # Save this geographic chunk to disk.
     geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \
@@ -367,7 +423,7 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
     # Compute fractional cover here.
     clear_mask = create_cfmask_clean_mask(iteration_data.cf_mask)
     # mask out water manually. Necessary for frac. cover.
-    clear_mask[iteration_data.cf_mask.values==1] = False
+    clear_mask[iteration_data.cf_mask.values == 1] = False
     fractional_cover = frac_coverage_classify(iteration_data, clean_mask=clear_mask)
     ##################################################################
     if not os.path.exists(base_temp_path + query.query_id):
@@ -375,6 +431,7 @@ def generate_fractional_cover_chunk(time_num, chunk_num, processing_options=None
     fractional_cover.to_netcdf(fractional_cover_path)
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
     return [geo_path, fractional_cover_path, acquisition_metadata]
+
 
 # Init/shutdown functions for handling dc instances.
 # this is done to prevent synchronization/conflicts between workers when
