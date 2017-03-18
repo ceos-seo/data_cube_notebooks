@@ -41,10 +41,12 @@ from collections import OrderedDict
 from dateutil.tz import tzutc
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_cfmask_clean_mask, perform_timeseries_analysis_iterative, split_task, addition, generate_time_ranges, create_single_band_rgb
-from utils.dc_water_classifier import wofs_classify
+from utils.dc_utilities import (get_spatial_ref, save_to_geotiff, create_cfmask_clean_mask,
+                                perform_timeseries_analysis_iterative, split_task, addition, generate_time_ranges,
+                                create_single_band_rgb)
 
-from data_cube_ui.utils import update_model_bounds_with_dataset, combine_metadata, cancel_task, error_with_message
+from utils.dc_water_classifier import wofs_classify
+from data_cube_ui.utils import (update_model_bounds_with_dataset, combine_metadata, cancel_task, error_with_message)
 
 # Author: AHDS
 # Creation date: 2016-06-23

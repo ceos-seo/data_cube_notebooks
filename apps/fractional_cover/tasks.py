@@ -40,13 +40,15 @@ from collections import OrderedDict
 from dateutil.tz import tzutc
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_mosaic import create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic
-from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task
+from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
+from utils.dc_utilities import (get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask,
+                                split_task)
+
 from utils.dc_fractional_coverage_classifier import frac_coverage_classify
+from utils.dc_utilities import (split_task, fill_nodata, min_value, max_value, generate_time_ranges)
+from data_cube_ui.utils import (update_model_bounds_with_dataset, combine_metadata, map_ranges, cancel_task,
+                                error_with_message)
 
-from utils.dc_utilities import split_task, fill_nodata, min_value, max_value, generate_time_ranges
-
-from data_cube_ui.utils import update_model_bounds_with_dataset, combine_metadata, map_ranges, cancel_task, error_with_message
 from data_cube_ui.tasks import generate_chunk
 """
 Class for handling loading celery workers to perform tasks asynchronously.

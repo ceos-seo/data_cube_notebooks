@@ -52,22 +52,6 @@ def count_pixels(array, element):
     return np.count_nonzero(array == element)
 
 
-class DPrint:
-    '''This class is designed a debugging feature and may be removed in the future.'''
-
-    def __init__(self, truth, pretty=False):
-        self.debug_mode = True
-        if pretty == True:
-            pp = pprint.PrettyPrinter(indent=4)
-            self.print_statement = pp.pprint
-        else:
-            self.print_statement = print
-
-    def __call__(self, *args, **kwargs):
-        if self.debug_mode == True:
-            self.print_statement(*args)
-
-
 def merge_two_dicts(x, y):
     """Given two dicts, merge them into a new dict as a shallow copy.
 

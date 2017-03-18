@@ -41,11 +41,13 @@ from dateutil.tz import tzutc
 
 from utils.data_access_api import DataAccessApi
 from utils.dc_mosaic import create_mosaic
-from utils.dc_utilities import get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask, split_task, fill_nodata, generate_time_ranges
+from utils.dc_utilities import (get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask,
+                                split_task, fill_nodata, generate_time_ranges)
+
 from utils.dc_baseline import generate_baseline
 from utils.dc_demutils import create_slope_mask
-
-from data_cube_ui.utils import update_model_bounds_with_dataset, map_ranges, combine_metadata, cancel_task, error_with_message
+from data_cube_ui.utils import (update_model_bounds_with_dataset, map_ranges, combine_metadata, cancel_task,
+                                error_with_message)
 """
 Class for handling loading celery workers to perform tasks asynchronously.
 """
