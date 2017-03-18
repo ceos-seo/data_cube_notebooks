@@ -142,12 +142,14 @@ def create_fractional_cover(query_id, user_id, single=False):
     """
 
     print("Starting for query:" + query_id)
-    # its fair to assume that the query_id will exist at this point, as if it wasn't it wouldn't
-    # start the task.
-    query = Query.objects.get(query_id=query_id, user_id=user_id)
-    # if there is a matching query other than the one we're using now then do nothing.
-    # the ui section has already grabbed the result from the db.
-    if Result.objects.filter(query_id=query.query_id).exists():
+
+    query = Query._fetch_query_object(query_id, user_id)
+
+    if query is None:
+        print("Query does not yet exist.")
+        return
+
+    if query._is_cached(Result):
         print("Repeat query, client will receive cached result.")
         return
 

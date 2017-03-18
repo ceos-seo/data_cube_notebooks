@@ -20,6 +20,7 @@
 # under the License.
 import os
 import shutil
+import datetime
 
 
 # pulled from peterbe.com since there were benchmarks listed.
@@ -28,6 +29,7 @@ def uniquify_list(seq):
     seen = set()
     return [x for x in seq if x not in seen and not seen.add(x)]
 
+
 def update_model_bounds_with_dataset(model_list, dataset):
     for model in model_list:
         model.latitude_max = dataset.latitude.values[0]
@@ -35,6 +37,7 @@ def update_model_bounds_with_dataset(model_list, dataset):
         model.longitude_max = dataset.longitude.values[-1]
         model.longitude_min = dataset.longitude.values[0]
         model.save()
+
 
 def map_ranges(value, leftMin, leftMax, rightMin, rightMax):
     # Figure out how 'wide' each range is
@@ -46,6 +49,12 @@ def map_ranges(value, leftMin, leftMax, rightMin, rightMax):
 
     # Convert the 0-1 range into a value in the right range.
     return rightMin + (valueScaled * rightSpan)
+
+
+def n64_to_datetime(n64):
+    b = n64.astype(object)
+    return datetime.datetime.fromtimestamp(int(b / 1000000000))
+
 
 #combines metadata with common indices and keys. Params: current meta, desired additions (list/iterable)
 #returns: updated meta
@@ -61,6 +70,7 @@ def combine_metadata(metadata, additions):
             else:
                 metadata[acquisition_date] = addition[acquisition_date]
     return metadata
+
 
 def cancel_task(query, result, base_path):
     print("Cancelled task.")

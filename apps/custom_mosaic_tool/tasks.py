@@ -134,13 +134,13 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         Returns nothing
     """
 
-    print("Starting for query:" + query_id)
-    # its fair to assume that the query_id will exist at this point, as if it wasn't it wouldn't
-    # start the task.
-    query = Query.objects.get(query_id=query_id, user_id=user_id)
-    # if there is a matching query other than the one we're using now then do nothing.
-    # the ui section has already grabbed the result from the db.
-    if Result.objects.filter(query_id=query.query_id).exists():
+    query = Query._fetch_query_object(query_id, user_id)
+
+    if query is None:
+        print("Query does not yet exist.")
+        return
+
+    if query._is_cached(Result):
         print("Repeat query, client will receive cached result.")
         return
 
@@ -489,6 +489,7 @@ def generate_mosaic_chunk(time_num,
 
         timestamp_data = np.full(raw_data.cf_mask.values.shape, 0, dtype="int32")
         date_data = np.full(raw_data.cf_mask.values.shape, 0, dtype="int32")
+
         for index, time in enumerate(raw_data.time.values):
             timestamp_data[index::] = time.timestamp() if type(time) == datetime.datetime else time.astype(int) * 1e-9
             date = time if type(time) == datetime.datetime else datetime.datetime.utcfromtimestamp(

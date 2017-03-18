@@ -18,7 +18,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-import pprint
 from .models import Query
 from data_cube_ui.models import Area, Satellite
 from datetime import datetime
@@ -41,11 +40,6 @@ def count_not_nan(np_array):
 
 def count_nan(np_array):
     return np.count_nonzero(np.isnan(np_array))
-
-
-def n64_to_datetime(n64):
-    b = n64.astype(object)
-    return datetime.fromtimestamp(int(b / 1000000000))
 
 
 def count_pixels(array, element):
@@ -105,32 +99,6 @@ def extract_coastal_change_metadata(wofs_difference_xarray, no_data=-9999):
     return metadata
 
 
-def coastline_classification(dataset, water_band='wofs'):
-    kern = np.array([[1, 1, 1], [1, 0.001, 1], [1, 1, 1]])
-    convolved = conv.convolve(dataset[water_band], kern, mode='constant') // 1
-
-    ds = dataset.where(convolved > 0)
-    ds = ds.where(convolved < 6)
-    ds.wofs.values[~np.isnan(ds.wofs.values)] = 1
-    ds.wofs.values[np.isnan(ds.wofs.values)] = 0
-    ds.rename({"wofs": "coastline"}, inplace=True)
-
-    return ds
-
-
-def coastline_classification_2(dataset, water_band='wofs'):
-    kern = np.array([[1, 1, 1], [1, 0.001, 1], [1, 1, 1]])
-    convolved = conv.convolve(dataset[water_band], kern, mode='constant', cval=-999) // 1
-
-    ds = dataset.copy(deep=True)
-    ds.wofs.values[(~np.isnan(ds[water_band].values)) & (ds.wofs.values == 1)] = 1
-    ds.wofs.values[convolved < 0] = 0
-    ds.wofs.values[convolved > 6] = 0
-    ds.rename({"wofs": "coastline"}, inplace=True)
-
-    return ds
-
-
 def count_nans(dataset, band=None):
     np.count_nonzero(~np.isnan(data))
 
@@ -183,24 +151,18 @@ def create_query_from_post(user_id, post):
 
 
 def group_by_year(list_of_datetimes):
-    groupedByYear = {}
+    grouped_by_year = {}
     for date in list_of_datetimes:
-        if date.year in groupedByYear:
-            groupedByYear[date.year].append(date)
+        if date.year in grouped_by_year:
+            grouped_by_year[date.year].append(date)
         else:
-            groupedByYear[date.year] = [date]
-    return groupedByYear
+            grouped_by_year[date.year] = [date]
+    return grouped_by_year
 
 
 def dict_to_iterable(the_dict):
     for key in the_dict.keys():
         yield the_dict[key]
-
-
-def nearest_key(the_dict, key):
-    for i in range(key, max(the_dict.keys())):
-        if i in the_dict.keys():
-            return i
 
 
 def split_task_by_year(resolution=0.000269,
@@ -229,7 +191,7 @@ def split_task_by_year(resolution=0.000269,
 
     '''
 
-    lat_range, lon_range, __ = split_task(
+    lat_range, lon_range, times = split_task(
         resolution=resolution,
         latitude=latitude,
         longitude=longitude,
@@ -238,7 +200,7 @@ def split_task_by_year(resolution=0.000269,
         time_chunks=None,
         reverse_time=reverse_time)
 
-    times = list(dict_to_iterable(group_by_year(acquisitions)))
+    times = list(dict_to_iterable(group_by_year(times[0])))
     times = list(reversed(sorted(times)))
 
     return lat_range, lon_range, times
@@ -249,38 +211,3 @@ def year_in_list_of_acquisitions(acquisitions, year):
         if a.year == year:
             return True
     return False
-
-
-def most_recent_in_list_of_acquisitions(acquisitions):
-    greatest = datetime.min
-    for a in acquisitions:
-        if a > greatest:
-            greatest = a
-    return greatest
-
-
-def split_by_year_and_append_stationary_year(resolution=0.000269,
-                                             latitude=None,
-                                             longitude=None,
-                                             acquisitions=None,
-                                             geo_chunk_size=None,
-                                             reverse_time=False,
-                                             year_stationary=None):
-
-    lat_range, lon_range, yearly_time_ranges = split_task_by_year(
-        resolution=resolution,
-        latitude=latitude,
-        longitude=longitude,
-        acquisitions=acquisitions,
-        geo_chunk_size=geo_chunk_size,
-        reverse_time=reverse_time)
-
-    year_dict = group_by_year(acquisitions)
-
-    stationary = min([int(year) for year in year_dict.keys()])
-    greatest = max([int(year) for year in year_dict.keys()])
-    key = nearest_key(year_dict, year_stationary)
-
-    augmented_time_ranges = [year + year_dict[key] for year in yearly_time_ranges if int(year[0].year) != int(key)]
-
-    return lat_range, lon_range, augmented_time_ranges
