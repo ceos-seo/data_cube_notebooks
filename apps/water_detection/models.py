@@ -70,9 +70,18 @@ class Query(BaseQuery):
         Returns:
             query_id (string): The ID of the query built up by object attributes.
         """
-        query_id = self.time_start.strftime("%Y-%m-%d") + '-' + self.time_end.strftime("%Y-%m-%d") + '-' + str(self.latitude_max) + '-' + str(
-            self.latitude_min) + '-' + str(self.longitude_max) + '-' + str(self.longitude_min) + '-' + self.platform + '-' + self.product + '-' + self.query_type + '-' + self.animated_product
-        return query_id
+
+        query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{platform}-{product}-{query_type}-{animation}'
+        return query_id.format(start=self.time_start.strftime("%Y-%m-%d"),
+                               end=self.time_end.strftime("%Y-%m-%d"),
+                               lat_max=self.latitude_max,
+                               lat_min=self.latitude_min,
+                               lon_max=self.longitude_max,
+                               lon_min=self.longitude_min,
+                               platform=self.platform,
+                               product=self.product,
+                               query_type=self.query_type,
+                               animation=self.animated_product)
 
     def generate_metadata(self, scene_count=0, pixel_count=0):
         meta = Metadata(query_id=self.query_id, scene_count=scene_count, pixel_count=pixel_count,

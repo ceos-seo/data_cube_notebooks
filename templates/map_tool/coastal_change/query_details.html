@@ -61,7 +61,7 @@ under the License.
       <dt>(Lat, Lon) Max</dt>
       <dd>({{query.latitude_max|floatformat:6}} , {{query.longitude_max|floatformat:6}})</dd>
       <dt>Animation</dt>
-      <dd>{{query.animation_setting}}</dd>
+      <dd>{{query.animated_product}}</dd>
     </dl>
   </div>
   <div class="col-lg-6">
@@ -71,9 +71,9 @@ under the License.
       <dt>Coastline Change Path</dt>
       <dd><a href={{result.result_path}} target="_blank">View image</a></dd>
       <dt>Coastal Change Path</dt>
-      <dd><a href={{result.result_filled_path}} target="_blank">View image</a></dd>
+      <dd><a href={{result.result_coastal_change_path}} target="_blank">View image</a></dd>
       <dt>Mosaic Path</dt>
-      <dd><a href={{result.result_path}} target="_blank">View image</a></dd>
+      <dd><a href={{result.result_mosaic_path}} target="_blank">View image</a></dd>
       <dt>NetCDF Path</dt>
       <dd><a href={{result.data_netcdf_path}}>Download nc</a></dd>
       <dt>GeoTIFF Path</dt>
@@ -140,7 +140,7 @@ under the License.
                   <h3>Coastline Change Image</h3>
                   <p>Coastline change image for the query with the id {{query.query_id}}</p>
                 </div>
-                <div id="carousel-caption-1" class="carousel-caption selected" data-slide-number="1">
+                <div id="carousel-caption-1" class="carousel-caption" data-slide-number="1">
                   <h3>Coastal Change Image</h3>
                   <p>Coastal change image for the query with the id {{query.query_id}}</p>
                 </div>

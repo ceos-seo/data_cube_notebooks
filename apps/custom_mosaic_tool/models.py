@@ -33,6 +33,7 @@ to be created for basic CRUD operations.
 # Modified by: MAP
 # Last modified date:
 
+
 class Query(BaseQuery):
     """
     Extends base query, adds app specific elements.
@@ -41,7 +42,7 @@ class Query(BaseQuery):
     animated_product = models.CharField(max_length=25, default="None")
     compositor = models.CharField(max_length=25, default="most_recent")
 
-    #functs.
+    # functs.
     def get_type_name(self):
         """
         Gets the ResultType.result_type attribute associated with the given Query object.
@@ -49,7 +50,7 @@ class Query(BaseQuery):
         Returns:
             result_type (string): The result type of the query.
         """
-        return ResultType.objects.filter(result_id=self.query_type, satellite_id=self.platform)[0].result_type;
+        return ResultType.objects.filter(result_id=self.query_type, satellite_id=self.platform)[0].result_type
 
     def get_compositor_name(self):
         """
@@ -58,7 +59,7 @@ class Query(BaseQuery):
         Returns:
             result_type (string): The result type of the query.
         """
-        return Compositor.objects.get(compositor_id=self.compositor).compositor_name;
+        return Compositor.objects.get(compositor_id=self.compositor).compositor_name
 
     def generate_query_id(self):
         """
@@ -68,8 +69,18 @@ class Query(BaseQuery):
         Returns:
             query_id (string): The ID of the query built up by object attributes.
         """
-        query_id = self.time_start.strftime("%Y-%m-%d")+'-'+self.time_end.strftime("%Y-%m-%d")+'-'+str(self.latitude_max)+'-'+str(self.latitude_min)+'-'+str(self.longitude_max)+'-'+str(self.longitude_min)+'-'+self.compositor+'-'+self.platform+'-'+self.product+'-'+self.query_type + '-' + self.animated_product
-        return query_id
+        query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{compositor}-{platform}-{product}-{query_type}-{animation}'
+        return query_id.format(start=self.time_start.strftime("%Y-%m-%d"),
+                               end=self.time_end.strftime("%Y-%m-%d"),
+                               lat_max=self.latitude_max,
+                               lat_min=self.latitude_min,
+                               lon_max=self.longitude_max,
+                               lon_min=self.longitude_min,
+                               compositor=self.compositor,
+                               platform=self.platform,
+                               product=self.product,
+                               query_type=self.query_type,
+                               animation=self.animated_product)
 
     def generate_metadata(self, scene_count=0, pixel_count=0):
         meta = Metadata(query_id=self.query_id, scene_count=scene_count, pixel_count=pixel_count,
@@ -82,6 +93,7 @@ class Query(BaseQuery):
                         latitude_max=self.latitude_max, longitude_min=self.longitude_min, longitude_max=self.longitude_max, total_scenes=0, scenes_processed=0, status="WAIT")
         result.save()
         return result
+
 
 class Metadata(BaseMetadata):
     """
@@ -102,16 +114,18 @@ class Metadata(BaseMetadata):
         """
         return zip(self.acquisition_list_as_list(), self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list(), self.satellite_list_as_list())
 
+
 class Result(BaseResult):
     """
     Extends base result, only adds app specific fields.
     """
 
-    #result path + other data. More to come.
+    # result path + other data. More to come.
     result_filled_path = models.CharField(max_length=250, default="")
     animation_path = models.CharField(max_length=250, default="None")
     data_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
+
 
 class ResultType(BaseResultType):
     """

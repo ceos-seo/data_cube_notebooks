@@ -22,8 +22,6 @@
 from django.db import models
 from data_cube_ui.models import Area, Compositor, Baseline
 from data_cube_ui.models import Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as BaseResultType
-
-
 """
 Models file that holds all the classes representative of the database tabeles.  Allows for queries
 to be created for basic CRUD operations.
@@ -43,7 +41,7 @@ class Query(BaseQuery):
     time_end = models.IntegerField()
     time_start = models.IntegerField()
 
-    animation_setting = models.CharField(max_length = 25, default="None")
+    animated_product = models.CharField(max_length=25, default="None")
 
     def generate_query_id(self):
         """
@@ -54,50 +52,49 @@ class Query(BaseQuery):
             query_id (string): The ID of the query built up by object attributes.
         """
 
-        query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{platform}-{product}-{anim}'
+        query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{platform}-{product}-{animation}'
 
-        return query_id.format(start = self.time_start,
-                    end      = self.time_end,
-                    lat_max  = self.latitude_max,
-                    lat_min  = self.latitude_min,
-                    lon_max  = self.longitude_max,
-                    lon_min  = self.longitude_min,
-                    platform = self.platform,
-                    product  = self.product,
-                    anim     = self.animation_setting
-                    )
-
+        return query_id.format(
+            start=self.time_start,
+            end=self.time_end,
+            lat_max=self.latitude_max,
+            lat_min=self.latitude_min,
+            lon_max=self.longitude_max,
+            lon_min=self.longitude_min,
+            platform=self.platform,
+            product=self.product,
+            animation=self.animated_product)
 
     def generate_metadata(self, scene_count=0, pixel_count=0):
-        meta = Metadata( query_id=self.query_id,
-                            scene_count   = scene_count,
-                            pixel_count   = pixel_count,
-                            latitude_min  = self.latitude_min,
-                            latitude_max  = self.latitude_max,
-                            longitude_min = self.longitude_min,
-                            longitude_max = self.longitude_max
-                        )
+        meta = Metadata(
+            query_id=self.query_id,
+            scene_count=scene_count,
+            pixel_count=pixel_count,
+            latitude_min=self.latitude_min,
+            latitude_max=self.latitude_max,
+            longitude_min=self.longitude_min,
+            longitude_max=self.longitude_max)
         meta.save()
         return meta
 
     def generate_result(self):
-        result = Result( query_id=self.query_id,
-                            result_path      = "",
-                            data_path        = "",
-                            latitude_min     =self.latitude_min,
-                            latitude_max     =self.latitude_max,
-                            longitude_min    =self.longitude_min,
-                            longitude_max    =self.longitude_max,
-                            total_scenes     = 0,
-                            scenes_processed = 0,
-                            status="WAIT"
-                        )
+        result = Result(
+            query_id=self.query_id,
+            result_path="",
+            data_path="",
+            latitude_min=self.latitude_min,
+            latitude_max=self.latitude_max,
+            longitude_min=self.longitude_min,
+            longitude_max=self.longitude_max,
+            total_scenes=0,
+            scenes_processed=0,
+            status="WAIT")
         result.save()
         return result
 
     # def get_animation_type_name(self):
-    #     return AnimationType.objects.get(type_id=self.animated_product).type_name
-
+    # return
+    # AnimationType.objects.get(type_id=self.animated_product).type_name
 
 
 class Metadata(BaseMetadata):
@@ -105,8 +102,8 @@ class Metadata(BaseMetadata):
     Stores a single instance of a Query object that contains all the information for requests
     submitted.
     """
-    land_converted =  models.CharField(max_length=100000, default="")
-    sea_converted  =  models.CharField(max_length=100000, default="")
+    land_converted = models.CharField(max_length=100000, default="")
+    sea_converted = models.CharField(max_length=100000, default="")
 
     def get_land_converted(self):
         return self.land_converted
@@ -122,7 +119,9 @@ class Metadata(BaseMetadata):
             zip file: Zip file combining three different lists (acquisition_list_as_list(),
             clean_pixels_list_as_list(), clean_pixels_percentages_as_list())
         """
-        return zip(self.acquisition_list_as_list(), self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
+        return zip(self.acquisition_list_as_list(),
+                   self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
+
 
 class Result(BaseResult):
     """
@@ -131,9 +130,9 @@ class Result(BaseResult):
     """
 
     # result path + other data. More to come.
-    result_coastal_change_path   = models.CharField(max_length=250, default="")
-    result_mosaic_path    = models.CharField(max_length=250, default="")
-    animation_path   = models.CharField(max_length=250, default="")
+    result_coastal_change_path = models.CharField(max_length=250, default="")
+    result_mosaic_path = models.CharField(max_length=250, default="")
+    animation_path = models.CharField(max_length=250, default="None")
 
     # baseline_mosaic_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
