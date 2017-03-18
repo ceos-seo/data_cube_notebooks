@@ -22,13 +22,13 @@
 from django.db import models
 
 import datetime
-
 """
 Holds models and base classes common to applications.
 Satellites, Areas, etc. are used in every app,
 while queries, metadatas, results etc are extended
 by apps.
 """
+
 
 class Satellite(models.Model):
     """
@@ -47,6 +47,7 @@ class Satellite(models.Model):
 
     def __str__(self):
         return self.satellite_id
+
 
 class Area(models.Model):
     """
@@ -86,6 +87,7 @@ class Area(models.Model):
     def __str__(self):
         return self.area_id
 
+
 class Compositor(models.Model):
     """
     Stores a compositor including a human readable name and an id.
@@ -96,6 +98,7 @@ class Compositor(models.Model):
     compositor_id = models.CharField(max_length=25, unique=True)
     compositor_name = models.CharField(max_length=25)
 
+
 class Baseline(models.Model):
     """
     stores a baseline type. E.g. mean, composite, etc. Used for change
@@ -104,6 +107,7 @@ class Baseline(models.Model):
 
     baseline_id = models.CharField(max_length=25, unique=True)
     baseline_name = models.CharField(max_length=25)
+
 
 class AnimationType(models.Model):
     """
@@ -117,6 +121,7 @@ class AnimationType(models.Model):
     type_name = models.CharField(max_length=25, default="None")
     data_variable = models.CharField(max_length=25, default="None")
     band_number = models.CharField(max_length=25, default="None")
+
 
 class Application(models.Model):
     """
@@ -133,6 +138,7 @@ class Application(models.Model):
     def __str__(self):
         return self.application_id
 
+
 class ToolInfo(models.Model):
     """
     Stores images and information for the region selection page for each tool.  Information includes
@@ -144,6 +150,7 @@ class ToolInfo(models.Model):
     image_description = models.CharField(max_length=500)
 
     application = models.ForeignKey(Application)
+
 
 ##############################################################################################################
 # Begin base classes for apps - Query, metadata, results, result types. Extends only in the case of app
@@ -193,8 +200,20 @@ class Query(models.Model):
         Returns:
             query_id (string): The ID of the query built up by object attributes.
         """
-        query_id = self.time_start.strftime("%Y-%m-%d")+'-'+self.time_end.strftime("%Y-%m-%d")+'-'+str(self.latitude_max)+'-'+str(self.latitude_min)+'-'+str(self.longitude_max)+'-'+str(self.longitude_min)+'-'+self.platform+'-'+self.product
+        query_id = self.time_start.strftime("%Y-%m-%d") + '-' + self.time_end.strftime("%Y-%m-%d") + '-' + str(
+            self.latitude_max) + '-' + str(self.latitude_min) + '-' + str(self.longitude_max) + '-' + str(
+                self.longitude_min) + '-' + self.platform + '-' + self.product
         return query_id
+
+    def _is_cached(self, result_class):
+        return result_class.objects.filter(query_id=self.query_id).exists()
+
+    @classmethod
+    def _fetch_query_object(cls, query_id, user_id):
+        try:
+            return cls.objects.get(query_id=query_id, user_id=user_id)
+        except:
+            return None
 
 
 class Metadata(models.Model):
@@ -223,6 +242,7 @@ class Metadata(models.Model):
     acquisition_list = models.CharField(max_length=100000, default="")
     clean_pixels_per_acquisition = models.CharField(max_length=100000, default="")
     clean_pixel_percentages_per_acquisition = models.CharField(max_length=100000, default="")
+
     #more to come?
 
     class Meta:
@@ -265,7 +285,9 @@ class Metadata(models.Model):
             zip file: Zip file combining three different lists (acquisition_list_as_list(),
             clean_pixels_list_as_list(), clean_pixels_percentages_as_list())
         """
-        return zip(self.acquisition_list_as_list(), self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
+        return zip(self.acquisition_list_as_list(),
+                   self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
+
 
 class Result(models.Model):
     """
@@ -292,6 +314,7 @@ class Result(models.Model):
 
     class Meta:
         abstract = True
+
 
 class ResultType(models.Model):
     """

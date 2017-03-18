@@ -84,25 +84,17 @@ processing_algorithms = {
 }
 
 
-def _is_cached(query):
-    if Result.objects.filter(query_id=query.query_id).exists():
-        print("Repeat query, client will receive cached result.")
-        return True
-    else:
-        return False
-
-
-def _fetch_query_object(query_id, user_id):
-    print("Starting for query:" + str(query_id))
-    return Query.objects.get(query_id=query_id, user_id=user_id)
-
-
 @task(name="coastal_change_task")
 def create_coastal_change(query_id, user_id, single=False):
 
-    query = _fetch_query_object(query_id, user_id)
+    query = Query._fetch_query_object(query_id, user_id)
 
-    if _is_cached(query) == True:
+    if query is None:
+        print("Query does not yet exist.")
+        return
+
+    if query._is_cached(Result):
+        print("Repeat query, client will receive cached result.")
         return
 
     result = query.generate_result()
