@@ -59,18 +59,18 @@ from data_cube_ui.utils import (update_model_bounds_with_dataset, map_ranges, co
 
 dc = None
 
-BASE_RESULT_PATH = '/datacube/ui_results/coastal_change/'
-BASE_TEMP_PATH = '/datacube/ui_results_temp/'
+base_result_path = '/datacube/ui_results/coastal_change/'
+base_temp_path = '/datacube/ui_results_temp/'
 
-GREEN = [89, 255, 61]
-GREEN = darken_color(GREEN, .8)
+green = [89, 255, 61]
+green = darken_color(green, .8)
 
-NEW_MOSAIC = (True)
-NEW_BOUNDARY = (True)
-PINK = [[255, 8, 74], [252, 8, 74], [230, 98, 137], [255, 147, 172], [255, 192, 205]][0]
-BLUE = [[13, 222, 255], [139, 237, 236], [0, 20, 225], [30, 144, 255]][-1]
+new_mosaic = (True)
+new_boundary = (True)
+pink = [[255, 8, 74], [252, 8, 74], [230, 98, 137], [255, 147, 172], [255, 192, 205]][0]
+blue = [[13, 222, 255], [139, 237, 236], [0, 20, 225], [30, 144, 255]][-1]
 
-MEASUREMENTS = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
+measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
 
 processing_algorithms = {
     'coastal_change': {
@@ -124,7 +124,7 @@ def create_coastal_change(query_id, user_id, single=False):
         acquisitions = dc.list_acquisition_dates(platform, product, time=time, longitude=longitude, latitude=latitude)
 
         if len(acquisitions) < 1:
-            error_with_message(result, "There were no acquisitions for this parameter set.", BASE_TEMP_PATH)
+            error_with_message(result, "There were no acquisitions for this parameter set.", base_temp_path)
             return
 
         if single:
@@ -136,7 +136,7 @@ def create_coastal_change(query_id, user_id, single=False):
         if end.year > latest_acquisition.year:
             raw_err_message = "Your end date is out of bounds! You've picked the year {choice},The latest acquistion that exists can be found at {actual}."
             err_message = raw_err_message.format(choice=end.year, actual=latest_acquisition)
-            error_with_message(result, err_message, BASE_TEMP_PATH)
+            error_with_message(result, err_message, base_temp_path)
             return
 
         lat_ranges, lon_ranges, time_ranges = split_by_year_and_append_stationary_year(
@@ -154,9 +154,9 @@ def create_coastal_change(query_id, user_id, single=False):
             most_recent = max(time_ranges, key=lambda x: max([int(y.year) for y in x]))
             time_ranges = [most_recent]
 
-        if os.path.exists(BASE_TEMP_PATH + query.query_id) == False:
-            os.mkdir(BASE_TEMP_PATH + query.query_id)
-            os.chmod(BASE_TEMP_PATH + query.query_id, 0o777)
+        if os.path.exists(base_temp_path + query.query_id) == False:
+            os.mkdir(base_temp_path + query.query_id)
+            os.chmod(base_temp_path + query.query_id, 0o777)
 
         end_range_for_meta_data = (end - relativedelta(days=1), end + relativedelta(years=1))
 
@@ -172,7 +172,7 @@ def create_coastal_change(query_id, user_id, single=False):
                     acquisition_list=time_ranges[time_range_index],
                     lat_range=lat_ranges[geographic_chunk_index],
                     lon_range=lon_ranges[geographic_chunk_index],
-                    measurements=MEASUREMENTS,
+                    measurements=measurements,
                     year_stationary=start.year,
                     end_range=end_range_for_meta_data)
                 for geographic_chunk_index in range(len(lat_ranges))).apply_async()
@@ -198,7 +198,7 @@ def create_coastal_change(query_id, user_id, single=False):
                     for task_group in time_chunk_tasks:
                         for child in task_group.children:
                             child.revoke()
-                    cancel_task(query, result, BASE_TEMP_PATH)
+                    cancel_task(query, result, base_temp_path)
                     return
 
             group_data = [data for data in geographic_group.get() if data is not None]
@@ -261,7 +261,7 @@ def create_coastal_change(query_id, user_id, single=False):
         latitude = dataset_out_mosaic.latitude
         longitude = dataset_out_mosaic.longitude
 
-        shutil.rmtree(BASE_TEMP_PATH + query.query_id)
+        shutil.rmtree(base_temp_path + query.query_id)
 
         geotransform = [
             longitude.values[0], product_details.resolution.values[0][1], 0.0, latitude.values[0], 0.0,
@@ -269,7 +269,7 @@ def create_coastal_change(query_id, user_id, single=False):
         ]
         crs = str("EPSG:4326")
 
-        file_path = BASE_RESULT_PATH + query_id
+        file_path = base_result_path + query_id
         tif_path = file_path + '.tif'
         netcdf_path = file_path + '.nc'
 
@@ -361,7 +361,7 @@ def create_coastal_change(query_id, user_id, single=False):
         query.save()
 
     except:
-        error_with_message(result, "There was an exception when handling this query.", BASE_TEMP_PATH)
+        error_with_message(result, "There was an exception when handling this query.", base_temp_path)
         raise
     return
 
@@ -380,7 +380,7 @@ def generate_coastal_change_chunk(time_num,
                                   year_stationary=None,
                                   end_range=None):
 
-    if not os.path.exists(BASE_TEMP_PATH + query.query_id):
+    if not os.path.exists(base_temp_path + query.query_id):
         return None
 
     per_scene_clear_pixel = 0
@@ -443,36 +443,36 @@ def generate_coastal_change_chunk(time_num,
 
     old_coastline = coastline_classification_2(old_water)
 
-    target = new_mosaic if NEW_MOSAIC else old_mosaic
+    target = new_mosaic if new_mosaic else old_mosaic
 
     change = target.copy(deep=True)
-    change.red.values[coastal_change.wofs_change.values == 1] = adjust_color(PINK[0])
-    change.green.values[coastal_change.wofs_change.values == 1] = adjust_color(PINK[1])
-    change.blue.values[coastal_change.wofs_change.values == 1] = adjust_color(PINK[2])
+    change.red.values[coastal_change.wofs_change.values == 1] = adjust_color(pink[0])
+    change.green.values[coastal_change.wofs_change.values == 1] = adjust_color(pink[1])
+    change.blue.values[coastal_change.wofs_change.values == 1] = adjust_color(pink[2])
 
-    change.red.values[coastal_change.wofs_change.values == -1] = adjust_color(GREEN[0])
-    change.green.values[coastal_change.wofs_change.values == -1] = adjust_color(GREEN[1])
-    change.blue.values[coastal_change.wofs_change.values == -1] = adjust_color(GREEN[2])
+    change.red.values[coastal_change.wofs_change.values == -1] = adjust_color(green[0])
+    change.green.values[coastal_change.wofs_change.values == -1] = adjust_color(green[1])
+    change.blue.values[coastal_change.wofs_change.values == -1] = adjust_color(green[2])
 
     boundary = target.copy(deep=True)
     boundary = boundary
 
-    boundary.red.values[new_coastline.coastline.values == 1] = adjust_color(BLUE[0])
-    boundary.green.values[new_coastline.coastline.values == 1] = adjust_color(BLUE[1])
-    boundary.blue.values[new_coastline.coastline.values == 1] = adjust_color(BLUE[2])
+    boundary.red.values[new_coastline.coastline.values == 1] = adjust_color(blue[0])
+    boundary.green.values[new_coastline.coastline.values == 1] = adjust_color(blue[1])
+    boundary.blue.values[new_coastline.coastline.values == 1] = adjust_color(blue[2])
 
-    boundary.red.values[old_coastline.coastline.values == 1] = adjust_color(GREEN[0])
-    boundary.green.values[old_coastline.coastline.values == 1] = adjust_color(GREEN[1])
-    boundary.blue.values[old_coastline.coastline.values == 1] = adjust_color(GREEN[2])
+    boundary.red.values[old_coastline.coastline.values == 1] = adjust_color(green[0])
+    boundary.green.values[old_coastline.coastline.values == 1] = adjust_color(green[1])
+    boundary.blue.values[old_coastline.coastline.values == 1] = adjust_color(green[2])
 
-    if not os.path.exists(BASE_TEMP_PATH + query.query_id):
+    if not os.path.exists(base_temp_path + query.query_id):
         return None
 
-    geo_path = BASE_TEMP_PATH + query.query_id + "/composite_" + \
+    geo_path = base_temp_path + query.query_id + "/composite_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
-    boundary_change_path  = BASE_TEMP_PATH + query.query_id + "/boundary_" +  \
+    boundary_change_path  = base_temp_path + query.query_id + "/boundary_" +  \
         str(time_num) + "_" + str(chunk_num) + ".nc"
-    coastal_change_path = BASE_TEMP_PATH + query.query_id + "/change_" + \
+    coastal_change_path = base_temp_path + query.query_id + "/change_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
 
     target.to_netcdf(geo_path)
@@ -520,9 +520,9 @@ def init_worker(**kwargs):
     global dc
     from django.conf import settings
     dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf')
-    if not os.path.exists(BASE_RESULT_PATH):
-        os.mkdir(BASE_RESULT_PATH)
-        os.chmod(BASE_RESULT_PATH, 0o777)
+    if not os.path.exists(base_result_path):
+        os.mkdir(base_result_path)
+        os.chmod(base_result_path, 0o777)
 
 
 @worker_process_shutdown.connect
