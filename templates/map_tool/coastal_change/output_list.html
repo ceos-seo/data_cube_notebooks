@@ -71,7 +71,58 @@ under the License.
   </tbody>
 </table>
 {% endblock %}
-
+{% block data_guide_rows %}
+<tr>
+  <td>1</td>
+  <td>Blue</td>
+  <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
+</tr>
+<tr>
+  <td>2</td>
+  <td>Green</td>
+  <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
+</tr>
+<tr>
+  <td>3</td>
+  <td>Red</td>
+  <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
+</tr>
+<tr>
+  <td>4</td>
+  <td>NIR</td>
+  <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
+</tr>
+<tr>
+  <td>5</td>
+  <td>SWIR1</td>
+  <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
+</tr>
+<tr>
+  <td>6</td>
+  <td>SWIR2</td>
+  <td>[0, 10000] <div class="helper tooltipped" title="Valid range between 0 and 10000 with a nodata value of -9999. Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
+</tr>
+<tr>
+  <td>7</td>
+  <td>CF_Mask</td>
+  <td>[0, 4] <div class="helper tooltipped" title="0 - Clear, 1 - Water, 2 - Cloud Shadow, 3 - Snow, 4 - Cloud. Our mosaics filter out values that are not 0/1 (land/water). Refer to the official Landsat 5/7/8 documentation for more information."><a> ?</a></div></td>
+</tr>
+<tr>
+  <td>8</td>
+  <td>Starting Mosaic Coastline</td>
+  <td>[0, 1] <div class="helper tooltipped" title="1 - Coastline. This is a mask that contains the coastline of the beginning year mosaic."><a> ?</a></div></td>
+</tr>
+<tr>
+  <td>9</td>
+  <td>Ending Mosaic Coastline</td>
+  <td>[0, 1] <div class="helper tooltipped" title="1 - Coastline. This is a mask that contians the coastline of the ending year mosaic."><a> ?</a></div></td>
+</tr>
+<tr>
+  <td>10</td>
+  <td>Coastal Change</td>
+  <td>[-1, 1] <div class="helper tooltipped" title="-1 - Water->Land, 0 - No change, 1 - Land->Water. This describes the change from the oldest date to the newest date."><a> ?</a></div></td>
+</tr>
+{% endblock %}
 {% block download_options %}
 <option value="result_path">Coastal Boundaries PNG</option>
 <option value="result_coastal_change_path">Coastal Change PNG</option>

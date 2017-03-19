@@ -453,7 +453,6 @@ def generate_coastal_change_chunk(time_num,
 
     #now that we have the mosaics, we can do wofs..
     combined_mask = create_cfmask_clean_mask(old_mosaic.cf_mask) & create_cfmask_clean_mask(new_mosaic.cf_mask)
-    print(combined_mask[~combined_mask])
     old_water = wofs_classify(old_mosaic, mosaic=True, clean_mask=combined_mask)
     new_water = wofs_classify(new_mosaic, mosaic=True)
 
