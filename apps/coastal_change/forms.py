@@ -1,6 +1,6 @@
 from django import forms
 import datetime
-from data_cube_ui.models import Baseline
+from data_cube_ui.models import AnimationType
 
 
 class AreaExtentForm(forms.Form):
@@ -68,3 +68,13 @@ class AnimationToggleForm(forms.Form):
 
     def __init__(self, satellite=None, *args, **kwargs):
         super(AnimationToggleForm, self).__init__(*args, **kwargs)
+
+        animation_list = [(animation_type.type_id, animation_type.type_name)
+                          for animation_type in AnimationType.objects.filter(app_name__in=["coastal_change"])
+                          .order_by('app_name', 'type_id')]
+        animation_list = [("None", "None")] + animation_list
+        self.fields["animated_product"] = forms.ChoiceField(
+            label='Generate Yearly Animation',
+            widget=forms.Select(attrs={'class': 'field-long tooltipped'}),
+            choices=animation_list,
+            help_text='Generate a .gif containing either coastal change or coastline change over time.')

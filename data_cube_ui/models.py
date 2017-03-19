@@ -133,7 +133,7 @@ class Application(models.Model):
     areas = models.ManyToManyField(Area)
     satellites = models.ManyToManyField(Satellite)
 
-    color_scale = models.CharField(max_length=250, default="")
+    color_scale = models.CharField(max_length=250, default="", blank=True, null=True)
 
     def __str__(self):
         return self.application_id

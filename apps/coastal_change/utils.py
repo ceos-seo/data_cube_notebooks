@@ -58,38 +58,12 @@ def merge_two_dicts(x, y):
     return z
 
 
-def extract_landsat_scene_metadata(landsat_xarray, no_data=-9999):
-    times = (time for time in landsat_xarray.time.values)
-    scenes = (landsat_xarray.sel(time=time) for time in times)
-
-    metadata = {"scene": {}}
-
-    for number, scene in enumerate(scenes):
-        total_pixels, clear_pixels, clear_percent = [-1] * 3
-
-        date = n64_to_datetime(scene.time.values)
-
-        id = date
-        total_pixels = count_not_nan(scene.red.values)
-        clear_pixels = count_not_nan(scene.where((scene.cf_mask < 2) & (scene >= 0)).red.values)
-        clear_percent = (float(clear_pixels) / float(total_pixels)) * 100
-
-        metadata['scene'][id] = {
-            "total_pixels": total_pixels,
-            "clear_pixels": clear_pixels,
-            "clear_percent": clear_percent,
-            'date': date
-        }
-
-    return metadata
-
-
 def extract_coastal_change_metadata(wofs_difference_xarray, no_data=-9999):
 
     metadata = {"coastal_change": {}}
 
-    sea_converted = count_pixels(wofs_difference_xarray.wofs_change.values, -1)
-    land_converted = count_pixels(wofs_difference_xarray.wofs_change.values, 1)
+    sea_converted = count_pixels(wofs_difference_xarray.coastal_change.values, -1)
+    land_converted = count_pixels(wofs_difference_xarray.coastal_change.values, 1)
 
     metadata['coastal_change'] = {
         "sea_converted": sea_converted,

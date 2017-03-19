@@ -41,7 +41,7 @@ from dateutil.tz import tzutc
 import numpy as np
 
 from .utils import (group_by_year, split_task_by_year, adjust_color, darken_color, year_in_list_of_acquisitions,
-                    extract_landsat_scene_metadata, extract_coastal_change_metadata)
+                    extract_coastal_change_metadata)
 
 from dateutil.relativedelta import relativedelta
 from utils.data_access_api import DataAccessApi
@@ -157,6 +157,7 @@ def create_coastal_change(query_id, user_id, single=False):
         #remove the initial year's acquisitions as they're included above.
         time_ranges.pop(-1)
         result.total_scenes = len(time_ranges)
+        result.save()
 
         #we can skip everything except for the most recent year if there's no animation
         if animated_product == "None":
@@ -166,7 +167,6 @@ def create_coastal_change(query_id, user_id, single=False):
             os.mkdir(base_temp_path + query.query_id)
             os.chmod(base_temp_path + query.query_id, 0o777)
 
-        end_range_for_metadata = (end - relativedelta(days=1), end + relativedelta(years=1))
         print("Time chunks: " + str(len(time_ranges)))
         print("Geo chunks: " + str(len(lat_ranges)))
 
@@ -180,9 +180,7 @@ def create_coastal_change(query_id, user_id, single=False):
                     acquisition_list=time_ranges[time_range_index],
                     lat_range=lat_ranges[geographic_chunk_index],
                     lon_range=lon_ranges[geographic_chunk_index],
-                    measurements=measurements,
-                    end_range=end_range_for_metadata)
-                for geographic_chunk_index in range(len(lat_ranges))).apply_async()
+                    measurements=measurements) for geographic_chunk_index in range(len(lat_ranges))).apply_async()
             for time_range_index in range(len(time_ranges))
         ]
 
@@ -191,6 +189,8 @@ def create_coastal_change(query_id, user_id, single=False):
         dataset_out_baseline_mosaic = None
         dataset_out_coastal_boundary = None
         acquisition_metadata = {}
+
+        time_range_index = 0
 
         for geographic_group in time_chunk_tasks:
             full_dataset = None
@@ -216,19 +216,54 @@ def create_coastal_change(query_id, user_id, single=False):
 
             acquisition_metadata = combine_metadata(acquisition_metadata, [tile[3] for tile in group_data])
 
+            dataset_mosaic = xr.concat(
+                reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
+
+            dataset_coastal_change = xr.concat(
+                reversed([xr.open_dataset(tile[1]) for tile in group_data]), dim='latitude').load()
+
+            dataset_coastal_boundary = xr.concat(
+                reversed([xr.open_dataset(tile[2]) for tile in group_data]), dim='latitude').load()
+
             #we only want the most recent year comparison results..
             if dataset_out_mosaic is None:
-                dataset_mosaic = xr.concat(
-                    reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
+                dataset_out_coastal_boundary = fill_nodata(dataset_coastal_boundary, dataset_out_coastal_boundary)
+                dataset_out_coastal_change = fill_nodata(dataset_coastal_change, dataset_out_coastal_change)
                 dataset_out_mosaic = fill_nodata(dataset_mosaic, dataset_out_mosaic)
 
-                dataset_coastal_change = xr.concat(
-                    reversed([xr.open_dataset(tile[1]) for tile in group_data]), dim='latitude').load()
-                dataset_out_coastal_change = fill_nodata(dataset_coastal_change, dataset_out_coastal_change)
+            #create animation frames
+            if query.animated_product != "None":
+                animation_data = dataset_coastal_change if query.animated_product == "coastal_change" else dataset_coastal_boundary
+                latitude = dataset_out_mosaic.latitude
+                longitude = dataset_out_mosaic.longitude
 
-                dataset_coastal_boundary = xr.concat(
-                    reversed([xr.open_dataset(tile[2]) for tile in group_data]), dim='latitude').load()
-                dataset_out_coastal_boundary = fill_nodata(dataset_coastal_boundary, dataset_out_coastal_boundary)
+                geotransform = [
+                    longitude.values[0], product_details.resolution.values[0][1], 0.0, latitude.values[0], 0.0,
+                    product_details.resolution.values[0][0]
+                ]
+                crs = str("EPSG:4326")
+
+                tif_path = base_temp_path + query.query_id + '/' + \
+                    '/' + str(time_range_index) + '_animation_frame.tif'
+                png_path = base_temp_path + query.query_id + \
+                    '/' + str(time_range_index) + '_animation_frame.png'
+
+                save_to_geotiff(
+                    tif_path,
+                    gdal.GDT_Int16,
+                    animation_data,
+                    geotransform,
+                    get_spatial_ref(crs),
+                    x_pixels=dataset_out_mosaic.dims['longitude'],
+                    y_pixels=dataset_out_mosaic.dims['latitude'],
+                    band_order=['blue', 'green', 'red'])
+
+                bands = [3, 2, 1]
+                create_rgb_png_from_tiff(
+                    tif_path, png_path, png_filled_path=None, fill_color=None, bands=bands, scale=(0, 4096))
+
+                time_range_index += 1
+                os.remove(tif_path)
 
         dates = list(acquisition_metadata.keys())
         dates.sort()
@@ -245,12 +280,13 @@ def create_coastal_change(query_id, user_id, single=False):
         coastal_metadata = extract_coastal_change_metadata(dataset_out_coastal_change)
         meta.land_converted = coastal_metadata["coastal_change"]['land_converted']
         meta.sea_converted = coastal_metadata["coastal_change"]['sea_converted']
+        clean_pixels = np.sum(dataset_out_coastal_change[measurements[0]].values != -9999)
+        meta.clean_pixel_count = clean_pixels
+        meta.percentage_clean_pixels = (meta.clean_pixel_count / meta.pixel_count) * 100
         meta.save()
 
         latitude = dataset_out_mosaic.latitude
         longitude = dataset_out_mosaic.longitude
-
-        shutil.rmtree(base_temp_path + query.query_id)
 
         geotransform = [
             longitude.values[0], product_details.resolution.values[0][1], 0.0, latitude.values[0], 0.0,
@@ -265,8 +301,20 @@ def create_coastal_change(query_id, user_id, single=False):
         mosaic_png_path = file_path + '_mosaic.png'
         coastal_change_png_path = file_path + '_coastal_change.png'
         coastal_boundary_png_path = file_path + "_coastal_boundaries.png"
+        animation_path = file_path + '_mosaic_animation.gif'
 
         print("Creating query results.")
+
+        if query.animated_product != "None":
+            import imageio
+            with imageio.get_writer(animation_path, mode='I', duration=1.0) as writer:
+                for index in range(time_range_index):
+                    image = imageio.imread(base_temp_path + query.query_id + \
+                        '/' + str(index) + '_animation_frame.png')
+                    writer.append_data(image)
+            result.animation_path = animation_path
+
+        shutil.rmtree(base_temp_path + query.query_id)
 
         save_to_geotiff(
             tif_path,
@@ -282,8 +330,6 @@ def create_coastal_change(query_id, user_id, single=False):
         create_rgb_png_from_tiff(
             tif_path, mosaic_png_path, png_filled_path=None, fill_color=None, bands=bands, scale=(0, 4096))
 
-        dataset_mosaic.to_netcdf(netcdf_path)
-
         save_to_geotiff(
             tif_path,
             gdal.GDT_Int32,
@@ -297,8 +343,7 @@ def create_coastal_change(query_id, user_id, single=False):
         create_rgb_png_from_tiff(
             tif_path, coastal_change_png_path, png_filled_path=None, fill_color=None, scale=(0, 4096), bands=[1, 2, 3])
 
-        dataset_out_coastal_change.to_netcdf(netcdf_path)
-
+        dataset_out_coastal_boundary['coastal_change'] = dataset_out_coastal_change['coastal_change']
         save_to_geotiff(
             tif_path,
             gdal.GDT_Int32,
@@ -307,7 +352,10 @@ def create_coastal_change(query_id, user_id, single=False):
             get_spatial_ref(crs),
             x_pixels=dataset_out_coastal_boundary.dims['longitude'],
             y_pixels=dataset_out_coastal_boundary.dims['latitude'],
-            band_order=['red', 'green', 'blue'])
+            band_order=[
+                'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'coastline_old', 'coastline_new',
+                'coastal_change'
+            ])
 
         create_rgb_png_from_tiff(
             tif_path,
@@ -315,18 +363,9 @@ def create_coastal_change(query_id, user_id, single=False):
             png_filled_path=None,
             fill_color=None,
             scale=(0, 4096),
-            bands=[1, 2, 3])
+            bands=[3, 2, 1])
 
         dataset_out_coastal_boundary.to_netcdf(netcdf_path)
-
-        if animated_product == 'yearly':
-            times = [item for sublist in time_ranges for item in sublist]
-            max_year = max(times).year
-            min_year = min(times).year
-            time_range = range(min_year, max_year + 1)
-
-        else:
-            pass
 
         update_model_bounds_with_dataset([result, meta, query], dataset_out_mosaic)
 
@@ -362,8 +401,7 @@ def generate_coastal_change_chunk(time_num,
                                   acquisition_list=None,
                                   lat_range=None,
                                   lon_range=None,
-                                  measurements=None,
-                                  end_range=None):
+                                  measurements=None):
 
     if not os.path.exists(base_temp_path + query.query_id):
         return None
@@ -414,7 +452,9 @@ def generate_coastal_change_chunk(time_num,
     new_mosaic = _acquisitions['end'][1]
 
     #now that we have the mosaics, we can do wofs..
-    old_water = wofs_classify(old_mosaic, mosaic=True)
+    combined_mask = create_cfmask_clean_mask(old_mosaic.cf_mask) & create_cfmask_clean_mask(new_mosaic.cf_mask)
+    print(combined_mask[~combined_mask])
+    old_water = wofs_classify(old_mosaic, mosaic=True, clean_mask=combined_mask)
     new_water = wofs_classify(new_mosaic, mosaic=True)
 
     coastal_change = new_water - old_water
@@ -433,7 +473,7 @@ def generate_coastal_change_chunk(time_num,
     change.red.values[coastal_change.wofs_change.values == -1] = adjust_color(green[0])
     change.green.values[coastal_change.wofs_change.values == -1] = adjust_color(green[1])
     change.blue.values[coastal_change.wofs_change.values == -1] = adjust_color(green[2])
-    change['wofs_change'] = coastal_change.wofs_change
+    change['coastal_change'] = coastal_change.wofs_change
 
     boundary = new_mosaic.copy(deep=True)
     boundary.red.values[new_coastline.coastline.values == 1] = adjust_color(blue[0])
