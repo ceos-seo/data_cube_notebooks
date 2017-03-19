@@ -1,0 +1,240 @@
+html, body {
+    height: 100%;
+}
+
+/* body bg Padding top is due to the navbar being fixed. */
+
+body {
+    padding-top: 52px;
+}
+
+/************************************************************************************
+
+Container begins here.
+
+************************************************************************************/
+
+
+/* Used to center rows vertically/do fullscreen single page webapps. 45px is for the footer */
+
+.container-table {
+    display: table;
+    height: calc(100% - 45px);
+}
+.no-footer {
+    height: 100%;
+}
+
+/************************************************************************************
+
+Container ends here.
+
+************************************************************************************/
+
+
+/************************************************************************************
+
+Rows/cols begin here.
+
+************************************************************************************/
+
+.vertical-center-row {
+    display: table-cell;
+    vertical-align: middle;
+}
+.home_row {
+    border-top: 1px solid white;
+    background-color: rgba(0, 0, 0, .7);
+}
+.home_row .home_col {
+    margin-top: 20px;
+    box-shadow: 0 0 10px #000;
+    color: #fff;
+    background-color: rgba(0, 0, 0, .5);
+    border-radius: 20px 20px 20px 20px;
+    border: 1px solid #777;
+    padding-bottom: 10px;
+}
+.fullscreen-row {
+  height:100%;
+}
+.fullscreen-row .fullscreen-col {
+  height:100%;
+}
+.col-centered {
+    float: none;
+    margin: 0 auto;
+    border-radius: 5px;
+    padding: 0;
+}
+
+/* Gives the entire row an opaque bg. */
+
+.letterboxed-content {
+    padding-top: 10px;
+    margin-top: 20px;
+    box-shadow: 0 0 10px #000;
+    color: #fff;
+    background-color: rgba(0, 0, 0, .75);
+    border: 1px solid #777;
+    padding-bottom: 10px;
+}
+
+/* gives some padding if letterboxed-content is applied to a col rather than a row.
+    This lets us have variable width letterboxed content boxes as well as full rows. */
+
+.col-centered.letterboxed-content {
+    padding: 15px;
+}
+.col-right-border {
+    border-right: 1px;
+    border-right-style: solid;
+}
+
+/* sets all cols in the row to be the same height. Causes maps to stretch to fit */
+
+.row-eq-height {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+}
+.seamless-col {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+/************************************************************************************
+
+Rows/cols end here.
+
+************************************************************************************/
+
+
+/************************************************************************************
+
+Buttons start here.
+
+************************************************************************************/
+
+.btn-primary {
+    color: #FFFFFF;
+    background-color: #CA4F2D;
+    border-color: #AB2A07;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .btn-primary.active.focus, .btn-primary.active:focus, .btn-primary.active:hover, .btn-primary.focus:active, .btn-primary:active:focus, .btn-primary:active:hover, .open>.dropdown-toggle.btn-primary.focus, .open>.dropdown-toggle.btn-primary:focus, .open>.dropdown-toggle.btn-primary:hover, .open .dropdown-toggle.btn-primary {
+    color: #FFFFFF;
+    background-color: #A63110;
+    border-color: #AB2A07;
+}
+.btn-primary:active, .btn-primary.active, .open .dropdown-toggle.btn-primary {
+    background-image: none;
+}
+.btn-primary.disabled, .btn-primary[disabled], fieldset[disabled] .btn-primary, .btn-primary.disabled:hover, .btn-primary[disabled]:hover, fieldset[disabled] .btn-primary:hover, .btn-primary.disabled:focus, .btn-primary[disabled]:focus, fieldset[disabled] .btn-primary:focus, .btn-primary.disabled:active, .btn-primary[disabled]:active, fieldset[disabled] .btn-primary:active, .btn-primary.disabled.active, .btn-primary[disabled].active, fieldset[disabled] .btn-primary.active {
+    background-color: #CA4F2D;
+    border-color: #AB2A07;
+}
+.btn-primary .badge {
+    color: #CA4F2D;
+    background-color: #FFFFFF;
+}
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+
+/************************************************************************************
+
+Buttons end here.
+
+************************************************************************************/
+
+
+/************************************************************************************
+
+Forms begin here.
+
+************************************************************************************/
+
+.form-col {
+    background-color: #fff;
+    color: #000;
+    border: 3px solid #3288CD;;
+}
+
+.form-col h4 {
+  margin-top: 0px;
+}
+
+/* border radius set to match curvature of the container.  */
+
+.form-header {
+    width: auto;
+    height: 40px;
+    background: #3288CD;
+    color: #fff;
+}
+.form-header .form-title {
+    padding-left: 10px;
+    padding-right: 10px;
+    line-height: 40px;
+}
+.form-content {
+    padding: 10px 20px 20px 20px;
+}
+.has-success .checkbox, .has-success .checkbox-inline, .has-success .control-label, .has-success .help-block, .has-success .radio, .has-success .radio-inline, .has-success.checkbox label, .has-success.checkbox-inline label, .has-success.radio label, .has-success.radio-inline label {
+    color: #000;
+}
+.has-success .form-control, .has-success .form-control:focus {
+    border-color: #66afe9;
+    outline: 0;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, 0.6);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, 0.6);
+}
+
+/* Requred for captcha input. Captcha isn't done using normal django forms so normal classes aren't applied. */
+.form-group input, .letterboxed-content .tab-content select {
+    color: #555;
+}
+
+/*Forms on white backgrounds that require darker text.*/
+.form-group-white {
+    color: #555;
+}
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
+    background-color: #eee;
+    opacity: 1;
+    cursor: not-allowed;
+}
+.checkbox-list .control-label {
+    text-align: left;
+}
+.checkbox-list div {
+    text-align: right;
+}
+
+textarea.form-control {
+  max-height:500px;
+}
+
+
+/************************************************************************************
+
+Forms end here.
+
+************************************************************************************/

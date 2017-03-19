@@ -1,20 +1,21 @@
 {% extends "centered_form.html" %}
 {% load i18n %}
+{% load bootstrap3 %}
 
 {% block form %}
 <form action="/accounts/{{ user_hash }}/reset" method="post" id="registration-form">
-  {% csrf_token %} {% for field in form.visible_fields %}
-  <div class="form-row comment_input">
-      <label class="required" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-  </div>
+  {% csrf_token %}
+  {% bootstrap_form_errors form type='non_fields' %}
+  {% for field in form %}
+    {% bootstrap_field field %}
   {% endfor %}
   {% if next %}
   <input type="hidden" name="next" value="{{ next }}" />
   {% endif %}
-    <div class="submit-row">
-        <label>&nbsp;</label>
-        <input id="log-in-submit" type="submit" value="{% trans "Change Password" %}" />
-    </div>
+  {% buttons %}
+    <button type="submit" class="btn btn-default">
+      {% trans "Change Password" %}
+    </button>
+  {% endbuttons %}
 </form>
 {% endblock %}

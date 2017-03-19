@@ -27,11 +27,13 @@ from django.contrib.auth import logout as auth_logout
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.forms.forms import NON_FIELD_ERRORS
 
 from email.message import EmailMessage
 import smtplib
 
 from .forms import SubmitFeedbackForm
+from .models import Application, ToolInfo
 
 def home(request):
     """
@@ -50,6 +52,18 @@ def home(request):
     return render(request, 'index.html', context)
 
 @login_required
+def region_selection(request, app_id):
+    application = Application.objects.get(application_id=app_id)
+    tool_info = application.toolinfo_set.all().order_by('id')
+    areas = application.areas.all()
+    context = {
+        'app': app_id,
+        'tool_descriptions': tool_info,
+        'areas': areas
+    }
+    return render(request, 'map_tool/region_selection.html', context)
+
+@login_required
 def submit_feedback(request):
     if request.method == 'POST':
         form = SubmitFeedbackForm(request.POST)
@@ -64,13 +78,15 @@ def submit_feedback(request):
             with smtplib.SMTP('localhost') as s:
                 s.send_message(msg)
 
-        form_class = SubmitFeedbackForm
-        context = {'title': "Feedback", 'form': form_class, 'successful_submission': 'Feedback was successfuly submitted.  Thank you for your comments'}
+        form = SubmitFeedbackForm()
+        form.cleaned_data = {}
+        form.add_error(NON_FIELD_ERRORS, 'Feedback was successfuly submitted.  Thank you for your comments')
+
+        context = {'title': "Feedback", 'form':form, 'wide':True}
         return render(request, 'submit_feedback.html', context)
 
     else:
-        form_class = SubmitFeedbackForm
-        context = {'title': "Feedback", 'form': form_class}
+        context = {'title': "Feedback", 'form': SubmitFeedbackForm(), 'wide':True}
         if request.GET:
             next = request.GET.get('next', "/")
             if request.user.is_authenticated():

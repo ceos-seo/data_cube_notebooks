@@ -1,0 +1,75 @@
+{% block css %}
+<link rel="stylesheet" href="/static/assets/css/info_panel.css"/>
+{% endblock %}
+
+<h2>Fractional Cover Tool</h2>
+<hr>
+<div id="infoPanelContent">
+  <div class="panel-group" id="accordion">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title info-panel">
+          <a data-toggle="collapse" data-parent="#accordion" href="#intro">Introduction</a>
+        </h4>
+      </div>
+      <div id="intro" class="panel-collapse collapse in">
+        <div class="panel-body">
+          <h3>Summary</h3>
+          The Fractional Cover Tool uses a collection of acquisitions to create a single image composed of the 'best' pixels based on the chosen criteria. The fractional cover operation then operates over that mosaic, creating a RGB Image. Define a bounding box, time period, and data output options and press the submit button to run a task.
+          <br><br>
+          <h3>Input Options</h3>
+          The available options include the most recent clear pixel, least recent clear pixel, median clear pixel, and max/min NDVI pixels. When you submit a new task, the entire time stack of data from the specified bounding box and date range will be loaded and processed based on the input parameters.
+          <br><br>
+          <h3>Output Data</h3>
+          The output image will contain the fractional cover of the mosaicked dataset and will be displayed on the map. The RGB bands represent nonphotosynthetic vegetation, photosynthetic vegetation, and bare soil. The data product is available for download in both NetCDF and GeoTIFF format along with any images created.
+	</div>
+      </div>
+      <div class="panel-heading">
+        <h4 class="panel-title info-panel">
+          <a data-toggle="collapse" data-parent="#accordion" href="#task_params">Task Parameters</a>
+        </h4>
+      </div>
+      <div id="task_params" class="panel-collapse collapse">
+        <div class="panel-body">
+          <h3>Data Selection</h3>
+          The data selection section contains options that affect the data and processes that are used to create the output product.
+          <br>
+          <h3>Compositing Method</h3>
+          The compositing method refers to the method used to combine the acquisitions. For example, "Most Recent Pixel" will use the closest valid pixel to the end date, and "Max NDVI Pixel" will use the pixel for each location that has the greatest NDVI value.
+          <br><br>
+          <h3>Geospatial Bounds</h3>
+          These bounds will be use to filter the available data. For any given bounding box, each acquisition that is found between start and end date will be used to create the mosaic.
+          The bounding box can either be drawn on the map by a single click, drag, and second click, or by entering valid values in the boxes.
+	</div>
+      </div>
+      <div class="panel-heading">
+        <h4 class="panel-title info-panel">
+          <a data-toggle="collapse" data-parent="#accordion" href="#task_outputs">Task Outputs</a>
+        </h4>
+      </div>
+      <div id="task_outputs" class="panel-collapse collapse">
+        <div class="panel-body">
+	  <h3>Output Image Display</h3>
+          The task will produce a RGB image of the fractional cover of the area and display it on the map. The RGB bands represent nonphotosynthetic vegetation, photosynthetic vegetation, and bare soil. The mosaic that is used for the fractional cover algorithm can be found by checking the box in the results tab. To zoom to a task, click on it on either the results or the output tab. The scale of this operation can be found in the scales tab.
+          <br><br>
+          <h3>Managing Completed Tasks</h3>
+          In the results tab, selecting a task will load in the list of all acquisitions and some relevant data. From this panel, you are able to load the fractional cover of any single acquisition by clicking "Load this scene." To remove a task from the map display, press either delete or the hide button on the results tab.
+          <br><br>
+          <h3>Product Download</h3>
+          All products can be downloaded using the output tab. A GeoTIFF and NetCDF are available the result of the fractional cover output, as well as the map image and the mosaic image.
+	</div>
+      </div>
+      <div class="panel-heading">
+        <h4 class="panel-title info-panel">
+          <a data-toggle="collapse" data-parent="#accordion" href="#color_scale">Color Scale</a>
+        </h4>
+      </div>
+      <div id="color_scale" class="panel-collapse collapse">
+        <div class="panel-body">
+	  <img src=/static/assets/images/fractional_cover_color_scale.png class="image-display" />
+	  <span>Fractional Cover: NPV is nonphotosynthetic vegetation, PV is photosynthetic vegetation, and BS is bare soil.</span>
+	</div>
+      </div>
+    </div>
+  </div>
+</div>

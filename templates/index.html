@@ -1,41 +1,54 @@
-{% extends "default.html" %}
+{% extends "default.html" %} {% load bootstrap3 %}
 <!--
-Copyright 2016 United States Government as represented by the Administrator
-of the National Aeronautics and Space Administration. All Rights Reserved.
+    Copyright 2016 United States Government as represented by the Administrator
+    of the National Aeronautics and Space Administration. All Rights Reserved.
 
-Portion of this code is Copyright Geoscience Australia, Licensed under the
-Apache License, Version 2.0 (the "License"); you may not use this file
-except in compliance with the License. You may obtain a copy of the License
-at
+    Portion of this code is Copyright Geoscience Australia, Licensed under the
+    Apache License, Version 2.0 (the "License"); you may not use this file
+    except in compliance with the License. You may obtain a copy of the License
+    at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
-The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://www.apache.org/licenses/LICENSE-2.0.
+    The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-License for the specific language governing permissions and limitations
-under the License.
--->
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+    License for the specific language governing permissions and limitations
+    under the License.
+  -->
+
+{% block css %}
+
+{% endblock %}
 {% block content %}
-<div id="main-content" class="wrapper introContent">
-    <div class="home-container">
-        <h1>Welcome to the Data Cube</h1>
-        <p>CEOS is using the power of the Data Cube to help address the needs of developing countries, giving them a better picture of their resources and forest change.</p>
-        <ul>
-            <li>Ease of use and access to satellite-based data</li>
-            <li>Multiple dataset interoperability and spatial consistency</li>
-            <li>Use of "Analysis Ready" Data Products vs. Unprocessed Data (leave processing to the Space Agencies)</li>
-            <li>A Shift in Paradigm from Scenes to Pixels</li>
-        </ul>
-        <hr />
-	{% if not user.is_authenticated %}
-        <button class="yellowButton" type="button" onclick="location.href='accounts/login?next=/'">Login</button>
-	{% endif %}
+<div class="container container-table no-footer">
+    <div class="row vertical-center-row">
+        <div class="col-lg-12">
+            <div class="col-lg-6">
+                <img src="/static/assets/images/screen.png" alt="" class="img-responsive">
+            </div>
+            <div class="col-lg-6">
+                <h1>Welcome to the Open Data Cube</h1>
+                <p>CEOS is using the power of the Open Data Cube to help address the needs of satellite data users, giving them a better picture of their land resources and land change.</p>
+                <ul>
+                    <li>Ease of use and access to satellite-based data</li>
+                    <li>Multiple dataset interoperability and spatial consistency</li>
+                    <li>Use of "Analysis Ready" Data Products</li>
+                    <li>A Shift in Paradigm from Scenes to Pixels</li>
+                </ul>
+                <hr />
+                {% if not user.is_authenticated %}
+                <div class="form-group form-group-btns pull-right">
+                  <a href="/accounts/login?next=/" class="btn btn-primary">Log In</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

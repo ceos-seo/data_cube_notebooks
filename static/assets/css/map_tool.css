@@ -1,0 +1,334 @@
+h2
+{
+    font-size: 20px;
+    margin-top: 10px;
+    margin-bottom: 0px;
+}
+
+hr
+{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+/* Filter specific */
+#filters-panel
+{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+#running_queries
+{
+    height: 225px;
+    border: 1px solid coral;
+    padding-left: 0;
+    list-style: none;
+    overflow-y: auto;
+}
+
+#running_queries li {
+  padding: 2px;
+}
+
+#running_queries li .progress {
+  margin-bottom: 0px;
+}
+
+#past_queries
+{
+    height:775px;
+    border: 1px solid coral;
+    overflow-y:auto;
+}
+
+#task_list
+{
+    height: 290px;
+    border: 1px solid coral;
+    overflow-y: auto;
+}
+
+#scenes_list
+{
+    height: 250px;
+    border: 1px solid coral;
+    overflow-y: auto;
+}
+
+#query_metadata
+{
+    height: 150px;
+    border: 1px solid coral;
+    overflow-y: auto;
+}
+
+#infoPanelContent
+{
+    height: 100%;
+    border: 1px solid lightgrey;
+    padding: 5px;
+}
+
+/* Output box css */
+#output_list
+{
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid coral;
+    margin-bottom: 0px;
+}
+
+#data_guide {
+  height: 275px;
+  overflow-y: auto;
+  border: 1px solid coral;
+  margin-bottom: 0px;
+}
+
+#data_guide .helper {
+  float: none;
+}
+
+#download_sel
+{
+    margin-top: 10px;
+}
+
+/* Map css */
+.buttons_on_map {
+  position: absolute;
+  z-index: 10000;
+  right: 5px;
+  top: 8px;
+}
+
+.map_button {
+  display: inline-block;
+  position: relative;
+  background: #303336;
+  border: 1px solid #444;
+  color: #edffff;
+  fill: #edffff;
+  border-radius: 4px;
+  padding: 2px 3px;
+  cursor: pointer;
+  overflow: hidden;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.map_button:focus {
+    color: #fff; /* For text buttons */
+    fill: #fff; /* For SVG buttons */
+    border-color: #ea4;
+    outline: none;
+}
+
+.map_button:hover {
+    color: #fff; /* For text buttons */
+    fill: #fff; /* For SVG buttons */
+    background: #48b;
+    border-color: #aef;
+    box-shadow: 0 0 8px #fff;
+}
+
+.map_button:active {
+    color: #000; /* For text buttons */
+    fill: #000; /* For SVG buttons */
+    background: #adf;
+    border-color: #fff;
+    box-shadow: 0 0 8px #fff;
+}
+
+.panel_on_map {
+  position: absolute;
+  z-index: 10000;
+  right:5px;
+  top: 45px;
+  border: 1px solid #444;
+  background-color: rgba(38, 38, 38, 0.75);
+  padding: 5px;
+  border-radius: 10px;
+  color:white;
+}
+
+.glyphicon_container {
+  text-decoration: none;
+}
+
+.glyphicon.map_icon {
+  font-size: 27px;
+  display: block;
+  text-align: center;
+  margin: 0;
+  color: #fff;
+  cursor:pointer;
+}
+
+.lat_lon_map_indicator {
+    position: absolute;
+    z-index: 10000;
+    right: 5px;
+    bottom: 5px;
+    font-size: 20px !important;
+}
+
+.fullscreen-col {
+  overflow: auto;
+}
+
+.side-panel {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.map {
+    position: relative;
+    z-index: 1;
+    width: auto;
+    height: 100%;
+    padding: 0px;
+    overflow: hidden;
+    border-radius: 5px;
+    border: 1px solid darkgrey;
+    background-size: cover;
+    background-color: lightgray;
+}
+
+.form-group
+{
+    padding-left: 10px;
+}
+
+.image-display-vertically-centered {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: block;
+    margin: auto;
+    max-height: 100%;
+    max-width: 100%;
+    border: rgb(255, 127, 80) 2px outset;
+}
+
+.form-section-header {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.page-header {
+  margin: 0;
+  padding-bottom:0;
+  padding-top: 10px;
+}
+
+.panel-title.info-panel
+{
+    font-weight: bold;
+}
+
+.panel-body
+{
+    overflow-y: auto;
+}
+
+.image-display {
+    display: block;
+    margin: 0 auto;
+  	max-width: 100%;
+    max-height: 100%;
+    border: rgb(255,127,80) 2px outset;
+}
+
+
+.scene_list_table {
+  margin-bottom: 0px;
+}
+
+.scene_list_table thead tr th {
+  padding-bottom: 0;
+}
+
+.scene_list_table tbody tr td {
+  border-top: none;
+  padding: 2px;
+  padding-left: 25px;
+  padding-right: 10px;
+}
+
+
+.right_aligned_text {
+    text-align: right;
+}
+
+.form-horizontal .form-group
+{
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+}
+
+.btn-primary
+{
+    margin-top: 10px;
+}
+
+/* Generic */
+.nav-tabs>li.active>a
+{
+    background-color: coral;
+    color: white;
+}
+
+.nav-tabs>li.active>a:focus
+			  {
+			      background-color: coral;
+			      color: white;
+			  }
+
+.nav-tabs>li.active>a:hover
+			  {
+			      background-color: coral;
+			      color: white;
+			  }
+
+.alternating li:nth-child(odd) {
+    background: rgba(255, 127, 80, 0.15);
+}
+
+.helper {
+    float: left;
+    display: inline-block;
+}
+.helper a {
+    display: block;
+    height: 15px;
+    width: 15px;
+    font-size: 12px;
+    text-align: center;
+    background: #ccc;
+    color: #000;
+    border-radius: 15px;
+    cursor: pointer;
+}
+.helper a:hover {
+    background: #28597a;
+    color: #fff;
+    cursor: pointer;
+}
+.helper_filler {
+    display: inline-block;
+}
+.helper_filler a {
+    display: block;
+    line-height: 20px;
+    height: 15px;
+    width: 15px;
+    background-color: transparent;
+    color: transparent;
+}

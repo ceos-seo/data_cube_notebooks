@@ -20,7 +20,7 @@
 # under the License.
 
 from django.contrib import admin
-from .models import Satellite, Area, Compositor, Application, Baseline
+from .models import Satellite, Area, Compositor, Application, Baseline, ToolInfo
 
 class SatelliteAdmin(admin.ModelAdmin):
     list_display = ('satellite_id','satellite_name')
@@ -37,9 +37,15 @@ class BaselineAdmin(admin.ModelAdmin):
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = ('application_id','application_name')
 
+class ToolInfoAdmin(admin.ModelAdmin):
+    list_display = ('get_application','image_title', 'image_description')
+    def get_application(self, obj):
+        return obj.application.application_id
+
 # Register your models here.
 admin.site.register(Satellite, SatelliteAdmin)
 admin.site.register(Area, AreaAdmin)
 admin.site.register(Compositor, CompositorAdmin)
 admin.site.register(Application, ApplicationAdmin)
 admin.site.register(Baseline, BaselineAdmin)
+admin.site.register(ToolInfo, ToolInfoAdmin)

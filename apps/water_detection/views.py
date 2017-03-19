@@ -37,7 +37,6 @@ from .tasks import perform_water_analysis
 from .utils import create_query_from_post
 
 from collections import OrderedDict
-
 """
 Class holding all the views for the water_detection app in the project.
 """
@@ -77,26 +76,30 @@ def water_detection(request, area_id):
         user_id = request.user.username
     area = Area.objects.get(area_id=area_id)
     app = Application.objects.get(application_id="water_detection")
-    satellites = area.satellites.all() & app.satellites.all() #Satellite.objects.all().order_by('satellite_id')
+    satellites = area.satellites.all() & app.satellites.all()  #Satellite.objects.all().order_by('satellite_id')
     forms = {}
     for satellite in satellites:
-        forms[satellite.satellite_id] = {'Output Image Characteristics': DataSelectForm(
-            satellite_id=satellite.satellite_id, auto_id=satellite.satellite_id + "_%s"), 'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s") }
+        forms[satellite.satellite_id] = {
+            'Output Image Characteristics':
+            DataSelectForm(satellite_id=satellite.satellite_id, auto_id=satellite.satellite_id + "_%s"),
+            'Geospatial Bounds':
+            GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s")
+        }
         # gets a flat list of the bands/result types and populates the choices.
     # will later be populated after we have authentication working.
-    running_queries = Query.objects.filter(
-        user_id=user_id, area_id=area_id, complete=False)
+    running_queries = Query.objects.filter(user_id=user_id, area_id=area_id, complete=False)
 
     context = {
         'tool_name': 'water_detection',
-        'info_panel': 'water_detection/info_panel.html',
+        'info_panel': 'map_tool/water_detection/info_panel.html',
         'satellites': satellites,
         'forms': forms,
         'running_queries': running_queries,
-        'area': area
+        'area': area,
+        'application': app,
     }
 
-    return render(request, 'map_tool.html', context)
+    return render(request, 'map_tool/map_tool.html', context)
 
 
 def submit_new_request(request):
@@ -147,11 +150,9 @@ def submit_new_single_request(request):
         try:
             # Get the query that this is a derivation of, clone it by setting
             # pk to none.
-            query = Query.objects.filter(
-                query_id=request.POST['query_id'], user_id=user_id)[0]
+            query = Query.objects.filter(query_id=request.POST['query_id'], user_id=user_id)[0]
             query.pk = None
-            query.time_start = datetime.strptime(
-                request.POST['date'], '%m/%d/%Y')
+            query.time_start = datetime.strptime(request.POST['date'], '%m/%d/%Y')
             query.time_end = query.time_start + timedelta(days=1)
             query.complete = False
             query.title = "Single scene analysis " + request.POST['date']
@@ -184,8 +185,7 @@ def cancel_request(request):
         response = {}
         response['msg'] = "OK"
         try:
-            query = Query.objects.get(query_id=request.POST[
-                                      'query_id'], user_id=user_id)
+            query = Query.objects.get(query_id=request.POST['query_id'], user_id=user_id)
             result = Result.objects.get(query_id=request.POST['query_id'])
             if result.status == "WAIT" and query.complete == False:
                 result.status = "CANCEL"
@@ -238,12 +238,10 @@ def get_result(request):
                 response.update(model_to_dict(result))
                 # since there is a result, update all the currently running
                 # identical queries with complete=true;
-                Query.objects.filter(
-                    query_id=result.query_id).update(complete=True)
+                Query.objects.filter(query_id=result.query_id).update(complete=True)
             else:
                 response['msg'] = "WAIT"
-                response['result'] = {
-                    'total_scenes': result.total_scenes, 'scenes_processed': result.scenes_processed}
+                response['result'] = {'total_scenes': result.total_scenes, 'scenes_processed': result.scenes_processed}
         return JsonResponse(response)
     return JsonResponse({'msg': "ERROR"})
 
@@ -267,12 +265,11 @@ def get_query_history(request, area_id):
     user_id = 0
     if request.user.is_authenticated():
         user_id = request.user.username
-    history = Query.objects.filter(
-        user_id=user_id, area_id=area_id).order_by('-query_start')[:10]
+    history = Query.objects.filter(user_id=user_id, area_id=area_id, complete=True).order_by('-query_start')[:10]
     context = {
         'query_history': history,
     }
-    return render(request, 'water_detection/query_history.html', context)
+    return render(request, 'map_tool/water_detection/query_history.html', context)
 
 
 @login_required
@@ -300,14 +297,10 @@ def get_results_list(request, area_id):
         metadata_entries = []
         for query_id in query_ids:
             queries.append(Query.objects.filter(query_id=query_id).order_by('-query_start')[0])
-            metadata_entries.append(
-                Metadata.objects.filter(query_id=query_id)[0])
+            metadata_entries.append(Metadata.objects.filter(query_id=query_id)[0])
 
-        context = {
-            'queries': queries,
-            'metadata_entries': metadata_entries
-        }
-        return render(request, 'water_detection/results_list.html', context)
+        context = {'queries': queries, 'metadata_entries': metadata_entries}
+        return render(request, 'map_tool/water_detection/results_list.html', context)
     return HttpResponse("Invalid Request.")
 
 
@@ -342,5 +335,5 @@ def get_output_list(request, area_id):
             #'metadata_entries': metadata_entries
             'data': data
         }
-        return render(request, 'water_detection/output_list.html', context)
+        return render(request, 'map_tool/water_detection/output_list.html', context)
     return HttpResponse("Invalid Request.")

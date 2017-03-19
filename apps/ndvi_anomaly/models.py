@@ -22,8 +22,6 @@
 from django.db import models
 from data_cube_ui.models import Area, Compositor, Baseline
 from data_cube_ui.models import Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as BaseResultType
-
-
 """
 Models file that holds all the classes representative of the database tabeles.  Allows for queries
 to be created for basic CRUD operations.
@@ -51,10 +49,13 @@ class Query(BaseQuery):
     time_end = models.CharField(max_length=5000, default="0")
 
     def get_baseline_name(self):
-        months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        months = [
+            "January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+            "November", "December"
+        ]
         baseline_str = ""
         for baseline in [int(month) for month in self.baseline.split(',')]:
-            baseline_str += months[baseline-1] + ", "
+            baseline_str += months[baseline - 1] + ", "
         return baseline_str
 
     def generate_query_id(self):
@@ -65,19 +66,44 @@ class Query(BaseQuery):
         Returns:
             query_id (string): The ID of the query built up by object attributes.
         """
-        query_id = self.time_start + '-' + str(self.latitude_max) + '-' + str(
-            self.latitude_min) + '-' + str(self.longitude_max) + '-' + str(self.longitude_min) + '-' + self.baseline + '-' + self.platform + '-' + self.product
-        return query_id
+
+        query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{baseline}-{baseline_method}-{platform}-{product}'
+        return query_id.format(
+            start=self.time_start,
+            end=self.time_end,
+            lat_max=self.latitude_max,
+            lat_min=self.latitude_min,
+            lon_max=self.longitude_max,
+            lon_min=self.longitude_min,
+            baseline=self.baseline,
+            baseline_method=self.baseline_method,
+            platform=self.platform,
+            product=self.product)
 
     def generate_metadata(self, scene_count=0, pixel_count=0):
-        meta = Metadata(query_id=self.query_id, scene_count=scene_count, pixel_count=pixel_count,
-                        latitude_min=self.latitude_min, latitude_max=self.latitude_max, longitude_min=self.longitude_min, longitude_max=self.longitude_max)
+        meta = Metadata(
+            query_id=self.query_id,
+            scene_count=scene_count,
+            pixel_count=pixel_count,
+            latitude_min=self.latitude_min,
+            latitude_max=self.latitude_max,
+            longitude_min=self.longitude_min,
+            longitude_max=self.longitude_max)
         meta.save()
         return meta
 
     def generate_result(self):
-        result = Result(query_id=self.query_id, result_path="", data_path="", latitude_min=self.latitude_min,
-                        latitude_max=self.latitude_max, longitude_min=self.longitude_min, longitude_max=self.longitude_max, total_scenes=0, scenes_processed=0, status="WAIT")
+        result = Result(
+            query_id=self.query_id,
+            result_path="",
+            data_path="",
+            latitude_min=self.latitude_min,
+            latitude_max=self.latitude_max,
+            longitude_min=self.longitude_min,
+            longitude_max=self.longitude_max,
+            total_scenes=0,
+            scenes_processed=0,
+            status="WAIT")
         result.save()
         return result
 
@@ -96,7 +122,9 @@ class Metadata(BaseMetadata):
             zip file: Zip file combining three different lists (acquisition_list_as_list(),
             clean_pixels_list_as_list(), clean_pixels_percentages_as_list())
         """
-        return zip(self.acquisition_list_as_list(), self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
+        return zip(self.acquisition_list_as_list(),
+                   self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
+
 
 class Result(BaseResult):
     """

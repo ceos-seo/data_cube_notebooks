@@ -22,7 +22,6 @@
 from .models import Query
 from data_cube_ui.models import Area, Satellite
 from datetime import datetime
-
 """
 Utility class designed to take repeated functional code and abstract out for reuse through
 application.
@@ -56,17 +55,25 @@ def create_query_from_post(user_id, post):
         scene_index_sel.append(scene_split[0])
         scene_string_sel.append(scene_split[1])
 
-    query = Query(query_start=datetime.now(), query_end=datetime.now(), user_id=user_id,
-                  latitude_max=post['latitude_max'], latitude_min=post['latitude_min'],
-                  longitude_max=post['longitude_max'], longitude_min=post['longitude_min'],
-                  time_start=",".join(scene_index_sel), time_end=",".join(scene_string_sel),
-                  platform=post['platform'], baseline=",".join(post.getlist('baseline_selection')),
-                  area_id=post['area_id'])
+    query = Query(
+        query_start=datetime.now(),
+        query_end=datetime.now(),
+        user_id=user_id,
+        latitude_max=post['latitude_max'],
+        latitude_min=post['latitude_min'],
+        longitude_max=post['longitude_max'],
+        longitude_min=post['longitude_min'],
+        time_start=",".join(scene_index_sel),
+        time_end=",".join(scene_string_sel),
+        platform=post['platform'],
+        baseline=",".join(post.getlist('baseline_selection')),
+        area_id=post['area_id'])
 
     query.title = "NDVI Anomaly Task" if 'title' not in post or post['title'] == '' else post['title']
     query.description = "None" if 'description' not in post or post['description'] == '' else post['description']
 
-    query.product = Satellite.objects.get(satellite_id=query.platform).product_prefix + Area.objects.get(area_id=query.area_id).area_id
+    query.product = Satellite.objects.get(satellite_id=query.platform).product_prefix + Area.objects.get(
+        area_id=query.area_id).area_id
     query.query_id = query.generate_query_id()
     if not Query.objects.filter(query_id=query.query_id).exists():
         query.save()

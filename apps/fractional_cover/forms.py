@@ -24,7 +24,6 @@ from django import forms
 import datetime
 
 from data_cube_ui.models import Compositor
-
 """
 File designed to house the different forms for taking in user input in the web application.  Forms
 allow for input validation and passing of data.  Includes forms for creating Queries to be ran.
@@ -35,7 +34,8 @@ allow for input validation and passing of data.  Includes forms for creating Que
 # Modified by:
 # Last modified date:
 
-years_range = list(range(1990, datetime.datetime.now().year+1))
+years_range = list(range(1990, datetime.datetime.now().year + 1))
+
 
 class DataSelectForm(forms.Form):
     """
@@ -48,7 +48,13 @@ class DataSelectForm(forms.Form):
 
     title = forms.CharField(widget=forms.HiddenInput())
     description = forms.CharField(widget=forms.HiddenInput())
+
     def __init__(self, *args, **kwargs):
         super(DataSelectForm, self).__init__(*args, **kwargs)
-        compositor_list = [(compositor.compositor_id, compositor.compositor_name) for compositor in Compositor.objects.all()]
-        self.fields["compositor_selection"] = forms.ChoiceField(help_text='Select the method by which the "best" pixel will be chosen.', label="Compositing Method:", choices=compositor_list, widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+        compositor_list = [(compositor.compositor_id, compositor.compositor_name)
+                           for compositor in Compositor.objects.all()]
+        self.fields["compositor_selection"] = forms.ChoiceField(
+            help_text='Select the method by which the "best" pixel will be chosen.',
+            label="Compositing Method:",
+            choices=compositor_list,
+            widget=forms.Select(attrs={'class': 'field-long tooltipped'}))

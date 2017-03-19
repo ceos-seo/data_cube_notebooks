@@ -1,24 +1,47 @@
+<!--
+    Copyright 2016 United States Government as represented by the Administrator
+    of the National Aeronautics and Space Administration. All Rights Reserved.
+
+    Portion of this code is Copyright Geoscience Australia, Licensed under the
+    Apache License, Version 2.0 (the "License"); you may not use this file
+    except in compliance with the License. You may obtain a copy of the License
+    at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0.
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+    License for the specific language governing permissions and limitations
+    under the License.
+  -->
 {% extends "centered_form.html" %}
 {% load i18n %}
+{% load bootstrap3 %}
 
 {% block form %}
-{% if form.non_field_errors %}
-<a style="" href="{% url 'lost_password' %}">{% trans "Forgot your username or password? Reset it here." %}</a>
-{% endif %}
-
-<form action="{% url 'login' %}" method="post" id="login-form">
-    {% csrf_token %} {% for field in form.visible_fields %}
-    <div class="form-row comment_input">
-        <label class="required" for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-    </div>
+<form action="{% url 'login' %}" method="post" class="form">
+    {% csrf_token %}
+    {% bootstrap_form_errors form type='non_fields' %}
+    {% for field in form %}
+      {% bootstrap_field field %}
     {% endfor %}
     {% if next %}
     <input type="hidden" name="next" value="{{ next }}" />
     {% endif %}
-    <div class="submit-row">
-        <label>&nbsp;</label>
-        <input id="log-in-submit" type="submit" value="{% trans " Log in " %}" />
-    </div>
+    {% buttons %}
+      <button type="submit" class="btn btn-default">
+        {% trans " Log in " %}
+      </button>
+    {% endbuttons %}
 </form>
+{% if form.errors %}
+  <a style="" href="{% url 'lost_password' %}">{% trans "Forgot your username or password? Reset it here." %}</a>
+{% endif %}
+<a style="" href="{% url 'registration' %}">{% trans "Don't have an account? Register here." %}</a>
 {% endblock %}

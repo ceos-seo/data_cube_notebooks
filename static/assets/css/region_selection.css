@@ -1,0 +1,91 @@
+/* Body */
+body
+{
+    background: url('/static/assets/images/map_background.png');
+}
+
+.container-fluid
+{
+    min-height: 100%;
+    position: relative;
+}
+
+
+/* Carousel styling */
+.carousel-row
+{
+    background: linear-gradient(#444, #FFF);
+    min-height: 50px;
+    max-height: 300px;
+}
+
+.carousel-col
+{
+    padding: 0px;
+    border-bottom: 1px solid black;
+    box-shadow: 0px 4px 25px 5px rgba(0, 0, 0, .5);
+}
+
+.carousel-caption
+{
+    background-color: rgba(0, 0, 0, .5);
+    color: #EEEEEE;
+    background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.5) 10%, rgba(0,0,0,0.5) 90%, rgba(0,0,0,0));
+    text-shadow: 0px 0px 2.5px black;
+    width: 100%;
+    left: 0px;
+    padding: 10px 0px 10px 0px;
+}
+
+.carousel-caption p {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+/* Rows of images */
+#areas
+{
+    padding-top: 40px;
+    padding-left: 50px;
+    padding-right: 50px;
+    min-height: 100%;
+}
+
+.large
+{
+    font-size: 0.75em;
+}
+
+.col-lg-3
+{
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 40px;
+}
+
+.img-circle
+{
+    width: 70%;
+    box-shadow: 2px 2px 2px 3px rgba(0, 0, 0, .5);
+    background: none;
+}
+
+.text_div
+{
+    padding-top: 15px;
+}
+
+.area_label
+{
+    font-weight: bold;
+    font-size: 2em;
+}
+
+/* Compass styling */
+.compass
+{
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 25%;
+}

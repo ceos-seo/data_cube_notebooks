@@ -33,6 +33,7 @@ from data_cube_ui.models import Area, Application
 
 # Create your views here.
 
+
 def activate(request, uuid):
     message = _("Your account has been activated, please log in.")
     try:
@@ -63,19 +64,20 @@ def activate(request, uuid):
 
 def lost_password(request):
     if request.method == "POST":
-        import pdb; pdb.set_trace()
         form = LostPasswordForm(request.POST)
         if form.is_valid():
             user = User.objects.filter(email=form.cleaned_data['email'])
             reset = Reset(username=user[0].username, time=datetime.datetime.now())
             reset.save()
 
-            send_mail(_('DataCube Password Reset'),
-                      _('Reset your password here: ') +
-                      settings.BASE_HOST + "accounts/" + str(reset.url) + "/reset",
-                      'admin@ceos-cube.orgceos-v2.org',
-                      [form.cleaned_data['email']],
-                      fail_silently=False)
+            msg = EmailMessage()
+            msg['From'] = 'admin@ceos-cube.org'
+            msg['To'] = form.cleaned_data['email']
+            msg['Subject'] = _('DataCube Password Reset')
+            msg.set_content(_('Reset your password here: ') + settings.BASE_HOST + "/accounts/" + str(reset.url) + "/reset")
+            # Sending the email:
+            with smtplib.SMTP('localhost') as s:
+                s.send_message(msg)
 
             form = LoginForm()
             form.cleaned_data = {}
@@ -161,8 +163,7 @@ def password_change(request):
     if request.method == 'POST':
         form = PasswordChangeForm(request.POST)
         if form.is_valid():
-            user = authenticate(
-                username=request.user.username, password=form.cleaned_data['password'])
+            user = authenticate(username=request.user.username, password=form.cleaned_data['password'])
             if user is not None:
                 user.set_password(form.cleaned_data['new_password'])
                 user.save()
@@ -176,7 +177,7 @@ def password_change(request):
                 }
                 return render(request, 'registration/login.html', context)
             else:
-                form.add_error(NON_FIELD_ERRORS, _("Your current password is incorrect, please try again."))
+                form.add_error('password', _("Your current password is incorrect, please try again."))
 
         # Return an 'invalid login' error message.
         context = {
@@ -207,15 +208,14 @@ def registration(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            user = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password'])
+            user = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'],
+                                            form.cleaned_data['password'])
             user.is_active = False
             user.save()
-            activation = Activation(
-                username=user.username, time=datetime.datetime.now())
+            activation = Activation(username=user.username, time=datetime.datetime.now())
             activation.save()
             if user is not None:
                 subject, from_email, to_email = "CEOS Datacube Account Activation", "admin@ceos-cube.org", [user.email]
-
 
                 msg = EmailMessage()
                 msg['From'] = from_email
@@ -225,7 +225,8 @@ def registration(request):
                 # It is possible to use msg.add_alternative() to add HTML content too
                 html_content = ""
                 activation_url = settings.BASE_HOST + "/accounts/" + str(activation.url) + "/activate"
-                with open('/home/localuser/Datacube/data_cube_ui/static/assets/media/email_template.html') as f:
+                with open('/home/' + settings.LOCAL_USER +
+                          '/Datacube/data_cube_ui/static/assets/media/email_template.html') as f:
                     for line in f:
                         if (line == "\t\t\tAVAILABLE_TOOLS\n"):
                             for app in Application.objects.all():
@@ -239,21 +240,21 @@ def registration(request):
                             html_content += line
                         if 'str' in line:
                             break
-                html_content = html_content.replace("ACTIVATION_URL", activation_url);
+                html_content = html_content.replace("ACTIVATION_URL", activation_url)
                 msg.add_alternative(html_content, subtype='html')
                 # Attaching content:
-                fp = open('/home/localuser/Datacube/data_cube_ui/static/assets/media/banner.png','rb')
-                att = MIMEImage(fp.read()) # Or use MIMEImage, etc
+                fp = open('/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/static/assets/media/banner.png',
+                          'rb')
+                att = MIMEImage(fp.read())  # Or use MIMEImage, etc
                 fp.close()
                 # The following line is to control the filename of the attached file
                 att.add_header('Content-Disposition', 'attachment', filename='banner.png')
-                msg.make_mixed() # This converts the message to multipart/mixed
-                msg.attach(att) # Don't forget to convert the message to multipart first!
+                msg.make_mixed()  # This converts the message to multipart/mixed
+                msg.attach(att)  # Don't forget to convert the message to multipart first!
 
                 # Sending the email:
                 with smtplib.SMTP('localhost') as s:
                     s.send_message(msg)
-
 
                 form = LoginForm()
                 form.cleaned_data = {}
@@ -278,6 +279,7 @@ def registration(request):
                 return redirect(next)
             context['next'] = next
         return render(request, 'registration/registration.html', context)
+
 
 def login(request):
     """
@@ -316,6 +318,8 @@ def login(request):
                     }
                     return render(request, 'registration/login.html', context)
         form.add_error(NON_FIELD_ERRORS, _("Please enter a correct username and password combination."))
+        form.add_error('username', _(""))
+        form.add_error('password', _(""))
         # Return an 'invalid login' error message.
         context = {
             'title': _("Log in"),

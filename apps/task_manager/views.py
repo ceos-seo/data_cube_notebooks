@@ -27,17 +27,35 @@ from django.contrib import messages
 
 import json
 from datetime import datetime, timedelta
-
+"""
 from apps.custom_mosaic_tool.models import Result as cm_result, Query as cm_query, Metadata as cm_meta
 from apps.water_detection.models import Query as wd_query, Result as wd_result, Metadata as wd_meta
 from apps.tsm.models import Query as tsm_query, Result as tsm_result, Metadata as tsm_meta
 from apps.fractional_cover.models import Query as fractional_cover_query, Result as fractional_cover_result, Metadata as fractional_cover_meta
+"""
+import apps.custom_mosaic_tool.models as custom_mosaic_tool
+import apps.water_detection.models as water_detection
+import apps.tsm.models as tsm
+import apps.fractional_cover.models as fractional_cover
+import apps.slip.models as slip
+import apps.ndvi_anomaly.models as ndvi_anomaly
+import apps.coastal_change.models as coastal_change
 
 from collections import OrderedDict
-
 """
 Class holding all the views for the Task_Manager application in the UI Suite.
 """
+
+applications = {
+    'custom_mosaic_tool': custom_mosaic_tool,
+    'water_detection': water_detection,
+    'tsm': tsm,
+    'fractional_cover': fractional_cover,
+    'slip': slip,
+    'ndvi_anomaly': ndvi_anomaly,
+    'coastal_change': coastal_change
+}
+
 
 def build_headers_dictionary(model):
     """
@@ -52,7 +70,7 @@ def build_headers_dictionary(model):
 
     # List of attributes to filter out.  Note that these should match the attributes of the
     # class being passed in.
-    exclusion_list = ['query_id', 'user_id', 'product_type', 'description', 'query_start', 'query_end']
+    exclusion_list = ['query_id', 'user_id', 'product_type', 'description', 'query_start', 'query_end', 'id', 'product']
 
     headers = list()
     headers_dictionary = OrderedDict()
@@ -87,7 +105,6 @@ def format_headers(unformatted_dict):
     return formatted_headers
 
 
-@login_required
 def get_task_manager(request, app_id):
     """
     View method for returning and rending the HTML for the task manager in the application.
@@ -108,13 +125,15 @@ def get_task_manager(request, app_id):
     headers_dictionary = OrderedDict()
     data_dictionary = OrderedDict()
 
-    queries = cm_query if app_id == "custom_mosaic_tool" else wd_query if app_id == "water_detection" else fractional_cover_query if app_id == "fractional_cover" else tsm_query
+    queries = applications[app_id].Query
 
     headers_dictionary = build_headers_dictionary(queries)
     for query in queries.objects.all().order_by('-query_start')[:100]:
         data = list()
         for v in headers_dictionary['ModelBase']:
-            data.append(str(query.__dict__[v]))
+            data_val = query.__dict__[v].strftime("%m-%d-%Y") if type(query.__dict__[v]) == datetime else round(
+                query.__dict__[v], 4) if type(query.__dict__[v]) == float else query.__dict__[v]
+            data.append(str(data_val))
             data_dictionary[query] = data
 
     formatted_headers_dictionary = OrderedDict()
@@ -128,10 +147,9 @@ def get_task_manager(request, app_id):
         'application_id': app_id,
     }
 
-    return render(request, 'task_manager.html', context)
+    return render(request, 'task_manager/task_manager.html', context)
 
 
-@login_required
 def get_query_details(request, app_id, requested_query_id):
     """
     Returns the rendered html with appropriate data for a Query and its Metadata and Results.
@@ -151,10 +169,10 @@ def get_query_details(request, app_id, requested_query_id):
     :template:`custom_mosaic_tool/query_details.html`
     """
 
-    queries = cm_query if app_id == "custom_mosaic_tool" else wd_query if app_id == "water_detection" else fractional_cover_query if app_id == "fractional_cover" else tsm_query
-    metas = cm_meta if app_id == "custom_mosaic_tool" else wd_meta if app_id == "water_detection" else fractional_cover_meta if app_id == "fractional_cover" else tsm_meta
-    results = cm_result if app_id == "custom_mosaic_tool" else wd_result if app_id == "water_detection" else fractional_cover_result if app_id == "fractional_cover" else tsm_result
-    template = 'custom_mosaic_tool/query_details.html' if app_id == "custom_mosaic_tool" else 'water_detection/query_details.html' if app_id == "water_detection" else 'fractional_cover/query_details.html' if app_id == "fractional_cover" else 'tsm/query_details.html'
+    queries = applications[app_id].Query
+    metas = applications[app_id].Metadata
+    results = applications[app_id].Result
+    template = "map_tool/" + app_id + "/query_details.html"
 
     query = queries.objects.get(id=requested_query_id)
     metadata = metas.objects.get(query_id=query.query_id)
