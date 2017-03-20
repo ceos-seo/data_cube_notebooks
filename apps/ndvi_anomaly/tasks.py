@@ -85,7 +85,7 @@ measurements = ['red', 'nir', 'cf_mask']
 #experimentally optimized geo/time/slices_per_iter
 processing_algorithms = {
     'median': {
-        'geo_chunk_size': 0.05,
+        'geo_chunk_size': 0.001,
         'time_chunks': None,
         'time_slices_per_iteration': None,
         'reverse_time': True,

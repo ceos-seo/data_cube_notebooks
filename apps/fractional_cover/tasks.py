@@ -112,7 +112,7 @@ processing_algorithms = {
         'base_path': base_temp_path
     },
     'median_pixel': {
-        'geo_chunk_size': 0.01,
+        'geo_chunk_size': 0.001,
         'time_chunks': None,
         'time_slices_per_iteration': None,
         'reverse_time': False,

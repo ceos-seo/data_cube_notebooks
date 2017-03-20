@@ -83,7 +83,7 @@ measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
 processing_algorithms = {
     'wofs': {
         'geo_chunk_size': 0.5,
-        'time_chunks': 8,
+        'time_chunks': 12,
         'reverse_time': False,
         'time_slices_per_iteration': 1,
         'chunk_combination_method': addition,
