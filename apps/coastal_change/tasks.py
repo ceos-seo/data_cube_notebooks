@@ -79,7 +79,7 @@ measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
 #set up for median.
 processing_algorithms = {
     'coastal_change': {
-        'geo_chunk_size': 0.001,
+        'geo_chunk_size': 0.005,
         'time_chunks': None,
         'time_slices_per_iteration': None,
         'reverse_time': True,

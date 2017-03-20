@@ -90,7 +90,7 @@ processing_algorithms = {
         'processing_method': create_mosaic
     },
     'median_pixel': {
-        'geo_chunk_size': 0.01,
+        'geo_chunk_size': 0.005,
         'time_chunks': None,
         'time_slices_per_iteration': None,
         'reverse_time': False,
@@ -99,7 +99,7 @@ processing_algorithms = {
     },
     'max_ndvi': {
         'geo_chunk_size': 0.5,
-        'time_chunks': 5,
+        'time_chunks': 12,
         'time_slices_per_iteration': 5,
         'reverse_time': False,
         'chunk_combination_method': max_value,
@@ -107,7 +107,7 @@ processing_algorithms = {
     },
     'min_ndvi': {
         'geo_chunk_size': 0.5,
-        'time_chunks': 5,
+        'time_chunks': 12,
         'time_slices_per_iteration': 5,
         'reverse_time': False,
         'chunk_combination_method': min_value,
@@ -197,6 +197,13 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
         if query.animated_product != "None" and query.compositor == "median_pixel":
             error_with_message(result, "Animations are not supported for median pixel operations.", base_temp_path)
+            return
+
+        if query.compositor == "median_pixel" and (query.time_end.year - query.time_start.year) > 1:
+            error_with_message(
+                result,
+                "Median pixel operations of time periods exceeding 1 year are not supported. Please enter a shorter time range.",
+                base_temp_path)
             return
 
         # Reversed time = True will make it so most recent = First, oldest = Last.
