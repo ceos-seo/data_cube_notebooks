@@ -112,7 +112,7 @@ processing_algorithms = {
         'base_path': base_temp_path
     },
     'median_pixel': {
-        'geo_chunk_size': 0.001,
+        'geo_chunk_size': 0.005,
         'time_chunks': None,
         'time_slices_per_iteration': None,
         'reverse_time': False,
@@ -177,6 +177,13 @@ def create_fractional_cover(query_id, user_id, single=False):
 
         if len(acquisitions) < 1:
             error_with_message(result, "There were no acquisitions for this parameter set.", base_temp_path)
+            return
+
+        if query.compositor == "median_pixel" and (query.time_end.year - query.time_start.year) > 1:
+            error_with_message(
+                result,
+                "Median pixel operations of time periods exceeding 1 year are not supported. Please enter a shorter time range.",
+                base_temp_path)
             return
 
         processing_options = processing_algorithms[query.compositor]
