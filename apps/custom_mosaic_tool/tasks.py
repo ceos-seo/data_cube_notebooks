@@ -490,7 +490,10 @@ def generate_mosaic_chunk(time_num,
             if "cf_mask" in raw_data:
                 raw_data['satellite'] = xr.DataArray(
                     np.full(raw_data.cf_mask.values.shape, platforms.index(query.platform), dtype="int16"),
-                    dims=('time', 'latitude', 'longitude'))
+                    dims=('time', 'latitude', 'longitude'),
+                    coords={'latitude': raw_data.latitude,
+                            'longitude': raw_data.longitude,
+                            'time': raw_data.time})
         if "cf_mask" not in raw_data:
             continue
 

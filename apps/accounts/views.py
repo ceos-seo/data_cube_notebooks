@@ -210,9 +210,16 @@ def registration(request):
         if form.is_valid():
             user = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['email'],
                                             form.cleaned_data['password'])
-            user.is_active = False
+            #user.is_active = False
             user.save()
-            activation = Activation(username=user.username, time=datetime.datetime.now())
+            user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
+            next = request.POST.get('next', "/")
+            if user is not None:
+                if user.is_active:
+                    auth_login(request, user)
+                    # Redirect to a success page.
+                    return redirect(next)
+            """activation = Activation(username=user.username, time=datetime.datetime.now())
             activation.save()
             if user is not None:
                 subject, from_email, to_email = "CEOS Datacube Account Activation", "admin@ceos-cube.org", [user.email]
@@ -263,7 +270,7 @@ def registration(request):
                     'title': _("Log in"),
                     'form': form,
                 }
-                return render(request, 'registration/login.html', context)
+                return render(request, 'registration/login.html', context)"""
 
         context = {
             'title': _("Registration"),

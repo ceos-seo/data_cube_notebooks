@@ -67,10 +67,9 @@ class Query(BaseQuery):
             query_id (string): The ID of the query built up by object attributes.
         """
 
-        query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{baseline}-{baseline_method}-{platform}-{product}'
+        query_id = '{start}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{baseline}-{baseline_method}-{platform}-{product}'
         return query_id.format(
             start=self.time_start,
-            end=self.time_end,
             lat_max=self.latitude_max,
             lat_min=self.latitude_min,
             lon_max=self.longitude_max,

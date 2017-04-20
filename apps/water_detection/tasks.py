@@ -124,7 +124,7 @@ def perform_water_analysis(query_id, user_id, single=False):
 
     # grabs the resolution.
     if query.platform == "LANDSAT_ALL":
-        product_details = dc.dc.list_products()[dc.dc.list_products().name == products[0] + query.area_id]
+        product_details = dc.dc.list_products()[dc.dc.list_products().name == products[1] + query.area_id]
     else:
         product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
 
