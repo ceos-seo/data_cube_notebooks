@@ -22,6 +22,7 @@ The indexing and ingestion workflow is required to add data to the Data Cube and
 **Read the official ODC documentation on [their readthedocs.io page](http://datacube-core.readthedocs.io/en/stable/ops/config.html)**
 
 The ingestion workflow consists of: Adding a product definition to the Data Cube that describes the dataset attributes, generating required metadata for an ARD dataset, indexing the ARD dataset's metadata in the Data Cube, and running the ingestion process on indexed datasets. A brief description of these steps can be found below:
+
 * **Adding a product definition**: Product definitions include a name, description, basic metadata, and a list of measurements with relevant properties in the dataset.
 * **Generating required metadata**: A metadata .yaml file that describes a dataset is required for indexing in the Data Cube. This metadata file will include properties such as measurements with paths to the data, platform and sensor names, geospatial extents and projection, and acquisition dates. This is generally done using Python preparation scripts.
 * **Indexing dataset metadata**: Indexing a dataset involves recording the content of the metadata file in the database. This allows access to the metadata via the Python API and for programmatic loading of data based on metadata.
@@ -30,11 +31,12 @@ The ingestion workflow consists of: Adding a product definition to the Data Cube
 <a name="prerequisites"></a> Prerequisites
 =================
 To index and ingest data into the Data Cube, the following prerequisites must be complete:
+
 * The full Data Cube Installation Guide must have been followed and completed. This includes:
   * You have a local user that is used to run the Data Cube commands/applications
   * You have a database user that is used to connect to your 'datacube' database
   * The Data Cube is installed and you have successfully run 'datacube system init'
-  * All code is checked out and you have a virtual environment in the correct directories: ~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}
+  * All code is checked out and you have a virtual environment in the correct directories: `~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}`
 * This guide will use a Landsat 7 SR product as an example. Please download a Landsat SR product from [Earth Explorer](https://earthexplorer.usgs.gov/). Please ensure that the dataset you download is an SR product - the L\*.tar.gz should contain .tif files with the file pattern L\*\*\_sr_band\*.tif This will correspond to datasets labeled "Collection 1 Higher-Level", or the pre-collection datasets if you have an older download. Move this dataset into the directory '/datacube/original_data/' so that the path looks like '/datacube/original_data/L*.tar.gz'
 
 If you have not yet completed our Data Cube Installation Guide, please do so before continuing.
@@ -43,6 +45,7 @@ If you have not yet completed our Data Cube Installation Guide, please do so bef
 ========  
 
 Product definitions define the attributes for entire datasets. These attributes include:
+
 * A short name for the dataset
 * A short description of what the dataset is
 * A metadata type - more on this later
@@ -53,11 +56,13 @@ Product definitions define the attributes for entire datasets. These attributes 
 
 We will be using our Landsat 7 SR product definition as an example - open the file located at '~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml' or view the full file [here](https://github.com/ceos-seo/agdc-v2/blob/develop/ingest/dataset_types/ls7_sr_scenes_agdc.yaml). We will go through this file and describe each attribute. The schema for the dataset type .yaml files can be found [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml). This outlines the required fields as well as the datatypes and what fields are allowed. This schema is used to validate any new product definitions that are added.
 
-	name: ls7_ledaps_scene
-	description: Landsat 7 LEDAPS 30 metre. Will be used for all ls7 scenes, which are then split into utms on the ingestion config level.
-	metadata_type: eo
+```
+name: ls7_ledaps_scene
+description: Landsat 7 LEDAPS 30 metre. Will be used for all ls7 scenes, which are then split into utms on the ingestion config level.
+metadata_type: eo
+```
 
-The name is a short name for the dataset - we generally stick with an all lower case, underscore seperated string. This is the name that will be used to access datasets of this type programatically and during ingestion.
+The name is a short name for the dataset - we generally stick with an all lower case, underscore separated string. This is the name that will be used to access datasets of this type programmatically and during ingestion.
 
 An optional element, 'storage', can be included as well. This can be seen in the [dataset type schema](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml) - This can be included to describe the format of the data on disk, including the CRS, resolution, and driver. These are used in the ingestion process to specify projection/tiling/file type, but for now it is completely optional.  
 
@@ -69,27 +74,31 @@ The metadata type schema can be found [here](https://github.com/opendatacube/dat
 
 Next in the file is the metadata field:
 
-	metadata:
-    	platform:
-    	    code: LANDSAT_7
-    	instrument:
-    	    name: ETM
-    	product_type: ledaps
-    	format:
-    	    name: GeoTiff
+```
+metadata:
+  	platform:
+  	    code: LANDSAT_7
+  	instrument:
+  	    name: ETM
+  	product_type: ledaps
+  	format:
+  	    name: GeoTiff
+```
 
-The metadata as defined by the product definition schema [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml) is an object - any number of fields and any schemas can be put here, as long as they are defined in the metadata type definition. If you open the [default metadata type file](https://github.com/opendatacube/datacube-core/blob/develop/datacube/index/default-metadata-types.yaml), you'll see that the format is expected to be nexted in format -> name, the product type is just in product type, etc. This is described using an 'offset' from the document root. This metadata is used to 'match' datasets to their appropriate product type, so the script in the next section that generates the metadata files must produce the same platform and product type as what is listed above.
+The metadata as defined by the product definition schema [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml) is an object - any number of fields and any schemas can be put here, as long as they are defined in the metadata type definition. If you open the [default metadata type file](https://github.com/opendatacube/datacube-core/blob/develop/datacube/index/default-metadata-types.yaml), you'll see that the format is expected to be nested in format -> name, the product type is just in product type, etc. This is described using an 'offset' from the document root. This metadata is used to 'match' datasets to their appropriate product type, so the script in the next section that generates the metadata files must produce the same platform and product type as what is listed above.
 
 The last element (or list of elements) in the product definition is the measurement, seen below.
 
-	- name: 'sr_band7'
-	  aliases: [band_7, swir2]
-	  dtype: int16
-	  nodata: -9999
-	  units: '1'
-	  spectral_definition:
-	      wavelength: [2000, 2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015, 2017, 2018, 2020, 2022, 2024, 2026, 2028, 2030, 2032, 2034, 2035, 2037, 2039, 2041, 2043, 2045, 2047, 2049, 2051, 2052, 2054, 2056, 2058, 2060, 2062, 2064, 2066, 2067, 2069, 2071, 2073, 2075, 2077, 2079, 2081, 2083, 2085, 2086, 2088, 2090, 2092, 2094, 2096, 2099, 2100, 2102, 2104, 2106, 2108, 2110, 2112, 2114, 2116, 2117, 2119, 2121, 2123, 2125, 2127, 2129, 2131, 2133, 2135, 2136, 2138, 2140, 2142, 2144, 2146, 2148, 2150, 2151, 2153, 2155, 2157, 2159, 2161, 2163, 2165, 2166, 2168, 2170, 2172, 2174, 2176, 2178, 2180, 2182, 2183, 2185, 2187, 2189, 2191, 2193, 2195, 2197, 2199, 2201, 2203, 2205, 2207, 2209, 2210, 2212, 2214, 2216, 2218, 2220, 2222, 2223, 2226, 2227, 2229, 2231, 2233, 2235, 2237, 2239, 2241, 2242, 2244, 2246, 2248, 2250, 2252, 2254, 2256, 2258, 2259, 2261, 2263, 2265, 2267, 2269, 2271, 2273, 2274, 2276, 2278, 2280, 2282, 2284, 2286, 2288, 2290, 2292, 2293, 2295, 2297, 2299, 2301, 2303, 2305, 2307, 2309, 2310, 2312, 2314, 2316, 2318, 2320, 2322, 2323, 2325, 2327, 2329, 2331, 2333, 2335, 2337, 2339, 2340, 2342, 2344, 2346, 2348, 2350, 2352, 2354, 2355, 2357, 2359, 2361, 2363, 2365, 2367, 2369, 2371, 2373, 2374, 2376, 2378, 2380, 2382, 2384, 2386, 2390, 2395, 2400]
-	      response: [0.0, 0.003, -0.002, 0.003, -0.001, 0.0, 0.004, -0.004, 0.002, 0.002, 0.002, 0.012, 0.009, 0.007, 0.011, 0.02, 0.017, 0.03, 0.035, 0.037, 0.044, 0.051, 0.065, 0.08, 0.088, 0.102, 0.133, 0.165, 0.188, 0.22, 0.264, 0.316, 0.367, 0.421, 0.484, 0.554, 0.59, 0.67, 0.683, 0.73, 0.756, 0.767, 0.794, 0.774, 0.776, 0.789, 0.775, 0.784, 0.778, 0.768, 0.762, 0.761, 0.775, 0.775, 0.764, 0.784, 0.792, 0.814, 0.794, 0.825, 0.817, 0.806, 0.819, 0.821, 0.852, 0.832, 0.836, 0.85, 0.855, 0.862, 0.853, 0.871, 0.848, 0.882, 0.875, 0.86, 0.856, 0.887, 0.85, 0.872, 0.879, 0.857, 0.865, 0.867, 0.871, 0.882, 0.87, 0.869, 0.873, 0.877, 0.868, 0.88, 0.877, 0.87, 0.878, 0.88, 0.868, 0.881, 0.87, 0.856, 0.863, 0.863, 0.857, 0.844, 0.859, 0.857, 0.852, 0.866, 0.868, 0.856, 0.856, 0.847, 0.861, 0.862, 0.84, 0.856, 0.838, 0.856, 0.837, 0.842, 0.826, 0.844, 0.827, 0.842, 0.822, 0.843, 0.823, 0.854, 0.839, 0.853, 0.854, 0.865, 0.873, 0.869, 0.865, 0.893, 0.89, 0.89, 0.906, 0.924, 0.92, 0.922, 0.939, 0.916, 0.94, 0.93, 0.942, 0.957, 0.954, 0.951, 0.954, 0.966, 0.975, 0.985, 0.971, 0.973, 0.97, 0.993, 0.996, 0.983, 0.972, 1.0, 0.998, 0.971, 0.968, 0.967, 0.962, 0.949, 0.923, 0.929, 0.917, 0.934, 0.903, 0.926, 0.916, 0.942, 0.924, 0.92, 0.863, 0.824, 0.775, 0.684, 0.583, 0.48, 0.378, 0.275, 0.233, 0.171, 0.131, 0.111, 0.081, 0.069, 0.046, 0.029, 0.038, -0.002, 0.029, 0.016, 0.009, 0.017, 0.003, 0.015, 0.0, -0.009, 0.007, 0.0, 0.0, 0.0]
+```
+- name: 'sr_band7'
+  aliases: [band_7, swir2]
+  dtype: int16
+  nodata: -9999
+  units: '1'
+  spectral_definition:
+      wavelength: [2000, 2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015, 2017, 2018, 2020, 2022, 2024, 2026, 2028, 2030, 2032, 2034, 2035, 2037, 2039, 2041, 2043, 2045, 2047, 2049, 2051, 2052, 2054, 2056, 2058, 2060, 2062, 2064, 2066, 2067, 2069, 2071, 2073, 2075, 2077, 2079, 2081, 2083, 2085, 2086, 2088, 2090, 2092, 2094, 2096, 2099, 2100, 2102, 2104, 2106, 2108, 2110, 2112, 2114, 2116, 2117, 2119, 2121, 2123, 2125, 2127, 2129, 2131, 2133, 2135, 2136, 2138, 2140, 2142, 2144, 2146, 2148, 2150, 2151, 2153, 2155, 2157, 2159, 2161, 2163, 2165, 2166, 2168, 2170, 2172, 2174, 2176, 2178, 2180, 2182, 2183, 2185, 2187, 2189, 2191, 2193, 2195, 2197, 2199, 2201, 2203, 2205, 2207, 2209, 2210, 2212, 2214, 2216, 2218, 2220, 2222, 2223, 2226, 2227, 2229, 2231, 2233, 2235, 2237, 2239, 2241, 2242, 2244, 2246, 2248, 2250, 2252, 2254, 2256, 2258, 2259, 2261, 2263, 2265, 2267, 2269, 2271, 2273, 2274, 2276, 2278, 2280, 2282, 2284, 2286, 2288, 2290, 2292, 2293, 2295, 2297, 2299, 2301, 2303, 2305, 2307, 2309, 2310, 2312, 2314, 2316, 2318, 2320, 2322, 2323, 2325, 2327, 2329, 2331, 2333, 2335, 2337, 2339, 2340, 2342, 2344, 2346, 2348, 2350, 2352, 2354, 2355, 2357, 2359, 2361, 2363, 2365, 2367, 2369, 2371, 2373, 2374, 2376, 2378, 2380, 2382, 2384, 2386, 2390, 2395, 2400]
+      response: [0.0, 0.003, -0.002, 0.003, -0.001, 0.0, 0.004, -0.004, 0.002, 0.002, 0.002, 0.012, 0.009, 0.007, 0.011, 0.02, 0.017, 0.03, 0.035, 0.037, 0.044, 0.051, 0.065, 0.08, 0.088, 0.102, 0.133, 0.165, 0.188, 0.22, 0.264, 0.316, 0.367, 0.421, 0.484, 0.554, 0.59, 0.67, 0.683, 0.73, 0.756, 0.767, 0.794, 0.774, 0.776, 0.789, 0.775, 0.784, 0.778, 0.768, 0.762, 0.761, 0.775, 0.775, 0.764, 0.784, 0.792, 0.814, 0.794, 0.825, 0.817, 0.806, 0.819, 0.821, 0.852, 0.832, 0.836, 0.85, 0.855, 0.862, 0.853, 0.871, 0.848, 0.882, 0.875, 0.86, 0.856, 0.887, 0.85, 0.872, 0.879, 0.857, 0.865, 0.867, 0.871, 0.882, 0.87, 0.869, 0.873, 0.877, 0.868, 0.88, 0.877, 0.87, 0.878, 0.88, 0.868, 0.881, 0.87, 0.856, 0.863, 0.863, 0.857, 0.844, 0.859, 0.857, 0.852, 0.866, 0.868, 0.856, 0.856, 0.847, 0.861, 0.862, 0.84, 0.856, 0.838, 0.856, 0.837, 0.842, 0.826, 0.844, 0.827, 0.842, 0.822, 0.843, 0.823, 0.854, 0.839, 0.853, 0.854, 0.865, 0.873, 0.869, 0.865, 0.893, 0.89, 0.89, 0.906, 0.924, 0.92, 0.922, 0.939, 0.916, 0.94, 0.93, 0.942, 0.957, 0.954, 0.951, 0.954, 0.966, 0.975, 0.985, 0.971, 0.973, 0.97, 0.993, 0.996, 0.983, 0.972, 1.0, 0.998, 0.971, 0.968, 0.967, 0.962, 0.949, 0.923, 0.929, 0.917, 0.934, 0.903, 0.926, 0.916, 0.942, 0.924, 0.92, 0.863, 0.824, 0.775, 0.684, 0.583, 0.48, 0.378, 0.275, 0.233, 0.171, 0.131, 0.111, 0.081, 0.069, 0.046, 0.029, 0.038, -0.002, 0.029, 0.016, 0.009, 0.017, 0.003, 0.015, 0.0, -0.009, 0.007, 0.0, 0.0, 0.0]
+```
 
 The full measurement schema with all possible formats can be found in the [dataset type schema](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml). The example above includes the optional spectral definition, but flag definitions are also allowed. The only properties that are required are **name, dtype, nodata, and units**. If you were to create a product definition for Sentinel 1 data, you would use the data guide to find out what bands are available, the datatype of those bands, what the no data value is, and the units and enumerate them here.
 
@@ -97,14 +106,18 @@ There should be one measurement entry for each expected band in the dataset.
 
 Once your product definition has all required information, you add it to the Data Cube. For our Landsat 7 example, this is done with the following command:
 
-	datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml
+```
+datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml
+```
 
 This command should be run from within the virtual environment. This will validate your product definition and, if valid, will index it in the Data Cube. The expected output should look like below:
 
-	2017-04-19 11:23:39,861 21121 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml
-	2017-04-19 11:23:40,184 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_scene_lat_lon_time
-	2017-04-19 11:23:40,194 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_scene_time_lat_lon
-	Added "ls7_ledaps_scene"_
+```
+2017-04-19 11:23:39,861 21121 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml
+2017-04-19 11:23:40,184 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_scene_lat_lon_time
+2017-04-19 11:23:40,194 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_scene_time_lat_lon
+Added "ls7_ledaps_scene"
+```
 
 The 'Added \*' statement should read that it has added the name defined within the product definition.
 
@@ -114,17 +127,19 @@ If you open pgAdmin3 and examine the data in the dataset_type table, you'll see 
 <a name="generating_metadata"></a> Generating Metadata
 ========  
 
-Before starting this step, you'll need to make sure that you have your Landsat 7 scene downloaded (.tar.gz format) in the '/datacube/original_data' directory.
+Before starting this step, you'll need to make sure that you have your Landsat 7 scene downloaded (.tar.gz format) in the `/datacube/original_data` directory.
 
 Uncompress this scene into the default location with the following commands:
 
+```
 	#Replace L* with your actual scene Id - if your scene id is LE71240522000128-SC20170217181717, your command will be tar -xzf LE71240522000128-SC20170217181717.tar.gz LE71240522000128-SC20170217181717
 	mkdir L*/
 	tar -xzf L*.tar.gz -C L*/
+```
 
-This will result in a directory with the same name as your archive file with the contents of the archive extracted to the directory. There are scripted versions of this process in our checkout of the agdc-v2 codebase in '~/Datacube/agdc-v2/ingest'
+This will result in a directory with the same name as your archive file with the contents of the archive extracted to the directory. There are scripted versions of this process in our checkout of the agdc-v2 codebase in `~/Datacube/agdc-v2/ingest`
 
-Now that we have the data extracted into a named directory, we can generate the required metadata .yaml file. This is done with Python scripts found in '~/Datacube/agdc-v2/ingest/prepare_scripts/\*'. There are a variety of scripts provided, including USGS Landsat, Sentinel 1, and ALOS.
+Now that we have the data extracted into a named directory, we can generate the required metadata .yaml file. This is done with Python scripts found in `~/Datacube/agdc-v2/ingest/prepare_scripts/*`. There are a variety of scripts provided, including USGS Landsat, Sentinel 1, and ALOS.
 
 **Read the official ODC documentation on dataset definitions on [their readthedocs.io page](http://datacube-core.readthedocs.io/en/stable/ops/config.html)**
 
@@ -140,13 +155,17 @@ Each of the fields defined in the metadata type reference should be filled in th
 
 Since we are processing a Landsat scene, we'll use the script titled 'usgslsprepare.py'. Run this script on your uncompressed scene with the following command (please note that you should run this command on the **directory**):
 
-	#if you are not already in the virtual environment, please activate that now with 'source ~/Datacube/datacube_env/bin/activate'
-	python usgslsprepare.py /datacube/original_data/L*/
+```
+#if you are not already in the virtual environment, please activate that now with 'source ~/Datacube/datacube_env/bin/activate'
+python usgslsprepare.py /datacube/original_data/L*/
+```
 
 These scripts can run on a single directory of a list of directories specified with a wildcard (\*). The output should resemble what is shown below:
 
-	2017-04-19 12:30:25,134 INFO Processing /datacube/original_data/LE71240522000128-SC20170217181717
-	2017-04-19 12:30:25,141 INFO Writing /datacube/original_data/LE71240522000128-SC20170217181717/agdc-metadata.yaml
+```
+2017-04-19 12:30:25,134 INFO Processing /datacube/original_data/LE71240522000128-SC20170217181717
+2017-04-19 12:30:25,141 INFO Writing /datacube/original_data/LE71240522000128-SC20170217181717/agdc-metadata.yaml
+```
 
 You'll see that the script has created a .yaml file titled agdc-metadata.yaml in the same directory as your GeoTiff data files.
 
@@ -225,7 +244,7 @@ Indexing Datasets in the Database
 
 Now that you have a product definition added and a agdc-metadata.yaml file generated for your scene, it is now time to index the dataset and associate it with the product definition. This is done with a datacube command from the CLI. Please note that indexing the dataset in the database creates an absolute reference to the path on disk - you cannot move the dataset on disk after indexing or it won't be found and will create problems.
 
-Run the 'datacube dataset add' command on the directory or metadata .yaml file generated for the dataset. This command will load the .yaml metadata file and create a Dataset class object from the contents. It will then try to match the dataset to a product definition using the provided metadata.
+Run the `datacube dataset add` command on the directory or metadata .yaml file generated for the dataset. This command will load the .yaml metadata file and create a Dataset class object from the contents. It will then try to match the dataset to a product definition using the provided metadata.
 
 ```
 #ensure that you are doing this from within the virtual environment. If not, activate it with 'source ~/Datacube/datacube_env/bin/activate'
@@ -241,7 +260,7 @@ Indexing datasets  [####################################]  100%2017-04-19 13:45:
 2017-04-19 13:45:16,406 22577 datacube.index._datasets INFO Indexing 708d0d1b-8832-460b-b79e-67694875e101
 ```
 
-Please note that you are able to run these 'datacube' command line tools on wildcard inputs, e.g. 'datacube dataset add /datacube/original_data/LE*/\*.yaml' to batch process directories.
+Please note that you are able to run these 'datacube' command line tools on wildcard inputs, e.g. `datacube dataset add /datacube/original_data/LE*/*.yaml` to batch process directories.
 
 Now that the dataset has been added, you can open up pgAdmin3 and view the data in the 'datasets' table - you'll notice that there is now an entry for the dataset you've just added that includes the id, a reference to the metadata definition corresponding to a primary key in the 'metadata_type' table and a reference to the dataset type corresponding to a primary key in the 'dataset_type' table. If you look at the 'metadata_type' and 'dataset_type' tables with the listed ids, you'll see the full metadata and dataset type definitions from the previous steps.
 
@@ -439,7 +458,7 @@ The ingestion configuration file is essentially defining a transformation betwee
 
 In this section we will go through an example Landsat 7 ingestion configuration and then ingest our sample dataset.
 
-Open the ingestion configuration file located in '~/Datacube/agdc-v2/ingest/ingestion_configs/ls7_sr_scenes_wgs84_vietnam.yaml', or view [the page on GitHub](https://github.com/ceos-seo/agdc-v2/blob/develop/ingest/ingestion_configs/ls7_sr_scenes_wgs84_vietnam.yaml)
+Open the ingestion configuration file located in `~/Datacube/agdc-v2/ingest/ingestion_configs/ls7_sr_scenes_wgs84_vietnam.yaml`, or view [the page on GitHub](https://github.com/ceos-seo/agdc-v2/blob/develop/ingest/ingestion_configs/ls7_sr_scenes_wgs84_vietnam.yaml)
 
 The first two lines in the file are:
 
@@ -457,7 +476,7 @@ location: '/datacube/ingested_data'
 file_path_template: 'LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_{tile_index[0]}_{tile_index[1]}_{start_time}.nc'
 ```
 
-This specifies that the base path for the ingested data is '/datacube/ingested_data' - this was created previously and should have 777 permissions.
+This specifies that the base path for the ingested data is `/datacube/ingested_data` - this was created previously and should have 777 permissions.
 > 'file_path_template' describes the rest of the storage unit path - the directory structure 'LS7_ETM_LEDAPS/Vietnam' will be created and populated with storage units.
 
 > Files named 'LS7_ETM_LEDAPS_4326_{tile_index[0]}_{tile_index[1]}_{start_time}.nc' will be created in the above directory. The bracketed parameters are filled in by the ingestion process.
@@ -516,6 +535,7 @@ storage:
   dimension_order: ['time', 'latitude', 'longitude']
 ```
 Some notes on these inputs can be found below:
+
 * NetCDF CF is the only current storage driver.
 * The CRS is user defined - any transverse mercator, sinusoidal, or albers conic equal area projections are supported.
 * Chunking and dimension order are internal to the NetCDF storage units - the chunking parameter can have an effect on performance based on the use case, but we generally leave it alone
@@ -617,7 +637,7 @@ You'll notice a few things in the command above: -c is the option for the config
 9 successful, 0 failed
 ```
 
-If you visit your '/datacube/ingested_data' directory, you'll see that a NetCDF file was created for each task. Using pgAdmin3 and viewing the data in the 'dataset' table, you can see that there are now 10 total datasets - one for your original scene and one for each ingested tile.
+If you visit your `/datacube/ingested_data` directory, you'll see that a NetCDF file was created for each task. Using pgAdmin3 and viewing the data in the 'dataset' table, you can see that there are now 10 total datasets - one for your original scene and one for each ingested tile.
 
 <a name="next_steps"></a> Next Steps
 ========  

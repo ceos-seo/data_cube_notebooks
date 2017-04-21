@@ -21,6 +21,7 @@ Contents
 =================
 
 The CEOS Data Cube UI is a full stack Python web application used to perform analysis on raster datasets using the Data Cube. Using common and widely accepted frameworks and libraries, our UI is a good tool for demonstrating the Data Cube capabilities and some possible applications and architectures. The UI's core technologies are:
+
 * [**Django**](https://www.djangoproject.com/): Web framework, ORM, template processor, entire MVC stack
 * [**Celery + Redis**](http://www.celeryproject.org/): Asynchronous task processing
 * [**Data Cube**](http://datacube-core.readthedocs.io/en/stable/): API for data access and analysis
@@ -29,6 +30,7 @@ The CEOS Data Cube UI is a full stack Python web application used to perform ana
 * [**Bootstrap3**](http://getbootstrap.com/): Simple, standard, and easy front end styling
 
 Using these common technologies provides a good starting platform for users who want to develop Data Cube applications. Using Celery allows for simple distributed task processing while still being performant. Our UI is designed for high level use of the Data Cube and allow users to:
+
 * Access various datasets that we have ingested
 * Run custom analysis cases over user defined areas and time ranges
 * Generate both visual (image) and data products (GeoTiff/NetCDF)
@@ -38,11 +40,12 @@ Using these common technologies provides a good starting platform for users who 
 =================
 
 To set up and run our Data Cube UI, the following conditions must be met:
+
 * The full Data Cube Installation Guide must have been followed and completed. This includes:
   * You have a local user that is used to run the Data Cube commands/applications
   * You have a database user that is used to connect to your 'datacube' database
   * The Data Cube is installed and you have successfully run 'datacube system init'
-  * All code is checked out and you have a virtual environment in the correct directories: ~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}
+  * All code is checked out and you have a virtual environment in the correct directories: `~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}`
 * The full Ingestion guide must have been followed and completed. This includes:
   * A sample Landsat 7 scene was downloaded and uncompressed in your '/datacube/original_data' directory
   * The ingestion process was completed for that sample Landsat 7 scene
@@ -87,11 +90,11 @@ With all of the packages above installed, you can now move on to the configurati
 
 The configuration of our application involves ensuring that all usernames and passwords are accurately listed in required configuration files, moving those configuration files to the correct locations, and enabling the entire system.
 
-The first step is to check the Data Cube and Apache configuration files. Open the '.datacube.conf' located in '~/Datacube/data_cube_ui/config/.datacube.conf' and ensure that your username, password, and database name all match. This should be the database and database username/password set **during the Data Cube installation process**. If these details are not correct, please set them and save the file.
+The first step is to check the Data Cube and Apache configuration files. Open the '.datacube.conf' located in `~/Datacube/data_cube_ui/config/.datacube.conf` and ensure that your username, password, and database name all match. This should be the database and database username/password set **during the Data Cube installation process**. If these details are not correct, please set them and save the file.
 
 **Please note that our UI application uses this configuration file for everything rather than the default.**
 
-Next, we'll need to update the Apache configuration file. Open the file found at '~/Datacube/data_cube_ui/config/dc_ui.conf':
+Next, we'll need to update the Apache configuration file. Open the file found at `~/Datacube/data_cube_ui/config/dc_ui.conf`:
 
 ```
 <VirtualHost *:80>
@@ -162,7 +165,7 @@ cp config/.datacube.conf ~/.datacube.conf
 sudo cp config/dc_ui.conf /etc/apache2/sites-available/dc_ui.conf
 ```
 
-The next step is to edit the credentials found in the Django settings. Open the 'settings.py' found at '~/Datacube/data_cube_ui/data_cube_ui/settings.py':
+The next step is to edit the credentials found in the Django settings. Open the 'settings.py' found at `~/Datacube/data_cube_ui/data_cube_ui/settings.py`:
 
 ```
 gedit ~/Datacube/data_cube_ui/data_cube_ui/settings.py
@@ -171,6 +174,7 @@ gedit ~/Datacube/data_cube_ui/data_cube_ui/settings.py
 There are a few small changes that need to be made for consistency with your settings.
 
 Master node refers to a clustered/distributed setup. This should remain 127.0.0.1 on the main machine, while the other machines will enter the ip address of the main machine here. For instance, if your main machine's public ip is 52.200.156.1, then the worker nodes will enter 52.200.156.1 as the MASTER NODE.
+
 ```
 MASTER_NODE = '127.0.0.1'
 ```
@@ -286,6 +290,7 @@ To test the workers we will need to add an area and dataset that you have ingest
 =================
 
 The worker system can seem complex at first, but the basic workflow is shown below:
+
 * The Django view receives form data from the web page. This form data is processed into a Query model for the application
 * The main Celery worker receives a task with a Query model and pulls all of the required parameters from this model
 * Using predefined chunking options, the main Celery task splits the parameters (latitude, longitude, time) into smaller chunks
@@ -300,6 +305,7 @@ The worker system can seem complex at first, but the basic workflow is shown bel
 =================
 
 To finish the configuration, we will need to create an area and product that you have ingested. For this section, we have to have a few assumptions:
+
 * Your ingested product definition's name is ls7_ledaps_* - if you used our example it will be ls7_ledaps_vietnam, otherwise you will need to enter the name.
 * You have ingested a Landsat 7 scene
 

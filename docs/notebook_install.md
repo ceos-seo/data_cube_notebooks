@@ -22,13 +22,14 @@ Jupyter notebooks are extremely useful as a learning tool and as an introductory
 ========  
 
 To run our Jupyter notebook examples, the following prerequisites must be complete:
+
 * The full Data Cube Installation Guide must have been followed and completed. This includes:
   * You have a local user that is used to run the Data Cube commands/applications
   * You have a database user that is used to connect to your 'datacube' database
   * The Data Cube is installed and you have successfully run 'datacube system init'
-  * All code is checked out and you have a virtual environment in the correct directories: ~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}
+  * All code is checked out and you have a virtual environment in the correct directories: `~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}`
 * The full Ingestion guide must have been followed and completed. This includes:
-  * A sample Landsat 7 scene was downloaded and uncompressed in your '/datacube/original_data' directory
+  * A sample Landsat 7 scene was downloaded and uncompressed in your `/datacube/original_data` directory
   * The ingestion process was completed for that sample Landsat 7 scene
 
 <a name="installation_process"></a> Installation Process
@@ -92,7 +93,7 @@ jupyter notebook --generate-config
 jupyter nbextension enable --py --sys-prefix widgetsnbextension
 ```
 
-Jupyter will create a configuration file in '~/.jupyter/jupyter_notebook_config.py'. Now set the password and edit the server details:
+Jupyter will create a configuration file in `~/.jupyter/jupyter_notebook_config.py`. Now set the password and edit the server details:
 
 ```
 #enter a password - remember this for future reference.
