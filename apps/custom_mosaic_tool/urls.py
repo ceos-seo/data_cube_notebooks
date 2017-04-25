@@ -36,5 +36,5 @@ urlpatterns = [
     url(r'^(?P<area_id>[\w\-]+)/query_history$', views.get_query_history, name='get_query_history'),
     url(r'^(?P<area_id>[\w\-]+)/results_list$', views.get_results_list, name='get_results_list'),
     url(r'^(?P<area_id>[\w\-]+)/output_list$', views.get_output_list, name='get_output_list'),
-    url(r'^(?P<area_id>[\w\-]+)/$', views.custom_mosaic_tool, name='custom_mosaic_tool')
+    url(r'^(?P<area_id>[\w\-]+)/$', views.CustomMosaicTool.as_view(), name='custom_mosaic_tool')
 ]

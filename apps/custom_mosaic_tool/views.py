@@ -38,6 +38,8 @@ from .tasks import create_cloudfree_mosaic
 from .utils import create_query_from_post
 
 from collections import OrderedDict
+
+from apps.dc_algorithm.views import ToolView
 """
 Class holding all the views for the custom_mosaic_tool app in the project.
 """
@@ -48,56 +50,18 @@ Class holding all the views for the custom_mosaic_tool app in the project.
 # Last modified date:
 
 
-@login_required
-def custom_mosaic_tool(request, area_id):
-    """
-    Loads the custom mosaic tool page. Includes the relevant forms/satellites, as well as running
-    queries for the user. A form is created for each satellite based on the db contents for any
-    given satellite.
+class CustomMosaicTool(ToolView):
+    tool_name = 'custom_mosaic_tool'
 
-    **Context**
-
-    ``satellites``
-        List of available satellites to choose from for submission
-    ``forms``
-        The forms to be loaded to allow for user input.
-    ``running_queries``
-        A list of all tasks currently running.
-
-    ``area``
-    The desired area that was selected from the previous screen.
-
-    **Template**
-
-    :template:`custom_mosaic_tool/map_tool.html`
-    """
-
-    user_id = 0
-    if request.user.is_authenticated():
-        user_id = request.user.username
-    area = Area.objects.get(area_id=area_id)
-    app = Application.objects.get(application_id="custom_mosaic_tool")
-    satellites = area.satellites.all() & app.satellites.all()  #Satellite.objects.all().order_by('satellite_id')
-    forms = {}
-    for satellite in satellites:
-        forms[satellite.satellite_id] = {
-            'Data Selection':
-            DataSelectForm(satellite_id=satellite.satellite_id, auto_id=satellite.satellite_id + "_%s"),
-            'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s")
-        }
-    running_queries = Query.objects.filter(user_id=user_id, area_id=area_id, complete=False)
-
-    context = {
-        'tool_name': 'custom_mosaic_tool',
-        'info_panel': 'map_tool/custom_mosaic_tool/info_panel.html',
-        'satellites': satellites,
-        'forms': forms,
-        'running_queries': running_queries,
-        'area': area,
-        'application': app,
-    }
-
-    return render(request, 'map_tool/map_tool.html', context)
+    def generate_form_dict(self, satellites):
+        forms = {}
+        for satellite in satellites:
+            forms[satellite.satellite_id] = {
+                'Data Selection':
+                DataSelectForm(satellite_id=satellite.satellite_id, auto_id=satellite.satellite_id + "_%s"),
+                'Geospatial Bounds':
+                GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s")
+            }
 
 
 @login_required
