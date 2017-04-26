@@ -47,7 +47,7 @@ class DataSelectForm(forms.Form):
     """
 
     #these are done in the init funct.
-    result_type = forms.ChoiceField(
+    query_type = forms.ChoiceField(
         label='Result Type (Map view/png):', widget=forms.Select(attrs={'class': 'field-long'}))
 
     title = forms.CharField(widget=forms.HiddenInput())
@@ -59,8 +59,8 @@ class DataSelectForm(forms.Form):
             #populate the results list and recreate the form element.
             result_types = ResultType.objects.filter(satellite_id=satellite_id)
 
-            results_list = [(result.result_id, result.result_type) for result in result_types]
-            self.fields["result_type"] = forms.ChoiceField(
+            results_list = [(result.result_id, result.result_name) for result in result_types]
+            self.fields["query_type"] = forms.ChoiceField(
                 help_text='Select the type of image you would like displayed.',
                 label='Result Type (Map view/png):',
                 choices=results_list,
@@ -68,7 +68,7 @@ class DataSelectForm(forms.Form):
 
             compositor_list = [(compositor.compositor_id, compositor.compositor_name)
                                for compositor in Compositor.objects.all()]
-            self.fields["compositor_selection"] = forms.ChoiceField(
+            self.fields["compositor"] = forms.ChoiceField(
                 help_text='Select the method by which the "best" pixel will be chosen.',
                 label="Compositing Method:",
                 choices=compositor_list,

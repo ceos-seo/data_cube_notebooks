@@ -20,6 +20,7 @@
 # under the License.
 
 from django.db import models
+from django.core.exceptions import ValidationError
 
 import datetime
 
@@ -202,54 +203,60 @@ class AnimationType(models.Model):
 # Begin base classes for apps - Query, metadata, results, result types. Extends only in the case of app
 # specific elements.
 ##############################################################################################################
+
+
 class Query(models.Model):
+    """Base Query model meant to be inherited by a TaskClass
+
+    Serves as the base of all algorithm query, containing some basic metadata
+    such as title, description, and self timing functionality.
+
+    Additionally, basic time, latitude, and longitude ranges are provided
+    along with platform/product used for querying the Data Cube.
+
+    Constraints:
+        All fields excluding primary key are unique together.
+        No fields are optional - defaults are provided only in specific fields
+
+    Usage:
+        In each app, subclass Query and add all fields (if desired).
+        Subclass Meta and add the newly added fields (if any) to the list of
+        unique_together fields in the meta class. e.g.
+            class AppQuery(Query):
+                sample_field = models.CharField(max_length=100)
+
+                class Meta(Query.Meta):
+                    unique_together = (('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+                                        'longitude_max', 'longitude_min', 'sample_field'))
+
+
     """
-    Stores a single instance of a Query object that contains all the information for requests
-    submitted. Requires any app specific elements implemented elsewhere, along with the generate
-    query id function.
-    """
 
-    #meta
-    query_id = models.CharField(max_length=1000, default="")
-    area_id = models.CharField(max_length=100, default="")
-    title = models.CharField(max_length=100, default="")
-    description = models.CharField(max_length=10000, default="")
+    title = models.CharField(max_length=100)
+    description = models.CharField(max_length=10000)
 
-    #app specific
-    user_id = models.CharField(max_length=25, default="")
-    query_start = models.DateTimeField('query_start')
-    query_end = models.DateTimeField('query_end')
+    query_start = models.DateTimeField('query_start', default=datetime.datetime.now)
+    query_end = models.DateTimeField('query_end', default=datetime.datetime.now)
 
-    #query info for dc data.
-    platform = models.CharField(max_length=25, default="")
-    product = models.CharField(max_length=50, default="")
+    area_id = models.CharField(max_length=100)
 
-    time_start = models.DateTimeField('time_start')
-    time_end = models.DateTimeField('time_end')
-    latitude_min = models.FloatField(default=0)
-    latitude_max = models.FloatField(default=0)
-    longitude_min = models.FloatField(default=0)
-    longitude_max = models.FloatField(default=0)
+    platform = models.CharField(max_length=25)
+    product = models.CharField(max_length=50)
+
+    time_start = models.DateField('time_start')
+    time_end = models.DateField('time_end')
+    latitude_min = models.FloatField()
+    latitude_max = models.FloatField()
+    longitude_min = models.FloatField()
+    longitude_max = models.FloatField()
 
     #false by default, only change is false-> true
     complete = models.BooleanField(default=False)
 
     class Meta:
         abstract = True
-
-    # Default behavior, may or may not be overriden by apps.
-    def generate_query_id(self):
-        """
-        Creates a Query ID based on a number of different attributes including start_time, end_time
-        latitude_min and max, longitude_min and max, measurements, platform, product, and query_type
-
-        Returns:
-            query_id (string): The ID of the query built up by object attributes.
-        """
-        query_id = self.time_start.strftime("%Y-%m-%d") + '-' + self.time_end.strftime("%Y-%m-%d") + '-' + str(
-            self.latitude_max) + '-' + str(self.latitude_min) + '-' + str(self.longitude_max) + '-' + str(
-                self.longitude_min) + '-' + self.platform + '-' + self.product
-        return query_id
+        unique_together = (('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+                            'longitude_max', 'longitude_min'))
 
     def _is_cached(self, result_class):
         return result_class.objects.filter(query_id=self.query_id).exists()
@@ -261,23 +268,56 @@ class Query(models.Model):
         except:
             return None
 
+    @classmethod
+    def _get_or_create_query_from_post(cls, form_data):
+
+        query_data = form_data
+        query_data['time_start'] = datetime.datetime.strptime(form_data['time_start'], '%m/%d/%Y')
+        query_data['time_end'] = datetime.datetime.strptime(form_data['time_end'], '%m/%d/%Y')
+
+        query_data['product'] = Satellite.objects.get(
+            satellite_id=query_data['platform']).product_prefix + Area.objects.get(
+                area_id=query_data['area_id']).area_id
+        query_data['title'] = "Base Query" if 'title' not in form_data or form_data['title'] == '' else form_data[
+            'title']
+        query_data['description'] = "None" if 'description' not in form_data or form_data[
+            'description'] == '' else form_data['description']
+
+        query = cls(query_data)
+
+        try:
+            query.save()
+            return query, True
+        except ValidationError:
+            query = cls.objects.get(query_data)
+            return query, False
+
+        raise NotImplementedError(
+            "You must define the classmethod '_get_or_create_query_from_post' in the inheriting class.")
+
 
 class Metadata(models.Model):
+    """Base Metadata model meant to be inherited by a TaskClass
+
+    Serves as the base of all algorithm metadata, containing basic fields such as scene
+    count, pixel count, clean pixel statistics. Comma seperated fields are also used here
+    and zipped/fetched using the get_field_as_list function.
+
+    Constraints:
+        All fields excluding primary key are unique together.
+        all fields are optional and will be replaced with valid values when they
+            are generated by the task.
+
+    Usage:
+        In each app, subclass Metadata and add all fields (if desired).
+        Subclass Meta as well to ensure the class remains abstract e.g.
+            class AppMetadata(Metadata):
+                sample_field = models.CharField(max_length=100)
+
+                class Meta(Metadata.Meta):
+                    pass
+
     """
-    Stores a single instance of a Metadata object that contains all the information for requests
-    submitted. Functions are used for template display. Currently using comma seperated
-    values for easy splitting/formatting.
-    """
-
-    #meta
-    query_id = models.CharField(max_length=1000, default="", unique=True)
-
-    #geospatial bounds.
-    latitude_max = models.FloatField(default=0)
-    latitude_min = models.FloatField(default=0)
-    longitude_max = models.FloatField(default=0)
-    longitude_min = models.FloatField(default=0)
-
     #meta attributes
     scene_count = models.IntegerField(default=0)
     pixel_count = models.IntegerField(default=0)
@@ -293,6 +333,21 @@ class Metadata(models.Model):
 
     class Meta:
         abstract = True
+
+    def _get_field_as_list(self, field_name):
+        """Convert comma seperated strings into lists
+
+        Certain metadata fields are stored as comma seperated lists of properties.
+        Use this function to get the string, split on comma, and return the result.
+
+        Args:
+            field_name: field name as a string that should be converted
+
+        Returns:
+            List of attributes
+        """
+
+        return getattr(self, field_name).rstrip(',').split(',')
 
     def acquisition_list_as_list(self):
         """
@@ -336,25 +391,33 @@ class Metadata(models.Model):
 
 
 class Result(models.Model):
-    """
-    Stores a single instance of a Result object that contains all the information for requests
-    submitted. This is also used to transmit information (status, progress) to the client
+    """Base Result model meant to be inherited by a TaskClass
+
+    Serves as the base of all algorithm resluts, containing a status, number of scenes
+    processed and total scenes (to generate progress bar), and a result path.
+    The result path is required and is the path to the result that should be the
+    *Default* result shown on the UI map. Other results can be added in subclasses.
+
+    Constraints:
+        result_path is required and must lead to an image that serves as the default result
+            to be displayed to the user.
+
+    Usage:
+        In each app, subclass Result and add all fields (if desired).
+        Subclass Meta as well to ensure the class remains abstract e.g.
+            class AppResult(Result):
+                sample_field = models.CharField(max_length=100)
+
+                class Meta(Result.Meta):
+                    pass
+
     """
 
-    #meta
-    query_id = models.CharField(max_length=1000, default="", unique=True)
     #either OK or ERROR or WAIT
     status = models.CharField(max_length=100, default="")
 
     scenes_processed = models.IntegerField(default=0)
     total_scenes = models.IntegerField(default=0)
-
-    #geospatial bounds.
-    latitude_max = models.FloatField(default=0)
-    latitude_min = models.FloatField(default=0)
-    longitude_max = models.FloatField(default=0)
-    longitude_min = models.FloatField(default=0)
-
     #default display result.
     result_path = models.CharField(max_length=250, default="")
 
@@ -362,15 +425,67 @@ class Result(models.Model):
         abstract = True
 
 
-class ResultType(models.Model):
+class GenericTask(Query, Metadata, Result):
+    """Serves as the model for an algorithm task containing a Query, Metadata, and Result
+
+    The generic task should be implemented by each application. Each app should subclass
+    Query, Result, and Metadata, adding all desired fields according to docstrings. The
+    app should then include a AppTask implementation that ties them all together:
+        CustomMosaicTask(CustomMosaicQuery, CustomMosaicMetadata, CustomMosaicResult):
+            pass
+
+    This Generic task should not be subclassed and should be used only as a model for how
+    things should be tied together at the app level.
+
+    Constraints:
+        Should subclass Query, Metadata, and Result (or a subclass of each)
+        Should be used for all processing and be passed using a uuid pk
+        Attributes should NOT be added to this class - add them to the inherited classes
+
     """
-    Stores a single instance of a ResultType object that contains all the information for requests
-    submitted. This is extended by different apps when other result type data is required.
+
+    pass
+
+    class Meta:
+        abstract = True
+
+
+class ResultType(models.Model):
+    """Stores a result type for an app that relates to options in the celery tasks
+
+    Contains a satellite id, result id, and result type for differentiating between different
+    result types. the result type should be displayed on the UI, passing the result_id as form data.
+    The result_id should be handled directly in the celery task execution. This should be inherited at the
+    app level without inheriting meta - the resulting class should not be abstract.
+
+    Constraints:
+        None yet.
+
     """
 
     satellite_id = models.CharField(max_length=25)
     result_id = models.CharField(max_length=25)
-    result_type = models.CharField(max_length=25)
+    result_name = models.CharField(max_length=25)
+
+    class Meta:
+        abstract = True
+
+
+class UserHistory(models.Model):
+    """Contains the task history for a given user.
+
+    This shoud act as a linking table between a user and their tasks.
+    When a new task is submitted, a row should be created linking the user
+    to the task by id.
+
+    Constraints:
+        user_id should map to a user's id.
+        task_id should map to the pk of a task
+
+    """
+
+    user_id = models.IntegerField()
+    task_id = models.IntegerField()
 
     class Meta:
         abstract = True

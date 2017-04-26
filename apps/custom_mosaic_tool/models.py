@@ -20,17 +20,12 @@
 # under the License.
 
 from django.db import models
-from data_cube_ui.models import Area, Compositor
-from data_cube_ui.models import Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as BaseResultType
-"""
-Models file that holds all the classes representative of the database tabeles.  Allows for queries
-to be created for basic CRUD operations.
-"""
+from django.core.exceptions import ValidationError
 
-# Author: AHDS
-# Creation date: 2016-06-23
-# Modified by: MAP
-# Last modified date:
+from apps.dc_algorithm.models import Area, Compositor, Satellite
+from apps.dc_algorithm.models import Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as BaseResultType
+
+import datetime
 
 
 class Query(BaseQuery):
@@ -40,6 +35,11 @@ class Query(BaseQuery):
     query_type = models.CharField(max_length=25, default="")
     animated_product = models.CharField(max_length=25, default="None")
     compositor = models.CharField(max_length=25, default="most_recent")
+
+    class Meta(BaseQuery.Meta):
+        unique_together = (('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+                            'longitude_max', 'longitude_min', 'query_type', 'animated_product', 'compositor'))
+        abstract = True
 
     # functs.
     def get_type_name(self):
@@ -60,53 +60,32 @@ class Query(BaseQuery):
         """
         return Compositor.objects.get(compositor_id=self.compositor).compositor_name
 
-    def generate_query_id(self):
-        """
-        Creates a Query ID based on a number of different attributes including start_time, end_time
-        latitude_min and max, longitude_min and max, measurements, platform, product, and query_type
+    @classmethod
+    def _get_or_create_query_from_post(cls, form_data):
+        query_data = form_data
+        query_data['time_start'] = datetime.datetime.strptime(form_data['time_start'], '%m/%d/%Y')
+        query_data['time_end'] = datetime.datetime.strptime(form_data['time_end'], '%m/%d/%Y')
 
-        Returns:
-            query_id (string): The ID of the query built up by object attributes.
-        """
-        query_id = '{start}-{end}-{lat_max}-{lat_min}-{lon_min}-{lon_max}-{compositor}-{platform}-{product}-{query_type}-{animation}'
-        return query_id.format(
-            start=self.time_start.strftime("%Y-%m-%d"),
-            end=self.time_end.strftime("%Y-%m-%d"),
-            lat_max=self.latitude_max,
-            lat_min=self.latitude_min,
-            lon_max=self.longitude_max,
-            lon_min=self.longitude_min,
-            compositor=self.compositor,
-            platform=self.platform,
-            product=self.product,
-            query_type=self.query_type,
-            animation=self.animated_product)
+        query_data['product'] = Satellite.objects.get(
+            satellite_id=query_data['platform']).product_prefix + Area.objects.get(
+                area_id=query_data['area_id']).area_id
+        query_data['title'] = "Base Query" if 'title' not in form_data or form_data['title'] == '' else form_data[
+            'title']
+        query_data['description'] = "None" if 'description' not in form_data or form_data[
+            'description'] == '' else form_data['description']
 
-    def generate_metadata(self, scene_count=0, pixel_count=0):
-        meta = Metadata(
-            query_id=self.query_id,
-            scene_count=scene_count,
-            pixel_count=pixel_count,
-            latitude_min=self.latitude_min,
-            latitude_max=self.latitude_max,
-            longitude_min=self.longitude_min,
-            longitude_max=self.longitude_max,
-            satellite_list="")
-        meta.save()
-        return meta
+        valid_query_fields = [field.name for field in cls._meta.get_fields() if field in query_data]
 
-    def generate_result(self):
-        result = Result(
-            query_id=self.query_id,
-            latitude_min=self.latitude_min,
-            latitude_max=self.latitude_max,
-            longitude_min=self.longitude_min,
-            longitude_max=self.longitude_max,
-            total_scenes=0,
-            scenes_processed=0,
-            status="WAIT")
-        result.save()
-        return result
+        query_data = {key: query_data[key] for key in valid_query_fields}
+
+        query = cls(**query_data)
+
+        try:
+            query.save()
+            return query, True
+        except ValidationError:
+            query = cls.objects.get(**query_data)
+            return query, False
 
 
 class Metadata(BaseMetadata):
@@ -114,6 +93,9 @@ class Metadata(BaseMetadata):
     Extends base metadata.
     """
     satellite_list = models.CharField(max_length=100000, default="")
+
+    class Meta(BaseMetadata.Meta):
+        abstract = True
 
     def satellite_list_as_list(self):
         return self.satellite_list.rstrip(',').split(',')
@@ -141,6 +123,13 @@ class Result(BaseResult):
     animation_path = models.CharField(max_length=250, default="None")
     data_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
+
+    class Meta(BaseResult.Meta):
+        abstract = True
+
+
+class CustomMosaicTask(Query, Metadata, Result):
+    pass
 
 
 class ResultType(BaseResultType):

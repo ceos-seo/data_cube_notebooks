@@ -20,10 +20,9 @@
 # under the License.
 
 from django.contrib import admin
-from .models import Query, Metadata, Result, ResultType
+from . import models
 from data_cube_ui.models import Satellite, Area, Compositor
-
-
+"""
 class QueryAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'user_id', 'platform', 'time_start_display', 'time_end_display')
 
@@ -57,3 +56,6 @@ admin.site.register(Query, QueryAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(ResultType, ResultTypeAdmin)
+
+"""
+admin.site.register(models.CustomMosaicTask)

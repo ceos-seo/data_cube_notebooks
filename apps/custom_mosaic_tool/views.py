@@ -39,19 +39,20 @@ from .utils import create_query_from_post
 
 from collections import OrderedDict
 
-from apps.dc_algorithm.views import ToolView
-"""
-Class holding all the views for the custom_mosaic_tool app in the project.
-"""
-
-# Author: AHDS
-# Creation date: 2016-06-23
-# Modified by: MAP
-# Last modified date:
+from apps.dc_algorithm.views import ToolView, SubmitNewRequest
 
 
 class CustomMosaicTool(ToolView):
+    """Creates the main view for the custom mosaic tool by extending the ToolView class
+
+    Extends the ToolView abstract class - required attributes are the tool_name and the
+    generate_form_dict function.
+
+    See the ToolView docstring for more details.
+    """
+
     tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicTask'
 
     def generate_form_dict(self, satellites):
         forms = {}
@@ -62,35 +63,13 @@ class CustomMosaicTool(ToolView):
                 'Geospatial Bounds':
                 GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s")
             }
+        return forms
 
 
-@login_required
-def submit_new_request(request):
-    """
-    Submit a new request using post data. A query model is created with the relevant information and
-    user id, then the data task is started. The response is a json obj. containing the query id.
-
-    **Context**
-
-    **Template**
-    """
-
-    user_id = 0
-    if request.user.is_authenticated():
-        user_id = request.user.username
-    if request.method == 'POST':
-        response = {}
-        response['msg'] = "OK"
-        try:
-            query_id = create_query_from_post(user_id, request.POST)
-            create_cloudfree_mosaic.delay(query_id, user_id)
-            response.update(model_to_dict(Query.objects.filter(query_id=query_id, user_id=user_id)[0]))
-        except:
-            response['msg'] = "ERROR"
-            raise
-        return JsonResponse(response)
-    else:
-        return JsonResponse({'msg': "ERROR"})
+class SubmitNewRequest(SubmitNewRequest):
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicTask'
+    celery_task_func = create_cloudfree_mosaic
 
 
 @login_required

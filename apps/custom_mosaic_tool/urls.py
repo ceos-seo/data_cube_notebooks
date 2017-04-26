@@ -19,7 +19,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.conf.urls import url
+from django.conf.urls import url, include
 
 from . import views
 
@@ -29,7 +29,7 @@ from . import views
 # Last modified date:
 
 urlpatterns = [
-    url(r'^submit$', views.submit_new_request, name='submit_new_request'),
+    url(r'^submit$', views.SubmitNewRequest.as_view(), name='submit_new_request'),
     url(r'^submit_single$', views.submit_new_single_request, name='submit_new_single_request'),
     url(r'^cancel$', views.cancel_request, name='cancel_request'),
     url(r'^result$', views.get_result, name='get_result'),
