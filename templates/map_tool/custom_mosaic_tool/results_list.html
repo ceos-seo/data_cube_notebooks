@@ -24,7 +24,7 @@ under the License.
      Creation date: 2016-09-08
      Modified by:
      Last modified date: -->
-<!-- Requires other implementation of set_selected_result(query_id), remove_result(query_id), toggle_visibility, toggle_highlight_nodata, sanitize_id-->
+<!-- Requires other implementation of set_selected_result(id), remove_result(id), toggle_visibility, toggle_highlight_nodata, sanitize_id-->
 {% extends "map_tool/results_list_template.html" %}
 {% block query_table_rows %}
 <table class="table table-striped table-bordered">
@@ -55,20 +55,20 @@ under the License.
     </tr>
     <tr>
       <td><div class="helper tooltipped" title="Fill in all no-data (clouds, shadow, missing data, etc) with a contrasting color."><a>?</a></div>Highlight NoData:</td>
-      <td class="right_aligned_text"><input type="checkbox" name="show_nodata" onclick="toggle_highlight_nodata(this, '{{ query.query_id }}')"></td>
+      <td class="right_aligned_text"><input type="checkbox" name="show_nodata" onclick="toggle_highlight_nodata(this, '{{ query.id }}')"></td>
     </tr>
   </tbody>
 </table>
 {% endblock %}
 {% block metadata_dl_block %}
-  <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ metadata_entry.query_id }}">
+  <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ metadata_entry.id }}">
     {% for acquisition, pixels, pixel_percentage, satellite in metadata_entry.metadata_as_zip4 %}
       <li>
         <table class="table scene_list_table">
           <tbody>
             <thead>
               <th>{{ acquisition }}</th>
-              <th class="right_aligned_text"><button class="tooltipped" title="Load this single scene. This will hide the current result." onclick="load_scene_from_query('{{ metadata_entry.query_id }}', '{{ acquisition }}')" style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Load this scene</button></th>
+              <th class="right_aligned_text"><button class="tooltipped" title="Load this single scene. This will hide the current result." onclick="load_scene_from_query('{{ metadata_entry.id }}', '{{ acquisition }}')" style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Load this scene</button></th>
             </thead>
             <tr>
               <td>Clean pixels:</td>
@@ -93,7 +93,7 @@ under the License.
   </ul>
 {% endblock %}
 {% block meta_table_rows %}
-<table id="meta_{{ metadata_entry.query_id }}" class="table table-striped table-bordered scene_meta">
+<table id="meta_{{ metadata_entry.id }}" class="table table-striped table-bordered scene_meta">
   <tbody>
     <tr>
       <td>Scene Count:</td>
@@ -117,10 +117,10 @@ under the License.
 {% block functions_block %}
 //toggles the nodata highlighting based on a checkbox.
 //outline is shown as visible
-function toggle_highlight_nodata(checkbox, query_id) {
-  map.remove_image_by_id(queries[query_id].query_id);
-  result_path = checkbox.checked ? queries[query_id].result_filled_path : queries[query_id].result_path;
-  add_result_to_map(query_id, result_path);
-  map.toggle_outline_by_id(query_id, true);
+function toggle_highlight_nodata(checkbox, id) {
+  map.remove_image_by_id(queries[id].id);
+  result_path = checkbox.checked ? queries[id].result_filled_path : queries[id].result_path;
+  add_result_to_map(id, result_path);
+  map.toggle_outline_by_id(id, true);
 }
 {% endblock %}

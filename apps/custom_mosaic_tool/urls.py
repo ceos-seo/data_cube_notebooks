@@ -30,8 +30,8 @@ from . import views
 
 urlpatterns = [
     url(r'^submit$', views.SubmitNewRequest.as_view(), name='submit_new_request'),
-    url(r'^submit_single$', views.submit_new_single_request, name='submit_new_single_request'),
-    url(r'^cancel$', views.cancel_request, name='cancel_request'),
+    url(r'^submit_single$', views.SubmitNewSubsetRequest.as_view(), name='submit_new_single_request'),
+    url(r'^cancel$', views.CancelRequest.as_view(), name='cancel_request'),
     url(r'^result$', views.GetTaskResult.as_view(), name='get_result'),
     url(r'^(?P<area_id>[\w\-]+)/query_history$', views.get_query_history, name='get_query_history'),
     url(r'^(?P<area_id>[\w\-]+)/results_list$', views.get_results_list, name='get_results_list'),

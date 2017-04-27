@@ -24,7 +24,7 @@ from celery.decorators import task
 from celery.signals import worker_process_init, worker_process_shutdown
 from celery import group
 from celery.task.control import revoke
-from .models import Query, Result, ResultType, Metadata
+from .models import CustomMosaicTask, ResultType
 
 import numpy as np
 import math
@@ -44,7 +44,7 @@ from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndv
 from utils.dc_utilities import (get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask,
                                 split_task, fill_nodata, max_value, min_value, generate_time_ranges)
 
-from data_cube_ui.utils import (update_model_bounds_with_dataset, combine_metadata, cancel_task, error_with_message)
+from data_cube_ui.utils import (update_model_bounds_with_dataset, combine_metadata, cancel_task)
 """
 Class for handling loading celery workers to perform tasks asynchronously.
 """
@@ -117,43 +117,32 @@ processing_algorithms = {
 
 
 @task(name="get_data_task")
-def create_cloudfree_mosaic(query_id, user_id, single=False):
+def create_cloudfree_mosaic(id_, *args, **kwargs):
     """
     Creates metadata and result objects from a query id. gets the query, computes metadata for the
     parameters and saves the model. Uses the metadata to query the datacube for relevant data and
-    creates the result. Results computed in single time slices for memory efficiency, pushed into a
-    single numpy array containing the total result. this is then used to create png/tifs to populate
+    creates the query. Results computed in single time slices for memory efficiency, pushed into a
+    single numpy array containing the total query. this is then used to create png/tifs to populate
     a result model. Result model is constantly updated with progress and checked for task
     cancellation.
 
     Args:
-        query_id (int): The ID of the query that will be created.
+        id_ (uuid4): The ID of the query that will be created.
         user_id (string): The ID of the user that requested the query be made.
 
     Returns:
         Returns nothing
     """
-
-    query = Query._fetch_query_object(query_id, user_id)
-
-    if query is None:
-        print("Query does not yet exist.")
+    print(id_, args, kwargs)
+    try:
+        query = CustomMosaicTask.objects.get(pk=id_)
+    except CustomMosaicTask.DoesNotExist:
         return
 
-    if query._is_cached(Result):
-        print("Repeat query, client will receive cached result.")
-        return
-
-    print("Got the query, creating metadata.")
+    print("Got the query, creating query.")
 
     result_type = ResultType.objects.get(satellite_id=query.platform, result_id=query.query_type)
 
-    # creates the empty result.
-    result = query.generate_result()
-
-    #if query.platform == "LANDSAT_ALL":
-    #    error_with_message(result, "Combined products are not supported for custom mosaics.", base_temp_path)
-    #    return
     if query.platform == "LANDSAT_ALL":
         product_details = dc.dc.list_products()[dc.dc.list_products().name == products[1] + query.area_id]
     else:
@@ -182,13 +171,12 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                 latitude=(query.latitude_min, query.latitude_max))
 
         if len(acquisitions) < 1:
-            error_with_message(result, "There were no acquisitions for this parameter set.", base_temp_path)
             return
 
         processing_options = processing_algorithms[query.compositor]
 
         #if its a single scene, load it all at once to prevent errors.
-        if single:
+        if kwargs.get('single', False):
             processing_options['time_chunks'] = None
             processing_options['time_slices_per_iteration'] = None
 
@@ -196,14 +184,9 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             processing_options["time_slices_per_iteration"] = 1
 
         if query.animated_product != "None" and query.compositor == "median_pixel":
-            error_with_message(result, "Animations are not supported for median pixel operations.", base_temp_path)
             return
 
         if query.compositor == "median_pixel" and (query.time_end.year - query.time_start.year) > 1:
-            error_with_message(
-                result,
-                "Median pixel operations of time periods exceeding 1 year are not supported. Please enter a shorter time range.",
-                base_temp_path)
             return
 
         # Reversed time = True will make it so most recent = First, oldest = Last.
@@ -217,17 +200,17 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             time_chunks=processing_options['time_chunks'],
             reverse_time=processing_options['reverse_time'])
 
-        result.total_scenes = len(time_ranges)
-        result.save()
+        query.total_scenes = len(time_ranges)
+        query.save()
         # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
         # Uses a time range computed with the index and index+acquisitions_per_iteration.
         # ensures that the start and end are both valid.
         print("Getting data and creating mosaic")
         # create a temp folder that isn't on the nfs server so we can quickly
         # access/delete.
-        if not os.path.exists(base_temp_path + query.query_id):
-            os.mkdir(base_temp_path + query.query_id)
-            os.chmod(base_temp_path + query.query_id, 0o777)
+        if not os.path.exists(base_temp_path + str(query.id)):
+            os.mkdir(base_temp_path + str(query.id))
+            os.chmod(base_temp_path + str(query.id), 0o777)
 
         # iterate over the time chunks.
         print("Time chunks: " + str(len(time_ranges)))
@@ -247,7 +230,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             for time_range_index in range(len(time_ranges))
         ]
 
-        # holds some acquisition based metadata. dict of objs keyed by date
+        # holds some acquisition based query. dict of objs keyed by date
         dataset_out = None
         acquisition_metadata = {}
         time_range_index = 0
@@ -257,8 +240,8 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             tiles = []
             # get the geographic chunk data and drop all None values
             while not geographic_group.ready():
-                result.refresh_from_db()
-                if result.status == "CANCEL":
+                query.refresh_from_db()
+                if query.status == "CANCEL":
                     #revoke all tasks. Running tasks will continue to execute.
                     for task_group in time_chunk_tasks:
                         for child in task_group.children:
@@ -266,8 +249,8 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                     cancel_task(query, result, base_temp_path)
                     return
             group_data = [data for data in geographic_group.get() if data is not None]
-            result.scenes_processed += 1
-            result.save()
+            query.scenes_processed += 1
+            query.save()
             print("Got results for a time slice, computing intermediate product..")
 
             if len(group_data) < 1:
@@ -280,8 +263,8 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
             if query.animated_product != "None":
                 print("Num of slices in this chunk: " + str(len(time_ranges[time_range_index])))
                 for timeslice in range(len(time_ranges[time_range_index])):
-                    result.refresh_from_db()
-                    if result.status == "CANCEL":
+                    query.refresh_from_db()
+                    if query.status == "CANCEL":
                         #revoke all tasks. Running tasks will continue to execute.
                         for task_group in time_chunk_tasks:
                             for child in task_group.children:
@@ -289,7 +272,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                         cancel_task(query, result, base_temp_path)
                         return
 
-                    nc_paths = [base_temp_path + query.query_id + '/' + \
+                    nc_paths = [base_temp_path + str(query.id) + '/' + \
                         str(time_range_index) + '/' + \
                         str(geoslice) + str(timeslice) + ".nc" for geoslice in range(len(lat_ranges))]
 
@@ -300,10 +283,10 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                     if time_range_index > 0 and query.animated_product != "scene":
                         animated_data = processing_options['chunk_combination_method'](animated_data, dataset_out)
 
-                    tif_path = base_temp_path + query.query_id + '/' + \
+                    tif_path = base_temp_path + str(query.id) + '/' + \
                         str(time_range_index) + '/' + \
                         str(animation_tile_count) + '.tif'
-                    png_path = base_temp_path + query.query_id + \
+                    png_path = base_temp_path + str(query.id) + \
                         '/' + str(animation_tile_count) + '.png'
                     animation_tile_count += 1
 
@@ -337,7 +320,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                     os.remove(tif_path)
                 # remove the tiff.. some of these can be >1gb, so having one
                 # per scene is too much.
-                shutil.rmtree(base_temp_path + query.query_id + '/' + str(time_range_index))
+                shutil.rmtree(base_temp_path + str(query.id) + '/' + str(time_range_index))
 
             time_range_index += 1
             dataset_out = processing_options['chunk_combination_method'](dataset, dataset_out)
@@ -373,7 +356,7 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
         meta.save()
 
         # generate all the results
-        file_path = base_result_path + query_id
+        file_path = base_result_path + id
         tif_path = file_path + '.tif'
         netcdf_path = file_path + '.nc'
         png_path = file_path + '.png'
@@ -387,12 +370,12 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
                 time_slices = reversed(range(len(acquisitions))) if processing_options[
                     'reverse_time'] and query.animated_product == "scene" else range(len(acquisitions))
                 for index in time_slices:
-                    image = imageio.imread(base_temp_path + query.query_id + '/' + str(index) + '.png')
+                    image = imageio.imread(base_temp_path + str(query.id) + '/' + str(index) + '.png')
                     writer.append_data(image)
-            result.animation_path = animation_path
+            query.animation_path = animation_path
 
         # remove intermediates
-        shutil.rmtree(base_temp_path + query.query_id)
+        shutil.rmtree(base_temp_path + str(query.id))
         save_to_geotiff(
             tif_path,
             gdal.GDT_Int32,
@@ -420,20 +403,19 @@ def create_cloudfree_mosaic(query_id, user_id, single=False):
 
         # update the results and finish up.
         update_model_bounds_with_dataset([result, meta, query], dataset_out)
-        result.result_path = png_path
-        result.data_path = tif_path
-        result.data_netcdf_path = netcdf_path
-        result.result_filled_path = png_filled_path
-        result.status = "OK"
-        result.total_scenes = len(acquisitions)
-        result.save()
+        query.result_path = png_path
+        query.data_path = tif_path
+        query.data_netcdf_path = netcdf_path
+        query.result_filled_path = png_filled_path
+        query.status = "OK"
+        query.total_scenes = len(acquisitions)
+        query.save()
         print("Finished processing results")
         # all data has been processed, create results and finish up.
         query.complete = True
         query.query_end = datetime.datetime.now()
         query.save()
     except:
-        error_with_message(result, "There was an exception when handling this query.", base_temp_path)
         raise
     # end error wrapping.
     return
@@ -451,11 +433,11 @@ def generate_mosaic_chunk(time_num,
     """
     responsible for generating a piece of a custom mosaic product. This grabs the x/y area specified in the lat/lon ranges, gets all data
     from acquisition_list, which is a list of acquisition dates, and creates the custom mosaic using the function named in processing_options.
-    saves the result to disk using time/chunk num, and returns the path and the acquisition date keyed metadata.
+    saves the result to disk using time/chunk num, and returns the path and the acquisition date keyed query.
     """
 
     #if the path has been removed, the task is cancelled and this is only running due to the prefetch.
-    if not os.path.exists(base_temp_path + query.query_id):
+    if not os.path.exists(base_temp_path + str(query.id)):
         return None
 
     iteration_data = None
@@ -515,7 +497,7 @@ def generate_mosaic_chunk(time_num,
                                                                  intermediate_product=iteration_data,
                                                                  reverse_time=processing_options['reverse_time'])
 
-        # update metadata. # here the clear mask has all the clean
+        # update query. # here the clear mask has all the clean
         # pixels for each acquisition.
         for timeslice in range(clear_mask.shape[0]):
             time = raw_data.time.values[timeslice] if type(
@@ -538,19 +520,19 @@ def generate_mosaic_chunk(time_num,
                     deep=True) if query.animated_product == "scene" else iteration_data.copy(deep=True)
                 animated_data.attrs = OrderedDict()
                 #if the path has been removed, the task is cancelled and this is only running due to the prefetch.
-                if not os.path.exists(base_temp_path + query.query_id):
+                if not os.path.exists(base_temp_path + str(query.id)):
                     return None
                 else:
-                    if not os.path.exists(base_temp_path + query.query_id + '/' + str(time_num)):
-                        os.mkdir(base_temp_path + query.query_id + '/' + str(time_num))
-                    animated_data.to_netcdf(base_temp_path + query.query_id + '/' + str(time_num) + '/' + str(chunk_num)
+                    if not os.path.exists(base_temp_path + str(query.id) + '/' + str(time_num)):
+                        os.mkdir(base_temp_path + str(query.id) + '/' + str(time_num))
+                    animated_data.to_netcdf(base_temp_path + str(query.id) + '/' + str(time_num) + '/' + str(chunk_num)
                                             + str(time_index + timeslice) + ".nc")
 
     # Save this geographic chunk to disk.
-    geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \
+    geo_path = base_temp_path + str(query.id) + "/geo_chunk_" + \
         str(time_num) + "_" + str(chunk_num) + ".nc"
     # if this is an empty chunk, just return an empty dataset.
-    if iteration_data is None or not os.path.exists(base_temp_path + query.query_id):
+    if iteration_data is None or not os.path.exists(base_temp_path + str(query.id)):
         return None
     iteration_data.to_netcdf(geo_path)
     print("Done with chunk: " + str(time_num) + " " + str(chunk_num))

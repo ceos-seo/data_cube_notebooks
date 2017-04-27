@@ -90,7 +90,7 @@
                 'tool_name': window.tool_name,
                 'msg': "HISTORY",
                 "title": '{{ query.title }}',
-                'query_id': '{{ query.query_id }}',
+                'id': '{{ query.id }}',
                 'csrf': csrftoken
             });
             w.addEventListener("message", query_event_listener);
@@ -223,7 +223,7 @@
             workers[id].terminate();
             if (queries[id] != null)
                 $.post('/' + window.tool_name + '/cancel', {
-                    'query_id': queries[id].query_id
+                    'id': queries[id].id
                 }, function(result) {
                     //console.log(result);
                 });
@@ -269,7 +269,7 @@
             }
         }
         $.post('results_list', {
-            'query_ids': valid_ids
+            'ids': valid_ids
         }, function(result) {
             $('#results_list').html(result);
             $('.scenes_list').hide();
@@ -288,7 +288,7 @@
             }
         }
         $.post('output_list', {
-            'query_ids': valid_ids
+            'ids': valid_ids
         }, function(result) {
             $('#output_panel').html(result);
         })
@@ -296,44 +296,44 @@
 
     var selected_result = undefined;
     //Required for the use of the results list module.
-    function set_selected_result(query_id) {
-        //$('#query_result_temp').attr("src", queries[query_id].result_path);
-        //map.insert_image_with_bounds(query_id, queries[query_id].result_path, queries[query_id].latitude[0], queries[query_id].latitude[1], queries[query_id].longitude[0], queries[query_id].longitude[1]);
-        if (selected_result == query_id) {
-            map.zoom_to_image_by_id(query_id);
+    function set_selected_result(id) {
+        //$('#query_result_temp').attr("src", queries[id].result_path);
+        //map.insert_image_with_bounds(id, queries[id].result_path, queries[id].latitude[0], queries[id].latitude[1], queries[id].longitude[0], queries[id].longitude[1]);
+        if (selected_result == id) {
+            map.zoom_to_image_by_id(id);
             return;
         }
         map.toggle_outline_by_id(selected_result, false);
-        selected_result = query_id;
-        map.toggle_outline_by_id(query_id, true);
-        map.zoom_to_image_by_id(query_id);
-        $("#static-map-img").attr("src", queries[query_id].result_path);
+        selected_result = id;
+        map.toggle_outline_by_id(id, true);
+        map.zoom_to_image_by_id(id);
+        $("#static-map-img").attr("src", queries[id].result_path);
     }
 
     //adds a query to the map by its id. if boolean filled is true, use the filled version.
-    function add_result_to_map(query_id, result_path) {
+    function add_result_to_map(id, result_path) {
         $("#static-map-img").attr("src", result_path);
-        map.insert_image_with_bounds(query_id, result_path, queries[query_id].latitude_min, queries[query_id].latitude_max, queries[query_id].longitude_min, queries[query_id].longitude_max);
+        map.insert_image_with_bounds(id, result_path, queries[id].latitude_min, queries[id].latitude_max, queries[id].longitude_min, queries[id].longitude_max);
     }
 
     //removes a result from the map and modifies the queries and workers variables.
     //refreshes all relevant panels.
-    function remove_result(query_id) {
-        if (queries[query_id] != undefined)
-            map.remove_image_by_id(queries[query_id].query_id);
-        delete queries[query_id];
-        delete workers[query_id];
+    function remove_result(id) {
+        if (queries[id] != undefined)
+            map.remove_image_by_id(queries[id].id);
+        delete queries[id];
+        delete workers[id];
         $("#static-map-img").attr("src", '{{ area.detail_imagery }}');
         loadResultsPanel();
         loadOutputPanel();
     }
 
     //uses the mapping scripts to hide or show results on the map. val is optional
-    function toggle_visibility(query_id, val) {
-        //if(selected_result == queries[query_id].query_id)
-        //map.toggle_outline_by_id(queries[query_id].query_id, false);
-        //map.toggle_outline_by_id(queries[query_id].query_id);
-        map.toggle_visibility_by_id(queries[query_id].query_id, val);
+    function toggle_visibility(id, val) {
+        //if(selected_result == queries[id].id)
+        //map.toggle_outline_by_id(queries[id].id, false);
+        //map.toggle_outline_by_id(queries[id].id);
+        map.toggle_visibility_by_id(queries[id].id, val);
     }
     //End require
 
@@ -345,31 +345,31 @@
             case "START":
                 //this safegaurds against the submission of multiple identical queries, as their ids must be unique
                 //for use in the cesium stuff.
-                if (queries[data.query.query_id] != undefined) {
+                if (queries[data.query.id] != undefined) {
                     event.target.terminate();
                     return;
                 }
-                queries[data.query.query_id] = data.query;
-                workers[data.query.query_id] = event.target;
-                add_task_bar(data.query.query_id, data.query.title);
+                queries[data.query.id] = data.query;
+                workers[data.query.id] = event.target;
+                add_task_bar(data.query.id, data.query.title);
                 break;
             case "RESULT":
-                queries[data.query.query_id] = data.query;
-                remove_task_bar(data.query.query_id);
-                add_result_to_map(data.query.query_id, data.query.result_path);
+                queries[data.query.id] = data.query;
+                remove_task_bar(data.query.id);
+                add_result_to_map(data.query.id, data.query.result_path);
                 loadHistoryPanel();
                 loadResultsPanel();
                 loadOutputPanel();
                 break;
             case "UPDATE":
-                update_progress_bar(data.query_id, data.value);
+                update_progress_bar(data.id, data.value);
                 break;
             case "ERROR":
             default:
-                if (queries[data.query_id] != undefined) {
-                    remove_task_bar(data.query_id);
+                if (queries[data.id] != undefined) {
+                    remove_task_bar(data.id);
                 }
-                remove_result(data.query_id);
+                remove_result(data.id);
                 alert(data.error_msg);
         }
     }

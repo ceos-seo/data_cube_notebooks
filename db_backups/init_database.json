@@ -700,7 +700,7 @@
     "fields": {
         "satellite_id": "LANDSAT_8",
         "result_id": "true_color",
-        "result_type": "True color",
+        "result_name": "True color",
         "red": "red",
         "green": "green",
         "blue": "blue",
@@ -712,7 +712,7 @@
     "fields": {
         "satellite_id": "LANDSAT_8",
         "result_id": "nir_swir_swir",
-        "result_type": "NIR, SWIR1, SWIR2",
+        "result_name": "NIR, SWIR1, SWIR2",
         "red": "nir",
         "green": "swir1",
         "blue": "swir2",
@@ -724,7 +724,7 @@
     "fields": {
         "satellite_id": "LANDSAT_8",
         "result_id": "nir_swir_red",
-        "result_type": "NIR, SWIR1, RED",
+        "result_name": "NIR, SWIR1, RED",
         "red": "nir",
         "green": "swir1",
         "blue": "red",
@@ -736,7 +736,7 @@
     "fields": {
         "satellite_id": "LANDSAT_8",
         "result_id": "swir_nir_red",
-        "result_type": "SWIR1, NIR, RED",
+        "result_name": "SWIR1, NIR, RED",
         "red": "swir1",
         "green": "nir",
         "blue": "red",
@@ -748,7 +748,7 @@
     "fields": {
         "satellite_id": "LANDSAT_8",
         "result_id": "swir_nir_green",
-        "result_type": "SWIR2, NIR, GREEN",
+        "result_name": "SWIR2, NIR, GREEN",
         "red": "swir2",
         "green": "nir",
         "blue": "green",
@@ -760,7 +760,7 @@
     "fields": {
         "satellite_id": "LANDSAT_8",
         "result_id": "swir_nir_blue",
-        "result_type": "SWIR1, NIR, BLUE",
+        "result_name": "SWIR1, NIR, BLUE",
         "red": "swir1",
         "green": "nir",
         "blue": "blue",
@@ -772,7 +772,7 @@
     "fields": {
         "satellite_id": "LANDSAT_8",
         "result_id": "nir_red_green",
-        "result_type": "NIR, RED, GREEN",
+        "result_name": "NIR, RED, GREEN",
         "red": "nir",
         "green": "red",
         "blue": "green",
@@ -784,7 +784,7 @@
     "fields": {
         "satellite_id": "LANDSAT_7",
         "result_id": "true_color",
-        "result_type": "True color",
+        "result_name": "True color",
         "red": "red",
         "green": "green",
         "blue": "blue",
@@ -796,7 +796,7 @@
     "fields": {
         "satellite_id": "LANDSAT_7",
         "result_id": "nir_swir_swir",
-        "result_type": "NIR, SWIR1, SWIR2",
+        "result_name": "NIR, SWIR1, SWIR2",
         "red": "nir",
         "green": "swir1",
         "blue": "swir2",
@@ -808,7 +808,7 @@
     "fields": {
         "satellite_id": "LANDSAT_7",
         "result_id": "nir_swir_red",
-        "result_type": "NIR, SWIR1, RED",
+        "result_name": "NIR, SWIR1, RED",
         "red": "nir",
         "green": "swir1",
         "blue": "red",
@@ -820,7 +820,7 @@
     "fields": {
         "satellite_id": "LANDSAT_7",
         "result_id": "swir_nir_red",
-        "result_type": "SWIR1, NIR, RED",
+        "result_name": "SWIR1, NIR, RED",
         "red": "swir1",
         "green": "nir",
         "blue": "red",
@@ -832,7 +832,7 @@
     "fields": {
         "satellite_id": "LANDSAT_7",
         "result_id": "swir_nir_green",
-        "result_type": "SWIR2, NIR, GREEN",
+        "result_name": "SWIR2, NIR, GREEN",
         "red": "swir2",
         "green": "nir",
         "blue": "green",
@@ -844,7 +844,7 @@
     "fields": {
         "satellite_id": "LANDSAT_7",
         "result_id": "swir_nir_blue",
-        "result_type": "SWIR1, NIR, BLUE",
+        "result_name": "SWIR1, NIR, BLUE",
         "red": "swir1",
         "green": "nir",
         "blue": "blue",
@@ -856,7 +856,7 @@
     "fields": {
         "satellite_id": "LANDSAT_7",
         "result_id": "nir_red_green",
-        "result_type": "NIR, RED, GREEN",
+        "result_name": "NIR, RED, GREEN",
         "red": "nir",
         "green": "red",
         "blue": "green",
@@ -868,7 +868,7 @@
     "fields": {
         "satellite_id": "LANDSAT_5",
         "result_id": "true_color",
-        "result_type": "True Color",
+        "result_name": "True Color",
         "red": "red",
         "green": "green",
         "blue": "blue",
@@ -880,7 +880,7 @@
     "fields": {
         "satellite_id": "LANDSAT_5",
         "result_id": "nir_swir_swir",
-        "result_type": "NIR, SWIR1, SWIR2",
+        "result_name": "NIR, SWIR1, SWIR2",
         "red": "nir",
         "green": "swir1",
         "blue": "swir2",
@@ -892,7 +892,7 @@
     "fields": {
         "satellite_id": "LANDSAT_5",
         "result_id": "nir_swir_red",
-        "result_type": "NIR, SWIR1, RED",
+        "result_name": "NIR, SWIR1, RED",
         "red": "nir",
         "green": "swir1",
         "blue": "red",
@@ -904,7 +904,7 @@
     "fields": {
         "satellite_id": "LANDSAT_5",
         "result_id": "swir_nir_red",
-        "result_type": "SWIR1, NIR, RED",
+        "result_name": "SWIR1, NIR, RED",
         "red": "swir1",
         "green": "nir",
         "blue": "red",
@@ -916,7 +916,7 @@
     "fields": {
         "satellite_id": "LANDSAT_5",
         "result_id": "swir_nir_green",
-        "result_type": "SWIR2, NIR, GREEN",
+        "result_name": "SWIR2, NIR, GREEN",
         "red": "swir2",
         "green": "nir",
         "blue": "green",
@@ -928,7 +928,7 @@
     "fields": {
         "satellite_id": "LANDSAT_5",
         "result_id": "swir_nir_blue",
-        "result_type": "SWIR1, NIR, BLUE",
+        "result_name": "SWIR1, NIR, BLUE",
         "red": "swir1",
         "green": "nir",
         "blue": "blue",
@@ -940,7 +940,7 @@
     "fields": {
         "satellite_id": "LANDSAT_5",
         "result_id": "nir_red_green",
-        "result_type": "NIR, RED, GREEN",
+        "result_name": "NIR, RED, GREEN",
         "red": "nir",
         "green": "red",
         "blue": "green",
@@ -952,7 +952,7 @@
     "fields": {
         "satellite_id": "LANDSAT_ALL",
         "result_id": "true_color",
-        "result_type": "True color",
+        "result_name": "True color",
         "red": "red",
         "green": "green",
         "blue": "blue",
@@ -964,7 +964,7 @@
     "fields": {
         "satellite_id": "LANDSAT_ALL",
         "result_id": "nir_swir_swir",
-        "result_type": "NIR, SWIR1, SWIR2",
+        "result_name": "NIR, SWIR1, SWIR2",
         "red": "nir",
         "green": "swir1",
         "blue": "swir2",
@@ -976,7 +976,7 @@
     "fields": {
         "satellite_id": "LANDSAT_ALL",
         "result_id": "nir_swir_red",
-        "result_type": "NIR, SWIR1, RED",
+        "result_name": "NIR, SWIR1, RED",
         "red": "nir",
         "green": "swir1",
         "blue": "red",
@@ -988,7 +988,7 @@
     "fields": {
         "satellite_id": "LANDSAT_ALL",
         "result_id": "swir_nir_red",
-        "result_type": "SWIR1, NIR, RED",
+        "result_name": "SWIR1, NIR, RED",
         "red": "swir1",
         "green": "nir",
         "blue": "red",
@@ -1000,7 +1000,7 @@
     "fields": {
         "satellite_id": "LANDSAT_ALL",
         "result_id": "swir_nir_green",
-        "result_type": "SWIR2, NIR, GREEN",
+        "result_name": "SWIR2, NIR, GREEN",
         "red": "swir2",
         "green": "nir",
         "blue": "green",
@@ -1012,7 +1012,7 @@
     "fields": {
         "satellite_id": "LANDSAT_ALL",
         "result_id": "swir_nir_blue",
-        "result_type": "SWIR1, NIR, BLUE",
+        "result_name": "SWIR1, NIR, BLUE",
         "red": "swir1",
         "green": "nir",
         "blue": "blue",
@@ -1024,7 +1024,7 @@
     "fields": {
         "satellite_id": "LANDSAT_ALL",
         "result_id": "nir_red_green",
-        "result_type": "NIR, RED, GREEN",
+        "result_name": "NIR, RED, GREEN",
         "red": "nir",
         "green": "red",
         "blue": "green",
@@ -1036,7 +1036,7 @@
     "fields": {
         "satellite_id": "SENTINEL_1A",
         "result_id": "vv_vh_ratio",
-        "result_type": "VV,VH,VV/VH",
+        "result_name": "VV,VH,VV/VH",
         "red": "vv",
         "green": "vh",
         "blue": "vv/vh",

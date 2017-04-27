@@ -24,7 +24,7 @@ under the License.
      Creation date: 2016-06-23
      Modified by:
      Last modified date: -->
-<!-- Requires other implementation of set_selected_result(query_id), remove_result(query_id), toggle_visibility, sanitize_id-->
+<!-- Requires other implementation of set_selected_result(id), remove_result(id), toggle_visibility, sanitize_id-->
 
 {% block css %}
 {% endblock %}
@@ -34,7 +34,7 @@ under the License.
     <div class="panel panel-default">
       <div class="panel-heading">
         <h4 class="panel-title">
-          <a data-toggle="collapse" data-parent="#task_list" href="#completed_{{ forloop.counter0 }}" onmousedown="resultClicked('{{ query.query_id }}')">
+          <a data-toggle="collapse" data-parent="#task_list" href="#completed_{{ forloop.counter0 }}" onmousedown="resultClicked('{{ query.id }}')">
           {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y H:i" }}</a>
         </h4>
       </div>
@@ -43,9 +43,9 @@ under the License.
           {% block query_table_rows %}
 
           {% endblock %}
-          <!--button id="load{{forloop.counter0}}" class="btn btn-default pull-right" type="button" onclick="add_result_from_history('{{ query.query_id }}', '{{ query.title }}');">Load this result</button-->
-          <button class="btn btn-default pull-right" type="button" onclick="remove_result('{{ query.query_id }}');">Delete</button>
-          <button class="btn btn-default pull-right" type="button" onclick="toggle_visibility('{{ query.query_id }}');">Show/Hide</button>
+          <!--button id="load{{forloop.counter0}}" class="btn btn-default pull-right" type="button" onclick="add_result_from_history('{{ query.id }}', '{{ query.title }}');">Load this result</button-->
+          <button class="btn btn-default pull-right" type="button" onclick="remove_result('{{ query.id }}');">Delete</button>
+          <button class="btn btn-default pull-right" type="button" onclick="toggle_visibility('{{ query.id }}');">Show/Hide</button>
         </div>
       </div>
     </div>
@@ -77,26 +77,26 @@ under the License.
 
   $(".tooltipped").tooltip();
 
-  function resultClicked(query_id) {
+  function resultClicked(id) {
       //$("#task_list .selectTask").removeClass('sel_high');
-      //$("#result_" + query_id).addClass('sel_high');
-      set_selected_result(query_id);
+      //$("#result_" + id).addClass('sel_high');
+      set_selected_result(id);
       $('.scenes_list').hide();
       $('.scene_meta').hide();
-      $('#' + sanitize_id('scenes_' + query_id)).show();
-      $('#' + sanitize_id('meta_' + query_id)).show();
+      $('#' + sanitize_id('scenes_' + id)).show();
+      $('#' + sanitize_id('meta_' + id)).show();
   }
 
-  function load_scene_from_query(query_id, date) {
+  function load_scene_from_query(id, date) {
     //hide the current query, add the new single scene query.
-    toggle_visibility(query_id, false);
+    toggle_visibility(id, false);
     if (typeof(Worker) !== undefined) {
         var w = new Worker("/static/assets/js/dcw.js");
         w.postMessage({
             'tool_name': window.tool_name,
             'msg' : "SINGLE",
             'result_type': "Single Scene Query",
-            'query_id': query_id,
+            'id': id,
             'date': date,
             'csrf': csrftoken
         });
@@ -105,6 +105,6 @@ under the License.
     } else {
         alert("This browser does not support webworkers.");
     }
-    //console.log(query_id, date);
+    //console.log(id, date);
   }
 </script>

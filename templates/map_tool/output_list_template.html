@@ -32,7 +32,7 @@ under the License.
     <div class="panel panel-default">
       <div class="panel-heading">
         <h4 class="panel-title">
-          <a data-toggle="collapse" data-parent="#output_list" href="#output_{{ forloop.counter0 }}" onmousedown="outputClicked('{{ query.query_id }}')">
+          <a data-toggle="collapse" data-parent="#output_list" href="#output_{{ forloop.counter0 }}" onmousedown="outputClicked('{{ query.id }}')">
           {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y H:i" }}</a>
         </h4>
       </div>
@@ -82,13 +82,13 @@ under the License.
 
   var selected_output = "";
   $("#output_list_download_button").hide();
-  function outputClicked(query_id) {
+  function outputClicked(id) {
       $("#output_list_download_button").show();
       //$("#output_list .selectTask").removeClass('sel_high');
-      //$("#output_" + query_id).addClass('sel_high')
-      selected_output = query_id;
+      //$("#output_" + id).addClass('sel_high')
+      selected_output = id;
       set_dl_url();
-      set_selected_result(query_id);
+      set_selected_result(id);
   }
 
   function set_dl_url() {

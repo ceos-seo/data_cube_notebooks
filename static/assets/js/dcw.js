@@ -1,8 +1,3 @@
-/* Author: AHDS
-   Creation date: 2016-06-23
-   Modified by:
-   Last modified date:
-*/
 /*
 Copyright 2016 United States Government as represented by the Administrator
 of the National Aeronautics and Space Administration. All Rights Reserved.
@@ -34,63 +29,41 @@ var query_obj = {};
 
 // only messages being posted are to start tasks. Tasks are either new or from history.
 self.addEventListener("message", function(e) {
-	tool_name = e.data.tool_name;
-	if(e.data.msg == "NEW") {
-		getNewResult(e);
-	} else if(e.data.msg == "HISTORY") {
-		getResultFromHistory(e);
-	} else if(e.data.msg == "SINGLE") {
-		getSingleResult(e);
-	}
+    tool_name = e.data.tool_name;
+		switch(e.data.msg) {
+			case "NEW":
+				getNewResult(e);
+			break;
+			case "HISTORY":
+				getResultFromHistory(e);
+			break;
+			case "SINGLE":
+				getSingleResult(e);
+			break;
+			default:
+				close();
+			break;
+		}
 }, false);
 
-//used to load a single scene from a query.
-function getSingleResult(e) {
-	csrftoken = e.data.csrf;
-
-	var request = new XMLHttpRequest();
-	request.open("POST", '/' + tool_name + '/submit_single', false);
-	//request.timeout = 100;
-	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	request.setRequestHeader("X-CSRFToken", csrftoken);
-	request.send('query_id=' + e.data.query_id + '&date=' + e.data.date);
-
-	if (request.status != 200) {
-			error("There was a problem submitting your task, please check your connection.");
-			return;
-	} else {
-			var response = JSON.parse(request.response);
-			if(response.msg == "ERROR") {
-				error("There was a problem submitting your task, please try again.");
-				return;
-			}
-			query_obj['query_id'] = response.query_id;
-			query_obj['title'] = response.title;
-			postMessage({
-					'msg': "START",
-					'query': query_obj
-			});
-			setTimeout(checkQuery, 3000);
-	}
-}
 
 //Used to load a result using the query history box.
 function getResultFromHistory(e) {
-	query_obj['query_id'] = e.data.query_id;
-	query_obj['title'] = e.data.title;
-	csrftoken = e.data.csrf;
-	postMessage({
-			'msg': "START",
-			'query': query_obj
-	});
-	checkQuery();
+    query_obj['id'] = e.data.id;
+    query_obj['title'] = e.data.title;
+    csrftoken = e.data.csrf;
+    postMessage({
+        'msg': "START",
+        'query': query_obj
+    });
+    checkQuery();
 }
 
 //uses form data to generate a new query.
 function getNewResult(e) {
-	query_obj['query_data'] = e.data.form_data;
-	csrftoken = e.data.csrf;
-	addNewQuery();
+    query_obj['query_data'] = e.data.form_data;
+    csrftoken = e.data.csrf;
+    addNewQuery();
 }
 
 //starts the query and sets the checkquery interval timer. Posts info used
@@ -98,25 +71,54 @@ function getNewResult(e) {
 function addNewQuery() {
     var request = new XMLHttpRequest();
     request.open("POST", '/' + tool_name + '/submit', false);
+    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    request.setRequestHeader("X-CSRFToken", csrftoken);
+    request.send(query_obj['query_data']);
+    query_obj['id'] = -1;
+    if (request.status != 200) {
+        error("There was a problem submitting your task, please check your connection.");
+        return;
+    } else {
+        var response = JSON.parse(request.response);
+        if (response.msg == "ERROR") {
+            error("There was a problem submitting your task, please try again.");
+            return;
+        }
+        query_obj['id'] = response.id;
+        query_obj['title'] = response.title;
+        postMessage({
+            'msg': "START",
+            'query': query_obj
+        });
+        setTimeout(checkQuery, 3000);
+    }
+}
+
+//used to load a single scene from a query.
+function getSingleResult(e) {
+    csrftoken = e.data.csrf;
+
+    var request = new XMLHttpRequest();
+    request.open("POST", '/' + tool_name + '/submit_single', false);
     //request.timeout = 100;
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);
-    request.send('query_id=' + query_obj['query_data']);
-		query_obj['query_id'] = -1;
+    request.send('id=' + e.data.id + '&date=' + e.data.date);
+
     if (request.status != 200) {
         error("There was a problem submitting your task, please check your connection.");
-				return;
+        return;
     } else {
         var response = JSON.parse(request.response);
-				if(response.msg == "ERROR") {
-					error("There was a problem submitting your task, please try again.");
-					return;
-				}
-        query_obj['query_id'] = response.query_id;
-				query_obj['title'] = response.title;
-				postMessage({
+        if (response.msg == "ERROR") {
+            error("There was a problem submitting your task, please try again.");
+            return;
+        }
+        query_obj['id'] = response.id;
+        query_obj['title'] = response.title;
+        postMessage({
             'msg': "START",
-						'query': query_obj
+            'query': query_obj
         });
         setTimeout(checkQuery, 3000);
     }
@@ -126,38 +128,36 @@ function addNewQuery() {
 // When waiting for a result, post messsages with progress updates.
 function checkQuery() {
     var request = new XMLHttpRequest();
-    request.open("GET", '/' + tool_name + '/result', false);
-    //request.timeout = 100;
+		var parameters = "?id=" + query_obj['id']
+    request.open("GET", '/' + tool_name + '/result' + parameters, false);
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);
-    request.send("query_id=" + query_obj['query_id']);
+    request.send();
     if (request.status != 200) {
-				error("There was a problem submitting your task, please check your connection.");
-				return;
+        error("There was a problem submitting your task, please check your connection.");
+        return;
     } else {
         var response = JSON.parse(request.response);
-				if(response.msg == "ERROR") {
-					if(response.error_msg)
-						error(response.error_msg);
-					else
-						error("There was a problem with your task, please try again.");
-						return;
-				}
+        if (response.msg == "ERROR") {
+            if (response.error_msg)
+                error(response.error_msg);
+            else
+                error("There was a problem with your task, please try again.");
+            return;
+        }
         if (response.msg == "WAIT") {
-						if(response.result) {
-							if(!isNaN(response.result.total_scenes) && !isNaN(response.result.scenes_processed)) {
-								postMessage({
-						        'msg': "UPDATE",
-						        'query_id': query_obj['query_id'],
-										'value': (response.result.scenes_processed / response.result.total_scenes)*100,
-						    });
-							}
-						}
+            if (response.progress) {
+                postMessage({
+                    'msg': "UPDATE",
+                    'id': query_obj['id'],
+                    'value': response.progress,
+                });
+            }
             setTimeout(checkQuery, 3000);
         } else {
-						//just pass in all the attributes from the result obj.
-						for(var attr in response)
-							query_obj[attr] = response[attr];
+            //just pass in all the attributes from the result obj.
+            for (var attr in response)
+                query_obj[attr] = response[attr];
             postResult();
         }
     }
@@ -169,14 +169,14 @@ function postResult() {
         'msg': "RESULT",
         'query': query_obj
     });
-		close();
+    close();
 }
 
 function error(msg) {
-	postMessage({
-			'msg': "ERROR",
-			'query_id': query_obj['query_id'],
-			'error_msg': msg
-	});
-	close();
+    postMessage({
+        'msg': "ERROR",
+        'id': query_obj['id'],
+        'error_msg': msg
+    });
+    close();
 }

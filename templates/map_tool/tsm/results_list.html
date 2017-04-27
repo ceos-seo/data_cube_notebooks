@@ -50,24 +50,24 @@ under the License.
     </tr>
     <tr>
       <td>Show Average TSM:</td>
-      <td class="right_aligned_text"><input type="checkbox" checked='true' name="show_average_tsm" onclick="show_result(this, '{{ query.query_id }}', 0)"></td>
+      <td class="right_aligned_text"><input type="checkbox" checked='true' name="show_average_tsm" onclick="show_result(this, '{{ query.id }}', 0)"></td>
     </tr>
     <tr>
       <td>Show Clear Observations:</td>
-      <td class="right_aligned_text"><input type="checkbox" name="show_clear_observations" onclick="show_result(this, '{{ query.query_id }}', 1)"></td>
+      <td class="right_aligned_text"><input type="checkbox" name="show_clear_observations" onclick="show_result(this, '{{ query.id }}', 1)"></td>
     </tr>
   </tbody>
 </table>
 {% endblock %}
 {% block metadata_dl_block %}
-  <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ metadata_entry.query_id }}">
+  <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ metadata_entry.id }}">
     {% for acquisition, pixels, pixel_percentage in metadata_entry.acquisitions_dates_with_pixels_percentages %}
       <li>
         <table class="table scene_list_table">
           <tbody>
             <thead>
               <th>{{ acquisition }}</th>
-              <th class="right_aligned_text"><button class="tooltipped" title="Load this single scene. This will hide the current result." onclick="load_scene_from_query('{{ metadata_entry.query_id }}', '{{ acquisition }}')" style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Load this scene</button></th>
+              <th class="right_aligned_text"><button class="tooltipped" title="Load this single scene. This will hide the current result." onclick="load_scene_from_query('{{ metadata_entry.id }}', '{{ acquisition }}')" style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Load this scene</button></th>
             </thead>
             <tr>
               <td>Clean pixels:</td>
@@ -88,7 +88,7 @@ under the License.
   </ul>
 {% endblock %}
 {% block meta_table_rows %}
-<table id="meta_{{ metadata_entry.query_id }}" class="table table-striped table-bordered scene_meta">
+<table id="meta_{{ metadata_entry.id }}" class="table table-striped table-bordered scene_meta">
   <tbody>
     <tr>
       <td>Scene Count:</td>
@@ -104,20 +104,20 @@ under the License.
 {% block functions_block %}
 //toggles the nodata highlighting based on a checkbox.
 //outline is shown as visible
-function show_result(checkbox, query_id, id) {
-  map.remove_image_by_id(queries[query_id].query_id);
+function show_result(checkbox, id, id) {
+  map.remove_image_by_id(queries[id].id);
   switch(id) {
     case 0:
-      result_path = queries[query_id].result_path;
+      result_path = queries[id].result_path;
     break;
     case 1:
     default:
-      result_path = queries[query_id].clear_observations_path;
+      result_path = queries[id].clear_observations_path;
     break;
   }
   $('input:checkbox').removeAttr('checked');
   checkbox.checked = true;
-  add_result_to_map(query_id, result_path);
-  map.toggle_outline_by_id(query_id, true);
+  add_result_to_map(id, result_path);
+  map.toggle_outline_by_id(id, true);
 }
 {% endblock %}

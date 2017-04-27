@@ -37,7 +37,7 @@ from .tasks import create_cloudfree_mosaic
 
 from collections import OrderedDict
 
-from apps.dc_algorithm.views import ToolView, SubmitNewRequest, GetTaskResult
+from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, GetTaskResult, SubmitNewSubsetRequest, CancelRequest)
 
 
 class CustomMosaicTool(ToolView):
@@ -46,7 +46,7 @@ class CustomMosaicTool(ToolView):
     Extends the ToolView abstract class - required attributes are the tool_name and the
     generate_form_dict function.
 
-    See the dc_algorithm.ToolView docstring for more details.
+    See the dc_algorithm.views docstring for more details.
     """
 
     tool_name = 'custom_mosaic_tool'
@@ -72,6 +72,8 @@ class SubmitNewRequest(SubmitNewRequest):
 
     Note:
         celery_task_func should be callable with .delay() and take a single argument of a TaskModel pk.
+
+    See the dc_algorithm.views docstrings for more information.
     """
     tool_name = 'custom_mosaic_tool'
     task_model_name = 'CustomMosaicTask'
@@ -79,76 +81,47 @@ class SubmitNewRequest(SubmitNewRequest):
 
 
 class GetTaskResult(GetTaskResult):
+    """
+    Get task result REST API endpoint
+    Extends the GetTaskResult abstract class, required attributes are the tool_name
+    and task_model_name
+
+    See the dc_algorithm.views docstrings for more information.
+    """
     tool_name = 'custom_mosaic_tool'
     task_model_name = 'CustomMosaicTask'
 
 
-@login_required
-def submit_new_single_request(request):
+class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
     """
-    Submit a new requset for a single scene from an existing query. Clones the existing query and
-    updates the date fields for a single day.
+    Submit new subset request REST API endpoint
+    Extends the SubmitNewSubsetRequest abstract class, required attributes are
+    the tool_name, task_model_name, celery_task_func, and task_model_update_func.
 
-    **Context**
-
-    **Template**
+    See the dc_algorithm.views docstrings for more information.
     """
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicTask'
+    celery_task_func = create_cloudfree_mosaic
 
-    user_id = 0
-    if request.user.is_authenticated():
-        user_id = request.user.username
-    if request.method == 'POST':
-        response = {}
-        response['msg'] = "OK"
-        try:
-            #Get the query that this is a derivation of, clone it by setting pk to none.
-            query = Query.objects.filter(query_id=request.POST['query_id'], user_id=user_id)[0]
-            query.pk = None
-            query.time_start = datetime.strptime(request.POST['date'], '%m/%d/%Y')
-            query.time_end = query.time_start + timedelta(days=1)
-            query.complete = False
-            query.title = "Single acquisition for " + request.POST['date']
-            query.query_id = query.generate_query_id()
-            query.save()
-            create_cloudfree_mosaic.delay(query.query_id, user_id, single=True)
-            response.update(model_to_dict(query))
-        except:
-            raise
-            response['msg'] = "ERROR"
-        return JsonResponse(response)
-    else:
-        return JsonResponse({'msg': "ERROR"})
+    def task_model_update_func(task_model, **kwargs):
+        """
+        Basic funct that updates a task model with kwargs. In this case only the date
+        needs to be changed, and results reset.
+        """
+        task_model.time_start = datetime.strptime(kwargs.get('date'), '%m/%d/%Y')
+        task_model.time_end = query.time_start + timedelta(days=1)
+        task_model.complete = False
+        task_model.scenes_processed = 0
+        task_model.total_scenes = 0
+        task_model.title = "Single acquisition for " + request.POST['date']
+        return task_model
 
 
-@login_required
-def cancel_request(request):
-    """
-    Cancel a running task by id. Post data includes a query id to be cancelled. The result model is
-    obtained, and if it is still running then the job is cancelled. If it is too late, then the job
-    will proceed until completion.
-
-    **Context**
-
-    **Template**
-    """
-
-    user_id = 0
-    if request.user.is_authenticated():
-        user_id = request.user.username
-    if request.method == 'POST':
-        response = {}
-        response['msg'] = "OK"
-        try:
-            query = Query.objects.get(query_id=request.POST['query_id'], user_id=user_id)
-            result = Result.objects.get(query_id=request.POST['query_id'])
-            if result.status == "WAIT" and query.complete == False:
-                result.status = "CANCEL"
-                result.save()
-        except:
-            response['msg'] = "ERROR"
-        return JsonResponse(response)
-    else:
-        return JsonResponse({'msg': "ERROR"})
+class CancelRequest(CancelRequest):
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicTask'
+    pass
 
 
 @login_required

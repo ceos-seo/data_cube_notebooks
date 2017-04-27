@@ -23,6 +23,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 import datetime
+import uuid
 
 
 class Satellite(models.Model):
@@ -232,6 +233,8 @@ class Query(models.Model):
 
     """
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
+
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=10000)
 
@@ -313,11 +316,12 @@ class Query(models.Model):
             query = cls(**query_data)
 
             try:
-                query.save()
-                return query, True
-            except ValidationError:
                 query = cls.objects.get(**query_data)
                 return query, False
+            except cls.DoesNotExist:
+                query = cls(**query_data)
+                query.save()
+                return query, True
         """
         raise NotImplementedError(
             "You must define the classmethod 'get_or_create_query_from_post' in the inheriting class.")
@@ -345,6 +349,9 @@ class Metadata(models.Model):
                     pass
 
     """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
+
     #meta attributes
     scene_count = models.IntegerField(default=0)
     pixel_count = models.IntegerField(default=0)
@@ -416,8 +423,11 @@ class Result(models.Model):
 
     """
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
+
     #either OK or ERROR or WAIT
     status = models.CharField(max_length=100, default="")
+    message = models.CharField(max_length=100, default="")
 
     scenes_processed = models.IntegerField(default=0)
     total_scenes = models.IntegerField(default=0)
@@ -426,6 +436,23 @@ class Result(models.Model):
 
     class Meta:
         abstract = True
+
+    def get_progress(self):
+        """Quantify the progress of a result's processing in terms of its own attributes
+
+        Meant to return a representation of progress based on attributes set in a task.
+        Should be overwritten in the task if scenes processed and total scenes aren't
+        a useful representation
+
+        Returns:
+            An integer between 0 and 100
+
+        """
+        total_scenes = self.total_scenes if self.total_scenes > 0 else 1
+        percent_complete = self.scenes_processed / total_scenes
+        rounded_int = round(percent_complete * 100)
+        clamped_int = max(0, min(rounded_int, 100))
+        return
 
 
 class GenericTask(Query, Metadata, Result):
@@ -488,7 +515,7 @@ class UserHistory(models.Model):
     """
 
     user_id = models.IntegerField()
-    task_id = models.IntegerField()
+    task_id = models.UUIDField()
 
     class Meta:
         abstract = True

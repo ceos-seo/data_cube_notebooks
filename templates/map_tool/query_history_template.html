@@ -39,7 +39,7 @@ under the License.
         {% block table_rows %}
 
         {% endblock %}
-        <button id="load{{forloop.counter0}}" class="btn btn-default pull-right" type="button" onclick="add_result_from_history('{{ query.query_id }}', '{{ query.title }}');">Load this result</button>
+        <button id="load{{forloop.counter0}}" class="btn btn-default pull-right" type="button" onclick="add_result_from_history('{{ query.id }}', '{{ query.title }}');">Load this result</button>
       </div>
     </div>
   </div>
@@ -53,14 +53,14 @@ under the License.
       heightStyle: "content"
     });*/
 
-  function add_result_from_history(query_id, query_type) {
+  function add_result_from_history(id, query_type) {
     if (typeof(Worker) !== undefined) {
         var w = new Worker("/static/assets/js/dcw.js");
         w.postMessage({
             'tool_name': window.tool_name,
             'msg' : "HISTORY",
             'title': "Task from history",
-            'query_id': query_id,
+            'id': id,
             'csrf': csrftoken
         });
         w.addEventListener("message", query_event_listener);

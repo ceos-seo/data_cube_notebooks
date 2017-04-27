@@ -92,14 +92,14 @@ class Query(BaseQuery):
 
         valid_query_fields = [field.name for field in cls._meta.get_fields()]
         query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
-        query = cls(**query_data)
 
         try:
-            query.save()
-            return query, True
-        except ValidationError:
             query = cls.objects.get(**query_data)
             return query, False
+        except cls.DoesNotExist:
+            query = cls(**query_data)
+            query.save()
+            return query, True
 
 
 class Metadata(BaseMetadata):
@@ -127,6 +127,13 @@ class Result(BaseResult):
 
     class Meta(BaseResult.Meta):
         abstract = True
+
+    def get_progress(self):
+        """
+        Super of base class - replace if total scenes and scenes processed
+        won't give true progress.
+        """
+        super().get_progress()
 
 
 class CustomMosaicTask(Query, Metadata, Result):
