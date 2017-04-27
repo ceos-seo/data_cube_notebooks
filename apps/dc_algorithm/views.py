@@ -65,12 +65,16 @@ class ToolClass:
         return self.tool_name
 
     def _get_task_model_name(self):
-        """Gets the task model name and raises an error if the name is not defined.
+        """Get the task_model_name property
 
-        Checks if task_model_name property is None, otherwise return the model name.
-        The task_model_name must be a string that can be used to identify your main task
-        model. e.g. if your task model is CaTask, you can set task_model_name to
-        'catask', 'CaTask', etc.
+        The task model name must be usable for querying for a model with apps.get_model.
+        Meant to implement a general NotImplementedError for required properties
+
+        Raises:
+            NotImplementedError in the case of task_model_name not being defined
+
+        Returns:
+            The value of task_model_name.
 
         """
         if self.task_model_name is None:
@@ -136,7 +140,7 @@ class ToolView(View, ToolClass):
             A rendered HTML response based on the map_tool.html template with the context.
         """
 
-        user_id = request.user.username
+        user_id = request.user.id
         tool_name = self._get_tool_name()
         area = Area.objects.get(area_id=area_id)
         app = Application.objects.get(application_id=tool_name)
@@ -144,14 +148,16 @@ class ToolView(View, ToolClass):
 
         forms = self.generate_form_dict(satellites)
 
-        #running_queries = self._get_tool_model(self._get_task_model_name()).objects.filter(
-        #    user_id=user_id, area_id=area_id, complete=False)
+        task_model_class = self._get_tool_model(self._get_task_model_name())
+        user_history = self._get_tool_model('userhistory').objects.filter(user_id=user_id)
+
+        running_queries = task_model_class.get_queryset_from_history(user_history, complete=False)
 
         context = {
             'tool_name': tool_name,
             'satellites': satellites,
             'forms': forms,
-            'running_queries': None,
+            'running_queries': running_queries,
             'area': area,
             'application': app,
         }
@@ -242,7 +248,7 @@ class SubmitNewRequest(View, ToolClass):
         response = {'msg': "OK"}
         try:
             task_model = self._get_tool_model(self._get_task_model_name())
-            task, new_task = task_model._get_or_create_query_from_post(self._post_data_to_dict(request.POST))
+            task, new_task = task_model.get_or_create_query_from_post(self.post_data_to_dict(request.POST))
             #associate task w/ history
             history_model, __ = self._get_tool_model('userhistory').objects.get_or_create(
                 user_id=user_id, task_id=task.pk)
@@ -268,7 +274,7 @@ class SubmitNewRequest(View, ToolClass):
             )
         return self.celery_task_func
 
-    def _post_data_to_dict(self, post):
+    def post_data_to_dict(self, post):
         """Convert a QueryDict object from POST data into usable Python Dicts
 
         POST data is returned in a QueryDict object that handles things like json

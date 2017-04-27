@@ -258,42 +258,69 @@ class Query(models.Model):
         unique_together = (('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
                             'longitude_max', 'longitude_min'))
 
-    def _is_cached(self, result_class):
-        return result_class.objects.filter(query_id=self.query_id).exists()
+    @classmethod
+    def get_queryset_from_history(cls, user_history, **kwargs):
+        """Get a QuerySet of Query objects using the a user history queryset
+
+        User history is defined in this class and must contain task_id and should be filtered already.
+        The list of task ids are generated and used in a filter function on Query. Kwargs are passed directly
+        in to the query filter function as kwargs.
+
+        Args:
+            user_history: Pre filtered UserHistory queryset - must contain attr task_id
+            **kwargs: Any valid queryset key word arguments - common uses include complete=False, etc.
+
+        Returns:
+            Queryset of queries that fit the criteria and belong to the user.
+
+        """
+        queryset_pks = [user_history_entry.task_id for user_history_entry in user_history]
+        return cls.objects.filter(pk__in=queryset_pks, **kwargs)
 
     @classmethod
-    def _fetch_query_object(cls, query_id, user_id):
-        try:
-            return cls.objects.get(query_id=query_id, user_id=user_id)
-        except:
-            return None
+    def get_or_create_query_from_post(cls, form_data):
+        """Get or create a query obj from post form data
 
-    @classmethod
-    def _get_or_create_query_from_post(cls, form_data):
+        Using a python dict formatted with post_data_to_dict, form a set of query parameters.
+        Any formatting of parameters should be done here - including strings to datetime.datetime,
+        list to strings, etc. The dict is then filtered for 'valid fields' by comparing it to
+        a list of fields on this model. The query is saved in a try catch - if there is a validation error
+        then the query exists and should be grabbed with 'get'.
 
-        query_data = form_data
-        query_data['time_start'] = datetime.datetime.strptime(form_data['time_start'], '%m/%d/%Y')
-        query_data['time_end'] = datetime.datetime.strptime(form_data['time_end'], '%m/%d/%Y')
+        Args:
+            form_data: python dict containing either a single obj or a list formatted with post_data_to_dict
 
-        query_data['product'] = Satellite.objects.get(
-            satellite_id=query_data['platform']).product_prefix + Area.objects.get(
-                area_id=query_data['area_id']).area_id
-        query_data['title'] = "Base Query" if 'title' not in form_data or form_data['title'] == '' else form_data[
-            'title']
-        query_data['description'] = "None" if 'description' not in form_data or form_data[
-            'description'] == '' else form_data['description']
+        Returns:
+            Tuple containing the query model and a boolean value signifying if it was created or loaded.
 
-        query = cls(query_data)
+        """
+        """
+        def get_or_create_query_from_post(cls, form_data):
+            query_data = form_data
+            query_data['time_start'] = datetime.datetime.strptime(form_data['time_start'], '%m/%d/%Y')
+            query_data['time_end'] = datetime.datetime.strptime(form_data['time_end'], '%m/%d/%Y')
 
-        try:
-            query.save()
-            return query, True
-        except ValidationError:
-            query = cls.objects.get(query_data)
-            return query, False
+            query_data['product'] = Satellite.objects.get(
+                satellite_id=query_data['platform']).product_prefix + Area.objects.get(
+                    area_id=query_data['area_id']).area_id
+            query_data['title'] = "Base Query" if 'title' not in form_data or form_data['title'] == '' else form_data[
+                'title']
+            query_data['description'] = "None" if 'description' not in form_data or form_data[
+                'description'] == '' else form_data['description']
 
+            valid_query_fields = [field.name for field in cls._meta.get_fields()]
+            query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
+            query = cls(**query_data)
+
+            try:
+                query.save()
+                return query, True
+            except ValidationError:
+                query = cls.objects.get(**query_data)
+                return query, False
+        """
         raise NotImplementedError(
-            "You must define the classmethod '_get_or_create_query_from_post' in the inheriting class.")
+            "You must define the classmethod 'get_or_create_query_from_post' in the inheriting class.")
 
 
 class Metadata(models.Model):
@@ -349,45 +376,21 @@ class Metadata(models.Model):
 
         return getattr(self, field_name).rstrip(',').split(',')
 
-    def acquisition_list_as_list(self):
-        """
-        Splits the list of acquisitions into a list.
+    def get_zipped_fields_as_list(self, fields):
+        """Creates a zipped iterable comprised of all the fields
+
+        Using _get_field_as_list converts the comma seperated fields in fields
+        and zips them to iterate. Used to display grouped metadata, generally by
+        acquisition date.
+
+        Args:
+            fields: iterable of comma seperated fields that should be grouped.
 
         Returns:
-            acquisition_list (list): List representation of the acquisitions from the database.
+            zipped iterable containing grouped fields generated using _get_field_as_list
         """
-        return self.acquisition_list.rstrip(',').split(',')
 
-    def clean_pixels_list_as_list(self):
-        """
-        Splits the list of clean pixels into a list.
-
-        Returns:
-            clean_pixels_per_acquisition (list): List representation of the acquisitions from the
-            database.
-        """
-        return self.clean_pixels_per_acquisition.rstrip(',').split(',')
-
-    def clean_pixels_percentages_as_list(self):
-        """
-        Splits the list of clean pixels with percentages into a list.
-
-        Returns:
-            clean_pixel_percentages_per_acquisition_list (list): List representation of the
-            acquisitions from the database.
-        """
-        return self.clean_pixel_percentages_per_acquisition.rstrip(',').split(',')
-
-    def acquisitions_dates_with_pixels_percentages(self):
-        """
-        Creates a zip file with a number of lists included as the content
-
-        Returns:
-            zip file: Zip file combining three different lists (acquisition_list_as_list(),
-            clean_pixels_list_as_list(), clean_pixels_percentages_as_list())
-        """
-        return zip(self.acquisition_list_as_list(),
-                   self.clean_pixels_list_as_list(), self.clean_pixels_percentages_as_list())
+        return zip(self._get_field_as_list(field) for field in fields)
 
 
 class Result(models.Model):

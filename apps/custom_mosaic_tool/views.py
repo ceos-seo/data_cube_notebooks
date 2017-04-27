@@ -48,7 +48,7 @@ class CustomMosaicTool(ToolView):
     Extends the ToolView abstract class - required attributes are the tool_name and the
     generate_form_dict function.
 
-    See the ToolView docstring for more details.
+    See the dc_algorithm.ToolView docstring for more details.
     """
 
     tool_name = 'custom_mosaic_tool'
@@ -67,6 +67,14 @@ class CustomMosaicTool(ToolView):
 
 
 class SubmitNewRequest(SubmitNewRequest):
+    """
+    Submit new request REST API Endpoint
+    Extends the SubmitNewRequest abstract class - required attributes are the tool_name,
+    task_model_name, and celery_task_func.
+
+    Note:
+        celery_task_func should be callable with .delay() and take a single argument of a TaskModel pk.
+    """
     tool_name = 'custom_mosaic_tool'
     task_model_name = 'CustomMosaicTask'
     celery_task_func = create_cloudfree_mosaic
