@@ -213,7 +213,7 @@ class SubmitNewRequest(View, ToolClass):
     then submitted for processing via celery.
 
     Abstract properties and methods are used to define the required attributes for an implementation.
-    Inheriting the toolview without defining the required abstracted elements will throw an error.
+    Inheriting SubmitNewRequest without defining the required abstracted elements will throw an error.
     Due to some complications with django and ABC, NotImplementedErrors are manually raised.
 
     Required Attributes:
@@ -289,3 +289,57 @@ class SubmitNewRequest(View, ToolClass):
         """
 
         return {k: v[0] if len(v) == 1 else v for k, v in post.lists()}
+
+
+class GetTaskResult(View, ToolClass):
+    """Check the status and fetch the results of a task submitted with Submit*Request
+
+    REST API Endpoint for checking the status of and returning the results of a task.
+    This is a GET only view, so only the get function is defined. A Task id is provided in the
+    request and used to check the status of a TaskModelClass, returning a dictionary of the model
+    if the status is complete.
+
+    Abstract properties and methods are used to define the required attributes for an implementation.
+    Inheriting GetTaskResult without defining the required abstracted elements will throw an error.
+    Due to some complications with django and ABC, NotImplementedErrors are manually raised.
+
+    Required Attributes:
+        tool_name: Descriptive string name for the tool - used to identify the tool in the database.
+        task_model_name: Name of the model that represents your task - see models.Task for more information
+
+    """
+
+    def get(self, request):
+        """
+        """
+        print(request.GET)
+
+
+"""def get_result(request):
+
+    response = {}
+    try:
+        result = Result.objects.get(query_id=request.POST['query_id'])
+    except Result.DoesNotExist:
+        result = None
+        response['msg'] = "WAIT"
+    except:
+        result = None
+        response['msg'] = "ERROR"
+    if result:
+        if result.status == "ERROR":
+            response['msg'] = "ERROR"
+            response['error_msg'] = result.result_path
+            # get rid of the offending results, queries, metadatas.
+            Query.objects.filter(query_id=result.query_id).delete()
+            Metadata.objects.filter(query_id=result.query_id).delete()
+            result.delete()
+        elif result.status == "OK":
+            response['msg'] = "OK"
+            response.update(model_to_dict(result))
+            # since there is a result, update all the currently running identical queries with complete=true;
+            Query.objects.filter(query_id=result.query_id).update(complete=True)
+        else:
+            response['msg'] = "WAIT"
+            response['result'] = {'total_scenes': result.total_scenes, 'scenes_processed': result.scenes_processed}
+    return JsonResponse(response)"""

@@ -35,11 +35,9 @@ from data_cube_ui.forms import GeospatialForm
 from .forms import DataSelectForm
 from .tasks import create_cloudfree_mosaic
 
-from .utils import create_query_from_post
-
 from collections import OrderedDict
 
-from apps.dc_algorithm.views import ToolView, SubmitNewRequest
+from apps.dc_algorithm.views import ToolView, SubmitNewRequest, GetTaskResult
 
 
 class CustomMosaicTool(ToolView):
@@ -78,6 +76,11 @@ class SubmitNewRequest(SubmitNewRequest):
     tool_name = 'custom_mosaic_tool'
     task_model_name = 'CustomMosaicTask'
     celery_task_func = create_cloudfree_mosaic
+
+
+class GetTaskResult(GetTaskResult):
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicTask'
 
 
 @login_required
@@ -146,48 +149,6 @@ def cancel_request(request):
         return JsonResponse(response)
     else:
         return JsonResponse({'msg': "ERROR"})
-
-
-@login_required
-def get_result(request):
-    """
-    Gets a result by its query id. If the result does not yet exist in the db or there are no errors
-    or "ok" signals, wait. If the result has errored in some way, all offending models are removed.
-    If the result returns ok, then post a result. Response is a json obj containing a msg and result.    the result can either be the data or an obj containing the total scenes/progress.
-
-    **Context**
-
-    **Template**
-    """
-
-    if request.method == 'POST':
-        response = {}
-        try:
-            result = Result.objects.get(query_id=request.POST['query_id'])
-        except Result.DoesNotExist:
-            result = None
-            response['msg'] = "WAIT"
-        except:
-            result = None
-            response['msg'] = "ERROR"
-        if result:
-            if result.status == "ERROR":
-                response['msg'] = "ERROR"
-                response['error_msg'] = result.result_path
-                # get rid of the offending results, queries, metadatas.
-                Query.objects.filter(query_id=result.query_id).delete()
-                Metadata.objects.filter(query_id=result.query_id).delete()
-                result.delete()
-            elif result.status == "OK":
-                response['msg'] = "OK"
-                response.update(model_to_dict(result))
-                # since there is a result, update all the currently running identical queries with complete=true;
-                Query.objects.filter(query_id=result.query_id).update(complete=True)
-            else:
-                response['msg'] = "WAIT"
-                response['result'] = {'total_scenes': result.total_scenes, 'scenes_processed': result.scenes_processed}
-        return JsonResponse(response)
-    return JsonResponse({'msg': "ERROR"})
 
 
 @login_required

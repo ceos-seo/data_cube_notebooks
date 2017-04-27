@@ -56,12 +56,12 @@ function getSingleResult(e) {
 	request.send('query_id=' + e.data.query_id + '&date=' + e.data.date);
 
 	if (request.status != 200) {
-			error("There was a problem submitting your task, please check your connection:: 200!");
+			error("There was a problem submitting your task, please check your connection.");
 			return;
 	} else {
 			var response = JSON.parse(request.response);
 			if(response.msg == "ERROR") {
-				error("There was a problem submitting your task, please try again.:: Parse!");
+				error("There was a problem submitting your task, please try again.");
 				return;
 			}
 			query_obj['query_id'] = response.query_id;
@@ -101,15 +101,15 @@ function addNewQuery() {
     //request.timeout = 100;
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);
-    request.send(query_obj['query_data']);
+    request.send('query_id=' + query_obj['query_data']);
 		query_obj['query_id'] = -1;
     if (request.status != 200) {
-        error("There was a problem submitting your task, please check your connection:: 200 new!");
+        error("There was a problem submitting your task, please check your connection.");
 				return;
     } else {
         var response = JSON.parse(request.response);
 				if(response.msg == "ERROR") {
-					error("There was a problem submitting your task, please try again. JSON parse new!");
+					error("There was a problem submitting your task, please try again.");
 					return;
 				}
         query_obj['query_id'] = response.query_id;
@@ -126,13 +126,13 @@ function addNewQuery() {
 // When waiting for a result, post messsages with progress updates.
 function checkQuery() {
     var request = new XMLHttpRequest();
-    request.open("POST", '/' + tool_name + '/result', false);
+    request.open("GET", '/' + tool_name + '/result', false);
     //request.timeout = 100;
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);
     request.send("query_id=" + query_obj['query_id']);
     if (request.status != 200) {
-				error("There was a problem submitting your task, please check your connection: 200 CHekc!");
+				error("There was a problem submitting your task, please check your connection.");
 				return;
     } else {
         var response = JSON.parse(request.response);
@@ -140,7 +140,7 @@ function checkQuery() {
 					if(response.error_msg)
 						error(response.error_msg);
 					else
-						error("There was a problem with your task, please try again. JSON Check!");
+						error("There was a problem with your task, please try again.");
 						return;
 				}
         if (response.msg == "WAIT") {

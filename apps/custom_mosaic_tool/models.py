@@ -85,8 +85,8 @@ class Query(BaseQuery):
         query_data['product'] = Satellite.objects.get(
             satellite_id=query_data['platform']).product_prefix + Area.objects.get(
                 area_id=query_data['area_id']).area_id
-        query_data['title'] = "Base Query" if 'title' not in form_data or form_data['title'] == '' else form_data[
-            'title']
+        query_data['title'] = "Custom Mosaic Query" if 'title' not in form_data or form_data[
+            'title'] == '' else form_data['title']
         query_data['description'] = "None" if 'description' not in form_data or form_data[
             'description'] == '' else form_data['description']
 
