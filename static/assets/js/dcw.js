@@ -80,7 +80,7 @@ function addNewQuery() {
         return;
     } else {
         var response = JSON.parse(request.response);
-        if (response.msg == "ERROR") {
+        if (response.status == "ERROR") {
             error("There was a problem submitting your task, please try again.");
             return;
         }
@@ -110,7 +110,7 @@ function getSingleResult(e) {
         return;
     } else {
         var response = JSON.parse(request.response);
-        if (response.msg == "ERROR") {
+        if (response.status == "ERROR") {
             error("There was a problem submitting your task, please try again.");
             return;
         }
@@ -138,17 +138,17 @@ function checkQuery() {
         return;
     } else {
         var response = JSON.parse(request.response);
-        if (response.msg == "ERROR") {
-            if (response.error_msg)
-                error(response.error_msg);
+        if (response.status == "ERROR") {
+            if (response.message)
+                error(response.message);
             else
                 error("There was a problem with your task, please try again.");
             return;
         }
-        if (response.msg == "WAIT") {
+        if (response.status == "WAIT") {
             if (response.progress) {
                 postMessage({
-                    'msg': "UPDATE",
+                    'status': "UPDATE",
                     'id': query_obj['id'],
                     'value': response.progress,
                 });

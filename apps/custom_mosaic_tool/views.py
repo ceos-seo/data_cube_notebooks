@@ -119,9 +119,14 @@ class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
 
 
 class CancelRequest(CancelRequest):
+    """
+    Cancel request REST API endpoint
+    Extends the CancelRequest abstract class, required attributes are the tool
+    name and task model name. This will not kill running queries, but will
+    disassociate it from the user's history.
+    """
     tool_name = 'custom_mosaic_tool'
     task_model_name = 'CustomMosaicTask'
-    pass
 
 
 @login_required

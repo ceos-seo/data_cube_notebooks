@@ -427,6 +427,7 @@ class Result(models.Model):
 
     #either OK or ERROR or WAIT
     status = models.CharField(max_length=100, default="")
+    #used to pass messages to the user. 
     message = models.CharField(max_length=100, default="")
 
     scenes_processed = models.IntegerField(default=0)
