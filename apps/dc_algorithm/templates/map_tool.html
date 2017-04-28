@@ -222,7 +222,7 @@
         $("#" + sanitize_id("cancel_" + id)).click(function() {
             workers[id].terminate();
             if (queries[id] != null)
-                $.post('/' + window.tool_name + '/cancel', {
+                $.get('/' + window.tool_name + '/cancel', {
                     'id': queries[id].id
                 }, function(result) {
                     //console.log(result);
@@ -246,8 +246,15 @@
     //Handles the actual panel - hides satellite forms not being used.
     function refreshPanel(sel) {
         $(".satellite_dependent").hide();
-        id = $('#satellite_sel').val();
+        id = $('#platform_sel').val();
         $("." + id).show();
+        //set the hidden fields now
+        update_hidden_fields(id);
+    }
+
+    function update_hidden_fields(platform) {
+      $(".hidden_form_platform").val(platform)
+      $(".hidden_form_area_id").val("{{ area.area_id }}")
     }
 
     //handles the history panel: details view and loading.
@@ -268,8 +275,8 @@
                 valid_ids.push(ids[index]);
             }
         }
-        $.post('results_list', {
-            'ids': valid_ids
+        $.get('results_list', {
+            'task_ids': valid_ids
         }, function(result) {
             $('#results_list').html(result);
             $('.scenes_list').hide();
@@ -287,8 +294,8 @@
                 valid_ids.push(ids[index]);
             }
         }
-        $.post('output_list', {
-            'ids': valid_ids
+        $.get('output_list', {
+            'task_ids': valid_ids
         }, function(result) {
             $('#output_panel').html(result);
         })
@@ -417,7 +424,7 @@
     }
 
     function process_form(form) {
-      request = $(form).serialize() + "&platform=" + $('#satellite_sel').val() + "&area_id={{ area.area_id }}";
+      request = $(form).serialize()// + "&platform=" + $('#platform_sel').val() + "&area_id={{ area.area_id }}";
       //console.log(request)
       //worker init w/ the serialized data.
       if (typeof(Worker) !== undefined) {
@@ -469,8 +476,8 @@
                 </ul>
 
                 <div id="filters-panel" class="tab-pane fade in active">
-                    <label for="satellite_sel">Satellite</label>
-                    <select class="form-control" id="satellite_sel" name="satellite_sel" tabindex="1" data-native-menu="false" onchange="refreshPanel();">
+                    <label for="platform_sel">Satellite</label>
+                    <select class="form-control" id="platform_sel" name="platform_sel" tabindex="1" data-native-menu="false" onchange="refreshPanel();">
                         {% for satellite in satellites %}
                         <option value="{{ satellite.satellite_id }}">{{satellite.satellite_name}}</option>
                         {% endfor %}
@@ -494,6 +501,9 @@
                                 </div>
                               {% endfor %}
                             {% endif %}
+                            {% for field in form.hidden_fields %}
+                              {{field}}
+                            {% endfor %}
                           </div>
                         {% endfor %}
                         <div class="col-lg-12">
@@ -504,11 +514,6 @@
                             <a class="btn btn-primary pull-right" style="margin-right:5px;" data-toggle="modal" data-target="#additionalOptionsModal" href="#">Additional Options</a>
                           {% endbuttons %}
                         </div>
-                        <input class="hidden_form_title" type="hidden" name="title">
-                        <input class="hidden_form_description" type="hidden" name="description">
-                        <!-- TODO(map) : Remove once Django button working > button id="submit-request-{{ satellite }}" type="submit" class="btn btn-primary">
-	      Submit
-	    </button-->
                     </form>
                     {% endfor %}
                     <div class="fieldSet">

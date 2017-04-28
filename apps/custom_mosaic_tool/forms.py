@@ -24,7 +24,7 @@ from django import forms
 import datetime
 
 from .models import ResultType
-from data_cube_ui.models import Area, Compositor, AnimationType
+from apps.dc_algorithm.models import Area, Compositor, AnimationType
 """
 File designed to house the different forms for taking in user input in the web application.  Forms
 allow for input validation and passing of data.  Includes forms for creating Queries to be ran.
@@ -47,39 +47,36 @@ class DataSelectForm(forms.Form):
     """
 
     #these are done in the init funct.
-    query_type = forms.ChoiceField(
-        label='Result Type (Map view/png):', widget=forms.Select(attrs={'class': 'field-long'}))
+    query_type = forms.ModelChoiceField(
+        queryset=None,
+        to_field_name="result_id",
+        empty_label=None,
+        help_text='Select the type of image you would like displayed.',
+        label='Result Type (Map view/png):',
+        widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
-    title = forms.CharField(widget=forms.HiddenInput())
-    description = forms.CharField(widget=forms.HiddenInput())
+    compositor = forms.ModelChoiceField(
+        queryset=None,
+        to_field_name="compositor_id",
+        empty_label=None,
+        help_text='Select the method by which the "best" pixel will be chosen.',
+        label="Compositing Method:",
+        widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
-    def __init__(self, satellite_id=None, *args, **kwargs):
+    animated_product = forms.ModelChoiceField(
+        queryset=None,
+        to_field_name="type_id",
+        empty_label=None,
+        help_text='Generate a .gif containing either scene data or the cumulative mosaic over time. This is not compatible with median pixel mosaics.',
+        label='Generate Time Series Animation',
+        widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+
+    def __init__(self, *args, **kwargs):
+        satellite_id = kwargs.pop('satellite_id', None)
         super(DataSelectForm, self).__init__(*args, **kwargs)
-        if satellite_id is not None:
-            #populate the results list and recreate the form element.
-            result_types = ResultType.objects.filter(satellite_id=satellite_id)
-
-            results_list = [(result.result_id, result.result_name) for result in result_types]
-            self.fields["query_type"] = forms.ChoiceField(
-                help_text='Select the type of image you would like displayed.',
-                label='Result Type (Map view/png):',
-                choices=results_list,
-                widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
-
-            compositor_list = [(compositor.compositor_id, compositor.compositor_name)
-                               for compositor in Compositor.objects.all()]
-            self.fields["compositor"] = forms.ChoiceField(
-                help_text='Select the method by which the "best" pixel will be chosen.',
-                label="Compositing Method:",
-                choices=compositor_list,
-                widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
-
-            animation_list = [(animation_type.type_id, animation_type.type_name)
-                              for animation_type in AnimationType.objects.filter(
-                                  app_name__in=["custom_mosaic_tool", "all"]).order_by('app_name', 'type_id')]
-            self.fields["animated_product"] = forms.ChoiceField(
-                label='Generate Time Series Animation',
-                widget=forms.Select(attrs={'class': 'field-long tooltipped'}),
-                choices=animation_list,
-                help_text='Generate a .gif containing either scene data or the cumulative mosaic over time. This is not compatible with median pixel mosaics.'
-            )
+        self.fields["query_type"].queryset = ResultType.objects.filter(satellite_id=satellite_id
+                                                                       if satellite_id is not None else
+                                                                       args[0].get('platform'))
+        self.fields["compositor"].queryset = Compositor.objects.all()
+        self.fields["animated_product"].queryset = AnimationType.objects.filter(
+            app_name__in=["custom_mosaic_tool", "all"]).order_by('app_name', 'type_id')

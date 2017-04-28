@@ -54,7 +54,7 @@ under the License.
 <h2>Acquisitions List</h2>
 <hr>
 <div id='scenes_list' class="boxed_list">
-  {% for metadata_entry in metadata_entries %}
+  {% for query in queries %}
     <!-- Creates a block of metadata from each metadata entry.  -->
     {% block metadata_dl_block %}
     {% endblock %}
@@ -63,7 +63,7 @@ under the License.
 <h2>Task Metadata</h2>
 <hr>
 <div id='query_metadata' class="boxed_list spaced_details standalone_table">
-  {% for metadata_entry in metadata_entries %}
+  {% for query in queries %}
     <!-- Contains a series of <tr></tr> elements that use the meta django tags. -->
     {% block meta_table_rows %}
     {% endblock %}

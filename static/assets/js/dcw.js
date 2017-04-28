@@ -30,20 +30,20 @@ var query_obj = {};
 // only messages being posted are to start tasks. Tasks are either new or from history.
 self.addEventListener("message", function(e) {
     tool_name = e.data.tool_name;
-		switch(e.data.msg) {
-			case "NEW":
-				getNewResult(e);
-			break;
-			case "HISTORY":
-				getResultFromHistory(e);
-			break;
-			case "SINGLE":
-				getSingleResult(e);
-			break;
-			default:
-				close();
-			break;
-		}
+    switch (e.data.msg) {
+        case "NEW":
+            getNewResult(e);
+            break;
+        case "HISTORY":
+            getResultFromHistory(e);
+            break;
+        case "SINGLE":
+            getSingleResult(e);
+            break;
+        default:
+            close();
+            break;
+    }
 }, false);
 
 
@@ -81,7 +81,10 @@ function addNewQuery() {
     } else {
         var response = JSON.parse(request.response);
         if (response.status == "ERROR") {
-            error("There was a problem submitting your task, please try again.");
+            if (response.message)
+                error(response.message);
+            else
+                error("There was a problem with your task, please try again.");
             return;
         }
         query_obj['id'] = response.id;
@@ -111,7 +114,10 @@ function getSingleResult(e) {
     } else {
         var response = JSON.parse(request.response);
         if (response.status == "ERROR") {
-            error("There was a problem submitting your task, please try again.");
+            if (response.message)
+                error(response.message);
+            else
+                error("There was a problem with your task, please try again.");
             return;
         }
         query_obj['id'] = response.id;
@@ -128,7 +134,7 @@ function getSingleResult(e) {
 // When waiting for a result, post messsages with progress updates.
 function checkQuery() {
     var request = new XMLHttpRequest();
-		var parameters = "?id=" + query_obj['id']
+    var parameters = "?id=" + query_obj['id']
     request.open("GET", '/' + tool_name + '/result' + parameters, false);
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);

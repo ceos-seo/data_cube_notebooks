@@ -31,13 +31,14 @@ from datetime import datetime, timedelta
 
 from .models import ResultType, Result, Query, Metadata
 from data_cube_ui.models import Satellite, Area, Application
-from data_cube_ui.forms import GeospatialForm
+from apps.dc_algorithm.forms import DataSelectionForm
 from .forms import DataSelectForm
 from .tasks import create_cloudfree_mosaic
 
 from collections import OrderedDict
 
-from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, GetTaskResult, SubmitNewSubsetRequest, CancelRequest)
+from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, GetTaskResult, SubmitNewSubsetRequest, CancelRequest,
+                                     QueryHistory, ResultList, OutputList)
 
 
 class CustomMosaicTool(ToolView):
@@ -59,7 +60,8 @@ class CustomMosaicTool(ToolView):
                 'Data Selection':
                 DataSelectForm(satellite_id=satellite.satellite_id, auto_id=satellite.satellite_id + "_%s"),
                 'Geospatial Bounds':
-                GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s")
+                DataSelectionForm(
+                    time_start=satellite.date_min, time_end=satellite.date_max, auto_id=satellite.satellite_id + "_%s")
             }
         return forms
 
@@ -68,7 +70,7 @@ class SubmitNewRequest(SubmitNewRequest):
     """
     Submit new request REST API Endpoint
     Extends the SubmitNewRequest abstract class - required attributes are the tool_name,
-    task_model_name, and celery_task_func.
+    task_model_name, form_list, and celery_task_func
 
     Note:
         celery_task_func should be callable with .delay() and take a single argument of a TaskModel pk.
@@ -78,6 +80,7 @@ class SubmitNewRequest(SubmitNewRequest):
     tool_name = 'custom_mosaic_tool'
     task_model_name = 'CustomMosaicTask'
     celery_task_func = create_cloudfree_mosaic
+    form_list = [DataSelectionForm, DataSelectForm]
 
 
 class GetTaskResult(GetTaskResult):
@@ -104,17 +107,18 @@ class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
     task_model_name = 'CustomMosaicTask'
     celery_task_func = create_cloudfree_mosaic
 
-    def task_model_update_func(task_model, **kwargs):
+    def task_model_update_func(self, task_model, **kwargs):
         """
         Basic funct that updates a task model with kwargs. In this case only the date
         needs to be changed, and results reset.
         """
-        task_model.time_start = datetime.strptime(kwargs.get('date'), '%m/%d/%Y')
-        task_model.time_end = query.time_start + timedelta(days=1)
+        date = kwargs.get('date')[0]
+        task_model.time_start = datetime.strptime(date, '%m/%d/%Y')
+        task_model.time_end = task_model.time_start + timedelta(days=1)
         task_model.complete = False
         task_model.scenes_processed = 0
         task_model.total_scenes = 0
-        task_model.title = "Single acquisition for " + request.POST['date']
+        task_model.title = "Single acquisition for " + date
         return task_model
 
 
@@ -129,94 +133,34 @@ class CancelRequest(CancelRequest):
     task_model_name = 'CustomMosaicTask'
 
 
-@login_required
-def get_query_history(request, area_id):
+class QueryHistory(QueryHistory):
     """
-    Gets a formatted view displaying a user's task history. Used in the custom mosaic tool view.
-    No post data required. The user's authentication provides username, returns a view w/
-    context including the last n query objects.
-
-    **Context**
-
-    ``query_history``
-        List of queries ran ordered by query_start ascending.  Currently only first 10 rows returned
-
-    **Template**
-
-    :template:`custom_mosaic_tool/query_history`
+    Generate a template used to display the user's history
+    Extends the QueryHistory abstract class, required attributes are the tool
+    name and task model name. This will list all queries that are complete, have a
+    OK status, and are registered to the user.
     """
-    user_id = 0
-    if request.user.is_authenticated():
-        user_id = request.user.username
-    history = Query.objects.filter(user_id=user_id, area_id=area_id, complete=True).order_by('-query_start')[:10]
-    context = {
-        'query_history': history,
-    }
-    return render(request, 'map_tool/custom_mosaic_tool/query_history.html', context)
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicTask'
 
 
-@login_required
-def get_results_list(request, area_id):
+class ResultList(ResultList):
     """
-    Loads the results list from a list of query ids. Error handling: N/a. getlist always returns a
-    list, so even if its a bad request it'll return an empty list of queries and metadatas.
-
-    **Context**
-
-    ``queries``
-        The queries found given the query_ids[] list passed in through the POST
-    ``metadata_entries``
-        The metadata objects found for each query
-
-    **Template**
-
-    :template:`custom_mosaic_tool/results_list.html`
-
+    Generate a template used to display any number of existing queries and metadatas
+    Extends the ResultList abstract class, required attributes are the tool
+    name and task model name. This will list all queries that are complete, have a
+    OK status, and are registered to the user.
     """
-
-    if request.method == 'POST':
-        query_ids = request.POST.getlist('query_ids[]')
-        queries = []
-        metadata_entries = []
-        for query_id in query_ids:
-            queries.append(Query.objects.filter(query_id=query_id).order_by('-query_start')[0])
-            metadata_entries.append(Metadata.objects.filter(query_id=query_id)[0])
-
-        context = {'queries': queries, 'metadata_entries': metadata_entries}
-        return render(request, 'map_tool/custom_mosaic_tool/results_list.html', context)
-    return HttpResponse("Invalid Request.")
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicTask'
 
 
-@login_required
-def get_output_list(request, area_id):
+class OutputList(OutputList):
     """
-    Loads the output of the given query for a requested ID.
-
-    **Context**
-
-    ``data``
-        The information to be returned to the user.
-
-    **Template**
-
-    :template: `custom_mosaic_tool/output_list.html`
+    Generate a template used to display any number of existing queries and metadatas
+    Extends the OutputList abstract class, required attributes are the tool
+    name and task model name. This will list all queries that are complete, have a
+    OK status, and are registered to the user.
     """
-
-    if request.method == 'POST':
-        query_ids = request.POST.getlist('query_ids[]')
-        #queries = []
-        #metadata_entries = []
-        data = {}
-        for query_id in query_ids:
-            # queries.append(Query.objects.filter(query_id=query_id)[0])
-            # metadata_entries.append(Metadata.objects.filter(query_id=query_id)[0])
-            data[Query.objects.filter(query_id=query_id).order_by('-query_start')[0]] = Metadata.objects.filter(
-                query_id=query_id)[0]
-
-        context = {
-            #'queries': queries,
-            #'metadata_entries': metadata_entries
-            'data': data
-        }
-        return render(request, 'map_tool/custom_mosaic_tool/output_list.html', context)
-    return HttpResponse("Invalid Request.")
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicTask'

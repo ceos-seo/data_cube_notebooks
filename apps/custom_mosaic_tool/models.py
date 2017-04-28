@@ -22,11 +22,31 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
-from apps.dc_algorithm.models import Area, Compositor, Satellite
+from apps.dc_algorithm.models import Area, Compositor, Satellite, AnimationType
 from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as
                                       BaseResultType, UserHistory as BaseUserHistory)
 
 import datetime
+
+
+class UserHistory(BaseUserHistory):
+    """
+    Extends the base user history adding additional fields
+    See the dc_algorithm.UserHistory docstring for more information
+    """
+    pass
+
+
+class ResultType(BaseResultType):
+    """
+    extends base result type, adding additional fields required by app.
+    See the dc_algorithm.ResultType docstring for more information.
+    """
+
+    red = models.CharField(max_length=25)
+    green = models.CharField(max_length=25)
+    blue = models.CharField(max_length=25)
+    fill = models.CharField(max_length=25, default="red")
 
 
 class Query(BaseQuery):
@@ -34,35 +54,23 @@ class Query(BaseQuery):
 
     Extends base query, adds app specific elements. See the dc_algorithm.Query docstring for more information
     Defines the get_or_create_query_from_post as required, adds new fields, recreates the unique together
-    field, and resets the abstract property. Functions are added to get human readable names for various properties.
+    field, and resets the abstract property. Functions are added to get human readable names for various properties,
+    foreign keys should define __str__ for a human readable name.
 
     """
-    query_type = models.CharField(max_length=25, default="")
-    animated_product = models.CharField(max_length=25, default="None")
-    compositor = models.CharField(max_length=25, default="most_recent")
+    query_type = models.ForeignKey(ResultType)
+    animated_product = models.ForeignKey(AnimationType)
+    compositor = models.ForeignKey(Compositor)
 
     class Meta(BaseQuery.Meta):
-        unique_together = (('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
-                            'longitude_max', 'longitude_min', 'query_type', 'animated_product', 'compositor'))
+        unique_together = (
+            ('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
+             'longitude_min', 'title', 'description', 'query_type', 'animated_product', 'compositor'))
         abstract = True
 
-    def get_type_name(self):
-        """
-        Gets the ResultType.result_type attribute associated with the given Query object.
-
-        Returns:
-            result_type (string): The result type of the query.
-        """
-        return ResultType.objects.filter(result_id=self.query_type, satellite_id=self.platform)[0].result_name
-
-    def get_compositor_name(self):
-        """
-        Gets the ResultType.result_type attribute associated with the given Query object.
-
-        Returns:
-            result_type (string): The result type of the query.
-        """
-        return Compositor.objects.get(compositor_id=self.compositor).compositor_name
+    def get_fields_with_labels(self, labels, field_names):
+        for idx, label in enumerate(labels):
+            yield [label, getattr(self, field_names[idx])]
 
     @classmethod
     def get_or_create_query_from_post(cls, form_data):
@@ -79,9 +87,6 @@ class Query(BaseQuery):
 
         """
         query_data = form_data
-        query_data['time_start'] = datetime.datetime.strptime(form_data['time_start'], '%m/%d/%Y')
-        query_data['time_end'] = datetime.datetime.strptime(form_data['time_end'], '%m/%d/%Y')
-
         query_data['product'] = Satellite.objects.get(
             satellite_id=query_data['platform']).product_prefix + Area.objects.get(
                 area_id=query_data['area_id']).area_id
@@ -105,9 +110,15 @@ class Query(BaseQuery):
 class Metadata(BaseMetadata):
     """
     Extends base metadata, adding additional fields and adding abstract=True.
+
+    zipped_metadata_fields is required. 
+
     See the dc_algorithm.Metadata docstring for more information
     """
     satellite_list = models.CharField(max_length=100000, default="")
+    zipped_metadata_fields = [
+        'acquisition_list', 'clean_pixels_per_acquisition', 'clean_pixel_percentages_per_acquisition', 'satellite_list'
+    ]
 
     class Meta(BaseMetadata.Meta):
         abstract = True
@@ -141,23 +152,3 @@ class CustomMosaicTask(Query, Metadata, Result):
     Combines the Query, Metadata, and Result abstract models
     """
     pass
-
-
-class UserHistory(BaseUserHistory):
-    """
-    Extends the base user history adding additional fields
-    See the dc_algorithm.UserHistory docstring for more information
-    """
-    pass
-
-
-class ResultType(BaseResultType):
-    """
-    extends base result type, adding additional fields required by app.
-    See the dc_algorithm.ResultType docstring for more information.
-    """
-
-    red = models.CharField(max_length=25)
-    green = models.CharField(max_length=25)
-    blue = models.CharField(max_length=25)
-    fill = models.CharField(max_length=25, default="red")

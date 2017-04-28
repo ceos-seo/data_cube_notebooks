@@ -175,6 +175,9 @@ class Compositor(models.Model):
     compositor_id = models.CharField(max_length=25, unique=True)
     compositor_name = models.CharField(max_length=25)
 
+    def __str__(self):
+        return self.compositor_name
+
 
 class Baseline(models.Model):
     """
@@ -184,6 +187,9 @@ class Baseline(models.Model):
 
     baseline_id = models.CharField(max_length=25, unique=True)
     baseline_name = models.CharField(max_length=25)
+
+    def __str__(self):
+        return self.baseline_name
 
 
 class AnimationType(models.Model):
@@ -198,6 +204,9 @@ class AnimationType(models.Model):
     type_name = models.CharField(max_length=25, default="None")
     data_variable = models.CharField(max_length=25, default="None")
     band_number = models.CharField(max_length=25, default="None")
+
+    def __str__(self):
+        return self.type_name
 
 
 ##############################################################################################################
@@ -259,7 +268,7 @@ class Query(models.Model):
     class Meta:
         abstract = True
         unique_together = (('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
-                            'longitude_max', 'longitude_min'))
+                            'longitude_max', 'longitude_min', 'title', 'description'))
 
     @classmethod
     def get_queryset_from_history(cls, user_history, **kwargs):
@@ -300,8 +309,6 @@ class Query(models.Model):
         """
         def get_or_create_query_from_post(cls, form_data):
             query_data = form_data
-            query_data['time_start'] = datetime.datetime.strptime(form_data['time_start'], '%m/%d/%Y')
-            query_data['time_end'] = datetime.datetime.strptime(form_data['time_end'], '%m/%d/%Y')
 
             query_data['product'] = Satellite.objects.get(
                 satellite_id=query_data['platform']).product_prefix + Area.objects.get(
@@ -363,7 +370,7 @@ class Metadata(models.Model):
     clean_pixels_per_acquisition = models.CharField(max_length=100000, default="")
     clean_pixel_percentages_per_acquisition = models.CharField(max_length=100000, default="")
 
-    #more to come?
+    zipped_metadata_fields = None
 
     class Meta:
         abstract = True
@@ -380,11 +387,10 @@ class Metadata(models.Model):
         Returns:
             List of attributes
         """
-
         return getattr(self, field_name).rstrip(',').split(',')
 
-    def get_zipped_fields_as_list(self, fields):
-        """Creates a zipped iterable comprised of all the fields
+    def get_zipped_fields_as_list(self):
+        """Creates a zipped iterable comprised of all the fields in self.zipped_metadata_fields
 
         Using _get_field_as_list converts the comma seperated fields in fields
         and zips them to iterate. Used to display grouped metadata, generally by
@@ -396,8 +402,10 @@ class Metadata(models.Model):
         Returns:
             zipped iterable containing grouped fields generated using _get_field_as_list
         """
-
-        return zip(self._get_field_as_list(field) for field in fields)
+        if self.zipped_metadata_fields is None:
+            raise NotImplementedError("You must define zipped_metadata_fields in all classes that extend Metadata.")
+        fields_as_lists = [self._get_field_as_list(field) for field in self.zipped_metadata_fields]
+        return zip(*fields_as_lists)
 
 
 class Result(models.Model):
@@ -427,7 +435,7 @@ class Result(models.Model):
 
     #either OK or ERROR or WAIT
     status = models.CharField(max_length=100, default="")
-    #used to pass messages to the user. 
+    #used to pass messages to the user.
     message = models.CharField(max_length=100, default="")
 
     scenes_processed = models.IntegerField(default=0)
@@ -500,6 +508,9 @@ class ResultType(models.Model):
 
     class Meta:
         abstract = True
+
+    def __str__(self):
+        return self.result_name
 
 
 class UserHistory(models.Model):

@@ -24,7 +24,7 @@ under the License.
      Creation date: 2016-09/08
      Modified by:
      Last modified date: -->
-{% extends "map_tool/output_list_template.html" %}
+{% extends "output_list_template.html" %}
 {% block table_rows %}
 <table class="table table-striped table-bordered">
   <tbody>
@@ -38,19 +38,19 @@ under the License.
     </tr>
     <tr>
       <td>Scene Count:</td>
-      <td class="right_aligned_text">{{ meta.scene_count }}</td>
+      <td class="right_aligned_text">{{ query.scene_count }}</td>
     </tr>
     <tr>
       <td>Total Pixel Count:</td>
-      <td class="right_aligned_text">{{ meta.pixel_count }}</td>
+      <td class="right_aligned_text">{{ query.pixel_count }}</td>
     </tr>
     <tr>
       <td>Clean Pixel Count:</td>
-      <td class="right_aligned_text">{{ meta.clean_pixel_count }}</td>
+      <td class="right_aligned_text">{{ query.clean_pixel_count }}</td>
     </tr>
     <tr>
       <td>Clean Pixel Percentage:</td>
-      <td class="right_aligned_text">{{ meta.percentage_clean_pixels|floatformat:2 }}%</td>
+      <td class="right_aligned_text">{{ query.percentage_clean_pixels|floatformat:2 }}%</td>
     </tr>
     <tr>
       <td>Latitude Range: </td>
@@ -66,7 +66,7 @@ under the License.
     </tr>
     <tr>
       <td>Compositing Method:</td>
-      <td class="right_aligned_text">{{ query.get_compositor_name }}</td>
+      <td class="right_aligned_text">{{ query.compositor }}</td>
     </tr>
   </tbody>
 </table>

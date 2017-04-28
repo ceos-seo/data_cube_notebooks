@@ -25,7 +25,7 @@ under the License.
      Modified by:
      Last modified date: -->
 <!-- Requires other implementation of set_selected_result(id), remove_result(id), toggle_visibility, toggle_highlight_nodata, sanitize_id-->
-{% extends "map_tool/results_list_template.html" %}
+{% extends "results_list_template.html" %}
 {% block query_table_rows %}
 <table class="table table-striped table-bordered">
   <tbody>
@@ -51,7 +51,7 @@ under the License.
     </tr>
     <tr>
       <td>Compositing Method:</td>
-      <td class="right_aligned_text">{{ query.get_compositor_name }}</td>
+      <td class="right_aligned_text">{{ query.compositor }}</td>
     </tr>
     <tr>
       <td><div class="helper tooltipped" title="Fill in all no-data (clouds, shadow, missing data, etc) with a contrasting color."><a>?</a></div>Highlight NoData:</td>
@@ -61,26 +61,27 @@ under the License.
 </table>
 {% endblock %}
 {% block metadata_dl_block %}
-  <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ metadata_entry.id }}">
-    {% for acquisition, pixels, pixel_percentage, satellite in metadata_entry.metadata_as_zip4 %}
+  <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ query.id }}">
+    <!-- acquisition_list, clean_pixels_per_acquisition, clean_pixel_percentages_per_acquisition, satellite_list -->
+    {% for acquisition, clean_pixels, clean_pixel_percentage, satellite in query.get_zipped_fields_as_list %}
       <li>
         <table class="table scene_list_table">
           <tbody>
             <thead>
               <th>{{ acquisition }}</th>
-              <th class="right_aligned_text"><button class="tooltipped" title="Load this single scene. This will hide the current result." onclick="load_scene_from_query('{{ metadata_entry.id }}', '{{ acquisition }}')" style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Load this scene</button></th>
+              <th class="right_aligned_text"><button class="tooltipped" title="Load this single scene. This will hide the current result." onclick="load_scene_from_query('{{ query.id }}', '{{ acquisition }}')" style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Load this scene</button></th>
             </thead>
             <tr>
               <td>Clean pixels:</td>
-              <td class="right_aligned_text">{{ pixels }}</td>
+              <td class="right_aligned_text">{{ clean_pixels }}</td>
             </tr>
             <tr>
               <td>Total Pixels:</td>
-              <td class="right_aligned_text">{{ metadata_entry.pixel_count }}</td>
+              <td class="right_aligned_text">{{ query.pixel_count }}</td>
             </tr>
             <tr>
               <td>Clean Pixel Percentage:</td>
-              <td class="right_aligned_text">{{ pixel_percentage|floatformat:2 }}%</td>
+              <td class="right_aligned_text">{{ clean_pixel_percentage|floatformat:2 }}%</td>
             </tr>
             <tr>
               <td>Satellite:</td>
@@ -93,23 +94,23 @@ under the License.
   </ul>
 {% endblock %}
 {% block meta_table_rows %}
-<table id="meta_{{ metadata_entry.id }}" class="table table-striped table-bordered scene_meta">
+<table id="meta_{{ query.id }}" class="table table-striped table-bordered scene_meta">
   <tbody>
     <tr>
       <td>Scene Count:</td>
-      <td class="right_aligned_text">{{ metadata_entry.scene_count }}</td>
+      <td class="right_aligned_text">{{ query.scene_count }}</td>
     </tr>
     <tr>
       <td>Total Pixel Count:</td>
-      <td class="right_aligned_text">{{ metadata_entry.pixel_count }}</td>
+      <td class="right_aligned_text">{{ query.pixel_count }}</td>
     </tr>
     <tr>
       <td>Clean Pixel Count:</td>
-      <td class="right_aligned_text">{{ metadata_entry.clean_pixel_count }}</td>
+      <td class="right_aligned_text">{{ query.clean_pixel_count }}</td>
     </tr>
     <tr>
       <td>Clean Pixel Percentage:</td>
-      <td class="right_aligned_text">{{ metadata_entry.percentage_clean_pixels|floatformat:2 }}%</td>
+      <td class="right_aligned_text">{{ query.percentage_clean_pixels|floatformat:2 }}%</td>
     </tr>
   </tbody>
 </table>
