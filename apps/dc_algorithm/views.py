@@ -243,11 +243,121 @@ class RegionSelection(View, ToolClass):
         return render(request, 'region_selection.html', context)
 
 
+class UserHistory(View, ToolClass):
+    """Generate the content for the user history tab using a user id.
+
+    This is a GET only view, so only the get function is defined. An area id is provided in the
+    request and used to get all TaskModels for a user over a given area.
+
+    Abstract properties and methods are used to define the required attributes for an implementation.
+    Inheriting CancelRequest without defining the required abstracted elements will throw an error.
+    Due to some complications with django and ABC, NotImplementedErrors are manually raised.
+
+    Required Attributes:
+        tool_name: Descriptive string name for the tool - used to identify the tool in the database.
+        task_model_name: Name of the model that represents your task - see models.Task for more information
+
+    """
+
+    def get(self, request, area_id):
+        """Get the user's request history using a user id and format a template
+
+        Requires a 'user_history' model that maps user ids to tasks - Tasks are listed for the
+        user then filtered for completion, errors, and area.
+
+        Args:
+            id: Area to get tasks for. Tasks are filtered by both user id and area id
+                so only tasks valid for the page are shown.
+
+        Returns:
+            A rendered html template containing an accordion of past tasks and
+            various metadatas. You should be able to load a result using a button on this page.
+        """
+
+        user_id = request.user.id
+        task_model_class = self._get_tool_model(self._get_task_model_name())
+        user_history = self._get_tool_model('userhistory').objects.filter(user_id=user_id)
+
+        task_history = task_model_class.get_queryset_from_history(user_history, complete=True).exclude(status="ERROR")
+
+        context = {'task_history': task_history}
+        return render(request, 'custom_mosaic_tool/task_history.html', context)
+
+
+class ResultList(View, ToolClass):
+    """Generate the content for the result list tab using a user id.
+
+    This is a GET only view, so only the get function is defined.
+
+    Abstract properties and methods are used to define the required attributes for an implementation.
+    Inheriting ResultList without defining the required abstracted elements will throw an error.
+    Due to some complications with django and ABC, NotImplementedErrors are manually raised.
+
+    Required Attributes:
+        tool_name: Descriptive string name for the tool - used to identify the tool in the database.
+        task_model_name: Name of the model that represents your task - see models.Task for more information
+        zipped_metadata_fields: list of metadata fields that exist as comma seperated lists that can be seperated and displayed
+    """
+
+    def get(self, request, area_id):
+        """Get the user's current request list using post data
+
+        Tasks are loaded by ids and rendered using an existing template
+
+        Args:
+            POST data: task_ids[] - a list of task ids to load for the panel.
+
+        Returns:
+            A rendered html template containing a list of tasks and associated metadata.
+        """
+
+        task_ids = request.GET.getlist('task_ids[]')
+        task_model_class = self._get_tool_model(self._get_task_model_name())
+        tasks = task_model_class.objects.filter(pk__in=task_ids)
+
+        context = {'tasks': tasks}
+        return render(request, 'custom_mosaic_tool/results_list.html', context)
+
+
+class OutputList(View, ToolClass):
+    """Generate the content for the output list tab post data
+
+    This is a GET only view, so only the get function is defined.
+
+    Abstract properties and methods are used to define the required attributes for an implementation.
+    Inheriting OutputList without defining the required abstracted elements will throw an error.
+    Due to some complications with django and ABC, NotImplementedErrors are manually raised.
+
+    Required Attributes:
+        tool_name: Descriptive string name for the tool - used to identify the tool in the database.
+        task_model_name: Name of the model that represents your task - see models.Task for more information
+    """
+
+    def get(self, request, area_id):
+        """Get the user's currently loaded tasks
+
+        Tasks are loaded by ids and rendered using an existing template
+
+        Args:
+            POST data: task_ids[] - a list of task ids to load for the panel.
+
+        Returns:
+            A rendered html template containing a list of tasks and associated metadata.
+        """
+
+        task_ids = request.GET.getlist('task_ids[]')
+        task_model_class = self._get_tool_model(self._get_task_model_name())
+        tasks = task_model_class.objects.filter(pk__in=task_ids)
+
+        context = {'tasks': tasks}
+        return render(request, 'custom_mosaic_tool/output_list.html', context)
+
+
 class SubmitNewRequest(View, ToolClass):
-    """Submit a new request for processing using a query created with form data
+    """Submit a new request for processing using a task created with form data
 
     REST API Endpoint for submitting a new request for processing. This is a POST only view,
-    so only the post function is defined. Form data is used to create a Query model which is
+    so only the post function is defined. Form data is used to create a Task model which is
     then submitted for processing via celery.
 
     Abstract properties and methods are used to define the required attributes for an implementation.
@@ -267,7 +377,7 @@ class SubmitNewRequest(View, ToolClass):
 
     @method_decorator(login_required)
     def post(self, request):
-        """Generate a query object and start a celery task using POST form data
+        """Generate a task object and start a celery task using POST form data
 
         Decorated as login_required so the username is fetched without checking.
         A full form set is submitted in one POST request including all of the forms
@@ -281,34 +391,30 @@ class SubmitNewRequest(View, ToolClass):
         Returns:
             JsonResponse containing:
                 A 'status' with either OK or ERROR
-                A Json representation of the query object created from form data.
+                A Json representation of the task object created from form data.
         """
 
         user_id = request.user.id
 
         response = {'status': "OK"}
-        try:
-            task_model = self._get_tool_model(self._get_task_model_name())
-            forms = [form(request.POST) for form in self._get_form_list()]
-            #validate all forms, print any/all errors
-            full_parameter_set = {}
-            for form in forms:
-                if form.is_valid():
-                    full_parameter_set.update(form.cleaned_data)
-                else:
-                    for error in form.errors:
-                        return JsonResponse({'status': "ERROR", 'message': form.errors[error][0]})
+        task_model = self._get_tool_model(self._get_task_model_name())
+        forms = [form(request.POST) for form in self._get_form_list()]
+        #validate all forms, print any/all errors
+        full_parameter_set = {}
+        for form in forms:
+            if form.is_valid():
+                full_parameter_set.update(form.cleaned_data)
+            else:
+                for error in form.errors:
+                    return JsonResponse({'status': "ERROR", 'message': form.errors[error][0]})
 
-            task, new_task = task_model.get_or_create_query_from_post(full_parameter_set)
-            #associate task w/ history
-            history_model, __ = self._get_tool_model('userhistory').objects.get_or_create(
-                user_id=user_id, task_id=task.pk)
-            if new_task:
-                self._get_celery_task_func().delay(task.pk)
-            response.update(model_to_dict(task))
-        except:
-            response['status'] = "ERROR"
-            raise
+        task, new_task = task_model.get_or_create_query_from_post(full_parameter_set)
+        #associate task w/ history
+        history_model, __ = self._get_tool_model('userhistory').objects.get_or_create(user_id=user_id, task_id=task.pk)
+        if new_task:
+            self._get_celery_task_func().delay(task.pk)
+        response.update(model_to_dict(task))
+
         return JsonResponse(response)
 
     def _get_celery_task_func(self):
@@ -361,10 +467,10 @@ class GetTaskResult(View, ToolClass):
     def get(self, request):
         """Get a JsonResponse containing a status and Task model if complete
 
-        Check on the execution status of a running query by an id provided in the GET parameters
+        Check on the execution status of a running tasks by an id provided in the GET parameters
         Default status should be wait - if there is an error in getting the task, or an error in the task
         ERROR will be returned. if complete is set to true, a dictionary of the models attrs is returned.
-        If waiting, progress is generated by the query model.
+        If waiting, progress is generated by the tasks model.
 
         Args:
             'id' in request.GET
@@ -410,7 +516,7 @@ class SubmitNewSubsetRequest(View, ToolClass):
         celery_task_func: A celery task called with .delay() with the only parameter being the pk of a task model
         task_model_name: Name of the model that represents your task - see models.Task for more information
         task_model_update_func: function used to modify an existing task model using any number of kwargs
-            params should be the query to update and kwargs
+            params should be the tasks to update and kwargs
 
     """
 
@@ -420,17 +526,17 @@ class SubmitNewSubsetRequest(View, ToolClass):
     def post(self, request):
         """Use post data to get and modify an existing task model and submit for processing
 
-        Gets the task_query by pk, updates it with task_model_update_func, saves the result,
+        Gets the task_tasks by pk, updates it with task_model_update_func, saves the result,
         and returns a dict of the model.
 
         POST data is required to have:
-            id: pk of the task query
-            any number of named attributes and values used to update the query model.
+            id: pk of the task tasks
+            any number of named attributes and values used to update the tasks model.
 
         Returns:
             JsonResponse containing:
                 A 'status' with either OK or ERROR
-                A Json representation of the query object created from form data.
+                A Json representation of the tasks object created from form data.
 
         """
 
@@ -493,8 +599,8 @@ class CancelRequest(View, ToolClass):
     def get(self, request):
         """Get a JsonResponse containing a status status signifying task removal
 
-        Cancel on the execution status of a running query by an id provided in the GET parameters
-        This should just disassociate a query from a user's history rather than deleting anything.
+        Cancel on the execution status of a running tasks by an id provided in the GET parameters
+        This should just disassociate a tasks from a user's history rather than deleting anything.
 
         Args:
             'id' in request.GET
@@ -513,113 +619,3 @@ class CancelRequest(View, ToolClass):
             pass
 
         return JsonResponse({'status': "OK"})
-
-
-class QueryHistory(View, ToolClass):
-    """Generate the content for the query history tab using a user id.
-
-    This is a GET only view, so only the get function is defined. An area id is provided in the
-    request and used to get all TaskModels for a user over a given area.
-
-    Abstract properties and methods are used to define the required attributes for an implementation.
-    Inheriting CancelRequest without defining the required abstracted elements will throw an error.
-    Due to some complications with django and ABC, NotImplementedErrors are manually raised.
-
-    Required Attributes:
-        tool_name: Descriptive string name for the tool - used to identify the tool in the database.
-        task_model_name: Name of the model that represents your task - see models.Task for more information
-
-    """
-
-    def get(self, request, area_id):
-        """Get the user's request history using a user id and format a template
-
-        Requires a 'user_history' model that maps user ids to tasks - Tasks are listed for the
-        user then filtered for completion, errors, and area.
-
-        Args:
-            id: Area to get tasks for. Tasks are filtered by both user id and area id
-                so only tasks valid for the page are shown.
-
-        Returns:
-            A rendered html template containing an accordion of past tasks and
-            various metadatas. You should be able to load a result using a button on this page.
-        """
-
-        user_id = request.user.id
-        task_model_class = self._get_tool_model(self._get_task_model_name())
-        user_history = self._get_tool_model('userhistory').objects.filter(user_id=user_id)
-
-        query_history = task_model_class.get_queryset_from_history(user_history, complete=True).exclude(status="ERROR")
-
-        context = {'query_history': query_history}
-        return render(request, 'custom_mosaic_tool/query_history.html', context)
-
-
-class ResultList(View, ToolClass):
-    """Generate the content for the result list tab using a user id.
-
-    This is a GET only view, so only the get function is defined.
-
-    Abstract properties and methods are used to define the required attributes for an implementation.
-    Inheriting ResultList without defining the required abstracted elements will throw an error.
-    Due to some complications with django and ABC, NotImplementedErrors are manually raised.
-
-    Required Attributes:
-        tool_name: Descriptive string name for the tool - used to identify the tool in the database.
-        task_model_name: Name of the model that represents your task - see models.Task for more information
-        zipped_metadata_fields: list of metadata fields that exist as comma seperated lists that can be seperated and displayed
-    """
-
-    def get(self, request, area_id):
-        """Get the user's current request list using post data
-
-        Tasks are loaded by ids and rendered using an existing template
-
-        Args:
-            POST data: task_ids[] - a list of task ids to load for the panel.
-
-        Returns:
-            A rendered html template containing a list of tasks and associated metadata.
-        """
-
-        task_ids = request.GET.getlist('task_ids[]')
-        task_model_class = self._get_tool_model(self._get_task_model_name())
-        queries = task_model_class.objects.filter(pk__in=task_ids)
-
-        context = {'queries': queries}
-        return render(request, 'custom_mosaic_tool/results_list.html', context)
-
-
-class OutputList(View, ToolClass):
-    """Generate the content for the output list tab post data
-
-    This is a GET only view, so only the get function is defined.
-
-    Abstract properties and methods are used to define the required attributes for an implementation.
-    Inheriting OutputList without defining the required abstracted elements will throw an error.
-    Due to some complications with django and ABC, NotImplementedErrors are manually raised.
-
-    Required Attributes:
-        tool_name: Descriptive string name for the tool - used to identify the tool in the database.
-        task_model_name: Name of the model that represents your task - see models.Task for more information
-    """
-
-    def get(self, request, area_id):
-        """Get the user's currently loaded queries
-
-        Tasks are loaded by ids and rendered using an existing template
-
-        Args:
-            POST data: task_ids[] - a list of task ids to load for the panel.
-
-        Returns:
-            A rendered html template containing a list of tasks and associated metadata.
-        """
-
-        task_ids = request.GET.getlist('task_ids[]')
-        task_model_class = self._get_tool_model(self._get_task_model_name())
-        queries = task_model_class.objects.filter(pk__in=task_ids)
-
-        context = {'queries': queries}
-        return render(request, 'custom_mosaic_tool/output_list.html', context)

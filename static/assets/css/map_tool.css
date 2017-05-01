@@ -18,7 +18,7 @@ hr
     padding-bottom: 10px;
 }
 
-#running_queries
+#running_tasks
 {
     height: 225px;
     border: 1px solid coral;
@@ -27,15 +27,15 @@ hr
     overflow-y: auto;
 }
 
-#running_queries li {
+#running_tasks li {
   padding: 2px;
 }
 
-#running_queries li .progress {
+#running_tasks li .progress {
   margin-bottom: 0px;
 }
 
-#past_queries
+#past_tasks
 {
     height:775px;
     border: 1px solid coral;

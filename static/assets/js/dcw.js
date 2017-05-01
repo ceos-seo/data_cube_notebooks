@@ -25,12 +25,12 @@ under the License.
 "use strict";
 var tool_name = "";
 var csrftoken = null;
-var query_obj = {};
+var task_obj = {};
 
 // only messages being posted are to start tasks. Tasks are either new or from history.
 self.addEventListener("message", function(e) {
     tool_name = e.data.tool_name;
-    switch (e.data.msg) {
+    switch (e.data.status) {
         case "NEW":
             getNewResult(e);
             break;
@@ -47,34 +47,34 @@ self.addEventListener("message", function(e) {
 }, false);
 
 
-//Used to load a result using the query history box.
+//Used to load a result using the task history box.
 function getResultFromHistory(e) {
-    query_obj['id'] = e.data.id;
-    query_obj['title'] = e.data.title;
+    task_obj['id'] = e.data.id;
+    task_obj['title'] = e.data.title;
     csrftoken = e.data.csrf;
     postMessage({
-        'msg': "START",
-        'query': query_obj
+        'status': "START",
+        'task': task_obj
     });
-    checkQuery();
+    checktask();
 }
 
-//uses form data to generate a new query.
+//uses form data to generate a new task.
 function getNewResult(e) {
-    query_obj['query_data'] = e.data.form_data;
+    task_obj['task_data'] = e.data.form_data;
     csrftoken = e.data.csrf;
-    addNewQuery();
+    addNewtask();
 }
 
-//starts the query and sets the checkquery interval timer. Posts info used
+//starts the task and sets the checktask interval timer. Posts info used
 //to init a loading bar.
-function addNewQuery() {
+function addNewtask() {
     var request = new XMLHttpRequest();
     request.open("POST", '/' + tool_name + '/submit', false);
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);
-    request.send(query_obj['query_data']);
-    query_obj['id'] = -1;
+    request.send(task_obj['task_data']);
+    task_obj['id'] = -1;
     if (request.status != 200) {
         error("There was a problem submitting your task, please check your connection.");
         return;
@@ -87,17 +87,17 @@ function addNewQuery() {
                 error("There was a problem with your task, please try again.");
             return;
         }
-        query_obj['id'] = response.id;
-        query_obj['title'] = response.title;
+        task_obj['id'] = response.id;
+        task_obj['title'] = response.title;
         postMessage({
-            'msg': "START",
-            'query': query_obj
+            'status': "START",
+            'task': task_obj
         });
-        setTimeout(checkQuery, 3000);
+        setTimeout(checktask, 3000);
     }
 }
 
-//used to load a single scene from a query.
+//used to load a single scene from a task.
 function getSingleResult(e) {
     csrftoken = e.data.csrf;
 
@@ -120,21 +120,21 @@ function getSingleResult(e) {
                 error("There was a problem with your task, please try again.");
             return;
         }
-        query_obj['id'] = response.id;
-        query_obj['title'] = response.title;
+        task_obj['id'] = response.id;
+        task_obj['title'] = response.title;
         postMessage({
-            'msg': "START",
-            'query': query_obj
+            'status': "START",
+            'task': task_obj
         });
-        setTimeout(checkQuery, 3000);
+        setTimeout(checktask, 3000);
     }
 }
 
-//uses the query_obj values to check on the status of the submitted query.
+//uses the task_obj values to check on the status of the submitted task.
 // When waiting for a result, post messsages with progress updates.
-function checkQuery() {
+function checktask() {
     var request = new XMLHttpRequest();
-    var parameters = "?id=" + query_obj['id']
+    var parameters = "?id=" + task_obj['id']
     request.open("GET", '/' + tool_name + '/result' + parameters, false);
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);
@@ -155,15 +155,15 @@ function checkQuery() {
             if (response.progress) {
                 postMessage({
                     'status': "UPDATE",
-                    'id': query_obj['id'],
+                    'id': task_obj['id'],
                     'value': response.progress,
                 });
             }
-            setTimeout(checkQuery, 3000);
+            setTimeout(checktask, 3000);
         } else {
             //just pass in all the attributes from the result obj.
             for (var attr in response)
-                query_obj[attr] = response[attr];
+                task_obj[attr] = response[attr];
             postResult();
         }
     }
@@ -172,17 +172,17 @@ function checkQuery() {
 //just in case we want to do/add more to this in the future.
 function postResult() {
     postMessage({
-        'msg': "RESULT",
-        'query': query_obj
+        'status': "RESULT",
+        'task': task_obj
     });
     close();
 }
 
-function error(msg) {
+function error(message) {
     postMessage({
-        'msg': "ERROR",
-        'id': query_obj['id'],
-        'error_msg': msg
+        'status': "ERROR",
+        'id': task_obj['id'],
+        'message': message
     });
     close();
 }

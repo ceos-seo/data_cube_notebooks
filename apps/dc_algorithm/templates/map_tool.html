@@ -32,7 +32,7 @@
 {% endblock %}
 
 {% block javascript %}
-<!-- Jquery related.  -->
+<!-- jquery related.  -->
 
 <script src="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
 
@@ -44,10 +44,10 @@
 <script src="/static/assets/js/dcw.js"></script>
 
 <script>
-    //these have matching indices; worker[0] corresponds to query[0]
-    //holds the query objs and the workers used to generate them. Any time one is added/removed,
+    //these have matching indices; worker[0] corresponds to task[0]
+    //holds the task objs and the workers used to generate them. Any time one is added/removed,
     //it must also be done to the other.
-    var queries = {};
+    var tasks = {};
     var workers = {};
 
     //holds Cesium map instance and all functs.related to mapping.
@@ -84,16 +84,16 @@
 
         //Persistent tasks: generated here.
         if (typeof(Worker) !== undefined) {
-            {% for query in running_queries %}
+            {% for task in running_tasks %}
             var w = new Worker("/static/assets/js/dcw.js");
             w.postMessage({
                 'tool_name': window.tool_name,
-                'msg': "HISTORY",
-                "title": '{{ query.title }}',
-                'id': '{{ query.id }}',
+                'status': "HISTORY",
+                "title": '{{ task.title }}',
+                'id': '{{ task.id }}',
                 'csrf': csrftoken
             });
-            w.addEventListener("message", query_event_listener);
+            w.addEventListener("message", task_event_listener);
             {% endfor %}
         }
         //End persistent tasks.
@@ -214,16 +214,16 @@
                  "</div>" +
                  "</li>";
 
-        $("#running_queries").append(ih);
+        $("#running_tasks").append(ih);
 
         /*$("." + sanitize_id("progressbar_" + id)).progressbar({
             value: 0
         });*/
         $("#" + sanitize_id("cancel_" + id)).click(function() {
             workers[id].terminate();
-            if (queries[id] != null)
+            if (tasks[id] != null)
                 $.get('/' + window.tool_name + '/cancel', {
-                    'id': queries[id].id
+                    'id': tasks[id].id
                 }, function(result) {
                     //console.log(result);
                 });
@@ -259,8 +259,8 @@
 
     //handles the history panel: details view and loading.
     function loadHistoryPanel() {
-        $.get('query_history', function(result) {
-            $('#past_queries').html(result);
+        $.get('task_history', function(result) {
+            $('#past_tasks').html(result);
         })
     }
 
@@ -268,10 +268,10 @@
     //handles the results panel: task list, scenes list, meta.
     //.hasOwnProperty('result_path')
     function loadResultsPanel() {
-        var ids = Object.keys(queries);
+        var ids = Object.keys(tasks);
         var valid_ids = [];
         for (var index = 0; index < ids.length; index++) {
-            if (queries[ids[index]].hasOwnProperty('result_path')) {
+            if (tasks[ids[index]].hasOwnProperty('result_path')) {
                 valid_ids.push(ids[index]);
             }
         }
@@ -284,13 +284,13 @@
         })
     }
 
-    //loads the output panel by posting a list of queries and inserting
+    //loads the output panel by posting a list of tasks and inserting
     //the rendered response in its div.
     function loadOutputPanel() {
-        var ids = Object.keys(queries);
+        var ids = Object.keys(tasks);
         var valid_ids = [];
         for (var index = 0; index < ids.length; index++) {
-            if (queries[ids[index]].hasOwnProperty('result_path')) {
+            if (tasks[ids[index]].hasOwnProperty('result_path')) {
                 valid_ids.push(ids[index]);
             }
         }
@@ -304,8 +304,8 @@
     var selected_result = undefined;
     //Required for the use of the results list module.
     function set_selected_result(id) {
-        //$('#query_result_temp').attr("src", queries[id].result_path);
-        //map.insert_image_with_bounds(id, queries[id].result_path, queries[id].latitude[0], queries[id].latitude[1], queries[id].longitude[0], queries[id].longitude[1]);
+        //$('#task_result_temp').attr("src", tasks[id].result_path);
+        //map.insert_image_with_bounds(id, tasks[id].result_path, tasks[id].latitude[0], tasks[id].latitude[1], tasks[id].longitude[0], tasks[id].longitude[1]);
         if (selected_result == id) {
             map.zoom_to_image_by_id(id);
             return;
@@ -314,21 +314,21 @@
         selected_result = id;
         map.toggle_outline_by_id(id, true);
         map.zoom_to_image_by_id(id);
-        $("#static-map-img").attr("src", queries[id].result_path);
+        $("#static-map-img").attr("src", tasks[id].result_path);
     }
 
-    //adds a query to the map by its id. if boolean filled is true, use the filled version.
+    //adds a task to the map by its id. if boolean filled is true, use the filled version.
     function add_result_to_map(id, result_path) {
         $("#static-map-img").attr("src", result_path);
-        map.insert_image_with_bounds(id, result_path, queries[id].latitude_min, queries[id].latitude_max, queries[id].longitude_min, queries[id].longitude_max);
+        map.insert_image_with_bounds(id, result_path, tasks[id].latitude_min, tasks[id].latitude_max, tasks[id].longitude_min, tasks[id].longitude_max);
     }
 
-    //removes a result from the map and modifies the queries and workers variables.
+    //removes a result from the map and modifies the tasks and workers variables.
     //refreshes all relevant panels.
     function remove_result(id) {
-        if (queries[id] != undefined)
-            map.remove_image_by_id(queries[id].id);
-        delete queries[id];
+        if (tasks[id] != undefined)
+            map.remove_image_by_id(tasks[id].id);
+        delete tasks[id];
         delete workers[id];
         $("#static-map-img").attr("src", '{{ area.detail_imagery }}');
         loadResultsPanel();
@@ -337,33 +337,33 @@
 
     //uses the mapping scripts to hide or show results on the map. val is optional
     function toggle_visibility(id, val) {
-        //if(selected_result == queries[id].id)
-        //map.toggle_outline_by_id(queries[id].id, false);
-        //map.toggle_outline_by_id(queries[id].id);
-        map.toggle_visibility_by_id(queries[id].id, val);
+        //if(selected_result == tasks[id].id)
+        //map.toggle_outline_by_id(tasks[id].id, false);
+        //map.toggle_outline_by_id(tasks[id].id);
+        map.toggle_visibility_by_id(tasks[id].id, val);
     }
     //End require
 
     //handles the messages posted by any number of workers responsible for
     //monitoring task progress.
-    function query_event_listener(event) {
+    function task_event_listener(event) {
         data = event.data;
-        switch (data.msg) {
+        switch (data.status) {
             case "START":
-                //this safegaurds against the submission of multiple identical queries, as their ids must be unique
+                //this safegaurds against the submission of multiple identical tasks, as their ids must be unique
                 //for use in the cesium stuff.
-                if (queries[data.query.id] != undefined) {
+                if (tasks[data.task.id] != undefined) {
                     event.target.terminate();
                     return;
                 }
-                queries[data.query.id] = data.query;
-                workers[data.query.id] = event.target;
-                add_task_bar(data.query.id, data.query.title);
+                tasks[data.task.id] = data.task;
+                workers[data.task.id] = event.target;
+                add_task_bar(data.task.id, data.task.title);
                 break;
             case "RESULT":
-                queries[data.query.id] = data.query;
-                remove_task_bar(data.query.id);
-                add_result_to_map(data.query.id, data.query.result_path);
+                tasks[data.task.id] = data.task;
+                remove_task_bar(data.task.id);
+                add_result_to_map(data.task.id, data.task.result_path);
                 loadHistoryPanel();
                 loadResultsPanel();
                 loadOutputPanel();
@@ -373,11 +373,11 @@
                 break;
             case "ERROR":
             default:
-                if (queries[data.id] != undefined) {
+                if (tasks[data.id] != undefined) {
                     remove_task_bar(data.id);
                 }
                 remove_result(data.id);
-                alert(data.error_msg);
+                alert(data.message);
         }
     }
 
@@ -408,7 +408,7 @@
         }*/
 
         if (values['latitude_max'] == "" || values['latitude_min'] == "" || values['longitude_max'] == "" || values['longitude_min'] == "" || values['time_start'] == "" || values['time_end'] == "") {
-            alert('Please fill out all query parameters')
+            alert('Please fill out all task parameters')
             return;
         }
         var start = new Date(values['time_start']);
@@ -434,18 +434,18 @@
           save_options();
           w.postMessage({
               'tool_name': window.tool_name,
-              'msg': "NEW",
+              'status': "NEW",
               'form_data': request,
               'csrf': csrftoken
           });
-          //queries[queries.length] = null;
-          w.addEventListener("message", query_event_listener);
+          //tasks[tasks.length] = null;
+          w.addEventListener("message", task_event_listener);
       } else {
           alert("This browser does not support webworkers.");
       }
     }
 
-    //end query monitoring
+    //end task monitoring
     function save_options() {
       title = jQuery("#additional_options_title").val();
       description = jQuery("#additional_options_description").val();
@@ -517,9 +517,9 @@
                     </form>
                     {% endfor %}
                     <div class="fieldSet">
-                        <h3>Running Queries</h3>
+                        <h3>Running tasks</h3>
                         <div class='boxed_list'>
-                            <ul id='running_queries' class='alternating'>
+                            <ul id='running_tasks' class='alternating'>
 
                             </ul>
                         </div>
@@ -528,7 +528,7 @@
                 <div id="history-panel" class="tab-pane fade">
                     <h2>Task History</h2>
                     <hr>
-                    <div id='past_queries' class="boxed_list">
+                    <div id='past_tasks' class="boxed_list">
 
                     </div>
                 </div>

@@ -30,43 +30,43 @@ under the License.
   <tbody>
     <tr>
       <td>Time Submitted: </td>
-      <td class="right_aligned_text">{{ query.execution_start|date:"m/d/Y H:i" }}</td>
+      <td class="right_aligned_text">{{ task.execution_start|date:"m/d/Y H:i" }}</td>
     </tr>
     <tr>
       <td>Time Finished: </td>
-      <td class="right_aligned_text">{{ query.execution_end|date:"m/d/Y H:i" }}</td>
+      <td class="right_aligned_text">{{ task.execution_end|date:"m/d/Y H:i" }}</td>
     </tr>
     <tr>
       <td>Scene Count:</td>
-      <td class="right_aligned_text">{{ query.scene_count }}</td>
+      <td class="right_aligned_text">{{ task.scene_count }}</td>
     </tr>
     <tr>
       <td>Total Pixel Count:</td>
-      <td class="right_aligned_text">{{ query.pixel_count }}</td>
+      <td class="right_aligned_text">{{ task.pixel_count }}</td>
     </tr>
     <tr>
       <td>Clean Pixel Count:</td>
-      <td class="right_aligned_text">{{ query.clean_pixel_count }}</td>
+      <td class="right_aligned_text">{{ task.clean_pixel_count }}</td>
     </tr>
     <tr>
       <td>Clean Pixel Percentage:</td>
-      <td class="right_aligned_text">{{ query.percentage_clean_pixels|floatformat:2 }}%</td>
+      <td class="right_aligned_text">{{ task.percentage_clean_pixels|floatformat:2 }}%</td>
     </tr>
     <tr>
       <td>Latitude Range: </td>
-      <td class="right_aligned_text">({{ query.latitude_min }}, {{ query.latitude_max }})</td>
+      <td class="right_aligned_text">({{ task.latitude_min }}, {{ task.latitude_max }})</td>
     </tr>
     <tr>
       <td>Longitude Range: </td>
-      <td class="right_aligned_text">({{ query.longitude_min }}, {{ query.longitude_max }})</td>
+      <td class="right_aligned_text">({{ task.longitude_min }}, {{ task.longitude_max }})</td>
     </tr>
     <tr>
       <td>Time Range: </td>
-      <td class="right_aligned_text">({{ query.time_start|date:"m/d/Y" }}, {{ query.time_end|date:"m/d/Y" }})</td>
+      <td class="right_aligned_text">({{ task.time_start|date:"m/d/Y" }}, {{ task.time_end|date:"m/d/Y" }})</td>
     </tr>
     <tr>
       <td>Compositing Method:</td>
-      <td class="right_aligned_text">{{ query.compositor }}</td>
+      <td class="right_aligned_text">{{ task.compositor }}</td>
     </tr>
   </tbody>
 </table>

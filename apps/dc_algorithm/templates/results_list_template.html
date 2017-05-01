@@ -30,22 +30,22 @@ under the License.
 {% endblock %}
 
 <div id="task_list" class="boxed_list panel-group">
-  {% for query in queries %}
+  {% for task in tasks %}
     <div class="panel panel-default">
       <div class="panel-heading">
         <h4 class="panel-title">
-          <a data-toggle="collapse" data-parent="#task_list" href="#completed_{{ forloop.counter0 }}" onmousedown="resultClicked('{{ query.id }}')">
-          {{ query.title }}  : Submitted {{ query.execution_start|date:"m/d/Y H:i" }}</a>
+          <a data-toggle="collapse" data-parent="#task_list" href="#completed_{{ forloop.counter0 }}" onmousedown="resultClicked('{{ task.id }}')">
+          {{ task.title }}  : Submitted {{ task.execution_start|date:"m/d/Y H:i" }}</a>
         </h4>
       </div>
       <div id="completed_{{ forloop.counter0 }}" class="panel-collapse collapse">
         <div class="panel-body">
-          {% block query_table_rows %}
+          {% block task_table_rows %}
 
           {% endblock %}
-          <!--button id="load{{forloop.counter0}}" class="btn btn-default pull-right" type="button" onclick="add_result_from_history('{{ query.id }}', '{{ query.title }}');">Load this result</button-->
-          <button class="btn btn-default pull-right" type="button" onclick="remove_result('{{ query.id }}');">Delete</button>
-          <button class="btn btn-default pull-right" type="button" onclick="toggle_visibility('{{ query.id }}');">Show/Hide</button>
+          <!--button id="load{{forloop.counter0}}" class="btn btn-default pull-right" type="button" onclick="add_result_from_history('{{ task.id }}', '{{ task.title }}');">Load this result</button-->
+          <button class="btn btn-default pull-right" type="button" onclick="remove_result('{{ task.id }}');">Delete</button>
+          <button class="btn btn-default pull-right" type="button" onclick="toggle_visibility('{{ task.id }}');">Show/Hide</button>
         </div>
       </div>
     </div>
@@ -54,7 +54,7 @@ under the License.
 <h2>Acquisitions List</h2>
 <hr>
 <div id='scenes_list' class="boxed_list">
-  {% for query in queries %}
+  {% for task in tasks %}
     <!-- Creates a block of metadata from each metadata entry.  -->
     {% block metadata_dl_block %}
     {% endblock %}
@@ -62,8 +62,8 @@ under the License.
 </div>
 <h2>Task Metadata</h2>
 <hr>
-<div id='query_metadata' class="boxed_list spaced_details standalone_table">
-  {% for query in queries %}
+<div id='task_metadata' class="boxed_list spaced_details standalone_table">
+  {% for task in tasks %}
     <!-- Contains a series of <tr></tr> elements that use the meta django tags. -->
     {% block meta_table_rows %}
     {% endblock %}
@@ -87,20 +87,20 @@ under the License.
       $('#' + sanitize_id('meta_' + id)).show();
   }
 
-  function load_scene_from_query(id, date) {
-    //hide the current query, add the new single scene query.
+  function load_scene_from_task(id, date) {
+    //hide the current task, add the new single scene task.
     toggle_visibility(id, false);
     if (typeof(Worker) !== undefined) {
         var w = new Worker("/static/assets/js/dcw.js");
         w.postMessage({
             'tool_name': window.tool_name,
-            'msg' : "SINGLE",
-            'result_type': "Single Scene Query",
+            'status' : "SINGLE",
+            'result_type': "Single Scene task",
             'id': id,
             'date': date,
             'csrf': csrftoken
         });
-        w.addEventListener("message", query_event_listener);
+        w.addEventListener("message", task_event_listener);
         $('#tabs_main li:eq(0) a').tab('show')
     } else {
         alert("This browser does not support webworkers.");

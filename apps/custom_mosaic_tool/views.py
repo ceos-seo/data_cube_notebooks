@@ -38,7 +38,7 @@ from .tasks import create_cloudfree_mosaic
 from collections import OrderedDict
 
 from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, GetTaskResult, SubmitNewSubsetRequest, CancelRequest,
-                                     QueryHistory, ResultList, OutputList, RegionSelection)
+                                     UserHistory, ResultList, OutputList, RegionSelection)
 
 
 class RegionSelection(RegionSelection):
@@ -147,7 +147,7 @@ class CancelRequest(CancelRequest):
     task_model_name = 'CustomMosaicTask'
 
 
-class QueryHistory(QueryHistory):
+class UserHistory(UserHistory):
     """
     Generate a template used to display the user's history
     Extends the QueryHistory abstract class, required attributes are the tool

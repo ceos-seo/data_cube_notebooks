@@ -24,3 +24,4 @@ from . import models
 
 admin.site.register(models.CustomMosaicTask)
 admin.site.register(models.ResultType)
+admin.site.register(models.UserHistory)

@@ -28,12 +28,12 @@ under the License.
 {% endblock %}
 
 <div id="output_list" class="boxed_list panel-group">
-  {% for query in queries %}
+  {% for task in tasks %}
     <div class="panel panel-default">
       <div class="panel-heading">
         <h4 class="panel-title">
-          <a data-toggle="collapse" data-parent="#output_list" href="#output_{{ forloop.counter0 }}" onmousedown="outputClicked('{{ query.id }}')">
-          {{ query.title }}  : Submitted {{ query.execution_start|date:"m/d/Y H:i" }}</a>
+          <a data-toggle="collapse" data-parent="#output_list" href="#output_{{ forloop.counter0 }}" onmousedown="outputClicked('{{ task.id }}')">
+          {{ task.title }}  : Submitted {{ task.execution_start|date:"m/d/Y H:i" }}</a>
         </h4>
       </div>
       <div id="output_{{ forloop.counter0 }}" class="panel-collapse collapse">
@@ -93,9 +93,9 @@ under the License.
 
   function set_dl_url() {
       dl_link = "";
-      if(queries[selected_output]){
-        dl_link += queries[selected_output][$('#download_sel').val()];
-        if($('#download_sel').val() == "animation_path" && queries[selected_output].animation_path == "None")
+      if(tasks[selected_output]){
+        dl_link += tasks[selected_output][$('#download_sel').val()];
+        if($('#download_sel').val() == "animation_path" && tasks[selected_output].animation_path == "None")
           return;
         //window.open(dl_link, '_blank');
         $("#output_list_download_button").attr("href", dl_link);
