@@ -99,13 +99,13 @@
         //End persistent tasks.
         //start dynamically generated form customization
         {% for satellite in satellites %}
-          //$("#{{ satellite.satellite_id }}_band_selection_ms").css('float', 'right');
-          $("#{{ satellite.satellite_id }}_band_selection_ms").css('width', '100%');
+          //$("#{{ satellite.datacube_platform }}_band_selection_ms").css('float', 'right');
+          $("#{{ satellite.datacube_platform }}_band_selection_ms").css('width', '100%');
           //jquery to set the end date equal to the start date when its changed.
-          $("#{{ satellite.satellite_id }}_time_start").on("input change", function(e) {
-              date = $("#{{ satellite.satellite_id }}_time_start").datepicker('getDate');
+          $("#{{ satellite.datacube_platform }}_time_start").on("input change", function(e) {
+              date = $("#{{ satellite.datacube_platform }}_time_start").datepicker('getDate');
               date.setFullYear(date.getFullYear() + 1);
-              $("#{{ satellite.satellite_id }}_time_end").datepicker('setDate', date);
+              $("#{{ satellite.datacube_platform }}_time_end").datepicker('setDate', date);
           })
         {% endfor %}
         //end customization
@@ -129,33 +129,33 @@
         var max_lon_ids = [];
 
         {% for satellite in satellites %}
-          min_lat_ids.push("{{ satellite.satellite_id }}_latitude_min");
-          max_lat_ids.push("{{ satellite.satellite_id }}_latitude_max");
-          min_lon_ids.push("{{ satellite.satellite_id }}_longitude_min");
-          max_lon_ids.push("{{ satellite.satellite_id }}_longitude_max");
+          min_lat_ids.push("{{ satellite.datacube_platform }}_latitude_min");
+          max_lat_ids.push("{{ satellite.datacube_platform }}_latitude_max");
+          min_lon_ids.push("{{ satellite.datacube_platform }}_longitude_min");
+          max_lon_ids.push("{{ satellite.datacube_platform }}_longitude_max");
         {% endfor %}
         //container id, min lat, max lat, min lon, max lon
         map = new DrawMap("map-cesium", min_lat_ids, max_lat_ids, min_lon_ids, max_lon_ids);
 
         //sets up the onchange, limits based on window._{{limits}}
         {% for satellite in satellites %}
-          $("#{{ satellite.satellite_id }}_latitude_min, #{{ satellite.satellite_id }}_latitude_max, #{{ satellite.satellite_id }}_longitude_min, #{{ satellite.satellite_id }}_longitude_max").change(function() {
-              map.bounding_box_from_form($("#{{ satellite.satellite_id }}_latitude_min").val(), $("#{{ satellite.satellite_id }}_latitude_max").val(), $("#{{ satellite.satellite_id }}_longitude_min").val(), $(
-                  "#{{ satellite.satellite_id }}_longitude_max").val());
+          $("#{{ satellite.datacube_platform }}_latitude_min, #{{ satellite.datacube_platform }}_latitude_max, #{{ satellite.datacube_platform }}_longitude_min, #{{ satellite.datacube_platform }}_longitude_max").change(function() {
+              map.bounding_box_from_form($("#{{ satellite.datacube_platform }}_latitude_min").val(), $("#{{ satellite.datacube_platform }}_latitude_max").val(), $("#{{ satellite.datacube_platform }}_longitude_min").val(), $(
+                  "#{{ satellite.datacube_platform }}_longitude_max").val());
           });
-          $("#{{ satellite.satellite_id }}_latitude_min").attr({
+          $("#{{ satellite.datacube_platform }}_latitude_min").attr({
               "min": window._MIN_LAT_DATA_BOUNDS_,
               "max": window._MAX_LAT_DATA_BOUNDS_
           });
-          $("#{{ satellite.satellite_id }}_latitude_max").attr({
+          $("#{{ satellite.datacube_platform }}_latitude_max").attr({
               "min": window._MIN_LAT_DATA_BOUNDS_,
               "max": window._MAX_LAT_DATA_BOUNDS_
           });
-          $("#{{ satellite.satellite_id }}_longitude_min").attr({
+          $("#{{ satellite.datacube_platform }}_longitude_min").attr({
               "min": window._MIN_LON_DATA_BOUNDS_,
               "max": window._MAX_LON_DATA_BOUNDS_
           });
-          $("#{{ satellite.satellite_id }}_longitude_max").attr({
+          $("#{{ satellite.datacube_platform }}_longitude_max").attr({
               "min": window._MIN_LON_DATA_BOUNDS_,
               "max": window._MAX_LON_DATA_BOUNDS_
           });
@@ -254,7 +254,7 @@
 
     function update_hidden_fields(platform) {
       $(".hidden_form_platform").val(platform)
-      $(".hidden_form_area_id").val("{{ area.area_id }}")
+      $(".hidden_form_id").val("{{ area.id }}")
     }
 
     //handles the history panel: details view and loading.
@@ -424,7 +424,7 @@
     }
 
     function process_form(form) {
-      request = $(form).serialize()// + "&platform=" + $('#platform_sel').val() + "&area_id={{ area.area_id }}";
+      request = $(form).serialize()// + "&platform=" + $('#platform_sel').val() + "&id={{ area.id }}";
       //console.log(request)
       //worker init w/ the serialized data.
       if (typeof(Worker) !== undefined) {
@@ -479,7 +479,7 @@
                     <label for="platform_sel">Satellite</label>
                     <select class="form-control" id="platform_sel" name="platform_sel" tabindex="1" data-native-menu="false" onchange="refreshPanel();">
                         {% for satellite in satellites %}
-                        <option value="{{ satellite.satellite_id }}">{{satellite.satellite_name}}</option>
+                        <option value="{{ satellite.datacube_platform }}">{{satellite.name}}</option>
                         {% endfor %}
                     </select>
                     {% for satellite, form_collection in forms.items %}

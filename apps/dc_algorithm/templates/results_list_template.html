@@ -35,7 +35,7 @@ under the License.
       <div class="panel-heading">
         <h4 class="panel-title">
           <a data-toggle="collapse" data-parent="#task_list" href="#completed_{{ forloop.counter0 }}" onmousedown="resultClicked('{{ query.id }}')">
-          {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y H:i" }}</a>
+          {{ query.title }}  : Submitted {{ query.execution_start|date:"m/d/Y H:i" }}</a>
         </h4>
       </div>
       <div id="completed_{{ forloop.counter0 }}" class="panel-collapse collapse">

@@ -29,6 +29,7 @@ from . import views
 # Last modified date:
 
 urlpatterns = [
+    url(r'^region_selection', views.RegionSelection.as_view(), name='region_selection'),
     url(r'^submit$', views.SubmitNewRequest.as_view(), name='submit_new_request'),
     url(r'^submit_single$', views.SubmitNewSubsetRequest.as_view(), name='submit_new_single_request'),
     url(r'^cancel$', views.CancelRequest.as_view(), name='cancel_request'),

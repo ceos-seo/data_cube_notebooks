@@ -117,7 +117,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'data_cube_ui.context_processors.apps',
+                'apps.dc_algorithm.context_processors.apps',
             ],
         },
     },

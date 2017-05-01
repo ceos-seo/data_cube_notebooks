@@ -57,7 +57,7 @@ class DataSelectForm(forms.Form):
 
     compositor = forms.ModelChoiceField(
         queryset=None,
-        to_field_name="compositor_id",
+        to_field_name="id",
         empty_label=None,
         help_text='Select the method by which the "best" pixel will be chosen.',
         label="Compositing Method:",
@@ -65,18 +65,18 @@ class DataSelectForm(forms.Form):
 
     animated_product = forms.ModelChoiceField(
         queryset=None,
-        to_field_name="type_id",
+        to_field_name="id",
         empty_label=None,
         help_text='Generate a .gif containing either scene data or the cumulative mosaic over time. This is not compatible with median pixel mosaics.',
         label='Generate Time Series Animation',
         widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
     def __init__(self, *args, **kwargs):
-        satellite_id = kwargs.pop('satellite_id', None)
+        datacube_platform = kwargs.pop('datacube_platform', None)
         super(DataSelectForm, self).__init__(*args, **kwargs)
-        self.fields["query_type"].queryset = ResultType.objects.filter(satellite_id=satellite_id
-                                                                       if satellite_id is not None else
+        self.fields["query_type"].queryset = ResultType.objects.filter(datacube_platform=datacube_platform
+                                                                       if datacube_platform is not None else
                                                                        args[0].get('platform'))
         self.fields["compositor"].queryset = Compositor.objects.all()
         self.fields["animated_product"].queryset = AnimationType.objects.filter(
-            app_name__in=["custom_mosaic_tool", "all"]).order_by('app_name', 'type_id')
+            app_name__in=["custom_mosaic_tool", "all"]).order_by('app_name', 'id')

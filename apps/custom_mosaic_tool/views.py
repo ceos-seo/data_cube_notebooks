@@ -30,7 +30,7 @@ import json
 from datetime import datetime, timedelta
 
 from .models import ResultType, Result, Query, Metadata
-from data_cube_ui.models import Satellite, Area, Application
+from apps.dc_algorithm.models import Satellite, Area, Application
 from apps.dc_algorithm.forms import DataSelectionForm
 from .forms import DataSelectForm
 from .tasks import create_cloudfree_mosaic
@@ -38,7 +38,18 @@ from .tasks import create_cloudfree_mosaic
 from collections import OrderedDict
 
 from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, GetTaskResult, SubmitNewSubsetRequest, CancelRequest,
-                                     QueryHistory, ResultList, OutputList)
+                                     QueryHistory, ResultList, OutputList, RegionSelection)
+
+
+class RegionSelection(RegionSelection):
+    """Creates the region selection page for the tool by extending the RegionSelection class
+
+    Extends the RegionSelection abstract class - tool_name is the only required parameter -
+    all other parameters are provided by the context processor.
+
+    See the dc_algorithm.views docstring for more information
+    """
+    tool_name = 'custom_mosaic_tool'
 
 
 class CustomMosaicTool(ToolView):
@@ -56,12 +67,15 @@ class CustomMosaicTool(ToolView):
     def generate_form_dict(self, satellites):
         forms = {}
         for satellite in satellites:
-            forms[satellite.satellite_id] = {
+            forms[satellite.datacube_platform] = {
                 'Data Selection':
-                DataSelectForm(satellite_id=satellite.satellite_id, auto_id=satellite.satellite_id + "_%s"),
+                DataSelectForm(
+                    datacube_platform=satellite.datacube_platform, auto_id=satellite.datacube_platform + "_%s"),
                 'Geospatial Bounds':
                 DataSelectionForm(
-                    time_start=satellite.date_min, time_end=satellite.date_max, auto_id=satellite.satellite_id + "_%s")
+                    time_start=satellite.date_min,
+                    time_end=satellite.date_max,
+                    auto_id=satellite.datacube_platform + "_%s")
             }
         return forms
 

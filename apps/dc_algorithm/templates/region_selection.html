@@ -53,13 +53,13 @@
   <img src="/static/assets/images/compass.png" alt="" class="compass">
   {% for area in areas %}
   <div class="col-lg-3">
-    <a id="{{ area.area_name }}" href="/{{ app }}/{{ area.area_id }}" class="area_label">
+    <a id="{{ area.name }}" href="/{{ app }}/{{ area.id }}" class="area_label">
       <img src="{{ area.thumbnail_imagery }}" alt="" class="img-reponsive img-circle">
       <div class="text_div large visible-lg ">
-        {{ area.area_name }}
+        {{ area.name }}
       </div>
       <div class="text_div visible-md visible-sm visible-xs">
-        {{ area.area_name }}
+        {{ area.name }}
       </div>
     </a>
   </div>

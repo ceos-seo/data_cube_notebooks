@@ -21,5 +21,8 @@
 
 from .models import Area, Application
 
+
 def apps(request):
-    return {'apps' : Application.objects.all().order_by('application_name'),}
+    return {
+        'apps': Application.objects.all().order_by('name'),
+    }

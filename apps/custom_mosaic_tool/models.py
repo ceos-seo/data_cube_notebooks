@@ -88,8 +88,7 @@ class Query(BaseQuery):
         """
         query_data = form_data
         query_data['product'] = Satellite.objects.get(
-            satellite_id=query_data['platform']).product_prefix + Area.objects.get(
-                area_id=query_data['area_id']).area_id
+            datacube_platform=query_data['platform']).product_prefix + Area.objects.get(id=query_data['area_id']).id
         query_data['title'] = "Custom Mosaic Query" if 'title' not in form_data or form_data[
             'title'] == '' else form_data['title']
         query_data['description'] = "None" if 'description' not in form_data or form_data[
@@ -111,7 +110,7 @@ class Metadata(BaseMetadata):
     """
     Extends base metadata, adding additional fields and adding abstract=True.
 
-    zipped_metadata_fields is required. 
+    zipped_metadata_fields is required.
 
     See the dc_algorithm.Metadata docstring for more information
     """

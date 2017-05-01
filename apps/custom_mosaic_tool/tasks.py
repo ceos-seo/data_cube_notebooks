@@ -171,20 +171,20 @@ def create_cloudfree_mosaic(id_, *args, **kwargs):
         if len(acquisitions) < 1:
             return
 
-        processing_options = processing_algorithms[query.compositor.compositor_id]
+        processing_options = processing_algorithms[query.compositor.id]
 
         #if its a single scene, load it all at once to prevent errors.
         if kwargs.get('single', False):
             processing_options['time_chunks'] = None
             processing_options['time_slices_per_iteration'] = None
 
-        if query.animated_product.type_id != "None":
+        if query.animated_product.id != "None":
             processing_options["time_slices_per_iteration"] = 1
 
-        if query.animated_product.type_id != "None" and query.compositor.compositor_id == "median_pixel":
+        if query.animated_product.id != "None" and query.compositor.id == "median_pixel":
             return
 
-        if query.compositor.compositor_id == "median_pixel" and (query.time_end.year - query.time_start.year) > 1:
+        if query.compositor.id == "median_pixel" and (query.time_end.year - query.time_start.year) > 1:
             return
 
         # Reversed time = True will make it so most recent = First, oldest = Last.
@@ -258,7 +258,7 @@ def create_cloudfree_mosaic(id_, *args, **kwargs):
             dataset = xr.concat(reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
 
             # combine all the intermediate products for the animation creation.
-            if query.animated_product.type_id != "None":
+            if query.animated_product.id != "None":
                 print("Num of slices in this chunk: " + str(len(time_ranges[time_range_index])))
                 for timeslice in range(len(time_ranges[time_range_index])):
                     query.refresh_from_db()
@@ -278,7 +278,7 @@ def create_cloudfree_mosaic(id_, *args, **kwargs):
                         reversed([xr.open_dataset(nc_path) for nc_path in nc_paths]), dim='latitude').load()
 
                     #combine the timeslice vals with the intermediate for the true value @ that timeslice
-                    if time_range_index > 0 and query.animated_product.type_id != "scene":
+                    if time_range_index > 0 and query.animated_product.id != "scene":
                         animated_data = processing_options['chunk_combination_method'](animated_data, dataset_out)
 
                     tif_path = base_temp_path + str(query.id) + '/' + \
@@ -363,11 +363,11 @@ def create_cloudfree_mosaic(id_, *args, **kwargs):
         animation_path = file_path + "_mosaic_animation.gif"
 
         print("Creating query results.")
-        if query.animated_product.type_id != "None":
+        if query.animated_product.id != "None":
             import imageio
             with imageio.get_writer(file_path + '_mosaic_animation.gif', mode='I', duration=1.0) as writer:
                 time_slices = reversed(range(len(acquisitions))) if processing_options[
-                    'reverse_time'] and query.animated_product.type_id == "scene" else range(len(acquisitions))
+                    'reverse_time'] and query.animated_product.id == "scene" else range(len(acquisitions))
                 for index in time_slices:
                     image = imageio.imread(base_temp_path + str(query.id) + '/' + str(index) + '.png')
                     writer.append_data(image)
@@ -412,7 +412,7 @@ def create_cloudfree_mosaic(id_, *args, **kwargs):
         print("Finished processing results")
         # all data has been processed, create results and finish up.
         query.complete = True
-        query.query_end = datetime.datetime.now()
+        query.execution_end = datetime.datetime.now()
         query.save()
     except:
         raise
@@ -514,9 +514,9 @@ def generate_mosaic_chunk(time_num,
             # create the files requied for animation..
             # if the dir doesn't exist, create it, then fill with a .png/.tif
             # from the scene data.
-            if query.animated_product.type_id != "None":
+            if query.animated_product.id != "None":
                 animated_data = raw_data.isel(time=timeslice).drop("time").astype("int16").copy(
-                    deep=True) if query.animated_product.type_id == "scene" else iteration_data.copy(deep=True)
+                    deep=True) if query.animated_product.id == "scene" else iteration_data.copy(deep=True)
                 animated_data.attrs = OrderedDict()
                 #if the path has been removed, the task is cancelled and this is only running due to the prefetch.
                 if not os.path.exists(base_temp_path + str(query.id)):

@@ -33,7 +33,7 @@ under the License.
       <div class="panel-heading">
         <h4 class="panel-title">
           <a data-toggle="collapse" data-parent="#output_list" href="#output_{{ forloop.counter0 }}" onmousedown="outputClicked('{{ query.id }}')">
-          {{ query.title }}  : Submitted {{ query.query_start|date:"m/d/Y H:i" }}</a>
+          {{ query.title }}  : Submitted {{ query.execution_start|date:"m/d/Y H:i" }}</a>
         </h4>
       </div>
       <div id="output_{{ forloop.counter0 }}" class="panel-collapse collapse">

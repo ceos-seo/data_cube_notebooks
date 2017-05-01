@@ -35,6 +35,7 @@ import smtplib
 from .forms import SubmitFeedbackForm
 from .models import Application, ToolInfo
 
+
 def home(request):
     """
     Navigates to the home page of the application.
@@ -46,22 +47,9 @@ def home(request):
     :template:`home/index.html`
     """
 
-    context = {
-
-    }
+    context = {}
     return render(request, 'index.html', context)
 
-@login_required
-def region_selection(request, app_id):
-    application = Application.objects.get(application_id=app_id)
-    tool_info = application.toolinfo_set.all().order_by('id')
-    areas = application.areas.all()
-    context = {
-        'app': app_id,
-        'tool_descriptions': tool_info,
-        'areas': areas
-    }
-    return render(request, 'map_tool/region_selection.html', context)
 
 @login_required
 def submit_feedback(request):
@@ -82,11 +70,11 @@ def submit_feedback(request):
         form.cleaned_data = {}
         form.add_error(NON_FIELD_ERRORS, 'Feedback was successfuly submitted.  Thank you for your comments')
 
-        context = {'title': "Feedback", 'form':form, 'wide':True}
+        context = {'title': "Feedback", 'form': form, 'wide': True}
         return render(request, 'submit_feedback.html', context)
 
     else:
-        context = {'title': "Feedback", 'form': SubmitFeedbackForm(), 'wide':True}
+        context = {'title': "Feedback", 'form': SubmitFeedbackForm(), 'wide': True}
         if request.GET:
             next = request.GET.get('next', "/")
             if request.user.is_authenticated():

@@ -126,7 +126,7 @@ class ToolView(View, ToolClass):
         Generates forms for each of the satellites to be displayed and lists running queries.
 
         Args:
-            area_id: Area.area_id corresponding to the requested area.
+            id: Area.id corresponding to the requested area.
 
         Context:
             tool_name: tool name used to identify this app - used to form urls
@@ -142,8 +142,9 @@ class ToolView(View, ToolClass):
 
         user_id = request.user.id
         tool_name = self._get_tool_name()
-        area = Area.objects.get(area_id=area_id)
-        app = Application.objects.get(application_id=tool_name)
+
+        area = Area.objects.get(id=area_id)
+        app = Application.objects.get(id=tool_name)
         satellites = area.satellites.all() & app.satellites.all()
 
         forms = self.generate_form_dict(satellites)
@@ -170,11 +171,11 @@ class ToolView(View, ToolClass):
         Forms are generated for each satellite and dynamically hidden and shown by the UI.
         dictionary should be in the format of:
         {
-        satellite.satellite_id: {
+        satellite.datacube_platform: {
             'Section title': form(),
             'Section title': form() ...
             }
-        satellite.satellite_id: {
+        satellite.datacube_platform: {
             'Section title': form(),
             'Section title': form() ...
             }
@@ -195,14 +196,51 @@ class ToolView(View, ToolClass):
         """
         forms = {}
         for satellite in satellites:
-            forms[satellite.satellite_id] = {
-                'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s")
+            forms[satellite.datacube_platform] = {
+                'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.datacube_platform + "_%s")
             }
         return forms
         """
         raise NotImplementedError(
             "You must define a generate_form_dict(satellites) function in child classes of ToolInfo. See the ToolInfo.generate_form_dict docstring for more details."
         )
+
+
+class RegionSelection(View, ToolClass):
+    """Region selection view responsible for displaying the available areas for the application
+
+    Abstract properties and methods are used to define the required attributes for an implementation.
+    Inheriting the toolview without defining the required abstracted elements will throw an error.
+    Due to some complications with django and ABC, NotImplementedErrors are manually raised.
+
+    Required Attributes:
+        tool_name: Descriptive string name for the tool - used to identify the tool in the database.
+
+    """
+
+    tool_name = None
+
+    def get(self, request):
+        """
+        Using the tool_name property, get the application by id and list out all toolinfos and
+        areas.
+
+        Context:
+            app: app label held by tool_name
+            tool_descriptions: ToolInfo objects for the app
+            areas: valid areas for the application
+
+        Returns:
+            Rendered html page for the region selection for an app
+        """
+
+        application = Application.objects.get(id=self._get_tool_name())
+        context = {
+            'app': self._get_tool_name(),
+            'tool_descriptions': application.toolinfo_set.all().order_by('id'),
+            'areas': application.areas.all()
+        }
+        return render(request, 'region_selection.html', context)
 
 
 class SubmitNewRequest(View, ToolClass):
@@ -500,7 +538,7 @@ class QueryHistory(View, ToolClass):
         user then filtered for completion, errors, and area.
 
         Args:
-            area_id: Area to get tasks for. Tasks are filtered by both user id and area id
+            id: Area to get tasks for. Tasks are filtered by both user id and area id
                 so only tasks valid for the page are shown.
 
         Returns:

@@ -35,9 +35,9 @@ under the License.
       <dt>Status</dt>
       <dd>{% if query.complete %} Complete {% else %} Running... {% endif %}</dd>
       <dt>Start Time</dt>
-      <dd>{{ query.query_start|date:"m/d/Y H:i" }}</dd>
+      <dd>{{ query.execution_start|date:"m/d/Y H:i" }}</dd>
       <dt>End Time</dt>
-      <dd>{{ query.query_end|date:"m/d/Y H:i" }}</dd>
+      <dd>{{ query.execution_end|date:"m/d/Y H:i" }}</dd>
     </dl>
   </div>
   <div class="col-lg-6">
