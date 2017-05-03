@@ -79,11 +79,27 @@ class ParameterChunker:
 
         """
 
+        latitude = kwargs.get('latitude', None)
+        longitude = kwargs.get('longitude', None)
         # latitude and longitude are required.
-        assert 'latitude' in kwargs
-        assert 'longitude' in kwargs
+        assert 'latitude' is not None
+        assert 'longitude' is not None
         assert self.geographic_chunk_units == "degree", "Parameter chunking works only on degrees. For a pixel stream, see create_pixel_stream."
 
+        square_area = (latitude[1] - latitude[0]) * (longitude[1] - longitude[0])
+        geographic_chunks = math.ceil(square_area / geo_chunk_size)
+        if geographic_chunks == 1:
+            #only one chunk.
+            pass
+
+        #we're splitting accross latitudes and not longitudes
+        #this can be a fp value, no issue there.
+        latitude_chunk_size = (latitude[1] - latitude[0]) / geographic_chunks
+        latitude_ranges = [(latitude[0] + latitude_chunk_size*chunk_number, latitude[0] + latitude_chunk_size*(chunk_number + 1)) for chunk_number in range(geographic_chunks)]
+        
+
+
+        square_area =
 
 
 
