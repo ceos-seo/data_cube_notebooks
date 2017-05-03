@@ -8,16 +8,96 @@ from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndv
 
 from .models import CustomMosaicTask
 
-
+import math
+from datetime import datetime
 class ParameterChunker:
-    time_grouping = ['year', 'month', 'acquisitions']
+    time_grouping = {'year':_groupby_year, 'month': _groupby_month, 'acquisition':_chunk_acquisitions}
+    geographic_grouping = {'degree':_chunk_degrees, 'pixel':_chunk_pixels}
 
-    geographic = 0.5
-    time = 10
-    time_units = 'acquisition'
+    geographic_chunk_size = 0.5
+    geographic_chunk_units = 'degree'
+    time_chunk_size = 10
+    time_chunk_units = 'acquisition'
 
-    def __init__(self, geographic, time, time_units):
-        self.geographic = geographic
+    def __init__(self, **kwargs):
+        """Initialize a new parameter chunking object
+
+        Uses only kwargs - all args are optional and will default to a 0.5 degree, 10 acquisition chunk size
+
+        Args:
+            geographic_chunk_size: Area size of each geographic chunk. e.g. 0.5, 1, 0.01 etc.
+            geographic_chunk_units: degree or pixels. Pixels will allow the user to specify a number of pixels to be used rather than area
+            time_chunk_size: time slice length - e.g. 10, 1, etc.
+            time_chunk_units: year, month, acquisition
+                acquisition results in groups of n acquisitions being loaded
+                year results in groups of n years being loaded
+                month results in groups of n months being loaded
+        """
+        self.geographic_chunk_size = kwargs.get('geographic_chunk_size', self.geographic_chunk_size)
+        self.geographic_chunk_units = kwargs.get('geographic_chunk_units', self.geographic_chunk_units)
+        self.time_chunk_size = kwargs.get('time_chunk_size', self.time_chunk_size)
+        self.time_chunk_units = kwargs.get('time_chunk_units', self.time_chunk_units)
+
+        assert self.geographic_chunk_units in self.geographic_grouping
+        assert self.time_chunk_units in self.time_grouping
+
+    def _chunk_degrees(self, degree_range):
+        """
+        """
+
+
+    def _chunk_pixels(self):
+        """
+        """
+
+    def _chunk_acquisitions(self):
+        """
+        """
+
+    def _groupby_year(self):
+        """
+        """
+
+    def _groupby_month(self):
+        """
+        """
+
+    def chunk_parameter_set(**kwargs):
+        """Chunk a parameter set defined by latitude, longitude, and a list of acquisitions.
+
+        Process the lat/lon/time parameters defined for loading Data Cube Data - these should be
+        produced by dc.list_acquisition_dates
+
+        Args:
+            acquisitions: list of datetime instances to chunk into the desired format
+            latitude: Latitude range to split
+            longitude: Longitude range to split
+
+        Returns:
+            A zip formatted list of tuples containing (latitude, longitude, acquisition_list)
+                for each of the chunks.
+
+        """
+
+        # latitude and longitude are required.
+        assert 'latitude' in kwargs
+        assert 'longitude' in kwargs
+        assert self.geographic_chunk_units == "degree", "Parameter chunking works only on degrees. For a pixel stream, see create_pixel_stream."
+
+
+
+
+
+
+
+    def create_pixel_stream(self):
+        """
+        """
+
+    def combine_pixel_stream(self):
+        """
+        """
+
 
 
 class Algorithm:
