@@ -10,12 +10,13 @@ from .models import CustomMosaicTask
 
 import math
 from datetime import datetime
+from itertools import groupby
+
+
 class ParameterChunker:
-    time_grouping = {'year':_groupby_year, 'month': _groupby_month, 'acquisition':_chunk_acquisitions}
-    geographic_grouping = {'degree':_chunk_degrees, 'pixel':_chunk_pixels}
+    time_grouping = {'year': _groupby_year, 'month': _groupby_month, 'acquisition': _chunk_iterable}
 
     geographic_chunk_size = 0.5
-    geographic_chunk_units = 'degree'
     time_chunk_size = 10
     time_chunk_units = 'acquisition'
 
@@ -26,7 +27,6 @@ class ParameterChunker:
 
         Args:
             geographic_chunk_size: Area size of each geographic chunk. e.g. 0.5, 1, 0.01 etc.
-            geographic_chunk_units: degree or pixels. Pixels will allow the user to specify a number of pixels to be used rather than area
             time_chunk_size: time slice length - e.g. 10, 1, etc.
             time_chunk_units: year, month, acquisition
                 acquisition results in groups of n acquisitions being loaded
@@ -34,86 +34,97 @@ class ParameterChunker:
                 month results in groups of n months being loaded
         """
         self.geographic_chunk_size = kwargs.get('geographic_chunk_size', self.geographic_chunk_size)
-        self.geographic_chunk_units = kwargs.get('geographic_chunk_units', self.geographic_chunk_units)
         self.time_chunk_size = kwargs.get('time_chunk_size', self.time_chunk_size)
         self.time_chunk_units = kwargs.get('time_chunk_units', self.time_chunk_units)
 
-        assert self.geographic_chunk_units in self.geographic_grouping
         assert self.time_chunk_units in self.time_grouping
 
-    def _chunk_degrees(self, degree_range):
-        """
-        """
-
-
-    def _chunk_pixels(self):
-        """
-        """
-
-    def _chunk_acquisitions(self):
-        """
-        """
-
-    def _groupby_year(self):
-        """
-        """
-
-    def _groupby_month(self):
-        """
-        """
-
-    def chunk_parameter_set(**kwargs):
+    def create_geographic_chunks(self, latitude, longitude):
         """Chunk a parameter set defined by latitude, longitude, and a list of acquisitions.
 
         Process the lat/lon/time parameters defined for loading Data Cube Data - these should be
         produced by dc.list_acquisition_dates
 
         Args:
-            acquisitions: list of datetime instances to chunk into the desired format
             latitude: Latitude range to split
             longitude: Longitude range to split
 
         Returns:
-            A zip formatted list of tuples containing (latitude, longitude, acquisition_list)
-                for each of the chunks.
+            A zip formatted list of tuples containing (longitude, latitude) for each of the chunks
 
         """
 
-        latitude = kwargs.get('latitude', None)
-        longitude = kwargs.get('longitude', None)
-        # latitude and longitude are required.
-        assert 'latitude' is not None
-        assert 'longitude' is not None
-        assert self.geographic_chunk_units == "degree", "Parameter chunking works only on degrees. For a pixel stream, see create_pixel_stream."
-
         square_area = (latitude[1] - latitude[0]) * (longitude[1] - longitude[0])
-        geographic_chunks = math.ceil(square_area / geo_chunk_size)
-        if geographic_chunks == 1:
-            #only one chunk.
-            pass
+        geographic_chunks = math.ceil(square_area / self.geographic_chunk_size)
 
         #we're splitting accross latitudes and not longitudes
         #this can be a fp value, no issue there.
         latitude_chunk_size = (latitude[1] - latitude[0]) / geographic_chunks
-        latitude_ranges = [(latitude[0] + latitude_chunk_size*chunk_number, latitude[0] + latitude_chunk_size*(chunk_number + 1)) for chunk_number in range(geographic_chunks)]
-        
+        latitude_ranges = [(latitude[0] + latitude_chunk_size * chunk_number,
+                            latitude[0] + latitude_chunk_size * (chunk_number + 1))
+                           for chunk_number in range(geographic_chunks)]
+        longitude_ranges = [longitude for __ in latitude_ranges]
 
+        return zip(longitude_ranges, latitude_ranges)
 
-        square_area =
+    def create_time_chunks(self, datetime_list, **kwargs):
+        """Create an iterable containing groups of acquisition dates using class attributes
 
+        Seperate a list of datetimes into chunks by acquisition, year, month, etc.
+        Uses self.time_chunk_size and units - Gets the correct chunking funct based on self.time_chunk_units
+        and calls it with a sorted list and
 
+        example: months=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], _reversed=False
 
+        Args:
+            datetime_list: List or iterable of datetimes to chunk
+            kwargs:
+                months (optional): List of months that should be used - defaults to all of them.
+                _reversed (optional): boolean signifying that the acquisitions should be sorted least recent -> most recent (default)
+                    or most recent -> least recent
 
+        Returns:
+            iterable of time chunks
+        """
 
+        datetimes_sorted = sorted(datetime_list, reverse=_reversed)
 
-    def create_pixel_stream(self):
+        assert len(datetimes_sorted) >= self.time_chunk_size
+
+        chunking_func = self.time_grouping.get(self.time_chunk_units, _chunk_iterable)
+
+        return chunking_func(datetimes_sorted, self.time_chunk_size, **kwargs)
+
+    @staticmethod
+    def _chunks(l, n):
+        """"""
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
+
+    @staticmethod
+    def _chunk_iterable(_iterable, chunk_size, **kwargs):
         """
         """
+        chunks = list(chunks(_iterable, chunk_size))
+        return chunks
 
-    def combine_pixel_stream(self):
+    @staticmethod
+    def _groupby_year(_iterable, chunk_size, **kwargs):
         """
         """
+        return list(groupby(_iterable, lambda x: x.year))
 
+    @staticmethod
+    def _groupby_month(_iterable, chunk_size, **kwargs):
+        """
+        """
+        month_filtered = filter(lambda x: x.month in kwargs.get('months', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+                                _iterable)
+        return list(groupby(_iterable, lambda x: x.month))
+
+    def _generate_baseline(month_filtered, window_length, **kwargs):
+        """
+        """
 
 
 class Algorithm:
