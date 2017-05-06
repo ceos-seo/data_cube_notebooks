@@ -33,7 +33,7 @@ from .models import ResultType, Result, Query, Metadata
 from apps.dc_algorithm.models import Satellite, Area, Application
 from apps.dc_algorithm.forms import DataSelectionForm
 from .forms import DataSelectForm
-from .tasks import Algorithm
+from .tasks import run
 
 from collections import OrderedDict
 
@@ -94,7 +94,7 @@ class SubmitNewRequest(SubmitNewRequest):
     tool_name = 'custom_mosaic_tool'
     task_model_name = 'CustomMosaicTask'
     #celery_task_func = create_cloudfree_mosaic
-    celery_task_func = Algorithm
+    celery_task_func = run
     form_list = [DataSelectionForm, DataSelectForm]
 
 
@@ -121,7 +121,7 @@ class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
     tool_name = 'custom_mosaic_tool'
     task_model_name = 'CustomMosaicTask'
 
-    #celery_task_func = create_cloudfree_mosaic
+    celery_task_func = run
 
     def task_model_update_func(self, task_model, **kwargs):
         """

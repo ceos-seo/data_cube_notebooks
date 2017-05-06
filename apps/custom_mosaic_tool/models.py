@@ -21,12 +21,16 @@
 
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 from apps.dc_algorithm.models import Area, Compositor, Satellite, AnimationType
 from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as
                                       BaseResultType, UserHistory as BaseUserHistory)
+from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
 
 import datetime
+
+import os
 
 
 class UserHistory(BaseUserHistory):
@@ -62,6 +66,10 @@ class Query(BaseQuery):
     animated_product = models.ForeignKey(AnimationType)
     compositor = models.ForeignKey(Compositor)
 
+    config_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
+    measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
+    base_result_dir = '/datacube/ui_results/custom_mosaic_tool'
+
     class Meta(BaseQuery.Meta):
         unique_together = (
             ('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
@@ -71,6 +79,48 @@ class Query(BaseQuery):
     def get_fields_with_labels(self, labels, field_names):
         for idx, label in enumerate(labels):
             yield [label, getattr(self, field_names[idx])]
+
+    def get_temp_path(self):
+        temp_dir = os.path.join(self.base_result_dir, 'temp', str(self.pk))
+        try:
+            os.makedirs(temp_dir)
+        except OSError:
+            pass
+        return temp_dir
+
+    def get_result_path(self):
+        result_dir = os.path.join(self.base_result_dir, str(self.pk))
+        try:
+            os.makedirs(result_dir)
+        except OSError:
+            pass
+        return result_dir
+
+    def get_chunk_size(self):
+        """Implements get_chunk_size as required by the base class
+        """
+        if self.compositor.id == "median_pixel":
+            return {'time': None, 'geographic': 0.001}
+        return {'time': 10, 'geographic': 0.5}
+
+    def get_iterative(self):
+        """implements get_iterative as required by the base class"""
+        return self.compositor.id == "median_pixel"
+
+    def get_reverse_time(self):
+        """implements get_reverse_time as required by the base class"""
+        return self.compositor.id == "most_recent"
+
+    def get_processing_method(self):
+        processing_methods = {
+            'most_recent': create_mosaic,
+            'least_recent': create_mosaic,
+            'max_ndvi': create_max_ndvi_mosaic,
+            'min_ndvi': create_min_ndvi_mosaic,
+            'median_pixel': create_median_mosaic
+        }
+
+        return processing_methods.get(self.compositor.id, create_mosaic)
 
     @classmethod
     def get_or_create_query_from_post(cls, form_data):

@@ -413,9 +413,7 @@ class SubmitNewRequest(View, ToolClass):
         history_model, __ = self._get_tool_model('userhistory').objects.get_or_create(user_id=user_id, task_id=task.pk)
         #if new_task:
         if True:
-            #self._get_celery_task_func().delay(task.pk)
-            algorithm = self._get_celery_task_func()(task.pk)
-            algorithm.run()
+            self._get_celery_task_func().delay(task.pk)
         response.update(model_to_dict(task))
 
         return JsonResponse(response)

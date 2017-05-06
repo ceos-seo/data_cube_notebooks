@@ -1,17 +1,12 @@
-from django.conf import settings
-
 import celery
 from celery.task import task
 from celery import chain, group, chord
 
 from utils.data_access_api import DataAccessApi
+from utils.dc_utilities import create_cfmask_clean_mask
 from utils.dc_chunker import create_geographic_chunks, create_time_chunks, combine_geographic_chunks
-from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
-from utils.dc_utilities import (get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask,
-                                split_task, fill_nodata, max_value, min_value)
 
 from .models import CustomMosaicTask
-
 from datetime import datetime
 import shutil
 from itertools import groupby
@@ -20,42 +15,21 @@ import os
 import rasterio
 
 
-class Algorithm:
-    """Base class for a Data Cube algorithm"""
-
-    task_id = None
-    config_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
-    measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
-    result_dir = '/datacube/ui_results/custom_mosaic_tool'
-    temp_dir = None
-    iterative = True
-    processing_method = create_mosaic
-
-    def __init__(self, _id, iterative=True):
-        self.task_id = str(_id)
-        self.iterative = iterative
-        self.temp_dir = os.path.join(self.result_dir, 'temp', self.task_id)
-        self.result_dir = os.path.join(self.result_dir, self.task_id)
-        try:
-            os.makedirs(self.temp_dir)
-            os.makedirs(self.result_dir)
-        except OSError:
-            pass
-
-    def run(self):
-        """
-        """
-        chain(
-            parse_parameters_from_task.s(self),
-            validate_parameters.s(self), perform_task_chunking.s(self), start_chunk_processing.s(self))()
-        return True
+@task(name="custom_mosaic_tool.run")
+def run(task_id):
+    """
+    """
+    chain(
+        parse_parameters_from_task.s(task_id),
+        validate_parameters.s(task_id), perform_task_chunking.s(task_id), start_chunk_processing.s(task_id))()
+    return True
 
 
 @task(name="custom_mosaic_tool.parse_parameters_from_task")
-def parse_parameters_from_task(algorithm):
+def parse_parameters_from_task(task_id):
     """
     """
-    task = CustomMosaicTask.objects.get(pk=algorithm.task_id)
+    task = CustomMosaicTask.objects.get(pk=task_id)
 
     parameters = {
         'product': task.product,
@@ -71,12 +45,11 @@ def parse_parameters_from_task(algorithm):
 
 
 @task(name="custom_mosaic_tool.validate_parameters")
-def validate_parameters(parameters, algorithm):
+def validate_parameters(parameters, task_id):
     """
     """
-
-    dc = DataAccessApi(config=algorithm.config_path)
-    task = CustomMosaicTask.objects.get(pk=algorithm.task_id)
+    task = CustomMosaicTask.objects.get(pk=task_id)
+    dc = DataAccessApi(config=task.config_path)
 
     #validate for any number of criteria here - num acquisitions, etc.
     acquisitions = dc.list_acquisition_dates(**parameters)
@@ -89,18 +62,23 @@ def validate_parameters(parameters, algorithm):
 
 
 @task(name="custom_mosaic_tool.perform_task_chunking")
-def perform_task_chunking(parameters, algorithm):
+def perform_task_chunking(parameters, task_id):
     """
 
     """
 
-    dc = DataAccessApi(config=algorithm.config_path)
+    task = CustomMosaicTask.objects.get(pk=task_id)
+    dc = DataAccessApi(config=task.config_path)
     dates = dc.list_acquisition_dates(**parameters)
+    task_chunk_sizing = task.get_chunk_size()
 
     geographic_chunks = create_geographic_chunks(
-        longitude=parameters['longitude'], latitude=parameters['latitude'], geographic_chunk_size=0.01)
+        longitude=parameters['longitude'],
+        latitude=parameters['latitude'],
+        geographic_chunk_size=task_chunk_sizing['geographic'])
 
-    time_chunks = create_time_chunks(dates, _reversed=True)
+    time_chunks = create_time_chunks(
+        dates, _reversed=task.get_reverse_time(), time_chunk_size=task_chunk_sizing['time'])
 
     print("Time chunks: {}, Geo chunks: {}".format(len(time_chunks), len(geographic_chunks)))
 
@@ -110,7 +88,7 @@ def perform_task_chunking(parameters, algorithm):
 
 
 @task(name="custom_mosaic_tool.start_chunk_processing")
-def start_chunk_processing(chunk_details, algorithm):
+def start_chunk_processing(chunk_details, task_id):
     parameters = chunk_details.get('parameters')
     geographic_chunks = chunk_details.get('geographic_chunks')
     time_chunks = chunk_details.get('time_chunks')
@@ -125,17 +103,16 @@ def start_chunk_processing(chunk_details, algorithm):
     processing_pipeline = [
         group([
             processing_task.s(
-                algorithm=algorithm,
+                task_id=task_id,
                 geo_chunk_id=geo_index,
                 time_chunk_id=time_index,
                 geographic_chunk=geographic_chunk,
                 time_chunk=time_chunk,
                 **parameters) for time_index, time_chunk in enumerate(time_chunks)
-        ]) | recombine_time_chunks.s(algorithm=algorithm)
-        for geo_index, geographic_chunk in enumerate(geographic_chunks)
+        ]) | recombine_time_chunks.s(task_id=task_id) for geo_index, geographic_chunk in enumerate(geographic_chunks)
     ]
 
-    full_pipeline = chord(processing_pipeline)(recombine_geographic_chunks.s(algorithm=algorithm))
+    full_pipeline = chord(processing_pipeline)(recombine_geographic_chunks.s(task_id=task_id))
 
     return True
 
@@ -146,7 +123,7 @@ Processing pipeline definitions
 
 
 @task(name="custom_mosaic_tool.processing_task")
-def processing_task(algorithm=None,
+def processing_task(task_id=None,
                     geo_chunk_id=None,
                     time_chunk_id=None,
                     geographic_chunk=None,
@@ -156,9 +133,10 @@ def processing_task(algorithm=None,
     """
 
     chunk_id = "_".join([str(geo_chunk_id), str(time_chunk_id)])
+    task = CustomMosaicTask.objects.get(pk=task_id)
 
     print("Starting chunk: " + chunk_id)
-    if not os.path.exists(algorithm.temp_dir):
+    if not os.path.exists(task.get_temp_path()):
         return None
 
     iteration_data = None
@@ -169,9 +147,9 @@ def processing_task(algorithm=None,
 
     times = list(
         map(_get_datetime_range_containing, time_chunk)
-        if algorithm.iterative else (_get_datetime_range_containing(time_chunk[0], time_chunk[-1])))
+        if task.get_iterative() else (_get_datetime_range_containing(time_chunk[0], time_chunk[-1])))
 
-    dc = DataAccessApi(config=algorithm.config_path)
+    dc = DataAccessApi(config=task.config_path)
     updated_params = parameters
     updated_params.update(geographic_chunk)
     iteration_data = None
@@ -182,20 +160,21 @@ def processing_task(algorithm=None,
             print("Invalid chunk.")
             continue
         clear_mask = create_cfmask_clean_mask(data.cf_mask)
-        iteration_data = create_mosaic(data, clean_mask=clear_mask, intermediate_product=iteration_data)
-    path = os.path.join(algorithm.temp_dir, chunk_id + ".nc")
+        iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
+    path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
     iteration_data.to_netcdf(path)
     print("Done with chunk: " + chunk_id)
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
 @task(name="custom_mosaic_tool.recombine_time_chunks")
-def recombine_time_chunks(chunks, algorithm=None):
+def recombine_time_chunks(chunks, task_id=None):
     """
     Geo indexes are the same, only the time index is different - sorting?
     """
     print("RECOMBINE_TIME")
     total_chunks = sorted(chunks, lambda x: x[0]) if isinstance(chunks, list) else [chunks]
+    task = CustomMosaicTask.objects.get(pk=task_id)
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
     metadata = {}
@@ -206,41 +185,45 @@ def recombine_time_chunks(chunks, algorithm=None):
             combined_data = data
             continue
         clear_mask = create_cfmask_clean_mask(data.cf_mask)
-        combined_data = create_mosaic(data, clean_mask=clear_mask, intermediate_product=combined_data)
+        combined_data = task.get_processing_method(data, clean_mask=clear_mask, intermediate_product=combined_data)
 
-    path = os.path.join(algorithm.temp_dir, str(geo_chunk_id) + ".nc")
+    path = os.path.join(task.get_temp_path(), str(geo_chunk_id) + ".nc")
     combined_data.to_netcdf(path)
     print("Done combining time chunk: " + str(time_chunk_id))
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
 @task(name="custom_mosaic_tool.recombine_geographic_chunks")
-def recombine_geographic_chunks(chunks, algorithm=None):
+def recombine_geographic_chunks(chunks, task_id=None):
     """
     """
     print("RECOMBINE_GEO")
+    total_chunks = [chunks] if not isinstance(chunks, list) else chunks
     chunk_data = []
     metadata = {}
-    for chunk in chunks:
+    task = CustomMosaicTask.objects.get(pk=task_id)
+    for chunk in total_chunks:
+        print(chunk[0])
         chunk_data.append(xr.open_dataset(chunk[0]))
 
     combined_data = combine_geographic_chunks(chunk_data)
 
-    path = os.path.join(algorithm.result_dir, algorithm.task_id + ".nc")
+    path = os.path.join(task.get_result_path(), str(task.pk) + ".nc")
     combined_data.to_netcdf(path)
-    create_output_products.delay([path, metadata], algorithm=algorithm)
+    create_output_products.delay([path, metadata], task_id=str(task_id))
     return path, metadata
 
 
 @task(name="custom_mosaic_tool.create_output_products")
-def create_output_products(data, algorithm=None):
+def create_output_products(data, task_id=None):
     """
     """
     print("CREATE_OUTPUT")
     full_metadata = data[1]
     data = xr.open_dataset(data[0])
-    shutil.rmtree(algorithm.temp_dir)
-    tif_path = os.path.join(algorithm.result_dir, algorithm.task_id + ".tif")
+    task = CustomMosaicTask.objects.get(pk=task_id)
+    shutil.rmtree(task.get_temp_path())
+    tif_path = os.path.join(task.get_result_path(), str(task.pk) + ".tif")
     write_geotiff_from_xr(
         tif_path, data.astype('int32'), bands=['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask'])
     print("All products created.")
