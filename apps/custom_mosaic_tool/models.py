@@ -29,7 +29,7 @@ from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetada
 from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
 
 import datetime
-
+import numpy as np
 import os
 
 
@@ -81,6 +81,11 @@ class Query(BaseQuery):
             yield [label, getattr(self, field_names[idx])]
 
     def get_temp_path(self):
+        """implements get_temp_path as required by the base class
+
+        See the base query class docstring for more information.
+
+        """
         temp_dir = os.path.join(self.base_result_dir, 'temp', str(self.pk))
         try:
             os.makedirs(temp_dir)
@@ -89,6 +94,11 @@ class Query(BaseQuery):
         return temp_dir
 
     def get_result_path(self):
+        """implements get_result_path as required by the base class
+
+        See the base query class docstring for more information.
+
+        """
         result_dir = os.path.join(self.base_result_dir, str(self.pk))
         try:
             os.makedirs(result_dir)
@@ -98,20 +108,36 @@ class Query(BaseQuery):
 
     def get_chunk_size(self):
         """Implements get_chunk_size as required by the base class
+
+        See the base query class docstring for more information.
+
         """
         if self.compositor.id == "median_pixel":
             return {'time': None, 'geographic': 0.001}
         return {'time': 10, 'geographic': 0.5}
 
     def get_iterative(self):
-        """implements get_iterative as required by the base class"""
-        return self.compositor.id == "median_pixel"
+        """implements get_iterative as required by the base class
+
+        See the base query class docstring for more information.
+
+        """
+        return self.compositor.id != "median_pixel"
 
     def get_reverse_time(self):
-        """implements get_reverse_time as required by the base class"""
+        """implements get_reverse_time as required by the base class
+
+        See the base query class docstring for more information.
+
+        """
         return self.compositor.id == "most_recent"
 
     def get_processing_method(self):
+        """implements get_processing_method as required by the base class
+
+        See the base query class docstring for more information.
+
+        """
         processing_methods = {
             'most_recent': create_mosaic,
             'least_recent': create_mosaic,
@@ -171,6 +197,28 @@ class Metadata(BaseMetadata):
 
     class Meta(BaseMetadata.Meta):
         abstract = True
+
+    def metadata_from_dataset(self, dataset):
+        self.pixel_count = len(dataset.latitude) * len(dataset.longitude)
+        self.clean_pixels = np.sum(dataset[list(dataset.data_vars)[0]].values != -9999)
+        self.percentage_clean_pixels = (self.clean_pixel_count / self.pixel_count) * 100
+        self.save()
+
+    def metadata_from_dict(self, metadata_dict):
+        """
+        """
+        dates = list(metadata_dict.keys())
+        dates.sort(reverse=True)
+
+        self.total_scenes = len(dates)
+        self.scenes_processed = len(dates)
+        self.pixel_count = 100
+        self.acquisition_list = ",".join([date.strftime("%m/%d/%Y") for date in dates])
+        self.satellite_list = ",".join([metadata_dict[date]['satellite'] for date in dates])
+        self.clean_pixels_per_acquisition = ",".join([str(metadata_dict[date]['clean_pixels']) for date in dates])
+        self.clean_pixel_percentages_per_acquisition = ",".join(
+            [str(metadata_dict[date]['clean_pixels'] * 100 / self.pixel_count) for date in dates])
+        self.save()
 
 
 class Result(BaseResult):

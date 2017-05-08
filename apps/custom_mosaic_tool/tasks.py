@@ -1,18 +1,20 @@
+from django.db.models import F
+
 import celery
 from celery.task import task
 from celery import chain, group, chord
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import create_cfmask_clean_mask
+from utils.dc_utilities import create_cfmask_clean_mask, write_geotiff_from_xr, write_png_from_xr
 from utils.dc_chunker import create_geographic_chunks, create_time_chunks, combine_geographic_chunks
-
-from .models import CustomMosaicTask
-from datetime import datetime
+from datetime import datetime, timedelta
 import shutil
 from itertools import groupby
 import xarray as xr
 import os
-import rasterio
+import imageio
+
+from .models import CustomMosaicTask
 
 
 @task(name="custom_mosaic_tool.run")
@@ -39,6 +41,9 @@ def parse_parameters_from_task(task_id):
         'latitude': (task.latitude_min, task.latitude_max)
     }
 
+    task.execution_start = datetime.now()
+    task.update_status("WAIT", "Parsed out parameters.")
+
     # Get other parameters here - compositor, result type, everything else.
 
     return parameters
@@ -56,6 +61,8 @@ def validate_parameters(parameters, task_id):
     if len(acquisitions) < 1:
         task.update_status("ERROR", "There are no acquistions for this parameter set.")
         return None
+
+    task.update_status("WAIT", "Validated parameters.")
 
     dc.close()
     return parameters
@@ -79,11 +86,10 @@ def perform_task_chunking(parameters, task_id):
 
     time_chunks = create_time_chunks(
         dates, _reversed=task.get_reverse_time(), time_chunk_size=task_chunk_sizing['time'])
-
     print("Time chunks: {}, Geo chunks: {}".format(len(time_chunks), len(geographic_chunks)))
 
     dc.close()
-
+    task.update_status("WAIT", "Chunked parameter set.")
     return {'parameters': parameters, 'geographic_chunks': geographic_chunks, 'time_chunks': time_chunks}
 
 
@@ -92,6 +98,11 @@ def start_chunk_processing(chunk_details, task_id):
     parameters = chunk_details.get('parameters')
     geographic_chunks = chunk_details.get('geographic_chunks')
     time_chunks = chunk_details.get('time_chunks')
+
+    task = CustomMosaicTask.objects.get(pk=task_id)
+    task.total_scenes = len(geographic_chunks) * len(time_chunks)
+    task.scenes_processed = 0
+    task.update_status("WAIT", "Starting processing.")
 
     print("START_CHUNK_PROCESSING")
 
@@ -148,7 +159,6 @@ def processing_task(task_id=None,
     times = list(
         map(_get_datetime_range_containing, time_chunk)
         if task.get_iterative() else (_get_datetime_range_containing(time_chunk[0], time_chunk[-1])))
-
     dc = DataAccessApi(config=task.config_path)
     updated_params = parameters
     updated_params.update(geographic_chunk)
@@ -160,7 +170,24 @@ def processing_task(task_id=None,
             print("Invalid chunk.")
             continue
         clear_mask = create_cfmask_clean_mask(data.cf_mask)
+
+        for index, time in enumerate(data.time.values.astype('M8[ms]').tolist()):
+            """
+            time = raw_data.time.values[timeslice] if type(
+                raw_data.time.values[timeslice]) == datetime else datetime.utcfromtimestamp(
+                    raw_data.time.values[timeslice].astype(int) * 1e-9)
+            clean_pixels = np.sum(clear_mask[timeslice, :, :] == True)
+            if time not in acquisition_metadata:
+                acquisition_metadata[time] = {}
+                acquisition_metadata[time]['clean_pixels'] = 0
+                acquisition_metadata[time]['satellite'] = platforms[np.unique(
+                    raw_data.satellite.isel(time=timeslice).values)[0]] if np.unique(
+                        raw_data.satellite.isel(time=timeslice).values)[0] > -1 else "NODATA"
+            acquisition_metadata[time]['clean_pixels'] += clean_pixels
+            """
         iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
+        task.scenes_processed = F('scenes_processed') + 1
+        task.save()
     path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
     iteration_data.to_netcdf(path)
     print("Done with chunk: " + chunk_id)
@@ -173,7 +200,7 @@ def recombine_time_chunks(chunks, task_id=None):
     Geo indexes are the same, only the time index is different - sorting?
     """
     print("RECOMBINE_TIME")
-    total_chunks = sorted(chunks, lambda x: x[0]) if isinstance(chunks, list) else [chunks]
+    total_chunks = sorted(chunks, key=lambda x: x[0]) if isinstance(chunks, list) else [chunks]
     task = CustomMosaicTask.objects.get(pk=task_id)
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
@@ -184,8 +211,10 @@ def recombine_time_chunks(chunks, task_id=None):
         if combined_data is None:
             combined_data = data
             continue
+        #give time an indice to keep mosaicking from breaking.
+        data['time'] = [0]
         clear_mask = create_cfmask_clean_mask(data.cf_mask)
-        combined_data = task.get_processing_method(data, clean_mask=clear_mask, intermediate_product=combined_data)
+        combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
 
     path = os.path.join(task.get_temp_path(), str(geo_chunk_id) + ".nc")
     combined_data.to_netcdf(path)
@@ -203,12 +232,11 @@ def recombine_geographic_chunks(chunks, task_id=None):
     metadata = {}
     task = CustomMosaicTask.objects.get(pk=task_id)
     for chunk in total_chunks:
-        print(chunk[0])
         chunk_data.append(xr.open_dataset(chunk[0]))
 
     combined_data = combine_geographic_chunks(chunk_data)
 
-    path = os.path.join(task.get_result_path(), str(task.pk) + ".nc")
+    path = os.path.join(task.get_result_path(), "data_netcdf.nc")
     combined_data.to_netcdf(path)
     create_output_products.delay([path, metadata], task_id=str(task_id))
     return path, metadata
@@ -222,39 +250,37 @@ def create_output_products(data, task_id=None):
     full_metadata = data[1]
     data = xr.open_dataset(data[0])
     task = CustomMosaicTask.objects.get(pk=task_id)
-    shutil.rmtree(task.get_temp_path())
-    tif_path = os.path.join(task.get_result_path(), str(task.pk) + ".tif")
+
+    task.result_path = os.path.join(task.get_result_path(), "png_mosaic.png")
+    task.result_filled_path = os.path.join(task.get_result_path(), "filled_png_mosaic.png")
+    task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
+    task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
+    task.animation_path = os.path.join(task.get_result_path(), "animation.gif") if task.animated_product else ""
+    task.metadata_from_dataset(data)
+    task.metadata_from_dict(full_metadata)
+
+    png_bands = [task.query_type.red, task.query_type.green, task.query_type.blue]
+
     write_geotiff_from_xr(
-        tif_path, data.astype('int32'), bands=['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask'])
+        task.data_path, data.astype('int32'), bands=['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask'])
+    write_png_from_xr(
+        task.result_path,
+        data,
+        bands=png_bands,
+        png_filled_path=task.result_filled_path,
+        fill_color=task.query_type.fill,
+        scale=(0, 4096))
+
+    if task.animated_product.id != "None":
+        with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
+            acquisitions = sorted(full_metadata, reverse=task.get_reverse_time())
+            for index, acquisition in enumerate(acquisitions):
+                image = imageio.imread(os.path.join(task.get_temp_path, str(index) + '.png'))
+                writer.append_data(image)
+
     print("All products created.")
-    return tif_path
-
-
-def write_geotiff_from_xr(tif_path, dataset, bands, nodata=-9999, crs="EPSG:4326"):
-    """
-    """
-    with rasterio.open(
-            tif_path,
-            'w',
-            driver='GTiff',
-            height=dataset.dims['latitude'],
-            width=dataset.dims['longitude'],
-            count=len(bands),
-            dtype=str(dataset[bands[0]].dtype),
-            crs=crs,
-            transform=_get_transform_from_xr(dataset),
-            nodata=nodata) as dst:
-        for index, band in enumerate(bands):
-            dst.write(dataset[band].values, index + 1)
-        dst.close()
-        print("Done writing")
-
-
-def _get_transform_from_xr(dataset):
-    """
-    """
-
-    from rasterio.transform import from_bounds
-    geotransform = from_bounds(dataset.longitude[0], dataset.latitude[-1], dataset.longitude[-1], dataset.latitude[0],
-                               len(dataset.longitude), len(dataset.latitude))
-    return geotransform
+    task.complete = True
+    task.execution_end = datetime.now()
+    task.update_status("OK", "All products have been generated. Your result will be loaded on the map.")
+    shutil.rmtree(task.get_temp_path())
+    return True

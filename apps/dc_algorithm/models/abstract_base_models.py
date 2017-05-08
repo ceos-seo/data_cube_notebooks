@@ -176,7 +176,6 @@ class Metadata(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
 
     #meta attributes
-    scene_count = models.IntegerField(default=0)
     pixel_count = models.IntegerField(default=0)
     clean_pixel_count = models.IntegerField(default=0)
     percentage_clean_pixels = models.FloatField(default=0)
