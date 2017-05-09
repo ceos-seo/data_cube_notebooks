@@ -30,7 +30,6 @@ from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndv
 
 import datetime
 import numpy as np
-import os
 
 
 class UserHistory(BaseUserHistory):
@@ -71,40 +70,13 @@ class Query(BaseQuery):
     base_result_dir = '/datacube/ui_results/custom_mosaic_tool'
 
     class Meta(BaseQuery.Meta):
-        unique_together = (
-            ('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
-             'longitude_min', 'title', 'description', 'query_type', 'animated_product', 'compositor'))
+        unique_together = (('platform', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
+                            'longitude_min', 'title', 'description', 'query_type', 'animated_product', 'compositor'))
         abstract = True
 
     def get_fields_with_labels(self, labels, field_names):
         for idx, label in enumerate(labels):
             yield [label, getattr(self, field_names[idx])]
-
-    def get_temp_path(self):
-        """implements get_temp_path as required by the base class
-
-        See the base query class docstring for more information.
-
-        """
-        temp_dir = os.path.join(self.base_result_dir, 'temp', str(self.pk))
-        try:
-            os.makedirs(temp_dir)
-        except OSError:
-            pass
-        return temp_dir
-
-    def get_result_path(self):
-        """implements get_result_path as required by the base class
-
-        See the base query class docstring for more information.
-
-        """
-        result_dir = os.path.join(self.base_result_dir, str(self.pk))
-        try:
-            os.makedirs(result_dir)
-        except OSError:
-            pass
-        return result_dir
 
     def get_chunk_size(self):
         """Implements get_chunk_size as required by the base class
@@ -163,12 +135,13 @@ class Query(BaseQuery):
 
         """
         query_data = form_data
-        query_data['product'] = Satellite.objects.get(
-            datacube_platform=query_data['platform']).product_prefix + Area.objects.get(id=query_data['area_id']).id
         query_data['title'] = "Custom Mosaic Query" if 'title' not in form_data or form_data[
             'title'] == '' else form_data['title']
         query_data['description'] = "None" if 'description' not in form_data or form_data[
             'description'] == '' else form_data['description']
+
+        query_data['platform'] = "LANDSAT_5,LANDSAT_7,LANDSAT_8" if query_data[
+            'platform'] == 'LANDSAT_ALL' else query_data['platform']
 
         valid_query_fields = [field.name for field in cls._meta.get_fields()]
         query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
@@ -212,12 +185,11 @@ class Metadata(BaseMetadata):
 
         self.total_scenes = len(dates)
         self.scenes_processed = len(dates)
-        self.pixel_count = 100
         self.acquisition_list = ",".join([date.strftime("%m/%d/%Y") for date in dates])
         self.satellite_list = ",".join([metadata_dict[date]['satellite'] for date in dates])
         self.clean_pixels_per_acquisition = ",".join([str(metadata_dict[date]['clean_pixels']) for date in dates])
         self.clean_pixel_percentages_per_acquisition = ",".join(
-            [str(metadata_dict[date]['clean_pixels'] * 100 / self.pixel_count) for date in dates])
+            [str((metadata_dict[date]['clean_pixels'] * 100) / self.pixel_count) for date in dates])
         self.save()
 
 
@@ -235,13 +207,6 @@ class Result(BaseResult):
 
     class Meta(BaseResult.Meta):
         abstract = True
-
-    def get_progress(self):
-        """
-        Super of base class - replace if total scenes and scenes processed
-        won't give true progress.
-        """
-        super().get_progress()
 
 
 class CustomMosaicTask(Query, Metadata, Result):

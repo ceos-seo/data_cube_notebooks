@@ -24,6 +24,7 @@ from django.core.exceptions import ValidationError
 
 import datetime
 import uuid
+import os
 
 
 class Query(models.Model):
@@ -63,8 +64,7 @@ class Query(models.Model):
 
     area_id = models.CharField(max_length=100)
 
-    platform = models.CharField(max_length=25)
-    product = models.CharField(max_length=50)
+    platform = models.CharField(max_length=50)
 
     time_start = models.DateField('time_start')
     time_end = models.DateField('time_end')
@@ -78,13 +78,101 @@ class Query(models.Model):
 
     class Meta:
         abstract = True
-        unique_together = (('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
-                            'longitude_max', 'longitude_min', 'title', 'description'))
+        unique_together = (('platform', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
+                            'longitude_min', 'title', 'description'))
 
     def update_status(self, status, message):
         self.status = status
         self.message = message
         self.save()
+
+    def get_temp_path(self):
+        """implements get_temp_path as required by the base class
+
+        See the base query class docstring for more information.
+
+        """
+        if not self.base_result_dir:
+            raise NotImplementedError("You must define 'base_result_dir' in the inheriting class.")
+        temp_dir = os.path.join(self.base_result_dir, 'temp', str(self.pk))
+        try:
+            os.makedirs(temp_dir)
+        except OSError:
+            pass
+        return temp_dir
+
+    def get_result_path(self):
+        """implements get_result_path as required by the base class
+
+        See the base query class docstring for more information.
+
+        """
+        if not self.base_result_dir:
+            raise NotImplementedError("You must define 'base_result_dir' in the inheriting class.")
+        result_dir = os.path.join(self.base_result_dir, str(self.pk))
+        try:
+            os.makedirs(result_dir)
+        except OSError:
+            pass
+        return result_dir
+
+    def get_chunk_size(self):
+        """gets the required geographic and time chunk sizes
+
+        if there should not be chunking in a dimension, return None as the chunk size.
+        Geographic is in terms of degrees, time in terms of acquisitions.
+
+        Returns:
+            Dict containing {'geographic': float, 'time': integer}
+
+        """
+        """if self.compositor.id == "median_pixel":
+            return {'time': None, 'geographic': 0.001}
+        return {'time': 10, 'geographic': 0.5}"""
+        raise NotImplementedError("You must define 'get_reverse_time' in the inheriting class.")
+
+    def get_iterative(self):
+        """defines whether or not this algorithm is iterative
+
+        If the entire set of data ove rthe time dimension is required, return false hre.
+
+        Returns:
+            Boolean signifying if time should be chunked or not.
+
+        """
+        #return self.compositor.id != "median_pixel"
+        raise NotImplementedError("You must define 'get_reverse_time' in the inheriting class.")
+
+    def get_reverse_time(self):
+        """Defines whether this task is processed in reverse time order or not.
+
+        If we want scenes processed from most recent first, this will return true (e.g. most recent pixel mosaics)
+        else false.
+
+        Returns:
+            Boolean signifying whether time chunks should be processed most recent first or least recent first.
+        """
+        #return self.compositor.id == "most_recent"
+        raise NotImplementedError("You must define 'get_reverse_time' in the inheriting class.")
+
+    def get_processing_method(self):
+        """Map a keyword to a function used for data processing.
+
+        Maps some number of keywords that exist on the obj to methods in dc_utilities.
+        For custom mosaics, we use compsoitor id to distinguish the type of mosaic.
+
+        """
+        """processing_methods = {
+            'most_recent': create_mosaic,
+            'least_recent': create_mosaic,
+            'max_ndvi': create_max_ndvi_mosaic,
+            'min_ndvi': create_min_ndvi_mosaic,
+            'median_pixel': create_median_mosaic
+        }
+
+        return processing_methods.get(self.compositor.id, create_mosaic)
+        """
+        raise NotImplementedError("You must define 'get_processing_method' in the inheriting class.")
 
     @classmethod
     def get_queryset_from_history(cls, user_history, **kwargs):
@@ -276,7 +364,7 @@ class Result(models.Model):
         percent_complete = self.scenes_processed / total_scenes
         rounded_int = round(percent_complete * 100)
         clamped_int = max(0, min(rounded_int, 100))
-        return
+        return clamped_int
 
 
 class GenericTask(Query, Metadata, Result):
