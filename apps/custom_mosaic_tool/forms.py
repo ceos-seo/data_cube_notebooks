@@ -23,8 +23,8 @@ from django import forms
 
 import datetime
 
-from .models import ResultType
-from apps.dc_algorithm.models import Area, Compositor, AnimationType
+from .models import ResultType, AnimationType
+from apps.dc_algorithm.models import Area, Compositor
 """
 File designed to house the different forms for taking in user input in the web application.  Forms
 allow for input validation and passing of data.  Includes forms for creating Queries to be ran.
@@ -78,5 +78,4 @@ class DataSelectForm(forms.Form):
                                                                        if datacube_platform is not None else
                                                                        args[0].get('platform'))
         self.fields["compositor"].queryset = Compositor.objects.all()
-        self.fields["animated_product"].queryset = AnimationType.objects.filter(
-            app_name__in=["custom_mosaic_tool", "all"]).order_by('app_name', 'id')
+        self.fields["animated_product"].queryset = AnimationType.objects.all()

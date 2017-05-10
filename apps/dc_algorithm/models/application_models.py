@@ -190,20 +190,3 @@ class Baseline(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class AnimationType(models.Model):
-    """
-    Stores a single instance of an animation type. Includes human readable, id, variable and band.
-    These correspond to the datatypes and bands found in tasks.py for the animation enabled apps.
-    Used to populate UI forms.
-    Band number and data variable are interpretted at the app level in tasks.py.
-    """
-    id = models.CharField(max_length=25, default="None", unique=True, primary_key=True)
-    app_name = models.CharField(max_length=25, default="None")
-    name = models.CharField(max_length=25, default="None")
-    data_variable = models.CharField(max_length=25, default="None")
-    band_number = models.CharField(max_length=25, default="None")
-
-    def __str__(self):
-        return self.name

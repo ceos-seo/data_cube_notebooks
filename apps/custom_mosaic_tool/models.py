@@ -23,9 +23,10 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
-from apps.dc_algorithm.models import Area, Compositor, Satellite, AnimationType
+from apps.dc_algorithm.models import Area, Compositor, Satellite
 from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as
-                                      BaseResultType, UserHistory as BaseUserHistory)
+                                      BaseResultType, UserHistory as BaseUserHistory, AnimationType as
+                                      BaseAnimationType)
 from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
 
 import datetime
@@ -50,6 +51,15 @@ class ResultType(BaseResultType):
     green = models.CharField(max_length=25)
     blue = models.CharField(max_length=25)
     fill = models.CharField(max_length=25, default="red")
+
+
+class AnimationType(BaseAnimationType):
+    """
+    Extends the base animation type, adding additional fields as required by app.
+    See the dc_algorithm.AnimationType docstring for more information.
+    """
+
+    pass
 
 
 class Query(BaseQuery):
