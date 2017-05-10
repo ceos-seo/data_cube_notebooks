@@ -5,7 +5,7 @@ from celery.task import task
 from celery import chain, group, chord
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import create_cfmask_clean_mask, write_geotiff_from_xr, write_png_from_xr, add_timestamp_data_to_xr
+from utils.dc_utilities import create_cfmask_clean_mask, write_geotiff_from_xr, write_png_from_xr, add_timestamp_data_to_xr, clear_attrs
 from utils.dc_chunker import create_geographic_chunks, create_time_chunks, combine_geographic_chunks
 from datetime import datetime, timedelta
 import shutil
@@ -197,7 +197,7 @@ def processing_task(task_id=None,
     #updated_params.update({'products': parameters['']})
     iteration_data = None
     base_index = task.get_chunk_size()['time'] * time_chunk_id
-    for index, time in enumerate(times):
+    for time_index, time in enumerate(times):
         updated_params.update({'time': time})
         data = dc.get_stacked_datasets_by_extent(**updated_params)
         if 'time' not in data:
@@ -208,26 +208,26 @@ def processing_task(task_id=None,
                                                                                                       [1, 2])
         add_timestamp_data_to_xr(data)
 
-        for index, time in enumerate(data.time.values.astype('M8[ms]').tolist()):
-            clean_pixels = np.sum(clear_mask[index, :, :] == True)
+        for metadata_index, time in enumerate(data.time.values.astype('M8[ms]').tolist()):
+            clean_pixels = np.sum(clear_mask[metadata_index, :, :] == True)
             if time not in metadata:
                 metadata[time] = {}
                 metadata[time]['clean_pixels'] = 0
-                metadata[time]['satellite'] = parameters['platforms'][np.unique(data.satellite.isel(time=index).values)[
-                    0]] if np.unique(data.satellite.isel(time=index).values)[0] > -1 else "NODATA"
+                metadata[time]['satellite'] = parameters['platforms'][np.unique(
+                    data.satellite.isel(time=metadata_index).values)[0]] if np.unique(
+                        data.satellite.isel(time=metadata_index).values)[0] > -1 else "NODATA"
             metadata[time]['clean_pixels'] += clean_pixels
 
         iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
 
         if task.animated_product.id != "none":
             path = os.path.join(task.get_temp_path(),
-                                "animation_{}_{}.nc".format(str(geo_chunk_id), str(base_index + index)))
+                                "animation_{}_{}.nc".format(str(geo_chunk_id), str(base_index + time_index)))
             if task.animated_product.id == "scene":
                 #need to clear out all the metadata..
-                data.attrs = OrderedDict()
-                for band in data:
-                    data[band].attrs = OrderedDict()
-                data.to_netcdf(path)
+                clear_attrs(data)
+                #can't reindex on time - weird?
+                data.isel(time=0).drop('time').to_netcdf(path)
             elif task.animated_product.id == "cumulative":
                 iteration_data.to_netcdf(path)
 
@@ -265,9 +265,8 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     for index, chunk in enumerate(total_chunks):
         metadata = combine_metadata(metadata, chunk[1])
-        chunk_data.append(xr.open_dataset(chunk[0]).load())
+        chunk_data.append(xr.open_dataset(chunk[0]))
         #delete intermediate after loading.
-        os.remove(chunk[0])
 
     combined_data = combine_geographic_chunks(chunk_data)
 
@@ -282,8 +281,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
                 path = os.path.join(task.get_temp_path(),
                                     "animation_{}_{}.nc".format(str(geo_chunk_index), str(base_index + index)))
                 if os.path.exists(path):
-                    animated_data.append(xr.open_dataset(path).load())
-                    os.remove(path)
+                    animated_data.append(xr.open_dataset(path))
             path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
             if len(animated_data) > 0:
                 combine_geographic_chunks(animated_data).to_netcdf(path)
@@ -306,43 +304,44 @@ def recombine_time_chunks(chunks, task_id=None):
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
     metadata = {}
+
+    def generate_animation(index, combined_data):
+        base_index = task.get_chunk_size()['time'] * index
+        for index in range(task.get_chunk_size()['time']):
+            path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
+            if os.path.exists(path):
+                animated_data = xr.open_dataset(path)
+                if task.animated_product.id == "cumulative":
+                    animated_data['time'] = [0]
+                    clear_mask = create_cfmask_clean_mask(
+                        animated_data.cf_mask) if 'cf_mask' in data else create_bit_mask(animated_data.pixel_qa, [1, 2])
+                    animated_data = task.get_processing_method()(animated_data,
+                                                                 clean_mask=clear_mask,
+                                                                 intermediate_product=combined_data)
+                path = os.path.join(task.get_temp_path(), "animation_{}.png".format(base_index + index))
+                write_png_from_xr(
+                    path,
+                    animated_data,
+                    bands=[task.query_type.red, task.query_type.green, task.query_type.blue],
+                    scale=(0, 4096))
+
     combined_data = None
     for index, chunk in enumerate(total_chunks):
         metadata.update(chunk[1])
-        data = xr.open_dataset(chunk[0]).load()
-        os.remove(chunk[0])
+        data = xr.open_dataset(chunk[0])
         if combined_data is None:
             combined_data = data
+            if task.animated_product.id != "none":
+                generate_animation(index, combined_data)
             continue
         #give time an indice to keep mosaicking from breaking.
         data['time'] = [0]
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
         combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
-
         # if we're animating, combine it all and save to disk.
         if task.animated_product.id != "none":
-            base_index = task.get_chunk_size()['time'] * index
-            for index in range(task.get_chunk_size()['time']):
-                path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
-                if os.path.exists(path):
-                    animated_data = xr.open_dataset(path).load()
-                    if task.animated_product.id == "cumulative":
-                        animated_data['time'] = [0]
-                        clear_mask = create_cfmask_clean_mask(
-                            animated_data.cf_mask) if 'cf_mask' in data else create_bit_mask(animated_data.pixel_qa,
-                                                                                             [1, 2])
-                        animated_data = task.get_processing_method()(animated_data,
-                                                                     clean_mask=clear_mask,
-                                                                     intermediate_product=combined_data)
-                    path = os.path.join(task.get_temp_path(), "animation_{}.png".format(base_index + index))
-                    write_png_from_xr(
-                        path,
-                        data,
-                        bands=[task.query_type.red, task.query_type.green, task.query_type.blue],
-                        png_filled_path=task.result_filled_path,
-                        fill_color=task.query_type.fill,
-                        scale=(0, 4096))
+            generate_animation(index, combined_data)
 
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
     combined_data.to_netcdf(path)
@@ -356,7 +355,7 @@ def create_output_products(data, task_id=None):
     """
     print("CREATE_OUTPUT")
     full_metadata = data[1]
-    data = xr.open_dataset(data[0])
+    dataset = xr.open_dataset(data[0])
     task = CustomMosaicTask.objects.get(pk=task_id)
 
     task.result_path = os.path.join(task.get_result_path(), "png_mosaic.png")
@@ -364,16 +363,17 @@ def create_output_products(data, task_id=None):
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
     task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
     task.animation_path = os.path.join(task.get_result_path(), "animation.gif") if task.animated_product else ""
-    task.metadata_from_dataset(data)
+    task.metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
     png_bands = [task.query_type.red, task.query_type.green, task.query_type.blue]
 
+    dataset.to_netcdf(task.data_netcdf_path)
     write_geotiff_from_xr(
-        task.data_path, data.astype('int32'), bands=['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask'])
+        task.data_path, dataset.astype('int32'), bands=['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask'])
     write_png_from_xr(
         task.result_path,
-        data,
+        dataset,
         bands=png_bands,
         png_filled_path=task.result_filled_path,
         fill_color=task.query_type.fill,
@@ -385,9 +385,9 @@ def create_output_products(data, task_id=None):
                 full_metadata))) if task.animated_product.id == "scene" and task.get_reverse_time() else range(
                     len(full_metadata))
             for index in valid_range:
-                path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
+                path = os.path.join(task.get_temp_path(), "animation_{}.png".format(index))
                 if os.path.exists(path):
-                    image = imageio.imread(path=path)
+                    image = imageio.imread(path)
                     writer.append_data(image)
 
     print("All products created.")

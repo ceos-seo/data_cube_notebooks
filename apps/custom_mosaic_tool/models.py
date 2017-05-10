@@ -183,7 +183,7 @@ class Metadata(BaseMetadata):
 
     def metadata_from_dataset(self, dataset):
         self.pixel_count = len(dataset.latitude) * len(dataset.longitude)
-        self.clean_pixels = np.sum(dataset[list(dataset.data_vars)[0]].values != -9999)
+        self.clean_pixel_count = np.sum(dataset[list(dataset.data_vars)[0]].values != -9999)
         self.percentage_clean_pixels = (self.clean_pixel_count / self.pixel_count) * 100
         self.save()
 
