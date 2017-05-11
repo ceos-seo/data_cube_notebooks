@@ -181,14 +181,52 @@ class Metadata(BaseMetadata):
     class Meta(BaseMetadata.Meta):
         abstract = True
 
-    def metadata_from_dataset(self, dataset):
+    def metadata_from_dataset(self, metadata, dataset, clear_mask):
+        """implements metadata_from_dataset as required by the base class
+
+        See the base metadata class docstring for more information.
+
+        """
+        for metadata_index, time in enumerate(dataset.time.values.astype('M8[ms]').tolist()):
+            clean_pixels = np.sum(clear_mask[metadata_index, :, :] == True)
+            if time not in metadata:
+                metadata[time] = {}
+                metadata[time]['clean_pixels'] = 0
+                metadata[time]['satellite'] = parameters['platforms'][np.unique(
+                    dataset.satellite.isel(time=metadata_index).values)[0]] if np.unique(
+                        dataset.satellite.isel(time=metadata_index).values)[0] > -1 else "NODATA"
+            metadata[time]['clean_pixels'] += clean_pixels
+        return metadata
+
+    def combine_metadata(self, old, new):
+        """implements combine_metadata as required by the base class
+
+        See the base metadata class docstring for more information.
+
+        """
+        for key in new:
+            if key in old:
+                old[key]['clean_pixels'] += new[key]['clean_pixels']
+                continue
+            old[key] = new[key]
+        return old
+
+    def final_metadata_from_dataset(self, dataset):
+        """implements final_metadata_from_dataset as required by the base class
+
+        See the base metadata class docstring for more information.
+
+        """
         self.pixel_count = len(dataset.latitude) * len(dataset.longitude)
         self.clean_pixel_count = np.sum(dataset[list(dataset.data_vars)[0]].values != -9999)
         self.percentage_clean_pixels = (self.clean_pixel_count / self.pixel_count) * 100
         self.save()
 
     def metadata_from_dict(self, metadata_dict):
-        """
+        """implements metadata_from_dict as required by the base class
+
+        See the base metadata class docstring for more information.
+
         """
         dates = list(metadata_dict.keys())
         dates.sort(reverse=True)
