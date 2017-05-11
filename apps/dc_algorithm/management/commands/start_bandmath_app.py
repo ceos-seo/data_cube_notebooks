@@ -24,6 +24,8 @@ class Command(BaseCommand):
         app_path = os.path.join(settings.BASE_DIR, 'apps', app_name)
 
         shutil.copytree(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'band_math_app'), app_path)
+        templates_path = os.path.join(app_path, 'templates', 'band_math_app')
+        os.rename(templates_path, os.path.join(app_path, 'templates', app_name))
         self.stdout.write(self.style.SUCCESS("Copied files..."))
         #string replacement for constants.
         commands = [
