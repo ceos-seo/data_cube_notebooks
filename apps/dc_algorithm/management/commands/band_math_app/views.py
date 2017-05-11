@@ -48,10 +48,10 @@ class RegionSelection(RegionSelection):
 
     See the dc_algorithm.views docstring for more information
     """
-    tool_name = 'custom_mosaic_tool'
+    tool_name = 'band_math_app'
 
 
-class CustomMosaicTool(ToolView):
+class BandMathApp(ToolView):
     """Creates the main view for the custom mosaic tool by extending the ToolView class
 
     Extends the ToolView abstract class - required attributes are the tool_name and the
@@ -60,8 +60,8 @@ class CustomMosaicTool(ToolView):
     See the dc_algorithm.views docstring for more details.
     """
 
-    tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    tool_name = 'band_math_app'
+    task_model_name = 'BandMathTask'
 
     def generate_form_dict(self, satellites):
         forms = {}
@@ -90,8 +90,8 @@ class SubmitNewRequest(SubmitNewRequest):
 
     See the dc_algorithm.views docstrings for more information.
     """
-    tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    tool_name = 'band_math_app'
+    task_model_name = 'BandMathTask'
     #celery_task_func = create_cloudfree_mosaic
     celery_task_func = run
     form_list = [DataSelectionForm, DataSelectForm]
@@ -105,8 +105,8 @@ class GetTaskResult(GetTaskResult):
 
     See the dc_algorithm.views docstrings for more information.
     """
-    tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    tool_name = 'band_math_app'
+    task_model_name = 'BandMathTask'
 
 
 class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
@@ -117,8 +117,8 @@ class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
 
     See the dc_algorithm.views docstrings for more information.
     """
-    tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    tool_name = 'band_math_app'
+    task_model_name = 'BandMathTask'
 
     celery_task_func = run
 
@@ -144,8 +144,8 @@ class CancelRequest(CancelRequest):
     name and task model name. This will not kill running queries, but will
     disassociate it from the user's history.
     """
-    tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    tool_name = 'band_math_app'
+    task_model_name = 'BandMathTask'
 
 
 class UserHistory(UserHistory):
@@ -155,8 +155,8 @@ class UserHistory(UserHistory):
     name and task model name. This will list all queries that are complete, have a
     OK status, and are registered to the user.
     """
-    tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    tool_name = 'band_math_app'
+    task_model_name = 'BandMathTask'
 
 
 class ResultList(ResultList):
@@ -166,8 +166,8 @@ class ResultList(ResultList):
     name and task model name. This will list all queries that are complete, have a
     OK status, and are registered to the user.
     """
-    tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    tool_name = 'band_math_app'
+    task_model_name = 'BandMathTask'
 
 
 class OutputList(OutputList):
@@ -177,5 +177,5 @@ class OutputList(OutputList):
     name and task model name. This will list all queries that are complete, have a
     OK status, and are registered to the user.
     """
-    tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    tool_name = 'band_math_app'
+    task_model_name = 'BandMathTask'

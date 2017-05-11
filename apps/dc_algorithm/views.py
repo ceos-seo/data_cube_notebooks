@@ -237,7 +237,7 @@ class RegionSelection(View, ToolClass):
         application = Application.objects.get(id=self._get_tool_name())
         context = {
             'app': self._get_tool_name(),
-            'tool_descriptions': application.toolinfo_set.all().order_by('id'),
+            'tool_descriptions': self._get_tool_model('toolinfo').objects.all().order_by('id'),
             'areas': application.areas.all()
         }
         return render(request, 'region_selection.html', context)
@@ -281,7 +281,7 @@ class UserHistory(View, ToolClass):
         task_history = task_model_class.get_queryset_from_history(user_history, complete=True).exclude(status="ERROR")
 
         context = {'task_history': task_history}
-        return render(request, 'custom_mosaic_tool/task_history.html', context)
+        return render(request, "/".join([self._get_tool_name(), 'task_history.html']), context)
 
 
 class ResultList(View, ToolClass):
@@ -316,7 +316,7 @@ class ResultList(View, ToolClass):
         tasks = task_model_class.objects.filter(pk__in=task_ids)
 
         context = {'tasks': tasks}
-        return render(request, 'custom_mosaic_tool/results_list.html', context)
+        return render(request, "/".join([self._get_tool_name(), 'results_list.html']), context)
 
 
 class OutputList(View, ToolClass):
@@ -350,7 +350,7 @@ class OutputList(View, ToolClass):
         tasks = task_model_class.objects.filter(pk__in=task_ids)
 
         context = {'tasks': tasks}
-        return render(request, 'custom_mosaic_tool/output_list.html', context)
+        return render(request, "/".join([self._get_tool_name(), 'output_list.html']), context)
 
 
 class SubmitNewRequest(View, ToolClass):

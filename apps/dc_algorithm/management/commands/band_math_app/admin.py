@@ -19,32 +19,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.db import models
-from django.core.exceptions import ValidationError
+from django.contrib import admin
+from . import models
 
-import datetime
-import uuid
-
-
-class ResultType(models.Model):
-    """Stores a result type for an app that relates to options in the celery tasks
-
-    Contains a satellite id, result id, and result type for differentiating between different
-    result types. the result type should be displayed on the UI, passing the id as form data.
-    The id should be handled directly in the celery task execution. This should be inherited at the
-    app level without inheriting meta - the resulting class should not be abstract.
-
-    Constraints:
-        None yet.
-
-    """
-    result_id = models.CharField(max_length=25)
-    datacube_platform = models.CharField(max_length=25)
-    name = models.CharField(max_length=25)
-
-    class Meta:
-        unique_together = (('result_id', 'datacube_platform'))
-        abstract = True
-
-    def __str__(self):
-        return self.name
+admin.site.register(models.BandMathTask)
+admin.site.register(models.UserHistory)
+admin.site.register(models.ToolInfo)

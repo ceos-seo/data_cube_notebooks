@@ -148,9 +148,9 @@ def create_slip(query_id, user_id, single=False):
             return
 
         #if dems don't exist for the area, cancel.
-        if dc.get_scene_metadata(
-                'TERRA',
+        if dc.get_query_metadata(
                 'terra_aster_gdm_' + query.area_id,
+                platform='TERRA',
                 longitude=(query.longitude_min, query.longitude_max),
                 latitude=(query.latitude_min, query.latitude_max))['scene_count'] == 0:
             error_with_message(result, "There is no elevation data for your parameter set.", base_temp_path)

@@ -494,6 +494,32 @@ class AnimationType(models.Model):
         abstract = True
 
 
+class ToolInfo(models.Model):
+    """Model used to handle the region selection page information and images.
+
+    Stores images and information for the region selection page for each tool. Information includes
+    the descriptions seen on the page as well as their respective images. For instance, if we want
+    three images to scroll across the carousel, we would create three ToolInfo instances each with
+    an image and description.
+
+    Attributes:
+        image_path: path to the banner image that is to be shown on the top of the page
+        image_title: title describing the image - will be displayed on page.
+        image_description: description text for the image. Will be displayed on page.
+
+    """
+
+    image_path = models.CharField(max_length=100)
+    image_title = models.CharField(max_length=50)
+    image_description = models.CharField(max_length=500)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.image_title
+
+
 class UserHistory(models.Model):
     """Contains the task history for a given user.
 

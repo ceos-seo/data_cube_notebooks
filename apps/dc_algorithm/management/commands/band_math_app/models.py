@@ -49,27 +49,6 @@ class ToolInfo(BaseToolInfo):
     pass
 
 
-class ResultType(BaseResultType):
-    """
-    extends base result type, adding additional fields required by app.
-    See the dc_algorithm.ResultType docstring for more information.
-    """
-
-    red = models.CharField(max_length=25)
-    green = models.CharField(max_length=25)
-    blue = models.CharField(max_length=25)
-    fill = models.CharField(max_length=25, default="red")
-
-
-class AnimationType(BaseAnimationType):
-    """
-    Extends the base animation type, adding additional fields as required by app.
-    See the dc_algorithm.AnimationType docstring for more information.
-    """
-
-    pass
-
-
 class Query(BaseQuery):
     """
 
@@ -79,17 +58,16 @@ class Query(BaseQuery):
     foreign keys should define __str__ for a human readable name.
 
     """
-    query_type = models.ForeignKey(ResultType)
-    animated_product = models.ForeignKey(AnimationType)
     compositor = models.ForeignKey(Compositor)
 
     config_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
+    color_scale_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/band_math_app'
     measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
-    base_result_dir = '/datacube/ui_results/custom_mosaic_tool'
+    base_result_dir = '/datacube/ui_results/band_math_app'
 
     class Meta(BaseQuery.Meta):
         unique_together = (('platform', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
-                            'longitude_min', 'title', 'description', 'query_type', 'animated_product', 'compositor'))
+                            'longitude_min', 'title', 'description', 'compositor'))
         abstract = True
 
     def get_fields_with_labels(self, labels, field_names):
@@ -153,13 +131,12 @@ class Query(BaseQuery):
 
         """
         query_data = form_data
-        query_data['title'] = "Custom Mosaic Query" if 'title' not in form_data or form_data[
-            'title'] == '' else form_data['title']
+        query_data['title'] = "Band Math Query" if 'title' not in form_data or form_data['title'] == '' else form_data[
+            'title']
         query_data['description'] = "None" if 'description' not in form_data or form_data[
             'description'] == '' else form_data['description']
 
-        query_data['platform'] = "LANDSAT_5,LANDSAT_7,LANDSAT_8" if query_data[
-            'platform'] == 'LANDSAT_ALL' else query_data['platform']
+        query_data['platform'] = query_data['platform']
 
         valid_query_fields = [field.name for field in cls._meta.get_fields()]
         query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
@@ -181,9 +158,9 @@ class Metadata(BaseMetadata):
 
     See the dc_algorithm.Metadata docstring for more information
     """
-    satellite_list = models.CharField(max_length=100000, default="")
+
     zipped_metadata_fields = [
-        'acquisition_list', 'clean_pixels_per_acquisition', 'clean_pixel_percentages_per_acquisition', 'satellite_list'
+        'acquisition_list', 'clean_pixels_per_acquisition', 'clean_pixel_percentages_per_acquisition'
     ]
 
     class Meta(BaseMetadata.Meta):
@@ -200,9 +177,6 @@ class Metadata(BaseMetadata):
             if time not in metadata:
                 metadata[time] = {}
                 metadata[time]['clean_pixels'] = 0
-                metadata[time]['satellite'] = parameters['platforms'][np.unique(
-                    dataset.satellite.isel(time=metadata_index).values)[0]] if np.unique(
-                        dataset.satellite.isel(time=metadata_index).values)[0] > -1 else "NODATA"
             metadata[time]['clean_pixels'] += clean_pixels
         return metadata
 
@@ -242,7 +216,6 @@ class Metadata(BaseMetadata):
         self.total_scenes = len(dates)
         self.scenes_processed = len(dates)
         self.acquisition_list = ",".join([date.strftime("%m/%d/%Y") for date in dates])
-        self.satellite_list = ",".join([metadata_dict[date]['satellite'] for date in dates])
         self.clean_pixels_per_acquisition = ",".join([str(metadata_dict[date]['clean_pixels']) for date in dates])
         self.clean_pixel_percentages_per_acquisition = ",".join(
             [str((metadata_dict[date]['clean_pixels'] * 100) / self.pixel_count) for date in dates])
@@ -256,8 +229,7 @@ class Result(BaseResult):
     """
 
     # result path + other data. More to come.
-    result_filled_path = models.CharField(max_length=250, default="")
-    animation_path = models.CharField(max_length=250, default="None")
+    mosaic_path = models.CharField(max_length=250, default="")
     data_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
 
@@ -265,7 +237,7 @@ class Result(BaseResult):
         abstract = True
 
 
-class CustomMosaicTask(Query, Metadata, Result):
+class BandMathTask(Query, Metadata, Result):
     """
     Combines the Query, Metadata, and Result abstract models
     """

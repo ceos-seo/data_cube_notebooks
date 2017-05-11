@@ -18,29 +18,3 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
-from django.db import models
-from django.core.exceptions import ValidationError
-
-import datetime
-import uuid
-
-
-class UserHistory(models.Model):
-    """Contains the task history for a given user.
-
-    This shoud act as a linking table between a user and their tasks.
-    When a new task is submitted, a row should be created linking the user
-    to the task by id.
-
-    Constraints:
-        user_id should map to a user's id.
-        task_id should map to the pk of a task
-
-    """
-
-    user_id = models.IntegerField()
-    task_id = models.UUIDField()
-
-    class Meta:
-        abstract = True

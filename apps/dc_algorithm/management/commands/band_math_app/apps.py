@@ -19,21 +19,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.db import models
-from django.core.exceptions import ValidationError
-
-import datetime
-import uuid
+from django.apps import AppConfig
 
 
-class Baseline(models.Model):
-    """
-    stores a baseline type. E.g. mean, composite, etc. Used for change
-    detection applications.
-    """
-
-    id = models.CharField(max_length=25, unique=True, primary_key=True)
-    name = models.CharField(max_length=25)
-
-    def __str__(self):
-        return self.name
+class BandMathAppConfig(AppConfig):
+    name = 'band_math_app'
