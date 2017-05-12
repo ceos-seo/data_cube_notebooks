@@ -23,11 +23,6 @@ from django.conf.urls import url, include
 
 from . import views
 
-# Author: AHDS
-# Creation date: 2016-06-23
-# Modified by:
-# Last modified date:
-
 urlpatterns = [
     url(r'^region_selection', views.RegionSelection.as_view(), name='region_selection'),
     url(r'^submit$', views.SubmitNewRequest.as_view(), name='submit_new_request'),

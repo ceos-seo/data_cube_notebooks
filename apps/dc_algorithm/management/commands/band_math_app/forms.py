@@ -24,15 +24,6 @@ from django import forms
 import datetime
 
 from apps.dc_algorithm.models import Area, Compositor
-"""
-File designed to house the different forms for taking in user input in the web application.  Forms
-allow for input validation and passing of data.  Includes forms for creating Queries to be ran.
-"""
-
-# Author: AHDS
-# Creation date: 2016-06-23
-# Modified by:
-# Last modified date:
 
 
 class DataSelectForm(forms.Form):
