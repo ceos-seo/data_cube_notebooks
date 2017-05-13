@@ -189,7 +189,7 @@ class Metadata(BaseMetadata):
     class Meta(BaseMetadata.Meta):
         abstract = True
 
-    def metadata_from_dataset(self, metadata, dataset, clear_mask):
+    def metadata_from_dataset(self, metadata, dataset, clear_mask, parameters):
         """implements metadata_from_dataset as required by the base class
 
         See the base metadata class docstring for more information.

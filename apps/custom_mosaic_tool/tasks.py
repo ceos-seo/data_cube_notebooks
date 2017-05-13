@@ -86,18 +86,18 @@ def validate_parameters(parameters, task_id):
     acquisitions = dc.list_combined_acquisition_dates(**parameters)
 
     if len(acquisitions) < 1:
+        task.complete = True
         task.update_status("ERROR", "There are no acquistions for this parameter set.")
         return None
 
     if task.animated_product != "none" and task.compositor.id == "median_pixel":
+        task.complete = True
         task.update_status("ERROR", "Animations cannot be generated for median pixel operations.")
         return None
 
     task.update_status("WAIT", "Validated parameters.")
 
-    try:
-        dc.get_stacked_datasets_by_extent(dask_chunks={}, **parameters)
-    except KeyError:
+    if not dc.validate_measurements(parameters['products'][0], parameters['measurements']):
         parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
 
     dc.close()
@@ -184,7 +184,7 @@ def start_chunk_processing(chunk_details, task_id):
     return True
 
 
-@task(name="custom_mosaic_tool.processing_task")
+@task(name="custom_mosaic_tool.processing_task", acks_late=True)
 def processing_task(task_id=None,
                     geo_chunk_id=None,
                     time_chunk_id=None,
@@ -241,7 +241,7 @@ def processing_task(task_id=None,
                                                                                                       [1, 2])
         add_timestamp_data_to_xr(data)
 
-        metadata = task.metadata_from_dataset(metadata, data, clear_mask)
+        metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
 
         iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
 

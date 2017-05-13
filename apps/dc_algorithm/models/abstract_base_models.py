@@ -270,7 +270,7 @@ class Metadata(models.Model):
     class Meta:
         abstract = True
 
-    def metadata_from_dataset(self, metadata, dataset, clear_mask):
+    def metadata_from_dataset(self, metadata, dataset, clear_mask, parameters):
         """Generate a metadata dictionary from a dataset and a clear mask.
 
         Converts a dataset and a clear mask into the required metadata dict
