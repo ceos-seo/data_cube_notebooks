@@ -2,7 +2,7 @@ from django.db.models import F
 
 from celery.task import task
 from celery import chain, group, chord
-from datetime import datetime
+from datetime import datetime, timedelta
 import shutil
 import xarray as xr
 import numpy as np
@@ -90,7 +90,7 @@ def validate_parameters(parameters, task_id):
         task.update_status("ERROR", "There are no acquistions for this parameter set.")
         return None
 
-    if task.animated_product != "none" and task.compositor.id == "median_pixel":
+    if task.animated_product.id != "none" and task.compositor.id == "median_pixel":
         task.complete = True
         task.update_status("ERROR", "Animations cannot be generated for median pixel operations.")
         return None
@@ -162,7 +162,8 @@ def start_chunk_processing(chunk_details, task_id):
     time_chunks = chunk_details.get('time_chunks')
 
     task = CustomMosaicTask.objects.get(pk=task_id)
-    task.total_scenes = len(geographic_chunks) * len(time_chunks) * task.get_chunk_size()['time']
+    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time'] if
+                                                                     task.get_chunk_size()['time'] is not None else 1)
     task.scenes_processed = 0
     task.update_status("WAIT", "Starting processing.")
 
@@ -219,24 +220,25 @@ def processing_task(task_id=None,
     metadata = {}
 
     def _get_datetime_range_containing(*time_ranges):
-        return (min(time_ranges), max(time_ranges))
+        return (min(time_ranges) - timedelta(microseconds=1), max(time_ranges) + timedelta(microseconds=1))
 
     times = list(
         map(_get_datetime_range_containing, time_chunk)
-        if task.get_iterative() else (_get_datetime_range_containing(time_chunk[0], time_chunk[-1])))
+        if task.get_iterative() else [_get_datetime_range_containing(time_chunk[0], time_chunk[-1])])
     dc = DataAccessApi(config=task.config_path)
     updated_params = parameters
     updated_params.update(geographic_chunk)
     #updated_params.update({'products': parameters['']})
     iteration_data = None
-    base_index = task.get_chunk_size()['time'] * time_chunk_id
+    base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
     for time_index, time in enumerate(times):
         updated_params.update({'time': time})
+        print(time)
         data = dc.get_stacked_datasets_by_extent(**updated_params)
         if 'time' not in data:
             print("Invalid chunk.")
             continue
-
+        print(data.time)
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
         add_timestamp_data_to_xr(data)
@@ -286,7 +288,6 @@ def recombine_geographic_chunks(chunks, task_id=None):
     task = CustomMosaicTask.objects.get(pk=task_id)
 
     chunk_data = []
-
     for index, chunk in enumerate(total_chunks):
         metadata = task.combine_metadata(metadata, chunk[1])
         chunk_data.append(xr.open_dataset(chunk[0]))
@@ -295,8 +296,8 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     # if we're animating, combine it all and save to disk.
     if task.animated_product.id != "none":
-        base_index = task.get_chunk_size()['time'] * time_chunk_id
-        for index in range(task.get_chunk_size()['time']):
+        base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
+        for index in range((task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1)):
             animated_data = []
             for chunk in total_chunks:
                 geo_chunk_index = chunk[2]['geo_chunk_id']
@@ -339,8 +340,8 @@ def recombine_time_chunks(chunks, task_id=None):
     metadata = {}
 
     def generate_animation(index, combined_data):
-        base_index = task.get_chunk_size()['time'] * index
-        for index in range(task.get_chunk_size()['time']):
+        base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * index
+        for index in range((task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1)):
             path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
             if os.path.exists(path):
                 animated_data = xr.open_dataset(path)

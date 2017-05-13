@@ -2,7 +2,7 @@ from django.db.models import F
 
 from celery.task import task
 from celery import chain, group, chord
-from datetime import datetime
+from datetime import datetime, timedelta
 import shutil
 import xarray as xr
 import numpy as np
@@ -96,7 +96,7 @@ def validate_parameters(parameters, task_id):
         task.update_status("ERROR", "There are no acquistions for this parameter set.")
         return None
 
-    if task.animated_product != "none" and task.compositor.id == "median_pixel":
+    if task.animated_product.id != "none" and task.compositor.id == "median_pixel":
         task.complete = True
         task.update_status("ERROR", "Animations cannot be generated for median pixel operations.")
         return None
@@ -170,7 +170,8 @@ def start_chunk_processing(chunk_details, task_id):
     time_chunks = chunk_details.get('time_chunks')
 
     task = AppNameTask.objects.get(pk=task_id)
-    task.total_scenes = len(geographic_chunks) * len(time_chunks) * task.get_chunk_size()['time']
+    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time'] if
+                                                                     task.get_chunk_size()['time'] is not None else 1)
     task.scenes_processed = 0
     task.update_status("WAIT", "Starting processing.")
 
@@ -227,7 +228,7 @@ def processing_task(task_id=None,
     metadata = {}
 
     def _get_datetime_range_containing(*time_ranges):
-        return (min(time_ranges), max(time_ranges))
+        return (min(time_ranges) - timedelta(microseconds=1), max(time_ranges) + timedelta(microseconds=1))
 
     times = list(
         map(_get_datetime_range_containing, time_chunk)
@@ -237,7 +238,7 @@ def processing_task(task_id=None,
     updated_params.update(geographic_chunk)
     #updated_params.update({'products': parameters['']})
     iteration_data = None
-    base_index = task.get_chunk_size()['time'] * time_chunk_id
+    base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
     for time_index, time in enumerate(times):
         updated_params.update({'time': time})
         # TODO: If this is not a multisensory app replace get_stacked_datasets_by_extent with get_dataset_by_extent
@@ -309,8 +310,8 @@ def recombine_geographic_chunks(chunks, task_id=None):
     # TODO: If there is no animation, delete this block. Otherwise, recombine all the geo chunks for each time chunk
     #       and save the result to disk.
     if task.animated_product.id != "none":
-        base_index = task.get_chunk_size()['time'] * time_chunk_id
-        for index in range(task.get_chunk_size()['time']):
+        base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
+        for index in range((task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1)):
             animated_data = []
             for chunk in total_chunks:
                 geo_chunk_index = chunk[2]['geo_chunk_id']
@@ -354,8 +355,8 @@ def recombine_time_chunks(chunks, task_id=None):
 
     #TODO: If there is no animation, remove this block. Otherwise, compute the data needed to create each frame.
     def generate_animation(index, combined_data):
-        base_index = task.get_chunk_size()['time'] * index
-        for index in range(task.get_chunk_size()['time']):
+        base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * index
+        for index in range((task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1)):
             path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
             if os.path.exists(path):
                 animated_data = xr.open_dataset(path)
@@ -422,7 +423,7 @@ def create_output_products(data, task_id=None):
     task.result_filled_path = os.path.join(task.get_result_path(), "filled_png_mosaic.png")
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
     task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
-    task.animation_path = os.path.join(task.get_result_path(), "animation.gif") if task.animated_product else ""
+    task.animation_path = os.path.join(task.get_result_path(), "animation.gif") if task.animated_product.id else ""
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 

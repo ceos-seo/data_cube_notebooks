@@ -2,7 +2,7 @@ from django.db.models import F
 
 from celery.task import task
 from celery import chain, group, chord
-from datetime import datetime
+from datetime import datetime, timedelta
 import shutil
 import xarray as xr
 import numpy as np
@@ -155,7 +155,8 @@ def start_chunk_processing(chunk_details, task_id):
     time_chunks = chunk_details.get('time_chunks')
 
     task = BandMathTask.objects.get(pk=task_id)
-    task.total_scenes = len(geographic_chunks) * len(time_chunks) * task.get_chunk_size()['time']
+    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time'] if
+                                                                     task.get_chunk_size()['time'] is not None else 1)
     task.scenes_processed = 0
     task.update_status("WAIT", "Starting processing.")
 
@@ -213,7 +214,7 @@ def processing_task(task_id=None,
     metadata = {}
 
     def _get_datetime_range_containing(*time_ranges):
-        return (min(time_ranges), max(time_ranges))
+        return (min(time_ranges) - timedelta(microseconds=1), max(time_ranges) + timedelta(microseconds=1))
 
     times = list(
         map(_get_datetime_range_containing, time_chunk)
@@ -223,7 +224,7 @@ def processing_task(task_id=None,
     updated_params.update(geographic_chunk)
     #updated_params.update({'products': parameters['']})
     iteration_data = None
-    base_index = task.get_chunk_size()['time'] * time_chunk_id
+    base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
     for time_index, time in enumerate(times):
         updated_params.update({'time': time})
         data = dc.get_dataset_by_extent(**updated_params)
