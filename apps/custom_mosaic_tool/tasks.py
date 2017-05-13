@@ -238,7 +238,7 @@ def processing_task(task_id=None,
         if 'time' not in data:
             print("Invalid chunk.")
             continue
-        print(data.time)
+
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
         add_timestamp_data_to_xr(data)
