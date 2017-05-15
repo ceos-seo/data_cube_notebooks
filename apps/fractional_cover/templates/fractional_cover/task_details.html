@@ -1,4 +1,4 @@
-{% extends "task_manager/query_details_template.html" %}
+{% extends "task_manager/task_details_template.html" %}
 <!--
 Copyright 2016 United States Government as represented by the Administrator
 of the National Aeronautics and Space Administration. All Rights Reserved.
@@ -21,32 +21,32 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License.
 -->
-{% block query_details %}
+{% block task_details %}
 <div class="row">
   <div class="col-lg-6">
-    <h2 class="page-header">Query Details</h2>
+    <h2 class="page-header">task Details</h2>
     <dl class="dl-horizontal">
       <dt>User ID</dt>
-      <dd>{{query.user_id}}</dd>
+      <dd>{{task.user_id}}</dd>
       <dt>Title</dt>
-      <dd>{{query.title}}</dd>
+      <dd>{{task.title}}</dd>
       <dt>Description</dt>
-      <dd>{{query.description}}</dd>
+      <dd>{{task.description}}</dd>
       <dt>Status</dt>
-      <dd>{% if query.complete %} Complete {% else %} Running... {% endif %}</dd>
+      <dd>{% if task.complete %} Complete {% else %} Running... {% endif %}</dd>
       <dt>Start Time</dt>
-      <dd>{{ query.query_start|date:"m/d/Y H:i" }}</dd>
+      <dd>{{ task.execution_start|date:"m/d/Y H:i" }}</dd>
       <dt>End Time</dt>
-      <dd>{{ query.query_end|date:"m/d/Y H:i" }}</dd>
+      <dd>{{ task.execution_end|date:"m/d/Y H:i" }}</dd>
     </dl>
   </div>
   <div class="col-lg-6">
-    <h2 class="page-header">Query Metadata</h2>
+    <h2 class="page-header">task Metadata</h2>
     <dl class="dl-horizontal">
       <dt>Platform</dt>
-      <dd>{{query.platform}}</dd>
+      <dd>{{task.platform}}</dd>
       <dt>Scene Count</dt>
-      <dd>{{metadata.scene_count}}</dd>
+      <dd>{{metadata.total_scenes}}</dd>
       <dt>Pixel Count</dt>
       <dd>{{metadata.pixel_count}}</dd>
     </dl>
@@ -54,26 +54,24 @@ under the License.
 </div>
 <div class="row">
   <div class="col-lg-6">
-    <h2 class="page-header">Query Parameters</h2>
+    <h2 class="page-header">task Parameters</h2>
     <dl class="dl-horizontal">
       <dt>(Lat, Lon) Min</dt>
-      <dd>({{query.latitude_min|floatformat:6}} , {{query.longitude_min|floatformat:6}})</dd>
+      <dd>({{task.latitude_min|floatformat:6}} , {{task.longitude_min|floatformat:6}})</dd>
       <dt>(Lat, Lon) Max</dt>
-      <dd>({{query.latitude_max|floatformat:6}} , {{query.longitude_max|floatformat:6}})</dd>
-      <dt>Animation</dt>
-      <dd>{{query.animated_product}}</dd>
+      <dd>({{task.latitude_max|floatformat:6}} , {{task.longitude_max|floatformat:6}})</dd>
+      <dt>Compositing Method</dt>
+      <dd>{{task.get_compositor_name}}</dd>
     </dl>
   </div>
   <div class="col-lg-6">
-    <h2 class="page-header">Query Outputs</h2>
+    <h2 class="page-header">task Outputs</h2>
     {% if user.is_authenticated %}
     <dl class="dl-horizontal">
-      <dt>Coastline Change Path</dt>
-      <dd><a href={{result.result_path}} target="_blank">View image</a></dd>
-      <dt>Coastal Change Path</dt>
-      <dd><a href={{result.result_coastal_change_path}} target="_blank">View image</a></dd>
       <dt>Mosaic Path</dt>
-      <dd><a href={{result.result_mosaic_path}} target="_blank">View image</a></dd>
+      <dd><a href={{result.result_path}} target="_blank">View image</a></dd>
+      <dt>Filled Mosaic Path</dt>
+      <dd><a href={{result.result_filled_path}} target="_blank">View image</a></dd>
       <dt>NetCDF Path</dt>
       <dd><a href={{result.data_netcdf_path}}>Download nc</a></dd>
       <dt>GeoTIFF Path</dt>
@@ -122,10 +120,7 @@ under the License.
                         <img src="{{ result.result_path }}" class="img-responsive">
                     </div>
                     <div class="item" data-slide-number="1">
-                        <img src="{{ result.result_coastal_change_path }}" class="img-responsive">
-                    </div>
-                    <div class="item" data-slide-number="2">
-                        <img src="{{ result.result_mosaic_path }}" class="img-responsive">
+                        <img src="{{ result.result_filled_path }}" class="img-responsive">
                     </div>
                 </div>
                 <a class="left carousel-control" href="#carousel" role="button" data-slide="prev">
@@ -137,22 +132,17 @@ under the License.
                   <span class="sr-only">Next</span>
                 </a>
                 <div id="carousel-caption-0" class="carousel-caption selected" data-slide-number="0">
-                  <h3>Coastline Change Image</h3>
-                  <p>Coastline change image for the query with the id {{query.id}}</p>
+                  <h3>Custom Mosaic Image</h3>
+                  <p>Output mosaic image for the task with the id {{task.id}}</p>
                 </div>
                 <div id="carousel-caption-1" class="carousel-caption" data-slide-number="1">
-                  <h3>Coastal Change Image</h3>
-                  <p>Coastal change image for the query with the id {{query.id}}</p>
-                </div>
-                <div id="carousel-caption-2" class="carousel-caption" data-slide-number="2">
-                  <h3>Mosaic Image</h3>
-                  <p>Output mosaic image for the query with the id {{query.id}}</p>
+                  <h3>Custom Mosaic Image (No-data filled)</h3>
+                  <p>Output mosaic image with no-data areas filled with a contrasting color for the task with the id {{task.id}}</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 <!-- thumb navigation carousel -->
 <div class="col-md-12 hidden-sm hidden-xs" id="slider-thumbs">
     <ul class="list-inline">
@@ -163,12 +153,7 @@ under the License.
         </li>
         <li>
             <a id="carousel-selector-1">
-                <img src="{{ result.result_coastal_change_path }}" class="img-responsive thumbnail" style="max-width:75px; max-height:75px;">
-            </a>
-        </li>
-        <li>
-            <a id="carousel-selector-2">
-                <img src="{{ result.result_mosaic_path }}" class="img-responsive thumbnail" style="max-width:75px; max-height:75px;">
+                <img src="{{ result.result_filled_path }}" class="img-responsive thumbnail" style="max-width:75px; max-height:75px;">
             </a>
         </li>
     </ul>

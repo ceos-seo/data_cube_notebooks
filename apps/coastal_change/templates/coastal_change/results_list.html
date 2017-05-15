@@ -112,6 +112,14 @@ under the License.
       <td>Clean Pixel Percentage:</td>
       <td class="right_aligned_text">{{ task.percentage_clean_pixels|floatformat:2 }}%</td>
     </tr>
+    <tr>
+      <td>Land <span class="glyphicon">&#xe092;</span> Ocean:</td>
+      <td class="right_aligned_text">{{task.land_converted }}</td>
+    </tr>
+    <tr>
+      <td>Ocean <span class="glyphicon">&#xe092;</span> Land:</td>
+      <td class="right_aligned_text">{{task.sea_converted }}</td>
+    </tr>
   </tbody>
 </table>
 {% endblock %}

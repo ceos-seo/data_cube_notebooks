@@ -62,7 +62,6 @@ class CoastalChangeTool(ToolView):
     tool_name = 'coastal_change'
     task_model_name = 'CoastalChangeTask'
 
-    # TODO: Ensure that this function creates all the forms required for your model.
     def generate_form_dict(self, satellites):
         forms = {}
         for satellite in satellites:
@@ -94,7 +93,6 @@ class SubmitNewRequest(SubmitNewRequest):
     task_model_name = 'CoastalChangeTask'
     #celery_task_func = create_cloudfree_mosaic
     celery_task_func = run
-    # TODO: Ensure that this list contains all the forms used to create your model
     form_list = [DataSelectionForm, AdditionalOptionsForm]
 
 
@@ -123,8 +121,6 @@ class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
 
     celery_task_func = run
 
-    # TODO: Ensure that your task_model_update_func works as expected - does this app support
-    # single requests?
     def task_model_update_func(self, task_model, **kwargs):
         """
         Basic funct that updates a task model with kwargs. In this case only the date

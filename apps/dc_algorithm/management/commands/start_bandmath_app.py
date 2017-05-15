@@ -52,5 +52,8 @@ class Command(BaseCommand):
         self.stdout.write("Add the string: "
                           "'apps." + app_name + "', to data_cube_ui/settings.py in the INSTALLED_APPS list.")
         self.stdout.write("Create a GDAL Dem compatible color scale in utils/color_scales/ named " + app_name)
+        self.stdout.write(
+            "A default red-> green color scale will be used until you create your color scale. Change the path to the color scale in your new models.py - Query"
+        )
         self.stdout.write("Run 'makemigrations' and 'migrate'")
         self.stdout.write("Run 'python manage.py loaddata apps/" + app_name + "/fixtures/init.json'")

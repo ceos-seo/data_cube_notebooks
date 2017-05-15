@@ -28,7 +28,6 @@ from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetada
                                       BaseResultType, UserHistory as BaseUserHistory, AnimationType as
                                       BaseAnimationType, ToolInfo as BaseToolInfo)
 
-# TODO: Fill in any required algorithm imports here.
 from utils.dc_mosaic import create_median_mosaic
 
 import datetime
@@ -174,7 +173,6 @@ class Metadata(BaseMetadata):
     class Meta(BaseMetadata.Meta):
         abstract = True
 
-    # TODO: Enter any additional metadata fields that you want to collect from a dataset here.
     def metadata_from_dataset(self, metadata, dataset, clear_mask, parameters):
         """implements metadata_from_dataset as required by the base class
 
@@ -197,7 +195,6 @@ class Metadata(BaseMetadata):
         """
         for key in new:
             if key in old:
-                # TODO: Combine any 'cumulative' fields here
                 old[key]['clean_pixels'] += new[key]['clean_pixels']
                 continue
             old[key] = new[key]
@@ -209,10 +206,11 @@ class Metadata(BaseMetadata):
         See the base metadata class docstring for more information.
 
         """
-        # TODO: Are there any more statistics that you can pull from the final dataset?
         self.pixel_count = len(dataset.latitude) * len(dataset.longitude)
         self.clean_pixel_count = np.sum(dataset[list(dataset.data_vars)[0]].values != -9999)
         self.percentage_clean_pixels = (self.clean_pixel_count / self.pixel_count) * 100
+        self.sea_converted = np.count_nonzero(dataset.coastal_change.values == -1)
+        self.land_converted = np.count_nonzero(dataset.coastal_change.values == 1)
         self.save()
 
     def metadata_from_dict(self, metadata_dict):
@@ -223,7 +221,6 @@ class Metadata(BaseMetadata):
         """
         dates = list(metadata_dict.keys())
         dates.sort(reverse=True)
-        # TODO: Create your comma seperated lists from metadata dict here.
         self.total_scenes = len(dates)
         self.scenes_processed = len(dates)
         self.acquisition_list = ",".join([date.strftime("%m/%d/%Y") for date in dates])
