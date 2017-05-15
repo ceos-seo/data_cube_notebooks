@@ -235,7 +235,8 @@ def processing_task(task_id=None,
         updated_params.update({'time': time})
 
         data = dc.get_stacked_datasets_by_extent(**updated_params)
-        if 'time' not in data:
+
+        if data is None or 'time' not in data:
             print("Invalid chunk.")
             continue
 

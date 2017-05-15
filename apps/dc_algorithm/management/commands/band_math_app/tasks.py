@@ -228,7 +228,7 @@ def processing_task(task_id=None,
     for time_index, time in enumerate(times):
         updated_params.update({'time': time})
         data = dc.get_dataset_by_extent(**updated_params)
-        if 'time' not in data:
+        if data is None or 'time' not in data:
             print("Invalid chunk.")
             continue
 

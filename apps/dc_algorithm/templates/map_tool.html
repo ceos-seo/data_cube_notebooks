@@ -102,7 +102,7 @@
           //$("#{{ satellite.datacube_platform }}_band_selection_ms").css('float', 'right');
           $("#{{ satellite.datacube_platform }}_band_selection_ms").css('width', '100%');
           //jquery to set the end date equal to the start date when its changed.
-          $("#{{ satellite.datacube_platform }}_time_start").on("input change", function(e) {
+          $("#{{ satellite.datacube_platform }}_time_start.datepicker").on("input change", function(e) {
               date = $("#{{ satellite.datacube_platform }}_time_start").datepicker('getDate');
               date.setFullYear(date.getFullYear() + 1);
               $("#{{ satellite.datacube_platform }}_time_end").datepicker('setDate', date);

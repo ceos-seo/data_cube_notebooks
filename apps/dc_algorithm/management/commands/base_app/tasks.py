@@ -244,7 +244,7 @@ def processing_task(task_id=None,
         updated_params.update({'time': time})
         # TODO: If this is not a multisensory app replace get_stacked_datasets_by_extent with get_dataset_by_extent
         data = dc.get_stacked_datasets_by_extent(**updated_params)
-        if 'time' not in data:
+        if data is None or 'time' not in data:
             print("Invalid chunk.")
             continue
 

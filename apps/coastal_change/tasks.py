@@ -236,7 +236,7 @@ def processing_task(task_id=None,
     def _compute_mosaic(time):
         updated_params.update({'time': time})
         data = dc.get_dataset_by_extent(**updated_params)
-        if 'time' not in data:
+        if data is None or 'time' not in data:
             print("Invalid chunk.")
             return data
 
@@ -291,7 +291,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     combined_data = combine_geographic_chunks(chunk_data)
 
     if task.animated_product.id != "none":
-        path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(time_chunk_id))
+        path = os.path.join(task.get_temp_path(), "animation_{}.png".format(time_chunk_id))
         animated_data = mask_mosaic_with_coastlines(
             combined_data) if task.animated_product.id == "coastline_change" else mask_mosaic_with_coastal_change(
                 combined_data)
@@ -378,10 +378,9 @@ def create_output_products(data, task_id=None):
         task.result_coastal_change_path, mask_mosaic_with_coastal_change(dataset), bands=png_bands, scale=(0, 4096))
     write_png_from_xr(task.result_mosaic_path, dataset, bands=png_bands, scale=(0, 4096))
 
-    # TODO: if there is no animation, remove this. Otherwise, open each time iteration slice and write to disk.
     if task.animated_product.id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
-            for index in range(task.time_start - task.time_end):
+            for index in range(task.time_end - task.time_start):
                 path = os.path.join(task.get_temp_path(), "animation_{}.png".format(index))
                 if os.path.exists(path):
                     image = imageio.imread(path)

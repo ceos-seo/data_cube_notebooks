@@ -73,7 +73,7 @@ under the License.
         <tbody>
           <thead>
             <th>{{ acquisition }}</th>
-            <th class="right_aligned_text"><button class="tooltipped" title="Load this single scene. This will hide the current result." onclick="load_scene_from_task('{{ task.id }}', '{{ acquisition }}')" style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Load this scene</button></th>
+            <th class="right_aligned_text"></th>
           </thead>
           <tr>
             <td>Clean pixels:</td>
@@ -119,23 +119,23 @@ under the License.
 {% block functions_block %}
 //toggles the nodata highlighting based on a checkbox.
 //outline is shown as visible
-function show_result(checkbox, id, id) {
-  map.remove_image_by_id(tasks[id].id);
+function show_result(checkbox, task_id, id) {
+  map.remove_image_by_id(tasks[task_id].id);
   switch(id) {
     case 0:
     default:
-      result_path = tasks[id].result_path;
+      result_path = tasks[task_id].result_path;
     break;
     case 1:
-      result_path = tasks[id].result_coastal_change_path;
+      result_path = tasks[task_id].result_coastal_change_path;
       break;
     case 2:
-      result_path = tasks[id].result_mosaic_path;
+      result_path = tasks[task_id].result_mosaic_path;
       break;
   }
   $('input:checkbox').removeAttr('checked');
   checkbox.checked = true;
-  add_result_to_map(id, result_path);
-  map.toggle_outline_by_id(id, true);
+  add_result_to_map(task_id, result_path);
+  map.toggle_outline_by_id(task_id, true);
 }
 {% endblock %}
