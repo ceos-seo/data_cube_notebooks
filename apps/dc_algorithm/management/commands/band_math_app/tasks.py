@@ -218,7 +218,7 @@ def processing_task(task_id=None,
 
     times = list(
         map(_get_datetime_range_containing, time_chunk)
-        if task.get_iterative() else (_get_datetime_range_containing(time_chunk[0], time_chunk[-1])))
+        if task.get_iterative() else [_get_datetime_range_containing(time_chunk[0], time_chunk[-1])])
     dc = DataAccessApi(config=task.config_path)
     updated_params = parameters
     updated_params.update(geographic_chunk)

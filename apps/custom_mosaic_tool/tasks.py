@@ -233,7 +233,7 @@ def processing_task(task_id=None,
     base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
     for time_index, time in enumerate(times):
         updated_params.update({'time': time})
-        print(time)
+
         data = dc.get_stacked_datasets_by_extent(**updated_params)
         if 'time' not in data:
             print("Invalid chunk.")
@@ -405,7 +405,8 @@ def create_output_products(data, task_id=None):
     task.result_filled_path = os.path.join(task.get_result_path(), "filled_png_mosaic.png")
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
     task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
-    task.animation_path = os.path.join(task.get_result_path(), "animation.gif") if task.animated_product else ""
+    task.animation_path = os.path.join(task.get_result_path(),
+                                       "animation.gif") if task.animated_product != 'none' else ""
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 

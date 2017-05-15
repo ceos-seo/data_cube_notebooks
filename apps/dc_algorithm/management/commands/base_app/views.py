@@ -31,7 +31,7 @@ from datetime import datetime, timedelta
 
 from apps.dc_algorithm.models import Satellite, Area, Application
 from apps.dc_algorithm.forms import DataSelectionForm
-from .forms import DataSelectForm
+from .forms import AdditionalOptionsForm
 from .tasks import run
 
 from collections import OrderedDict
@@ -69,7 +69,7 @@ class AppNameTool(ToolView):
         for satellite in satellites:
             forms[satellite.datacube_platform] = {
                 'Data Selection':
-                DataSelectForm(
+                AdditionalOptionsForm(
                     datacube_platform=satellite.datacube_platform, auto_id=satellite.datacube_platform + "_%s"),
                 'Geospatial Bounds':
                 DataSelectionForm(
@@ -96,7 +96,7 @@ class SubmitNewRequest(SubmitNewRequest):
     #celery_task_func = create_cloudfree_mosaic
     celery_task_func = run
     # TODO: Ensure that this list contains all the forms used to create your model
-    form_list = [DataSelectionForm, DataSelectForm]
+    form_list = [DataSelectionForm, AdditionalOptionsForm]
 
 
 class GetTaskResult(GetTaskResult):

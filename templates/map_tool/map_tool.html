@@ -1,0 +1,632 @@
+{% extends "default.html" %} {% load bootstrap3 %}
+<!--
+    Copyright 2016 United States Government as represented by the Administrator
+    of the National Aeronautics and Space Administration. All Rights Reserved.
+
+    Portion of this code is Copyright Geoscience Australia, Licensed under the
+    Apache License, Version 2.0 (the "License"); you may not use this file
+    except in compliance with the License. You may obtain a copy of the License
+    at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0.
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+    License for the specific language governing permissions and limitations
+    under the License.
+  -->
+{% block css %}
+<link rel="stylesheet" href="/static/assets/css/map_tool.css" />
+<link href="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.css" rel="stylesheet" />
+
+<!-- Cesium Related.  -->
+<link href="/static/assets/js/Cesium-1.23/Build/CesiumUnminified/Widgets/widgets.css" rel="stylesheet" type="text/css" />
+<link href="/static/assets/js/Cesium-1.23/Build/CesiumUnminified/Widgets/lighter.css" rel="stylesheet" type="text/css" />
+
+{% endblock %}
+
+{% block javascript %}
+<!-- jquery related.  -->
+
+<script src="/static/assets/js/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
+
+<!-- Cesium related.  -->
+<script src="/static/assets/js/Cesium-1.23/Build/CesiumUnminified/Cesium.js"></script>
+<script src="/static/assets/js/drawmap.js"></script>
+
+<!-- Task/worker related. -->
+<script src="/static/assets/js/dcw.js"></script>
+
+<script>
+    //these have matching indices; worker[0] corresponds to task[0]
+    //holds the task objs and the workers used to generate them. Any time one is added/removed,
+    //it must also be done to the other.
+    var tasks = {};
+    var workers = {};
+
+    //holds Cesium map instance and all functs.related to mapping.
+    var map;
+
+    window.tool_name = '{{ tool_name }}';
+
+    //hardcoded kenya bounds.
+    //TODO: Should I create a template for drawmap.js and put this there?
+    //these are used for the mapping functions as well
+    window._MIN_LAT_DATA_BOUNDS_ = {{ area.latitude_min }};
+    window._MAX_LAT_DATA_BOUNDS_ = {{ area.latitude_max }};
+    window._MIN_LON_DATA_BOUNDS_ = {{ area.longitude_min }};
+    window._MAX_LON_DATA_BOUNDS_ = {{ area.longitude_max }};
+
+    window._MAIN_IMAGERY_ = '{{ area.main_imagery }}';
+    window._DETAIL_IMAGERY_ = '{{ area.detail_imagery }}';
+
+    window._MIN_LAT_IMAGERY_BOUNDS_ = {{ area.detail_latitude_min }};
+    window._MAX_LAT_IMAGERY_BOUNDS_ = {{ area.detail_latitude_max }};
+    window._MIN_LON_IMAGERY_BOUNDS_ = {{ area.detail_longitude_min }};
+    window._MAX_LON_IMAGERY_BOUNDS_ = {{ area.detail_longitude_max }};
+
+    //init functions, sets up tabs/panels. replaces the default submit w. custom.
+    //custom submit does input sanitation, submits job.
+    //most of this requires everything to be loaded before it starts, which is why its in this
+    //loads all currently running tasks, refreshes all panels, applies styling, and sets up map.
+    $(function() {
+
+        refreshPanel();
+        loadHistoryPanel();
+        loadResultsPanel();
+        loadOutputPanel();
+
+        //Persistent tasks: generated here.
+        if (typeof(Worker) !== undefined) {
+            {% for task in running_tasks %}
+            var w = new Worker("/static/assets/js/dcw.js");
+            w.postMessage({
+                'tool_name': window.tool_name,
+                'status': "HISTORY",
+                "title": '{{ task.title }}',
+                'id': '{{ task.id }}',
+                'csrf': csrftoken
+            });
+            w.addEventListener("message", task_event_listener);
+            {% endfor %}
+        }
+        //End persistent tasks.
+        //start dynamically generated form customization
+        {% for satellite in satellites %}
+          //$("#{{ satellite.datacube_platform }}_band_selection_ms").css('float', 'right');
+          $("#{{ satellite.datacube_platform }}_band_selection_ms").css('width', '100%');
+          //jquery to set the end date equal to the start date when its changed.
+          $("#{{ satellite.datacube_platform }}_time_start").on("input change", function(e) {
+              date = $("#{{ satellite.datacube_platform }}_time_start").datepicker('getDate');
+              date.setFullYear(date.getFullYear() + 1);
+              $("#{{ satellite.datacube_platform }}_time_end").datepicker('setDate', date);
+          })
+        {% endfor %}
+        //end customization
+        $("#tabs_main").tabs();
+        $('.datepicker').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            yearRange: "-30:+0"
+        });
+        $(".tooltipped").tooltip();
+        //This is VERY bad. Gets the parent div (li) of the element with divided/long in it..
+        $("li:has(.field-divided)").css('width', '47%');
+        $("li:has(.field-long)").css('width', '100%');
+
+        //Cesium setup.
+        //init the cesium stuff.
+        var min_lat_ids = [];
+        var max_lat_ids = [];
+        var min_lon_ids = [];
+        var max_lon_ids = [];
+
+        {% for satellite in satellites %}
+          min_lat_ids.push("{{ satellite.datacube_platform }}_latitude_min");
+          max_lat_ids.push("{{ satellite.datacube_platform }}_latitude_max");
+          min_lon_ids.push("{{ satellite.datacube_platform }}_longitude_min");
+          max_lon_ids.push("{{ satellite.datacube_platform }}_longitude_max");
+        {% endfor %}
+        //container id, min lat, max lat, min lon, max lon
+        map = new DrawMap("map-cesium", min_lat_ids, max_lat_ids, min_lon_ids, max_lon_ids);
+
+        //sets up the onchange, limits based on window._{{limits}}
+        {% for satellite in satellites %}
+          $("#{{ satellite.datacube_platform }}_latitude_min, #{{ satellite.datacube_platform }}_latitude_max, #{{ satellite.datacube_platform }}_longitude_min, #{{ satellite.datacube_platform }}_longitude_max").change(function() {
+              map.bounding_box_from_form($("#{{ satellite.datacube_platform }}_latitude_min").val(), $("#{{ satellite.datacube_platform }}_latitude_max").val(), $("#{{ satellite.datacube_platform }}_longitude_min").val(), $(
+                  "#{{ satellite.datacube_platform }}_longitude_max").val());
+          });
+          $("#{{ satellite.datacube_platform }}_latitude_min").attr({
+              "min": window._MIN_LAT_DATA_BOUNDS_,
+              "max": window._MAX_LAT_DATA_BOUNDS_
+          });
+          $("#{{ satellite.datacube_platform }}_latitude_max").attr({
+              "min": window._MIN_LAT_DATA_BOUNDS_,
+              "max": window._MAX_LAT_DATA_BOUNDS_
+          });
+          $("#{{ satellite.datacube_platform }}_longitude_min").attr({
+              "min": window._MIN_LON_DATA_BOUNDS_,
+              "max": window._MAX_LON_DATA_BOUNDS_
+          });
+          $("#{{ satellite.datacube_platform }}_longitude_max").attr({
+              "min": window._MIN_LON_DATA_BOUNDS_,
+              "max": window._MAX_LON_DATA_BOUNDS_
+          });
+        {% endfor %}
+
+        $(".options").on('submit', handleFormSubmission);
+
+        var $mapButtons = $('#mapButtons');
+        $mapButtons.on('show.bs.collapse','.collapse', function() {
+            $mapButtons.find('.collapse.in').removeClass('in').attr("aria-expanded","false");
+        });
+    });
+
+    // Sets up django with csrf.
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    var csrftoken = getCookie('csrftoken');
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    //end csrf setup.
+
+    //add a task bar that includes an updatable progress bar, title, and cancel button w/ onclick functions.
+    function add_task_bar(id, description) {
+        /*var ih = "<li id='task_" + id + "'><label for='task_" + id + "'>" + description + "</label><button class='pull-right' id='cancel_" + id + "' style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Cancel</button><div class='progressbar_" +
+            id + "'></div></li>";*/
+        var ih = "<li id='task_" + id + "'>" +
+                 "<label for='task_" + id + "'>" + description + "</label>" +
+                 "<button class='pull-right' id='cancel_" + id + "' style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Cancel</button>" +
+                 "<div class='progress'>" +
+                 "<div class='progress-bar progress-bar-danger active progressbar_" + id + " progress-bar-striped' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='width:0%'>" +
+                 "</div>" +
+                 "</div>" +
+                 "</li>";
+
+        $("#running_tasks").append(ih);
+
+        /*$("." + sanitize_id("progressbar_" + id)).progressbar({
+            value: 0
+        });*/
+        $("#" + sanitize_id("cancel_" + id)).click(function() {
+            workers[id].terminate();
+            if (tasks[id] != null)
+                $.get('/' + window.tool_name + '/cancel', {
+                    'id': tasks[id].id
+                }, function(result) {
+                    //console.log(result);
+                });
+            remove_task_bar(id);
+            remove_result(id);
+            loadHistoryPanel();
+        })
+    }
+
+    //removes the task by that was added by id.
+    function remove_task_bar(id) {
+        $("#" + sanitize_id("task_" + id)).remove();
+    }
+
+    //updates the value on a progress bar by id.
+    function update_progress_bar(id, value) {
+        $("." + sanitize_id("progressbar_" + id)).css('width', value+'%').attr('aria-valuenow', value);
+    }
+
+    //Handles the actual panel - hides satellite forms not being used.
+    function refreshPanel(sel) {
+        $(".satellite_dependent").hide();
+        id = $('#platform_sel').val();
+        $("." + id).show();
+        //set the hidden fields now
+        update_hidden_fields(id);
+    }
+
+    function update_hidden_fields(platform) {
+      $(".hidden_form_platform").val(platform)
+      $(".hidden_form_id").val("{{ area.id }}")
+    }
+
+    //handles the history panel: details view and loading.
+    function loadHistoryPanel() {
+        $.get('task_history', function(result) {
+            $('#past_tasks').html(result);
+        })
+    }
+
+    //the obj.map funct. doesn't work for older versions of ie... not sure if that matters.
+    //handles the results panel: task list, scenes list, meta.
+    //.hasOwnProperty('result_path')
+    function loadResultsPanel() {
+        var ids = Object.keys(tasks);
+        var valid_ids = [];
+        for (var index = 0; index < ids.length; index++) {
+            if (tasks[ids[index]].hasOwnProperty('result_path')) {
+                valid_ids.push(ids[index]);
+            }
+        }
+        $.get('results_list', {
+            'task_ids': valid_ids
+        }, function(result) {
+            $('#results_list').html(result);
+            $('.scenes_list').hide();
+            $('.scene_meta').hide();
+        })
+    }
+
+    //loads the output panel by posting a list of tasks and inserting
+    //the rendered response in its div.
+    function loadOutputPanel() {
+        var ids = Object.keys(tasks);
+        var valid_ids = [];
+        for (var index = 0; index < ids.length; index++) {
+            if (tasks[ids[index]].hasOwnProperty('result_path')) {
+                valid_ids.push(ids[index]);
+            }
+        }
+        $.get('output_list', {
+            'task_ids': valid_ids
+        }, function(result) {
+            $('#output_panel').html(result);
+        })
+    }
+
+    var selected_result = undefined;
+    //Required for the use of the results list module.
+    function set_selected_result(id) {
+        //$('#task_result_temp').attr("src", tasks[id].result_path);
+        //map.insert_image_with_bounds(id, tasks[id].result_path, tasks[id].latitude[0], tasks[id].latitude[1], tasks[id].longitude[0], tasks[id].longitude[1]);
+        if (selected_result == id) {
+            map.zoom_to_image_by_id(id);
+            return;
+        }
+        map.toggle_outline_by_id(selected_result, false);
+        selected_result = id;
+        map.toggle_outline_by_id(id, true);
+        map.zoom_to_image_by_id(id);
+        $("#static-map-img").attr("src", tasks[id].result_path);
+    }
+
+    //adds a task to the map by its id. if boolean filled is true, use the filled version.
+    function add_result_to_map(id, result_path) {
+        $("#static-map-img").attr("src", result_path);
+        map.insert_image_with_bounds(id, result_path, tasks[id].latitude_min, tasks[id].latitude_max, tasks[id].longitude_min, tasks[id].longitude_max);
+    }
+
+    //removes a result from the map and modifies the tasks and workers variables.
+    //refreshes all relevant panels.
+    function remove_result(id) {
+        if (tasks[id] != undefined)
+            map.remove_image_by_id(tasks[id].id);
+        delete tasks[id];
+        delete workers[id];
+        $("#static-map-img").attr("src", '{{ area.detail_imagery }}');
+        loadResultsPanel();
+        loadOutputPanel();
+    }
+
+    //uses the mapping scripts to hide or show results on the map. val is optional
+    function toggle_visibility(id, val) {
+        //if(selected_result == tasks[id].id)
+        //map.toggle_outline_by_id(tasks[id].id, false);
+        //map.toggle_outline_by_id(tasks[id].id);
+        map.toggle_visibility_by_id(tasks[id].id, val);
+    }
+    //End require
+
+    //handles the messages posted by any number of workers responsible for
+    //monitoring task progress.
+    function task_event_listener(event) {
+        data = event.data;
+        switch (data.status) {
+            case "START":
+                //this safegaurds against the submission of multiple identical tasks, as their ids must be unique
+                //for use in the cesium stuff.
+                if (tasks[data.task.id] != undefined) {
+                    event.target.terminate();
+                    return;
+                }
+                tasks[data.task.id] = data.task;
+                workers[data.task.id] = event.target;
+                add_task_bar(data.task.id, data.task.title);
+                break;
+            case "RESULT":
+                tasks[data.task.id] = data.task;
+                remove_task_bar(data.task.id);
+                add_result_to_map(data.task.id, data.task.result_path);
+                loadHistoryPanel();
+                loadResultsPanel();
+                loadOutputPanel();
+                break;
+            case "UPDATE":
+                update_progress_bar(data.id, data.value);
+                break;
+            case "ERROR":
+            default:
+                if (tasks[data.id] != undefined) {
+                    remove_task_bar(data.id);
+                }
+                remove_result(data.id);
+                alert(data.message);
+        }
+    }
+
+    //handles the switching from cesium to a static img based map view.
+    var cesium_enabled = true;
+
+    function toggle_map_provider() {
+        if (cesium_enabled)
+            $("#map-cesium").hide();
+        else
+            $("#map-cesium").show();
+        cesium_enabled = !cesium_enabled;
+    }
+
+    //Handles the submission of form data, parameter checking, etc.
+    function handleFormSubmission(e) {
+        e.preventDefault();
+        //not a great solution but this gives us an associative array with all the form data without needing
+        //to grab each element.
+        var values = {};
+        $.each($(this).serializeArray(), function(i, field) {
+            values[field.name] = field.value;
+        });
+
+        /*if (values['band_selection'] == null) {
+        alert('Please select at least a single band.')
+        return;
+        }*/
+
+        if (values['latitude_max'] == "" || values['latitude_min'] == "" || values['longitude_max'] == "" || values['longitude_min'] == "" || values['time_start'] == "" || values['time_end'] == "") {
+            alert('Please fill out all task parameters')
+            return;
+        }
+        var start = new Date(values['time_start']);
+        var end = new Date(values['time_end']);
+        var timeDiff = Math.abs(end.getTime() - start.getTime());
+        var diffYears = Math.ceil(timeDiff / (1000 * 3600 * 24)) / 365;
+        var volume = Math.abs(values['latitude_max'] - values['latitude_min']) * Math.abs(values['longitude_max'] - values['longitude_min']) * diffYears;
+        if (volume > 24) {
+            $("#largeTaskModal").modal()
+        } else {
+          process_form(this);
+        }
+    }
+
+    function process_form(form) {
+      request = $(form).serialize()// + "&platform=" + $('#platform_sel').val() + "&id={{ area.id }}";
+      //console.log(request)
+      //worker init w/ the serialized data.
+      if (typeof(Worker) !== undefined) {
+          var w = new Worker("/static/assets/js/dcw.js");
+          jQuery(".additional_options_title").val("");
+          jQuery(".additional_options_description").val("");
+          save_options();
+          w.postMessage({
+              'tool_name': window.tool_name,
+              'status': "NEW",
+              'form_data': request,
+              'csrf': csrftoken
+          });
+          //tasks[tasks.length] = null;
+          w.addEventListener("message", task_event_listener);
+      } else {
+          alert("This browser does not support webworkers.");
+      }
+    }
+
+    //end task monitoring
+    function save_options() {
+      title = jQuery("#additional_options_title").val();
+      description = jQuery("#additional_options_description").val();
+
+      jQuery(".hidden_form_title").val(title);
+      jQuery(".hidden_form_description").val(description);
+    }
+
+    //required for ids with 'special' chars.
+    function sanitize_id(id) {
+        return id.replace(/(:|\.|\[|\]|,)/g, "\\$1");
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid no-footer">
+    <div class="row fullscreen-row">
+        <div class="col-lg-3 fullscreen-col seamless-col">
+          <div class="col-lg-12 fullscreen-col side-panel">
+            <div class="tab-content">
+
+                <ul id="tabs_main" class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#filters-panel">Filters</a></li>
+                    <li><a data-toggle="tab" href="#history-panel">History</a></li>
+                    <li><a data-toggle="tab" href="#results-panel">Results</a></li>
+                    <li><a data-toggle="tab" href="#output-panel">Output</a></li>
+                </ul>
+
+                <div id="filters-panel" class="tab-pane fade in active">
+                    <label for="platform_sel">Satellite</label>
+                    <select class="form-control" id="platform_sel" name="platform_sel" tabindex="1" data-native-menu="false" onchange="refreshPanel();">
+                        {% for satellite in satellites %}
+                        <option value="{{ satellite.datacube_platform }}">{{satellite.name}}</option>
+                        {% endfor %}
+                    </select>
+                    {% for satellite, form_collection in forms.items %}
+                    <form id="options_{{ satellite }}" action="" method="post" class="form-horizontal options satellite_dependent {{ satellite }}">
+                        {% csrf_token %}
+                        {% for label, form in form_collection.items %}
+                          <div class="col-lg-12">
+                            <div class="page-header"><span class="form-section-header">{{ label }}:</span></div>
+                            {% if form.two_column_format %}
+                              {% for field in form.visible_fields %}
+                              <div class="col-lg-6">
+                                  {% bootstrap_field field show_help=False%}
+                              </div>
+                              {% endfor %}
+                            {% else %}
+                              {% for field in form.visible_fields %}
+                                <div class="col-lg-12">
+                                    {% bootstrap_field field show_help=False %}
+                                </div>
+                              {% endfor %}
+                            {% endif %}
+                            {% for field in form.hidden_fields %}
+                              {{field}}
+                            {% endfor %}
+                          </div>
+                        {% endfor %}
+                        <div class="col-lg-12">
+                          {% buttons %}
+                            <button type="submit" class="btn btn-primary pull-right">
+                              Submit
+                            </button>
+                            <a class="btn btn-primary pull-right" style="margin-right:5px;" data-toggle="modal" data-target="#additionalOptionsModal" href="#">Additional Options</a>
+                          {% endbuttons %}
+                        </div>
+                    </form>
+                    {% endfor %}
+                    <div class="fieldSet">
+                        <h3>Running tasks</h3>
+                        <div class='boxed_list'>
+                            <ul id='running_tasks' class='alternating'>
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div id="history-panel" class="tab-pane fade">
+                    <h2>Task History</h2>
+                    <hr>
+                    <div id='past_tasks' class="boxed_list">
+
+                    </div>
+                </div>
+                <div id="results-panel" class="tab-pane fade">
+                    <h2>Completed Tasks</h2>
+                    <hr>
+                    <div id="results_list">
+                        <!-- will be populated from a django template.  -->
+                    </div>
+                </div>
+                <div id="output-panel" class="tab-pane fade">
+                    <h2>Output</h2>
+                    <hr>
+                    <!-- Populated by django template.   -->
+                    <div id='output_panel'>
+
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-9 fullscreen-col seamless-col">
+          <div id="map-canvas" class="map">
+            <div id="mapButtons">
+              <!-- bad if statement in the style, but having that gap looks pretty bad. Real
+                   solution would be to group the cesium button with the icons but that wont' work as we still want the buttons
+                   if the cesium window is disabled. -->
+              <div class="buttons_on_map" style="{% if not application.color_scale %}right: 44px;{% endif %}">
+                <button class="map_button tooltipped" title="Toggle globe view" onclick="toggle_map_provider()"><span class="glyphicon map_icon glyphicon-globe"></span></button>
+                <button class="map_button tooltipped" data-toggle="collapse" data-target="#geographic_context" style="text-decoration:none;" title="Show geographic context" onclick=""><span class="glyphicon map_icon glyphicon-map-marker tooltipped"></span></button>
+                {% if application.color_scale %}<button class="map_button tooltipped" data-toggle="collapse" data-target="#color_scales" style="text-decoration:none;" title="Show color scale(s)" onclick=""><span class="glyphicon map_icon glyphicon-tint tooltipped"></span></button>{% endif %}
+              </div>
+              {% if application.color_scale %}
+              <div id="color_scales" class="collapse panel_on_map col-lg-4">
+                <div class="page-header">
+                  <span class="form-section-header">Color Scale(s)</span>
+                </div>
+                <img class="img-responsive thumbnail" src="{{application.color_scale}}" alt="">
+              </div>
+              {% endif %}
+              <div id="geographic_context" class="collapse panel_on_map col-lg-4">
+                <div class="page-header">
+                  <span class="form-section-header">Geographic Context</span>
+                </div>
+                <img class="img-responsive thumbnail" src="{{area.thumbnail_imagery}}" alt="">
+              </div>
+            </div>
+            <div id="map-cesium" class="map">
+                <span id="lat_lon_container" class="label label-default lat_lon_map_indicator">(0.0000, 0.0000)</span>
+            </div>
+            <div id="static-map" class="map">
+              <img id="static-map-img" class="image-display-vertically-centered" src="{{ area.detail_imagery }}" alt="Submit a task and click the result in either the Results or Output panel to load a mosaic.">
+            </div>
+          </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div id="additionalOptionsModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Additional Options</h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="">Title</label>
+              <input class="form-control" name="title" id="additional_options_title" type="text">
+            </div>
+            <div class="form-group">
+              <label for="">Description</label>
+              <textarea class="form-control" name="description" id="additional_options_description" cols="30" rows="10"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" onclick="save_options()" class="btn btn-default" data-dismiss="modal">Save and Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="largeTaskModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Large Task Submission</h4>
+          </div>
+          <div class="modal-body">
+            <p>Submitting large tasks may take significantly longer than smaller tasks and may impact performance for other users. Additionally the final product may cause problems with the map view, though the products will still be available for download. Continue?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+            <button type="button" onclick="process_form(jQuery('.options.satellite_dependent:visible'))" class="btn btn-default" data-dismiss="modal">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

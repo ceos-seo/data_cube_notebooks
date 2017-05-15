@@ -27,7 +27,7 @@ from .models import ResultType, AnimationType
 from apps.dc_algorithm.models import Area, Compositor
 
 
-class DataSelectForm(forms.Form):
+class AdditionalOptionsForm(forms.Form):
     """
     Django form to be created for selecting information and validating input for:
         result_type
@@ -67,7 +67,7 @@ class DataSelectForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         datacube_platform = kwargs.pop('datacube_platform', None)
-        super(DataSelectForm, self).__init__(*args, **kwargs)
+        super(AdditionalOptionsForm, self).__init__(*args, **kwargs)
         self.fields["query_type"].queryset = ResultType.objects.filter(datacube_platform=datacube_platform
                                                                        if datacube_platform is not None else
                                                                        args[0].get('platform'))

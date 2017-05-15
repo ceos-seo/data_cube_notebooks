@@ -104,6 +104,7 @@ def validate_parameters(parameters, task_id):
     task.update_status("WAIT", "Validated parameters.")
 
     # TODO: Check that the measurements exist - for Landsat, we're making sure that cf_mask/pixel_qa are interchangable.
+    # replace ['products'][0] with ['products'] if this is not a multisensory app.
     if not dc.validate_measurements(parameters['products'][0], parameters['measurements']):
         parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
 
@@ -232,7 +233,7 @@ def processing_task(task_id=None,
 
     times = list(
         map(_get_datetime_range_containing, time_chunk)
-        if task.get_iterative() else (_get_datetime_range_containing(time_chunk[0], time_chunk[-1])))
+        if task.get_iterative() else [_get_datetime_range_containing(time_chunk[0], time_chunk[-1])])
     dc = DataAccessApi(config=task.config_path)
     updated_params = parameters
     updated_params.update(geographic_chunk)
@@ -423,7 +424,8 @@ def create_output_products(data, task_id=None):
     task.result_filled_path = os.path.join(task.get_result_path(), "filled_png_mosaic.png")
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
     task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
-    task.animation_path = os.path.join(task.get_result_path(), "animation.gif") if task.animated_product.id else ""
+    task.animation_path = os.path.join(task.get_result_path(),
+                                       "animation.gif") if task.animated_product.id != 'none' else ""
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 

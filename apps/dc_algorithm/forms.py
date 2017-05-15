@@ -76,6 +76,6 @@ class DataSelectionForm(forms.Form):
                 'longitude_min',
                 "Please enter a valid pair of longitude values where the lower bound is less than the upper bound.")
 
-        if cleaned_data.get('time_start') > cleaned_data.get('time_end'):
+        if cleaned_data.get('time_start') >= cleaned_data.get('time_end'):
             self.add_error('time_start',
                            "Please enter a valid start and end time range where the start is before the end.")

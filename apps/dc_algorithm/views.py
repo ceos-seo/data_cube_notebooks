@@ -368,7 +368,7 @@ class SubmitNewRequest(View, ToolClass):
         tool_name: Descriptive string name for the tool - used to identify the tool in the database.
         celery_task_func: A celery task called with .delay() with the only parameter being the pk of a task model
         task_model_name: Name of the model that represents your task - see models.Task for more information
-        form_list: list [] of form classes (e.g. DataSelectForm, GeospatialForm) to be used to validate all provided input.
+        form_list: list [] of form classes (e.g. AdditionalOptionsForm, GeospatialForm) to be used to validate all provided input.
 
     """
 
