@@ -30,8 +30,9 @@ import json
 from datetime import datetime, timedelta
 
 from apps.dc_algorithm.models import Satellite, Area, Application
-from .forms import DataSelectionForm, AdditionalOptionsForm
-from .tasks import run, get_acquisition_list
+from apps.dc_algorithm.forms import DataSelectionForm
+from .forms import AdditionalOptionsForm
+from .tasks import run
 
 from collections import OrderedDict
 
@@ -65,15 +66,15 @@ class NdviAnomalyTool(ToolView):
     def generate_form_dict(self, satellites, area):
         forms = {}
         for satellite in satellites:
-            acquisition_list = get_acquisition_list(satellite, area)
             forms[satellite.datacube_platform] = {
                 'Data Selection':
                 AdditionalOptionsForm(
-                    acquisition_list=acquisition_list,
-                    datacube_platform=satellite.datacube_platform,
-                    auto_id=satellite.datacube_platform + "_%s"),
+                    datacube_platform=satellite.datacube_platform, auto_id=satellite.datacube_platform + "_%s"),
                 'Geospatial Bounds':
-                DataSelectionForm(auto_id=satellite.datacube_platform + "_%s")
+                DataSelectionForm(
+                    time_start=satellite.date_min,
+                    time_end=satellite.date_max,
+                    auto_id=satellite.datacube_platform + "_%s")
             }
         return forms
 

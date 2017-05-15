@@ -59,11 +59,6 @@ class Query(BaseQuery):
     foreign keys should define __str__ for a human readable name.
 
     """
-
-    time_start = None
-    time_end = None
-
-    scene_selection = models.DateField()
     baseline_selection = models.CharField(max_length=100, default="1,2,3,4,5,6,7,8,9,10,11,12")
 
     config_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
@@ -81,9 +76,16 @@ class Query(BaseQuery):
     }
 
     class Meta(BaseQuery.Meta):
-        unique_together = (('platform', 'scene_selection', 'baseline_selection', 'latitude_max', 'latitude_min',
+        unique_together = (('platform', 'time_start', 'time_end', 'baseline_selection', 'latitude_max', 'latitude_min',
                             'longitude_max', 'longitude_min', 'title', 'description'))
         abstract = True
+
+    def get_baseline_name(self):
+        months = [
+            "January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+            "November", "December"
+        ]
+        return ", ".join([months[month] for month in map(int, self.baseline_selection.split(","))])
 
     def get_fields_with_labels(self, labels, field_names):
         for idx, label in enumerate(labels):

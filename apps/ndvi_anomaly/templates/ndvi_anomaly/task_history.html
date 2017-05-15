@@ -41,8 +41,8 @@ under the License.
       <td class="right_aligned_text">({{ task.time_start|date:"m/d/Y" }}, {{ task.time_end|date:"m/d/Y" }})</td>
     </tr>
     <tr>
-      <td class="title">Compositing Method:</td>
-      <td class="right_aligned_text">{{ task.compositor }}</td>
+      <td class="title">Baseline Months:</td>
+      <td class="right_aligned_text">{{ task.get_baseline_name }}</td>
     </tr>
     <tr>
       <td class="title">Description:</td>

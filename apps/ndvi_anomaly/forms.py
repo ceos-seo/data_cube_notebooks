@@ -24,27 +24,6 @@ from django import forms
 import datetime
 
 from apps.dc_algorithm.models import Area, Compositor
-from apps.dc_algorithm.forms import DataSelectionForm as DataSelectionFormBase
-
-
-class DataSelectionForm(DataSelectionFormBase):
-    time_start = None
-    time_end = None
-
-    def __init__(self, *args, acquisition_list=None, **kwargs):
-        super(DataSelectionForm, self).__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super(forms.Form, self).clean()
-        if cleaned_data.get('latitude_min') > cleaned_data.get('latitude_max'):
-            self.add_error(
-                'latitude_min',
-                "Please enter a valid pair of latitude values where the lower bound is less than the upper bound.")
-
-        if cleaned_data.get('longitude_min') > cleaned_data.get('longitude_max'):
-            self.add_error(
-                'longitude_min',
-                "Please enter a valid pair of longitude values where the lower bound is less than the upper bound.")
 
 
 class AdditionalOptionsForm(forms.Form):
@@ -56,11 +35,6 @@ class AdditionalOptionsForm(forms.Form):
         description
     Init function to initialize dynamic forms.
     """
-
-    scene_selection = forms.CharField(
-        help_text='Select a scene to perform NDVI differencing on.',
-        label="Scene Selection:",
-        widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
     months = [
         "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
@@ -74,13 +48,6 @@ class AdditionalOptionsForm(forms.Form):
         choices=months_sel,
         widget=forms.SelectMultiple(attrs={'class': 'field-long tooltipped'}))
 
-    def __init__(self, *args, acquisition_list=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         datacube_platform = kwargs.pop('datacube_platform', None)
         super(AdditionalOptionsForm, self).__init__(*args, **kwargs)
-        if acquisition_list is not None:
-            scene_sel = [(date.strftime("%Y-%m-%d"), date.strftime("%Y/%m/%d"))
-                         for index, date in enumerate(sorted(acquisition_list))]
-            self.fields['scene_selection'] = forms.CharField(
-                help_text='Select a scene to perform NDVI differencing on.',
-                label="Scene Selection:",
-                widget=forms.Select(attrs={'class': 'field-long tooltipped'}, choices=scene_sel))

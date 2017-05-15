@@ -50,6 +50,10 @@ under the License.
       <td class="right_aligned_text">({{ task.time_start|date:"m/d/Y" }}, {{ task.time_end|date:"m/d/Y" }})</td>
     </tr>
     <tr>
+      <td>Baseline Months: </td>
+      <td class="right_aligned_text">{{ task.get_baseline_name }}</td>
+    </tr>
+    <tr>
       <td>Show NDVI Difference:</td>
       <td class="right_aligned_text"><input type="checkbox" checked='true' name="show_fractional_cover" onclick="show_result(this, '{{ task.id }}', 0)"></td>
     </tr>

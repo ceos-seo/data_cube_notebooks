@@ -21,17 +21,6 @@ from .models import NdviAnomalyTask
 from apps.dc_algorithm.models import Satellite
 
 
-@task(name="ndvi_anomaly.get_acquisition_list")
-def get_acquisition_list(satellite, area):
-    config_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
-    dc = DataAccessApi(config=config_path)
-    acquisitions = dc.list_acquisition_dates(satellite.product_prefix + area.id, platform=satellite.datacube_platform)
-    # clear everything but the date, remove dups.
-    acquisitions = list(set(map(lambda dt: dt.replace(hour=0, minute=0, second=0, microsecond=0), acquisitions)))
-    dc.close()
-    return acquisitions
-
-
 @task(name="ndvi_anomaly.run")
 def run(task_id):
     """Responsible for launching task processing using celery asynchronous processes
@@ -62,7 +51,7 @@ def parse_parameters_from_task(task_id):
 
     parameters = {
         'platform': task.platform,
-        'time': (task.scene_selection, task.scene_selection + timedelta(days=1)),
+        'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
         'measurements': task.measurements
@@ -103,7 +92,7 @@ def validate_parameters(parameters, task_id):
     # the actual acquisitino exists, lets try the baseline:
     validation_params = {**parameters}
     # there were no acquisitions in the year 1000, hopefully
-    validation_params.update({'time': (datetime(1000, 1, 1), task.scene_selection - timedelta(microseconds=1))})
+    validation_params.update({'time': (datetime(1000, 1, 1), task.time_start - timedelta(microseconds=1))})
     acquisitions = dc.list_acquisition_dates(**validation_params)
 
     # list/map/int chain required to cast int to each baseline month, it won't work if they're strings.
@@ -151,7 +140,7 @@ def perform_task_chunking(parameters, task_id):
         geographic_chunk_size=task_chunk_sizing['geographic'])
 
     grouped_dates_params = {**parameters}
-    grouped_dates_params.update({'time': (datetime(1000, 1, 1), task.scene_selection - timedelta(microseconds=1))})
+    grouped_dates_params.update({'time': (datetime(1000, 1, 1), task.time_start - timedelta(microseconds=1))})
     acquisitions = dc.list_acquisition_dates(**grouped_dates_params)
     grouped_dates = group_datetimes_by_month(acquisitions, months=list(map(int, task.baseline_selection.split(","))))
     # create a single monolithic list of all acq. dates - there should be only one.
@@ -266,8 +255,6 @@ def processing_task(task_id=None,
             print("Invalid chunk.")
             continue
         full_dataset.append(data.copy(deep=True))
-        task.scenes_processed = F('scenes_processed') + 1
-        task.save()
 
     #concat individual slices over time, compute metadata + mosaic
     baseline_data = xr.concat(full_dataset, 'time')
@@ -284,6 +271,7 @@ def processing_task(task_id=None,
     selected_scene = task.get_processing_method()(selected_scene,
                                                   clean_mask=selected_scene_clear_mask,
                                                   intermediate_product=None)
+    # we need to re generate the clear mask using the mosaic now.
     selected_scene_clear_mask = create_cfmask_clean_mask(
         selected_scene.cf_mask) if 'cf_mask' in selected_scene else create_bit_mask(selected_scene.pixel_qa, [1, 2])
 
@@ -294,6 +282,9 @@ def processing_task(task_id=None,
         selected_scene_clear_mask=selected_scene_clear_mask)
 
     full_product = xr.merge([ndvi_products, selected_scene.drop(['nir', 'swir1', 'swir2'])])
+
+    task.scenes_processed = F('scenes_processed') + 1
+    task.save()
 
     path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
     full_product.to_netcdf(path)
