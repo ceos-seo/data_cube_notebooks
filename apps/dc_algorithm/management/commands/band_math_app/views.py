@@ -63,7 +63,7 @@ class BandMathApp(ToolView):
     tool_name = 'band_math_app'
     task_model_name = 'BandMathTask'
 
-    def generate_form_dict(self, satellites):
+    def generate_form_dict(self, satellites, area):
         forms = {}
         for satellite in satellites:
             forms[satellite.datacube_platform] = {

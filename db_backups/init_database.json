@@ -1002,8 +1002,8 @@
     "fields": {
         "name": "Fractional Cover",
         "color_scale": "/static/assets/images/color_scales/fractional_cover_color_scale.png",
-        "areas": [],
-        "satellites": []
+        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+        "satellites": [1, 2, 3, 4]
     }
 }, {
     "model": "dc_algorithm.application",
@@ -2177,6 +2177,146 @@
         "animation_path": "",
         "data_path": "/datacube/ui_results/coastal_change/f8831ccc-c869-49a7-98e4-515546fc9ea8/data_tif.tif",
         "data_netcdf_path": "/datacube/ui_results/coastal_change/f8831ccc-c869-49a7-98e4-515546fc9ea8/data_netcdf.nc"
+    }
+}, {
+    "model": "fractional_cover.userhistory",
+    "pk": 4,
+    "fields": {
+        "user_id": 1,
+        "task_id": "30fd82de-d3c1-4bd4-bdef-6e3870b82270"
+    }
+}, {
+    "model": "fractional_cover.userhistory",
+    "pk": 5,
+    "fields": {
+        "user_id": 1,
+        "task_id": "d3e0ecb2-1d00-49e8-853e-e27fd6a9a2f7"
+    }
+}, {
+    "model": "fractional_cover.toolinfo",
+    "pk": 4,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/fractional_cover_1.png",
+        "image_title": "Fractional Coverage",
+        "image_description": "The Fractional Coverage tool allows users to create a three band output product used to visualize the sub pixel composition of selected areas. Pixels are classified as a percentage of photosynthetic vegetation, non-photosynthetic vegetation, and bare soil."
+    }
+}, {
+    "model": "fractional_cover.toolinfo",
+    "pk": 5,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/fractional_cover_2.png",
+        "image_title": "Pixel Preference",
+        "image_description": "Pick a compositing algorithm (most recent, least recent, median, min/max NDVI pixel) that will produce the desired mosaic for the fractional cover application."
+    }
+}, {
+    "model": "fractional_cover.toolinfo",
+    "pk": 6,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/fractional_cover_3.png",
+        "image_title": "Downloads",
+        "image_description": "All products (both data and images) are available for download in various formats, including GeoTIFF, NetCDF, and PNG."
+    }
+}, {
+    "model": "fractional_cover.fractionalcovertask",
+    "pk": "1693dd26-df37-4798-ba58-99f27a533876",
+    "fields": {
+        "title": "Single acquisition for 11/21/2006",
+        "description": "None",
+        "execution_start": "2017-05-15T16:51:06.442Z",
+        "execution_end": "2017-05-15T16:53:14.279Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2006-11-21",
+        "time_end": "2006-11-22",
+        "latitude_min": 4.6209,
+        "latitude_max": 4.7521,
+        "longitude_min": -71.6439,
+        "longitude_max": -71.4521,
+        "complete": true,
+        "pixel_count": 344835,
+        "clean_pixel_count": 299613,
+        "percentage_clean_pixels": 86.885901953108,
+        "acquisition_list": "11/21/2006",
+        "clean_pixels_per_acquisition": "299613",
+        "clean_pixel_percentages_per_acquisition": "86.8859019531",
+        "status": "OK",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 1,
+        "total_scenes": 1,
+        "result_path": "/datacube/ui_results/fractional_cover/1693dd26-df37-4798-ba58-99f27a533876/band_math.png",
+        "compositor": "least_recent",
+        "satellite_list": "LANDSAT_7",
+        "mosaic_path": "/datacube/ui_results/fractional_cover/1693dd26-df37-4798-ba58-99f27a533876/png_mosaic.png",
+        "data_path": "/datacube/ui_results/fractional_cover/1693dd26-df37-4798-ba58-99f27a533876/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/fractional_cover/1693dd26-df37-4798-ba58-99f27a533876/data_netcdf.nc"
+    }
+}, {
+    "model": "fractional_cover.fractionalcovertask",
+    "pk": "30fd82de-d3c1-4bd4-bdef-6e3870b82270",
+    "fields": {
+        "title": "Band Math Query",
+        "description": "None",
+        "execution_start": "2017-05-15T16:47:52.296Z",
+        "execution_end": "2017-05-15T16:48:49.874Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2006-04-15",
+        "time_end": "2007-04-15",
+        "latitude_min": 4.6209,
+        "latitude_max": 4.7521,
+        "longitude_min": -71.6439,
+        "longitude_max": -71.4521,
+        "complete": true,
+        "pixel_count": 344835,
+        "clean_pixel_count": 341889,
+        "percentage_clean_pixels": 99.1456783679151,
+        "acquisition_list": "11/21/2006,09/02/2006,06/30/2006",
+        "clean_pixels_per_acquisition": "299613,119730,266714",
+        "clean_pixel_percentages_per_acquisition": "86.8859019531,34.7209534995,77.345397074",
+        "status": "OK",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 3,
+        "total_scenes": 3,
+        "result_path": "/datacube/ui_results/fractional_cover/30fd82de-d3c1-4bd4-bdef-6e3870b82270/band_math.png",
+        "compositor": "least_recent",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "mosaic_path": "/datacube/ui_results/fractional_cover/30fd82de-d3c1-4bd4-bdef-6e3870b82270/png_mosaic.png",
+        "data_path": "/datacube/ui_results/fractional_cover/30fd82de-d3c1-4bd4-bdef-6e3870b82270/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/fractional_cover/30fd82de-d3c1-4bd4-bdef-6e3870b82270/data_netcdf.nc"
+    }
+}, {
+    "model": "fractional_cover.fractionalcovertask",
+    "pk": "d3e0ecb2-1d00-49e8-853e-e27fd6a9a2f7",
+    "fields": {
+        "title": "Band Math Query",
+        "description": "None",
+        "execution_start": "2017-05-15T16:57:55.443Z",
+        "execution_end": "2017-05-15T16:59:06.827Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 4.6209,
+        "latitude_max": 4.7521,
+        "longitude_min": -71.6439,
+        "longitude_max": -71.4521,
+        "complete": true,
+        "pixel_count": 344835,
+        "clean_pixel_count": 344800,
+        "percentage_clean_pixels": 99.9898502182203,
+        "acquisition_list": "04/03/2009,03/02/2009,02/14/2009,12/28/2008,12/12/2008,11/10/2008,10/25/2008,09/23/2008,09/07/2008,04/16/2008",
+        "clean_pixels_per_acquisition": "0,170772,286552,254197,218039,288323,89070,187287,142110,45648",
+        "clean_pixel_percentages_per_acquisition": "0.0,49.5228152595,83.0982933867,73.7155451158,63.2299505561,83.6118723447,25.8297446605,54.3120622907,41.2110139632,13.2376353908",
+        "status": "OK",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 10,
+        "total_scenes": 10,
+        "result_path": "/datacube/ui_results/fractional_cover/d3e0ecb2-1d00-49e8-853e-e27fd6a9a2f7/band_math.png",
+        "compositor": "least_recent",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "mosaic_path": "/datacube/ui_results/fractional_cover/d3e0ecb2-1d00-49e8-853e-e27fd6a9a2f7/png_mosaic.png",
+        "data_path": "/datacube/ui_results/fractional_cover/d3e0ecb2-1d00-49e8-853e-e27fd6a9a2f7/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/fractional_cover/d3e0ecb2-1d00-49e8-853e-e27fd6a9a2f7/data_netcdf.nc"
     }
 }, {
     "model": "tsm.resulttype",

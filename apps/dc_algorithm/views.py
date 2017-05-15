@@ -147,7 +147,7 @@ class ToolView(View, ToolClass):
         app = Application.objects.get(id=tool_name)
         satellites = area.satellites.all() & app.satellites.all()
 
-        forms = self.generate_form_dict(satellites)
+        forms = self.generate_form_dict(satellites, area)
 
         task_model_class = self._get_tool_model(self._get_task_model_name())
         user_history = self._get_tool_model('userhistory').objects.filter(user_id=user_id)
@@ -165,7 +165,7 @@ class ToolView(View, ToolClass):
 
         return render(request, 'map_tool.html', context)
 
-    def generate_form_dict(satellites):
+    def generate_form_dict(satellites, area):
         """Generate a dictionary of forms keyed by satellite for rendering
 
         Forms are generated for each satellite and dynamically hidden and shown by the UI.
@@ -188,6 +188,7 @@ class ToolView(View, ToolClass):
 
         Args:
             satellites: QueryDict of Satellite models that forms will need to be generated over.
+            area: area model object.
 
         Returns
             Dictionary containing all forms and labels for each satellite.
@@ -202,7 +203,7 @@ class ToolView(View, ToolClass):
         return forms
         """
         raise NotImplementedError(
-            "You must define a generate_form_dict(satellites) function in child classes of ToolInfo. See the ToolInfo.generate_form_dict docstring for more details."
+            "You must define a generate_form_dict(satellites, area) function in child classes of ToolInfo. See the ToolInfo.generate_form_dict docstring for more details."
         )
 
 

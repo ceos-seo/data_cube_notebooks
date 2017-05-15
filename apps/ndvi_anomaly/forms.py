@@ -23,33 +23,44 @@ from django import forms
 
 import datetime
 
-from data_cube_ui.models import Baseline
-
-from data_cube_ui.forms import GeospatialForm as GeospatialFormBase
-"""
-File designed to house the different forms for taking in user input in the web application.  Forms
-allow for input validation and passing of data.  Includes forms for creating Queries to be ran.
-"""
-
-# Author: AHDS
-# Creation date: 2016-06-23
-# Modified by:
-# Last modified date:
-
-years_range = list(range(1990, datetime.datetime.now().year + 1))
+from apps.dc_algorithm.models import Area, Compositor
+from apps.dc_algorithm.forms import DataSelectionForm as DataSelectionFormBase
 
 
-class DataSelectForm(forms.Form):
+class DataSelectionForm(DataSelectionFormBase):
+    time_start = None
+    time_end = None
+
+    def __init__(self, *args, acquisition_list=None, **kwargs):
+        super(DataSelectionForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(forms.Form, self).clean()
+        if cleaned_data.get('latitude_min') > cleaned_data.get('latitude_max'):
+            self.add_error(
+                'latitude_min',
+                "Please enter a valid pair of latitude values where the lower bound is less than the upper bound.")
+
+        if cleaned_data.get('longitude_min') > cleaned_data.get('longitude_max'):
+            self.add_error(
+                'longitude_min',
+                "Please enter a valid pair of longitude values where the lower bound is less than the upper bound.")
+
+
+class AdditionalOptionsForm(forms.Form):
     """
     Django form to be created for selecting information and validating input for:
         result_type
         band_selection
         title
         description
+    Init function to initialize dynamic forms.
     """
 
-    title = forms.CharField(widget=forms.HiddenInput())
-    description = forms.CharField(widget=forms.HiddenInput())
+    scene_selection = forms.CharField(
+        help_text='Select a scene to perform NDVI differencing on.',
+        label="Scene Selection:",
+        widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
     months = [
         "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
@@ -63,17 +74,13 @@ class DataSelectForm(forms.Form):
         choices=months_sel,
         widget=forms.SelectMultiple(attrs={'class': 'field-long tooltipped'}))
 
-
-class GeospatialForm(GeospatialFormBase):
-
-    def __init__(self, acquisition_list=None, *args, **kwargs):
-        super(GeospatialForm, self).__init__(*args, **kwargs)
-        self.fields.pop('time_start')
-        self.fields.pop('time_end')
-        scene_sel = [(str(index) + "-" + date.strftime("%Y/%m/%d %H:%M UTC"), date.strftime("%Y/%m/%d %H:%M UTC"))
-                     for index, date in enumerate(acquisition_list)]
-        self.fields['scene_selection'] = forms.ChoiceField(
-            help_text='Select a scene to perform NDVI differencing on.',
-            label="Scene Selection:",
-            choices=scene_sel,
-            widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+    def __init__(self, *args, acquisition_list=None, **kwargs):
+        datacube_platform = kwargs.pop('datacube_platform', None)
+        super(AdditionalOptionsForm, self).__init__(*args, **kwargs)
+        if acquisition_list is not None:
+            scene_sel = [(date.strftime("%Y-%m-%d"), date.strftime("%Y/%m/%d"))
+                         for index, date in enumerate(sorted(acquisition_list))]
+            self.fields['scene_selection'] = forms.CharField(
+                help_text='Select a scene to perform NDVI differencing on.',
+                label="Scene Selection:",
+                widget=forms.Select(attrs={'class': 'field-long tooltipped'}, choices=scene_sel))

@@ -63,7 +63,7 @@ class CustomMosaicTool(ToolView):
     tool_name = 'custom_mosaic_tool'
     task_model_name = 'CustomMosaicTask'
 
-    def generate_form_dict(self, satellites):
+    def generate_form_dict(self, satellites, area):
         forms = {}
         for satellite in satellites:
             forms[satellite.datacube_platform] = {

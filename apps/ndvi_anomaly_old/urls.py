@@ -19,18 +19,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.conf.urls import url, include
+from django.conf.urls import url
 
 from . import views
 
+# Author: AHDS
+# Creation date: 2016-06-23
+# Modified by:
+# Last modified date:
+
 urlpatterns = [
-    url(r'^region_selection', views.RegionSelection.as_view(), name='region_selection'),
-    url(r'^submit$', views.SubmitNewRequest.as_view(), name='submit_new_request'),
-    url(r'^submit_single$', views.SubmitNewSubsetRequest.as_view(), name='submit_new_single_request'),
-    url(r'^cancel$', views.CancelRequest.as_view(), name='cancel_request'),
-    url(r'^result$', views.GetTaskResult.as_view(), name='get_result'),
-    url(r'^(?P<area_id>[\w\-]+)/task_history$', views.UserHistory.as_view(), name='get_task_history'),
-    url(r'^(?P<area_id>[\w\-]+)/results_list$', views.ResultList.as_view(), name='get_results_list'),
-    url(r'^(?P<area_id>[\w\-]+)/output_list$', views.OutputList.as_view(), name='get_output_list'),
-    url(r'^(?P<area_id>[\w\-]+)/$', views.NdviAnomalyTool.as_view(), name='ndvi_anomaly')
+    url(r'^submit$', views.submit_new_request, name='submit_new_request'),
+    url(r'^submit_single$', views.submit_new_single_request, name='submit_new_single_request'),
+    url(r'^cancel$', views.cancel_request, name='cancel_request'),
+    url(r'^result$', views.get_result, name='get_result'),
+    url(r'^(?P<area_id>[\w\-]+)/query_history$', views.get_query_history, name='get_query_history'),
+    url(r'^(?P<area_id>[\w\-]+)/results_list$', views.get_results_list, name='get_results_list'),
+    url(r'^(?P<area_id>[\w\-]+)/output_list$', views.get_output_list, name='get_output_list'),
+    url(r'^(?P<area_id>[\w\-]+)/$', views.ndvi_anomaly, name='ndvi_anomaly')
 ]

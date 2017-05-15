@@ -63,7 +63,7 @@ class FractionalCover(ToolView):
     tool_name = 'fractional_cover'
     task_model_name = 'FractionalCoverTask'
 
-    def generate_form_dict(self, satellites):
+    def generate_form_dict(self, satellites, area):
         forms = {}
         for satellite in satellites:
             forms[satellite.datacube_platform] = {

@@ -19,18 +19,37 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.conf.urls import url, include
+from django.contrib import admin
+from .models import Query, Metadata, Result
+from data_cube_ui.models import Satellite, Area, Compositor
 
-from . import views
 
-urlpatterns = [
-    url(r'^region_selection', views.RegionSelection.as_view(), name='region_selection'),
-    url(r'^submit$', views.SubmitNewRequest.as_view(), name='submit_new_request'),
-    url(r'^submit_single$', views.SubmitNewSubsetRequest.as_view(), name='submit_new_single_request'),
-    url(r'^cancel$', views.CancelRequest.as_view(), name='cancel_request'),
-    url(r'^result$', views.GetTaskResult.as_view(), name='get_result'),
-    url(r'^(?P<area_id>[\w\-]+)/task_history$', views.UserHistory.as_view(), name='get_task_history'),
-    url(r'^(?P<area_id>[\w\-]+)/results_list$', views.ResultList.as_view(), name='get_results_list'),
-    url(r'^(?P<area_id>[\w\-]+)/output_list$', views.OutputList.as_view(), name='get_output_list'),
-    url(r'^(?P<area_id>[\w\-]+)/$', views.NdviAnomalyTool.as_view(), name='ndvi_anomaly')
-]
+class QueryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'user_id', 'platform', 'time_start')
+
+
+class MetadataAdmin(admin.ModelAdmin):
+    list_display = ('query_id',)
+
+
+class ResultAdmin(admin.ModelAdmin):
+    list_display = ('result_path', 'status', 'latitude_min', 'latitude_max', 'longitude_min', 'longitude_max',
+                    'latitude_max', 'latitude_min', 'longitude_max', 'longitude_min')
+
+
+class SatelliteAdmin(admin.ModelAdmin):
+    list_display = ('satellite_id', 'satellite_name')
+
+
+class AreaAdmin(admin.ModelAdmin):
+    list_display = ('area_id', 'area_name')
+
+
+class CompositorAdmin(admin.ModelAdmin):
+    list_display = ('compositor_id', 'compositor')
+
+
+# Register your models here.
+admin.site.register(Query, QueryAdmin)
+admin.site.register(Metadata, MetadataAdmin)
+admin.site.register(Result, ResultAdmin)

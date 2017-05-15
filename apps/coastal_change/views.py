@@ -62,7 +62,7 @@ class CoastalChangeTool(ToolView):
     tool_name = 'coastal_change'
     task_model_name = 'CoastalChangeTask'
 
-    def generate_form_dict(self, satellites):
+    def generate_form_dict(self, satellites, area):
         forms = {}
         for satellite in satellites:
             forms[satellite.datacube_platform] = {
