@@ -281,7 +281,7 @@ def processing_task(task_id=None,
         baseline_clear_mask=baseline_clear_mask,
         selected_scene_clear_mask=selected_scene_clear_mask)
 
-    full_product = xr.merge([ndvi_products, selected_scene.drop(['nir', 'swir1', 'swir2'])])
+    full_product = xr.merge([ndvi_products, selected_scene])
 
     task.scenes_processed = F('scenes_processed') + 1
     task.save()
@@ -355,9 +355,11 @@ def create_output_products(data, task_id=None):
     task.metadata_from_dict(full_metadata)
 
     bands = [
-        'blue', 'green', 'red', 'cf_mask', 'scene_ndvi', 'baseline_ndvi', 'ndvi_difference', 'ndvi_percentage_change'
+        'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'scene_ndvi', 'baseline_ndvi', 'ndvi_difference',
+        'ndvi_percentage_change'
     ] if 'cf_mask' in dataset else [
-        'blue', 'green', 'red', 'pixel_qa', 'scene_ndvi', 'baseline_ndvi', 'ndvi_difference', 'ndvi_percentage_change'
+        'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa', 'scene_ndvi', 'baseline_ndvi', 'ndvi_difference',
+        'ndvi_percentage_change'
     ]
 
     dataset.to_netcdf(task.data_netcdf_path)
