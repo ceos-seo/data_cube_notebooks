@@ -33,28 +33,13 @@ from apps.water_detection.models import Query as wd_query, Result as wd_result, 
 from apps.tsm.models import Query as tsm_query, Result as tsm_result, Metadata as tsm_meta
 from apps.fractional_cover.models import Query as fractional_cover_query, Result as fractional_cover_result, Metadata as fractional_cover_meta
 """
-import apps.custom_mosaic_tool.models as custom_mosaic_tool
-import apps.water_detection.models as water_detection
-import apps.tsm.models as tsm
-import apps.fractional_cover.models as fractional_cover
-import apps.slip.models as slip
-import apps.ndvi_anomaly.models as ndvi_anomaly
-import apps.coastal_change.models as coastal_change
 
 from collections import OrderedDict
 """
 Class holding all the views for the Task_Manager application in the UI Suite.
 """
 
-applications = {
-    'custom_mosaic_tool': custom_mosaic_tool,
-    'water_detection': water_detection,
-    'tsm': tsm,
-    'fractional_cover': fractional_cover,
-    'slip': slip,
-    'ndvi_anomaly': ndvi_anomaly,
-    'coastal_change': coastal_change
-}
+applications = {}
 
 
 def build_headers_dictionary(model):

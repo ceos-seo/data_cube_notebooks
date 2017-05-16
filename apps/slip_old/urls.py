@@ -19,10 +19,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.contrib import admin
-from . import models
+from django.conf.urls import url
 
-admin.site.register(models.SlipTask)
-admin.site.register(models.UserHistory)
-admin.site.register(models.ToolInfo)
-admin.site.register(models.BaselineMethod)
+from . import views
+
+# Author: AHDS
+# Creation date: 2016-06-23
+# Modified by:
+# Last modified date:
+
+urlpatterns = [
+    url(r'^submit$', views.submit_new_request, name='submit_new_request'),
+    url(r'^submit_single$', views.submit_new_single_request, name='submit_new_single_request'),
+    url(r'^cancel$', views.cancel_request, name='cancel_request'),
+    url(r'^result$', views.get_result, name='get_result'),
+    url(r'^(?P<area_id>[\w\-]+)/query_history$', views.get_query_history, name='get_query_history'),
+    url(r'^(?P<area_id>[\w\-]+)/results_list$', views.get_results_list, name='get_results_list'),
+    url(r'^(?P<area_id>[\w\-]+)/output_list$', views.get_output_list, name='get_output_list'),
+    url(r'^(?P<area_id>[\w\-]+)/$', views.slip, name='slip')
+]

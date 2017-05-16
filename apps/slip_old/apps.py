@@ -19,10 +19,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.contrib import admin
-from . import models
+from django.apps import AppConfig
 
-admin.site.register(models.SlipTask)
-admin.site.register(models.UserHistory)
-admin.site.register(models.ToolInfo)
-admin.site.register(models.BaselineMethod)
+
+class CustomMosaicToolConfig(AppConfig):
+    name = 'custom_mosaic_tool'

@@ -115,8 +115,6 @@ class Query(BaseQuery):
         """
         return False
 
-    # TODO: Map the processing method imported at the top of this file to some case
-    # if there is only one result type/execution path, this can just be a static return.
     def get_processing_method(self):
         """implements get_processing_method as required by the base class
 
@@ -197,7 +195,6 @@ class Metadata(BaseMetadata):
         """
         for key in new:
             if key in old:
-                # TODO: Combine any 'cumulative' fields here
                 old[key]['clean_pixels'] += new[key]['clean_pixels']
                 continue
             old[key] = new[key]

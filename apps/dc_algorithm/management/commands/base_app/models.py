@@ -28,7 +28,8 @@ from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetada
                                       BaseResultType, UserHistory as BaseUserHistory, AnimationType as
                                       BaseAnimationType, ToolInfo as BaseToolInfo)
 
-# TODO: Fill in any required algorithm imports here.
+# TODO: Fill in any required algorithm imports here. Remove mosaic if unused
+from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
 
 import datetime
 import numpy as np
