@@ -32,7 +32,7 @@ from datetime import datetime, timedelta
 from apps.dc_algorithm.models import Satellite, Area, Application
 from apps.dc_algorithm.forms import DataSelectionForm
 from .forms import AdditionalOptionsForm
-from .tasks import run
+from .tasks import run, get_acquisition_list
 
 from collections import OrderedDict
 
@@ -124,16 +124,17 @@ class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
 
     celery_task_func = run
 
-    # TODO: Ensure that your task_model_update_func works as expected - does this app support
-    # single requests?
     def task_model_update_func(self, task_model, **kwargs):
         """
         Basic funct that updates a task model with kwargs. In this case only the date
         needs to be changed, and results reset.
         """
         date = kwargs.get('date')[0]
-        task_model.time_start = datetime.strptime(date, '%m/%d/%Y')
-        task_model.time_end = task_model.time_start + timedelta(days=1)
+        date_datetime_format = datetime.strptime(date, '%m/%d/%Y') + timedelta(days=1)
+        acquisition_dates = get_acquisition_list(task_model, task_model.area_id, task_model.platform,
+                                                 date_datetime_format)
+        task_model.time_start = acquisition_dates[-1 * (task_model.baseline_length + 1)]
+        task_model.time_end = date_datetime_format
         task_model.complete = False
         task_model.scenes_processed = 0
         task_model.total_scenes = 0

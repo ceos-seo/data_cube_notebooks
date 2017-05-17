@@ -58,6 +58,9 @@ class BaselineMethod(models.Model):
     id = models.CharField(unique=True, primary_key=True, max_length=100)
     name = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
+
 
 class Query(BaseQuery):
     """
@@ -169,21 +172,20 @@ class Metadata(BaseMetadata):
     class Meta(BaseMetadata.Meta):
         abstract = True
 
-    def metadata_from_dataset(self, metadata, dataset, clear_mask, parameters):
+    def metadata_from_dataset(self, metadata, dataset, clear_mask, parameters, time):
         """implements metadata_from_dataset as required by the base class
 
         See the base metadata class docstring for more information.
 
         """
-        for metadata_index, time in enumerate(dataset.time.values.astype('M8[ms]').tolist()):
-            clean_pixels = np.sum(clear_mask[metadata_index, :, :] == True)
-            slip_slice = dataset.isel(time=metadata_index).slip.values
-            if time not in metadata:
-                metadata[time] = {}
-                metadata[time]['clean_pixels'] = 0
-                acquisition_metadata[time]['slip_pixels'] = 0
-            metadata[time]['clean_pixels'] += clean_pixels
-            acquisition_metadata[time]['slip_pixels'] += len(slip_slice[slice_slice > 0])
+        clean_pixels = np.sum(clear_mask == True)
+        slip_slice = dataset.slip.values
+        if time not in metadata:
+            metadata[time] = {}
+            metadata[time]['clean_pixels'] = 0
+            metadata[time]['slip_pixels'] = 0
+        metadata[time]['clean_pixels'] += clean_pixels
+        metadata[time]['slip_pixels'] += len(slip_slice[slip_slice > 0])
         return metadata
 
     def combine_metadata(self, old, new):
@@ -222,7 +224,7 @@ class Metadata(BaseMetadata):
         self.total_scenes = len(dates)
         self.scenes_processed = len(dates)
         self.acquisition_list = ",".join([date.strftime("%m/%d/%Y") for date in dates])
-        self.slip_pixels_per_acquisition = ",".join([metadata_dict[date]['slip_pixels'] for date in dates])
+        self.slip_pixels_per_acquisition = ",".join([str(metadata_dict[date]['slip_pixels']) for date in dates])
         self.clean_pixels_per_acquisition = ",".join([str(metadata_dict[date]['clean_pixels']) for date in dates])
         self.clean_pixel_percentages_per_acquisition = ",".join(
             [str((metadata_dict[date]['clean_pixels'] * 100) / self.pixel_count) for date in dates])
@@ -236,7 +238,6 @@ class Result(BaseResult):
     """
 
     result_mosaic_path = models.CharField(max_length=250, default="")
-    baseline_mosaic_path = models.CharField(max_length=250, default="")
     data_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
 
