@@ -984,7 +984,7 @@
     "fields": {
         "name": "Coastal Change",
         "color_scale": "/static/assets/images/color_scales/coastal_change_color_scale.png",
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "salgar_colombia", "togo", "tonga", "vietnam", "meta_river"],
+        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
         "satellites": [1, 2, 3]
     }
 }, {
@@ -993,7 +993,7 @@
     "fields": {
         "name": "Custom Mosaic",
         "color_scale": null,
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "salgar_colombia", "togo", "tonga", "vietnam", "meta_river"],
+        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
         "satellites": [1, 2, 3, 4]
     }
 }, {
@@ -1002,7 +1002,7 @@
     "fields": {
         "name": "Fractional Cover",
         "color_scale": "/static/assets/images/color_scales/fractional_cover_color_scale.png",
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "salgar_colombia", "togo", "tonga", "vietnam", "meta_river"],
+        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
         "satellites": [1, 2, 3, 4]
     }
 }, {
@@ -1011,17 +1011,17 @@
     "fields": {
         "name": "NDVI Anomaly",
         "color_scale": "/static/assets/images/color_scales/ndvi_color_scale.png",
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "salgar_colombia", "togo", "tonga", "vietnam", "meta_river"],
+        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
         "satellites": [1, 2, 3]
     }
 }, {
     "model": "dc_algorithm.application",
     "pk": "slip",
     "fields": {
-        "name": "Landslide SLIP",
+        "name": "Slip",
         "color_scale": "",
-        "areas": [],
-        "satellites": []
+        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+        "satellites": [1, 2, 3]
     }
 }, {
     "model": "dc_algorithm.application",
@@ -1084,25 +1084,10 @@
         "name": "Composite"
     }
 }, {
-    "model": "custom_mosaic_tool.userhistory",
-    "pk": 5,
-    "fields": {
-        "user_id": 1,
-        "task_id": "d0e1ed7a-76eb-49a0-badb-a0d1a360e7b5"
-    }
-}, {
-    "model": "custom_mosaic_tool.userhistory",
-    "pk": 6,
-    "fields": {
-        "user_id": 1,
-        "task_id": "8f436502-9075-48c4-806c-c8bedcd4d5ab"
-    }
-}, {
     "model": "custom_mosaic_tool.resulttype",
     "pk": 1,
     "fields": {
         "result_id": "true_color",
-        "datacube_platform": "LANDSAT_8",
         "name": "True color",
         "red": "red",
         "green": "green",
@@ -1114,7 +1099,6 @@
     "pk": 2,
     "fields": {
         "result_id": "nir_swir_swir",
-        "datacube_platform": "LANDSAT_8",
         "name": "NIR, SWIR1, SWIR2",
         "red": "nir",
         "green": "swir1",
@@ -1126,7 +1110,6 @@
     "pk": 3,
     "fields": {
         "result_id": "nir_swir_red",
-        "datacube_platform": "LANDSAT_8",
         "name": "NIR, SWIR1, RED",
         "red": "nir",
         "green": "swir1",
@@ -1138,7 +1121,6 @@
     "pk": 4,
     "fields": {
         "result_id": "swir_nir_red",
-        "datacube_platform": "LANDSAT_8",
         "name": "SWIR1, NIR, RED",
         "red": "swir1",
         "green": "nir",
@@ -1150,7 +1132,6 @@
     "pk": 5,
     "fields": {
         "result_id": "swir_nir_green",
-        "datacube_platform": "LANDSAT_8",
         "name": "SWIR2, NIR, GREEN",
         "red": "swir2",
         "green": "nir",
@@ -1162,7 +1143,6 @@
     "pk": 6,
     "fields": {
         "result_id": "swir_nir_blue",
-        "datacube_platform": "LANDSAT_8",
         "name": "SWIR1, NIR, BLUE",
         "red": "swir1",
         "green": "nir",
@@ -1174,276 +1154,11 @@
     "pk": 7,
     "fields": {
         "result_id": "nir_red_green",
-        "datacube_platform": "LANDSAT_8",
         "name": "NIR, RED, GREEN",
         "red": "nir",
         "green": "red",
         "blue": "green",
         "fill": "blue"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 9,
-    "fields": {
-        "result_id": "true_color",
-        "datacube_platform": "LANDSAT_7",
-        "name": "True color",
-        "red": "red",
-        "green": "green",
-        "blue": "blue",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 10,
-    "fields": {
-        "result_id": "nir_swir_swir",
-        "datacube_platform": "LANDSAT_7",
-        "name": "NIR, SWIR1, SWIR2",
-        "red": "nir",
-        "green": "swir1",
-        "blue": "swir2",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 11,
-    "fields": {
-        "result_id": "nir_swir_red",
-        "datacube_platform": "LANDSAT_7",
-        "name": "NIR, SWIR1, RED",
-        "red": "nir",
-        "green": "swir1",
-        "blue": "red",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 12,
-    "fields": {
-        "result_id": "swir_nir_red",
-        "datacube_platform": "LANDSAT_7",
-        "name": "SWIR1, NIR, RED",
-        "red": "swir1",
-        "green": "nir",
-        "blue": "red",
-        "fill": "blue"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 13,
-    "fields": {
-        "result_id": "swir_nir_green",
-        "datacube_platform": "LANDSAT_7",
-        "name": "SWIR2, NIR, GREEN",
-        "red": "swir2",
-        "green": "nir",
-        "blue": "green",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 14,
-    "fields": {
-        "result_id": "swir_nir_blue",
-        "datacube_platform": "LANDSAT_7",
-        "name": "SWIR1, NIR, BLUE",
-        "red": "swir1",
-        "green": "nir",
-        "blue": "blue",
-        "fill": "blue"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 15,
-    "fields": {
-        "result_id": "nir_red_green",
-        "datacube_platform": "LANDSAT_7",
-        "name": "NIR, RED, GREEN",
-        "red": "nir",
-        "green": "red",
-        "blue": "green",
-        "fill": "blue"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 16,
-    "fields": {
-        "result_id": "true_color",
-        "datacube_platform": "LANDSAT_5",
-        "name": "True Color",
-        "red": "red",
-        "green": "green",
-        "blue": "blue",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 17,
-    "fields": {
-        "result_id": "nir_swir_swir",
-        "datacube_platform": "LANDSAT_5",
-        "name": "NIR, SWIR1, SWIR2",
-        "red": "nir",
-        "green": "swir1",
-        "blue": "swir2",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 18,
-    "fields": {
-        "result_id": "nir_swir_red",
-        "datacube_platform": "LANDSAT_5",
-        "name": "NIR, SWIR1, RED",
-        "red": "nir",
-        "green": "swir1",
-        "blue": "red",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 19,
-    "fields": {
-        "result_id": "swir_nir_red",
-        "datacube_platform": "LANDSAT_5",
-        "name": "SWIR1, NIR, RED",
-        "red": "swir1",
-        "green": "nir",
-        "blue": "red",
-        "fill": "blue"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 20,
-    "fields": {
-        "result_id": "swir_nir_green",
-        "datacube_platform": "LANDSAT_5",
-        "name": "SWIR2, NIR, GREEN",
-        "red": "swir2",
-        "green": "nir",
-        "blue": "green",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 21,
-    "fields": {
-        "result_id": "swir_nir_blue",
-        "datacube_platform": "LANDSAT_5",
-        "name": "SWIR1, NIR, BLUE",
-        "red": "swir1",
-        "green": "nir",
-        "blue": "blue",
-        "fill": "blue"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 22,
-    "fields": {
-        "result_id": "nir_red_green",
-        "datacube_platform": "LANDSAT_5",
-        "name": "NIR, RED, GREEN",
-        "red": "nir",
-        "green": "red",
-        "blue": "green",
-        "fill": "blue"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 23,
-    "fields": {
-        "result_id": "true_color",
-        "datacube_platform": "LANDSAT_ALL",
-        "name": "True color",
-        "red": "red",
-        "green": "green",
-        "blue": "blue",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 24,
-    "fields": {
-        "result_id": "nir_swir_swir",
-        "datacube_platform": "LANDSAT_ALL",
-        "name": "NIR, SWIR1, SWIR2",
-        "red": "nir",
-        "green": "swir1",
-        "blue": "swir2",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 25,
-    "fields": {
-        "result_id": "nir_swir_red",
-        "datacube_platform": "LANDSAT_ALL",
-        "name": "NIR, SWIR1, RED",
-        "red": "nir",
-        "green": "swir1",
-        "blue": "red",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 26,
-    "fields": {
-        "result_id": "swir_nir_red",
-        "datacube_platform": "LANDSAT_ALL",
-        "name": "SWIR1, NIR, RED",
-        "red": "swir1",
-        "green": "nir",
-        "blue": "red",
-        "fill": "blue"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 27,
-    "fields": {
-        "result_id": "swir_nir_green",
-        "datacube_platform": "LANDSAT_ALL",
-        "name": "SWIR2, NIR, GREEN",
-        "red": "swir2",
-        "green": "nir",
-        "blue": "green",
-        "fill": "red"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 28,
-    "fields": {
-        "result_id": "swir_nir_blue",
-        "datacube_platform": "LANDSAT_ALL",
-        "name": "SWIR1, NIR, BLUE",
-        "red": "swir1",
-        "green": "nir",
-        "blue": "blue",
-        "fill": "blue"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 29,
-    "fields": {
-        "result_id": "nir_red_green",
-        "datacube_platform": "LANDSAT_ALL",
-        "name": "NIR, RED, GREEN",
-        "red": "nir",
-        "green": "red",
-        "blue": "green",
-        "fill": "blue"
-    }
-}, {
-    "model": "custom_mosaic_tool.resulttype",
-    "pk": 30,
-    "fields": {
-        "result_id": "vv_vh_ratio",
-        "datacube_platform": "SENTINEL_1A",
-        "name": "VV,VH,VV/VH",
-        "red": "vv",
-        "green": "vh",
-        "blue": "vv/vh",
-        "fill": "vv"
     }
 }, {
     "model": "custom_mosaic_tool.animationtype",
@@ -1556,6 +1271,34 @@
         "image_path": "/static/assets/images/thumbnails/ndvi_anomaly_3.png",
         "image_title": "Specific Scene Selection",
         "image_description": "Pick a specific acquisition date for analysis and calculate the difference and percentage change from a composite of all acquisitions prior to that date."
+    }
+}, {
+    "model": "slip.toolinfo",
+    "pk": 7,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/slip_1.png",
+        "image_title": "Landslide Detection",
+        "image_description": "The SLIP tools uses algorithms to combine optical and elevation data to determine possible locations for recent landslides"
+    }
+}, {
+    "model": "slip.toolinfo",
+    "pk": 8,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/slip_2.png",
+        "image_title": "Threshold Control",
+        "image_description": "Set the baseline thresholds to expand or narrow results of possible landslide data."
+    }
+}, {
+    "model": "slip.baselinemethod",
+    "pk": "average",
+    "fields": {
+        "name": "Average"
+    }
+}, {
+    "model": "slip.baselinemethod",
+    "pk": "composite",
+    "fields": {
+        "name": "Composite"
     }
 }, {
     "model": "tsm.resulttype",
@@ -1705,108 +1448,24 @@
     "model": "water_detection.resulttype",
     "pk": 1,
     "fields": {
-        "satellite_id": "LANDSAT_7",
         "result_id": "black_background",
-        "result_type": "Black",
+        "name": "Black",
         "fill": "black"
     }
 }, {
     "model": "water_detection.resulttype",
     "pk": 2,
     "fields": {
-        "satellite_id": "LANDSAT_7",
         "result_id": "white_background",
-        "result_type": "White",
+        "name": "White",
         "fill": "white"
     }
 }, {
     "model": "water_detection.resulttype",
     "pk": 3,
     "fields": {
-        "satellite_id": "LANDSAT_7",
         "result_id": "transparent_background",
-        "result_type": "Transparent",
+        "name": "Transparent",
         "fill": "transparent"
-    }
-}, {
-    "model": "water_detection.resulttype",
-    "pk": 4,
-    "fields": {
-        "satellite_id": "LANDSAT_5",
-        "result_id": "transparent_background",
-        "result_type": "Transparent",
-        "fill": "transparent"
-    }
-}, {
-    "model": "water_detection.resulttype",
-    "pk": 5,
-    "fields": {
-        "satellite_id": "LANDSAT_5",
-        "result_id": "white_background",
-        "result_type": "White",
-        "fill": "white"
-    }
-}, {
-    "model": "water_detection.resulttype",
-    "pk": 6,
-    "fields": {
-        "satellite_id": "LANDSAT_5",
-        "result_id": "black_background",
-        "result_type": "Black",
-        "fill": "black"
-    }
-}, {
-    "model": "water_detection.resulttype",
-    "pk": 7,
-    "fields": {
-        "satellite_id": "LANDSAT_8",
-        "result_id": "transparent_background",
-        "result_type": "Transparent",
-        "fill": "transparent"
-    }
-}, {
-    "model": "water_detection.resulttype",
-    "pk": 8,
-    "fields": {
-        "satellite_id": "LANDSAT_8",
-        "result_id": "white_background",
-        "result_type": "White",
-        "fill": "white"
-    }
-}, {
-    "model": "water_detection.resulttype",
-    "pk": 9,
-    "fields": {
-        "satellite_id": "LANDSAT_8",
-        "result_id": "black_background",
-        "result_type": "Black",
-        "fill": "black"
-    }
-}, {
-    "model": "water_detection.resulttype",
-    "pk": 1453,
-    "fields": {
-        "satellite_id": "LANDSAT_ALL",
-        "result_id": "transparent_background",
-        "result_type": "Transparent",
-        "fill": "transparent"
-    }
-}, {
-    "model": "water_detection.resulttype",
-    "pk": 1454,
-    "fields": {
-        "satellite_id": "LANDSAT_ALL",
-        "result_id": "black_background",
-        "result_type": "Black",
-        "fill": "black"
-    }
-}, {
-    "model": "water_detection.resulttype",
-    "pk": 1455,
-    "fields": {
-        "satellite_id": "LANDSAT_ALL",
-        "result_id": "white_background",
-        "result_type": "White",
-        "fill": "white"
     }
 }]

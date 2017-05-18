@@ -1,0 +1,65 @@
+[{
+    "model": "water_detection.toolinfo",
+    "pk": 12,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/water_detection_1.png",
+        "image_title": "Water Detection",
+        "image_description": "The Water Detection tool allows users to determine a per pixel analysis of water vs not-water for a given scene over many acquisitions."
+    }
+}, {
+    "model": "water_detection.toolinfo",
+    "pk": 13,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/water_detection_2.png",
+        "image_title": "Time Series Analysis",
+        "image_description": "Run analyses over time producing outputs visualizing cumulative acquisitions, water observations, and water percentages."
+    }
+}, {
+    "model": "water_detection.toolinfo",
+    "pk": 14,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/water_detection_3.png",
+        "image_title": "Animated Images",
+        "image_description": "Create animated GIFs of water levels over time to show trends of increasing or decreasing water levels."
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 1,
+    "fields": {
+        "id": "None",
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 2,
+    "fields": {
+        "id": "scene",
+        "name": "Scene",
+        "data_variable": "wofs_data"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 3,
+    "fields": {
+        "id": "cumulative_acquisitions",
+        "name": "Cumulative Acquisitions",
+        "data_variable": "water_analysis"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 4,
+    "fields": {
+        "id": "cumulative_observations",
+        "name": "Cumulative Observations",
+        "data_variable": "water_analysis"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 5,
+    "fields": {
+        "id": "cumulative_percentages",
+        "name": "Cumulative Percentages",
+        "data_variable": "water_analysis"
+    }
+}]

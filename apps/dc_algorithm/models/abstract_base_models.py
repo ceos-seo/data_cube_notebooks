@@ -48,7 +48,7 @@ class Query(models.Model):
                 sample_field = models.CharField(max_length=100)
 
                 class Meta(Query.Meta):
-                    unique_together = (('platform', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+                    unique_together = (('platform', 'area_id', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
                                         'longitude_max', 'longitude_min', 'sample_field'))
 
 
@@ -78,7 +78,7 @@ class Query(models.Model):
 
     class Meta:
         abstract = True
-        unique_together = (('platform', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
+        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
                             'longitude_min', 'title', 'description'))
 
     def update_status(self, status, message):
@@ -463,12 +463,10 @@ class ResultType(models.Model):
         None yet.
 
     """
-    result_id = models.CharField(max_length=25)
-    datacube_platform = models.CharField(max_length=25)
+    result_id = models.CharField(max_length=25, unique=True)
     name = models.CharField(max_length=25)
 
     class Meta:
-        unique_together = (('result_id', 'datacube_platform'))
         abstract = True
 
     def __str__(self):
@@ -485,7 +483,6 @@ class AnimationType(models.Model):
     id = models.CharField(max_length=25, default="None", unique=True, primary_key=True)
     name = models.CharField(max_length=25, default="None")
     data_variable = models.CharField(max_length=25, default="None")
-    band_number = models.CharField(max_length=25, default="None")
 
     def __str__(self):
         return self.name

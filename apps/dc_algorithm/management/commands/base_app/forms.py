@@ -38,7 +38,7 @@ class AdditionalOptionsForm(forms.Form):
     """
     # TODO: Add/remove/modify fields that are used to create your query here.
     # e.g. if there is no type, anim, or compositor, remove everything here.
-    #if you need a property on the Task model called Color Scale, create that here.  
+    #if you need a property on the Task model called Color Scale, create that here.
 
     #these are done in the init funct.
     query_type = forms.ModelChoiceField(
@@ -68,8 +68,6 @@ class AdditionalOptionsForm(forms.Form):
     def __init__(self, *args, **kwargs):
         datacube_platform = kwargs.pop('datacube_platform', None)
         super(AdditionalOptionsForm, self).__init__(*args, **kwargs)
-        self.fields["query_type"].queryset = ResultType.objects.filter(datacube_platform=datacube_platform
-                                                                       if datacube_platform is not None else
-                                                                       args[0].get('platform'))
+        self.fields["query_type"].queryset = ResultType.objects.all()
         self.fields["compositor"].queryset = Compositor.objects.all()
         self.fields["animated_product"].queryset = AnimationType.objects.all()

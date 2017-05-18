@@ -66,7 +66,7 @@ class Query(BaseQuery):
     base_result_dir = '/datacube/ui_results/band_math_app'
 
     class Meta(BaseQuery.Meta):
-        unique_together = (('platform', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
+        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
                             'longitude_min', 'title', 'description', 'compositor'))
         abstract = True
 

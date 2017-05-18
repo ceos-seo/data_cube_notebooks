@@ -42,9 +42,8 @@ from dateutil.tz import tzutc
 import imageio
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import (get_spatial_ref, save_to_geotiff, create_cfmask_clean_mask,
-                                perform_timeseries_analysis_iterative, split_task, addition, generate_time_ranges,
-                                create_single_band_rgb)
+from utils.dc_utilities import (get_spatial_ref, save_to_geotiff, create_cfmask_clean_mask, perform_timeseries_analysis,
+                                split_task, addition, generate_time_ranges, create_single_band_rgb)
 
 from utils.dc_water_classifier import wofs_classify
 from utils.dc_tsm import tsm, mask_tsm

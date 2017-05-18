@@ -22,5 +22,5 @@
 from django.apps import AppConfig
 
 
-class WaterDetectionConfig(AppConfig):
+class WaterDetectionToolConfig(AppConfig):
     name = 'water_detection'

@@ -126,14 +126,8 @@ class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
         Basic funct that updates a task model with kwargs. In this case only the date
         needs to be changed, and results reset.
         """
-        date = kwargs.get('date')[0]
-        task_model.time_start = datetime.strptime(date, '%m/%d/%Y')
-        task_model.time_end = task_model.time_start + timedelta(days=1)
-        task_model.complete = False
-        task_model.scenes_processed = 0
-        task_model.total_scenes = 0
-        task_model.title = "Single acquisition for " + date
-        return task_model
+        # This is not supported for coastal change. 
+        pass
 
 
 class CancelRequest(CancelRequest):
