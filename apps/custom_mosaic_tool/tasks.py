@@ -423,7 +423,8 @@ def create_output_products(data, task_id=None):
         bands=png_bands,
         png_filled_path=task.result_filled_path,
         fill_color=task.query_type.fill,
-        scale=(0, 4096))
+        scale=(0, 4096),
+        low_res=True)
 
     if task.animated_product.id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:

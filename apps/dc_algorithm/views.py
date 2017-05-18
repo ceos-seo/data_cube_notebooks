@@ -544,10 +544,22 @@ class SubmitNewSubsetRequest(View, ToolClass):
 
         task_model = self._get_tool_model(self._get_task_model_name())
         response = {'status': "OK"}
+
         requested_task = task_model.objects.get(pk=request.POST['id'])
+
         updated_task = self._get_task_model_update_func()(requested_task, **request.POST)
         updated_task.pk = None
-        updated_task.save()
+        updated_task_data = {field: getattr(updated_task, field) for field in task_model._meta.unique_together[0]}
+        try:
+            updated_task = task_model.objects.get(**updated_task_data)
+        except task_model.DoesNotExist:
+            updated_task = task_model(**updated_task_data)
+            updated_task.save()
+
+        user_id = request.user.id
+        history_model, __ = self._get_tool_model('userhistory').objects.get_or_create(
+            user_id=user_id, task_id=updated_task.pk)
+
         self._get_celery_task_func().delay(updated_task.pk)
         response.update(model_to_dict(updated_task))
         return JsonResponse(response)
