@@ -46,9 +46,9 @@ under the License.
       <dt>Platform</dt>
       <dd>{{task.platform}}</dd>
       <dt>Scene Count</dt>
-      <dd>{{metadata.total_scenes}}</dd>
+      <dd>{{task.total_scenes}}</dd>
       <dt>Pixel Count</dt>
-      <dd>{{metadata.pixel_count}}</dd>
+      <dd>{{task.pixel_count}}</dd>
     </dl>
   </div>
 </div>
@@ -69,16 +69,16 @@ under the License.
     {% if user.is_authenticated %}
     <dl class="dl-horizontal">
       <dt>Mosaic Path</dt>
-      <dd><a href={{result.result_path}} target="_blank">View image</a></dd>
+      <dd><a href={{task.result_path}} target="_blank">View image</a></dd>
       <dt>Filled Mosaic Path</dt>
-      <dd><a href={{result.result_filled_path}} target="_blank">View image</a></dd>
+      <dd><a href={{task.mosaic_path}} target="_blank">View image</a></dd>
       <dt>NetCDF Path</dt>
-      <dd><a href={{result.data_netcdf_path}}>Download nc</a></dd>
+      <dd><a href={{task.data_netcdf_path}}>Download nc</a></dd>
       <dt>GeoTIFF Path</dt>
-      <dd><a href={{result.data_path}}>Download tif</a></dd>
-      {% if result.animation_path != "None" %}
+      <dd><a href={{task.data_path}}>Download tif</a></dd>
+      {% if task.animation_path != "None" %}
       <dt>Animation Path</dt>
-      <dd><a href="{{result.animation_path}}">Download .gif</a></dd>
+      <dd><a href="{{task.animation_path}}">Download .gif</a></dd>
       {% endif %}
     </dl>
     {% else %}
@@ -90,7 +90,7 @@ under the License.
   <div class="col-lg-12" style="height: 500px;">
     <h2 class="page-header">Scene Metadata</h2>
     <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_list">
-      {% for acquisition, pixels, pixel_percentage in metadata.acquisitions_dates_with_pixels_percentages %}
+      {% for acquisition, pixels, pixel_percentage in task.acquisitions_dates_with_pixels_percentages %}
         <li>
           <dl class="dl-horizontal">
             <dt class="section_header">{{ acquisition }}</dt>
@@ -98,7 +98,7 @@ under the License.
             <dt>Clean pixels</dt>
             <dd>{{ pixels }}</dd>
             <dt>Total Pixels</dt>
-            <dd>{{ metadata.pixel_count }}</dd>
+            <dd>{{ task.pixel_count }}</dd>
             <dt>Clean Pixel Percentage</dt>
             <dd>{{ pixel_percentage|floatformat:2 }}%</dd>
           </dl>
@@ -117,10 +117,10 @@ under the License.
                 <!-- main slider carousel items -->
                 <div class="carousel-inner">
                     <div class="active item" data-slide-number="0">
-                        <img src="{{ result.result_path }}" class="img-responsive">
+                        <img src="{{ task.result_path }}" class="img-responsive">
                     </div>
                     <div class="item" data-slide-number="1">
-                        <img src="{{ result.result_filled_path }}" class="img-responsive">
+                        <img src="{{ task.mosaic_path }}" class="img-responsive">
                     </div>
                 </div>
                 <a class="left carousel-control" href="#carousel" role="button" data-slide="prev">
@@ -132,12 +132,12 @@ under the License.
                   <span class="sr-only">Next</span>
                 </a>
                 <div id="carousel-caption-0" class="carousel-caption selected" data-slide-number="0">
-                  <h3>Custom Mosaic Image</h3>
-                  <p>Output mosaic image for the task with the id {{task.id}}</p>
+                  <h3>Band Math Image</h3>
+                  <p>Output band math image for the task with the id {{task.id}}</p>
                 </div>
                 <div id="carousel-caption-1" class="carousel-caption" data-slide-number="1">
-                  <h3>Custom Mosaic Image (No-data filled)</h3>
-                  <p>Output mosaic image with no-data areas filled with a contrasting color for the task with the id {{task.id}}</p>
+                  <h3>Custom Mosaic Image</h3>
+                  <p>Output mosaic image for the task with the id {{task.id}}</p>
                 </div>
             </div>
         </div>
@@ -148,12 +148,12 @@ under the License.
     <ul class="list-inline">
         <li>
             <a id="carousel-selector-0" class="selected">
-                <img src="{{ result.result_path }}" class="img-responsive thumbnail" style="max-width:75px; max-height:75px;">
+                <img src="{{ task.result_path }}" class="img-responsive thumbnail" style="max-width:75px; max-height:75px;">
             </a>
         </li>
         <li>
             <a id="carousel-selector-1">
-                <img src="{{ result.result_filled_path }}" class="img-responsive thumbnail" style="max-width:75px; max-height:75px;">
+                <img src="{{ task.mosaic_path }}" class="img-responsive thumbnail" style="max-width:75px; max-height:75px;">
             </a>
         </li>
     </ul>
