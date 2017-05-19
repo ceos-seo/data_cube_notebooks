@@ -412,8 +412,7 @@ class SubmitNewRequest(View, ToolClass):
         task, new_task = task_model.get_or_create_query_from_post(full_parameter_set)
         #associate task w/ history
         history_model, __ = self._get_tool_model('userhistory').objects.get_or_create(user_id=user_id, task_id=task.pk)
-        #if new_task:
-        if True:
+        if new_task:
             self._get_celery_task_func().delay(task.pk)
         response.update(model_to_dict(task))
 
@@ -555,12 +554,13 @@ class SubmitNewSubsetRequest(View, ToolClass):
         except task_model.DoesNotExist:
             updated_task = task_model(**updated_task_data)
             updated_task.save()
+            #only run if this is a new task
+            self._get_celery_task_func().delay(updated_task.pk)
 
         user_id = request.user.id
         history_model, __ = self._get_tool_model('userhistory').objects.get_or_create(
             user_id=user_id, task_id=updated_task.pk)
 
-        self._get_celery_task_func().delay(updated_task.pk)
         response.update(model_to_dict(updated_task))
         return JsonResponse(response)
 
