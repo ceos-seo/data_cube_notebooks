@@ -132,7 +132,7 @@ def perform_task_chunking(parameters, task_id):
     grouped_dates = group_datetimes_by_year(dates)
     # we need to pair these with the first year - subsequent years.
     time_chunks = None
-    if task.animated_product.id == 'none':
+    if task.animated_product.animation_id == 'none':
         # first and last only
         time_chunks = [[grouped_dates[task.time_start], grouped_dates[task.time_end]]]
     else:
@@ -290,10 +290,10 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     combined_data = combine_geographic_chunks(chunk_data)
 
-    if task.animated_product.id != "none":
+    if task.animated_product.animation_id != "none":
         path = os.path.join(task.get_temp_path(), "animation_{}.png".format(time_chunk_id))
         animated_data = mask_mosaic_with_coastlines(
-            combined_data) if task.animated_product.id == "coastline_change" else mask_mosaic_with_coastal_change(
+            combined_data) if task.animated_product.animation_id == "coastline_change" else mask_mosaic_with_coastal_change(
                 combined_data)
         write_png_from_xr(path, animated_data, bands=['red', 'green', 'blue'], scale=(0, 4096))
 
@@ -359,7 +359,7 @@ def create_output_products(data, task_id=None):
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
     task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
     task.animation_path = os.path.join(task.get_result_path(),
-                                       "animation.gif") if task.animated_product.id != 'none' else ""
+                                       "animation.gif") if task.animated_product.animation_id != 'none' else ""
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
@@ -378,7 +378,7 @@ def create_output_products(data, task_id=None):
         task.result_coastal_change_path, mask_mosaic_with_coastal_change(dataset), bands=png_bands, scale=(0, 4096))
     write_png_from_xr(task.result_mosaic_path, dataset, bands=png_bands, scale=(0, 4096))
 
-    if task.animated_product.id != "none":
+    if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
             for index in range(task.time_end - task.time_start):
                 path = os.path.join(task.get_temp_path(), "animation_{}.png".format(index))

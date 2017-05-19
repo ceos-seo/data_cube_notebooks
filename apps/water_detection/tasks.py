@@ -239,10 +239,10 @@ def processing_task(task_id=None,
         water_analysis = perform_timeseries_analysis(wofs_data, 'wofs', intermediate_product=water_analysis)
 
         metadata = task.metadata_from_dataset(metadata, wofs_data, clear_mask, updated_params)
-        if task.animated_product.id != "none":
+        if task.animated_product.animation_id != "none":
             path = os.path.join(task.get_temp_path(),
                                 "animation_{}_{}.nc".format(str(geo_chunk_id), str(base_index + time_index)))
-            animated_data = wofs_data.isel(time=0, drop=True) if task.animated_product.id == "scene" else water_analysis
+            animated_data = wofs_data.isel(time=0, drop=True) if task.animated_product.animation_id == "scene" else water_analysis
             animated_data.to_netcdf(path)
 
         task.scenes_processed = F('scenes_processed') + 1
@@ -282,7 +282,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     combined_data = combine_geographic_chunks(chunk_data)
 
-    if task.animated_product.id != "none":
+    if task.animated_product.animation_id != "none":
         base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
         for index in range((task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1)):
             animated_data = []
@@ -342,7 +342,7 @@ def recombine_time_chunks(chunks, task_id=None):
             path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
             if os.path.exists(path):
                 animated_data = xr.open_dataset(path)
-                if task.animated_product.id != "scene" and combined_data:
+                if task.animated_product.animation_id != "scene" and combined_data:
                     combine_intermediates(combined_data, animated_data)
                 path = os.path.join(task.get_temp_path(), "animation_{}.png".format(base_index + index))
 
@@ -358,13 +358,13 @@ def recombine_time_chunks(chunks, task_id=None):
         metadata.update(chunk[1])
         data = xr.open_dataset(chunk[0])
         if combined_data is None:
-            if task.animated_product.id != "none":
+            if task.animated_product.animation_id != "none":
                 generate_animation(index, combined_data)
             combined_data = data
             continue
         combine_intermediates(data, combined_data)
         # if we're animating, combine it all and save to disk.
-        if task.animated_product.id != "none":
+        if task.animated_product.animation_id != "none":
             generate_animation(index, combined_data)
 
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
@@ -396,7 +396,7 @@ def create_output_products(data, task_id=None):
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
     task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
     task.animation_path = os.path.join(task.get_result_path(),
-                                       "animation.gif") if task.animated_product.id != 'none' else ""
+                                       "animation.gif") if task.animated_product.animation_id != 'none' else ""
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
@@ -410,7 +410,7 @@ def create_output_products(data, task_id=None):
         write_single_band_png_from_xr(
             band_path, dataset, band, color_scale=task.color_scales[band], fill_color=task.query_type.fill)
 
-    if task.animated_product.id != "none":
+    if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
             valid_range = range(len(full_metadata))
             for index in valid_range:

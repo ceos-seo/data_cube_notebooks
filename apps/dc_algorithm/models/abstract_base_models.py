@@ -78,8 +78,8 @@ class Query(models.Model):
 
     class Meta:
         abstract = True
-        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
-                            'longitude_min', 'title', 'description'))
+        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+                            'longitude_max', 'longitude_min', 'title', 'description'))
 
     def update_status(self, status, message):
         self.status = status
@@ -480,7 +480,7 @@ class AnimationType(models.Model):
     Used to populate UI forms.
     Band number and data variable are interpretted at the app level in tasks.py.
     """
-    id = models.CharField(max_length=25, default="None", unique=True, primary_key=True)
+    animation_id = models.CharField(max_length=25, default="None", unique=True)
     name = models.CharField(max_length=25, default="None")
     data_variable = models.CharField(max_length=25, default="None")
 

@@ -58,4 +58,4 @@ class AdditionalOptionsForm(forms.Form):
         datacube_platform = kwargs.pop('datacube_platform', None)
         super(AdditionalOptionsForm, self).__init__(*args, **kwargs)
         self.fields["query_type"].queryset = ResultType.objects.all()
-        self.fields["animated_product"].queryset = AnimationType.objects.all()
+        self.fields["animated_product"].queryset = AnimationType.objects.all().order_by('pk')

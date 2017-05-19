@@ -90,7 +90,7 @@ def validate_parameters(parameters, task_id):
         task.update_status("ERROR", "There are no acquistions for this parameter set.")
         return None
 
-    if task.animated_product.id != "none" and task.compositor.id == "median_pixel":
+    if task.animated_product.animation_id != "none" and task.compositor.id == "median_pixel":
         task.complete = True
         task.update_status("ERROR", "Animations cannot be generated for median pixel operations.")
         return None
@@ -248,15 +248,15 @@ def processing_task(task_id=None,
 
         iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
 
-        if task.animated_product.id != "none":
+        if task.animated_product.animation_id != "none":
             path = os.path.join(task.get_temp_path(),
                                 "animation_{}_{}.nc".format(str(geo_chunk_id), str(base_index + time_index)))
-            if task.animated_product.id == "scene":
+            if task.animated_product.animation_id == "scene":
                 #need to clear out all the metadata..
                 clear_attrs(data)
                 #can't reindex on time - weird?
                 data.isel(time=0).drop('time').to_netcdf(path)
-            elif task.animated_product.id == "cumulative":
+            elif task.animated_product.animation_id == "cumulative":
                 iteration_data.to_netcdf(path)
 
         task.scenes_processed = F('scenes_processed') + 1
@@ -296,7 +296,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     combined_data = combine_geographic_chunks(chunk_data)
 
     # if we're animating, combine it all and save to disk.
-    if task.animated_product.id != "none":
+    if task.animated_product.animation_id != "none":
         base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
         for index in range((task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1)):
             animated_data = []
@@ -346,7 +346,7 @@ def recombine_time_chunks(chunks, task_id=None):
             path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
             if os.path.exists(path):
                 animated_data = xr.open_dataset(path)
-                if task.animated_product.id == "cumulative":
+                if task.animated_product.animation_id == "cumulative":
                     animated_data['time'] = [0]
                     clear_mask = create_cfmask_clean_mask(
                         animated_data.cf_mask) if 'cf_mask' in animated_data else create_bit_mask(
@@ -366,7 +366,7 @@ def recombine_time_chunks(chunks, task_id=None):
         metadata.update(chunk[1])
         data = xr.open_dataset(chunk[0])
         if combined_data is None:
-            if task.animated_product.id != "none":
+            if task.animated_product.animation_id != "none":
                 generate_animation(index, combined_data)
             combined_data = data
             continue
@@ -376,7 +376,7 @@ def recombine_time_chunks(chunks, task_id=None):
                                                                                                       [1, 2])
         combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
         # if we're animating, combine it all and save to disk.
-        if task.animated_product.id != "none":
+        if task.animated_product.animation_id != "none":
             generate_animation(index, combined_data)
 
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
@@ -426,10 +426,10 @@ def create_output_products(data, task_id=None):
         scale=(0, 4096),
         low_res=True)
 
-    if task.animated_product.id != "none":
+    if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
             valid_range = reversed(range(len(
-                full_metadata))) if task.animated_product.id == "scene" and task.get_reverse_time() else range(
+                full_metadata))) if task.animated_product.animation_id == "scene" and task.get_reverse_time() else range(
                     len(full_metadata))
             for index in valid_range:
                 path = os.path.join(task.get_temp_path(), "animation_{}.png".format(index))

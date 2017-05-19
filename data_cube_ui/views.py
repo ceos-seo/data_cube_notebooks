@@ -33,7 +33,6 @@ from email.message import EmailMessage
 import smtplib
 
 from .forms import SubmitFeedbackForm
-from .models import Application, ToolInfo
 
 
 def home(request):

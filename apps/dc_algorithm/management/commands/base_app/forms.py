@@ -70,4 +70,4 @@ class AdditionalOptionsForm(forms.Form):
         super(AdditionalOptionsForm, self).__init__(*args, **kwargs)
         self.fields["query_type"].queryset = ResultType.objects.all()
         self.fields["compositor"].queryset = Compositor.objects.all()
-        self.fields["animated_product"].queryset = AnimationType.objects.all()
+        self.fields["animated_product"].queryset = AnimationType.objects.all().order_by('pk')

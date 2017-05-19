@@ -63,7 +63,7 @@ under the License.
 {% block metadata_dl_block %}
   <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ task.id }}">
     <!-- acquisition_list, clean_pixels_per_acquisition, clean_pixel_percentages_per_acquisition, satellite_list -->
-    {% for acquisition, clean_pixels, clean_pixel_percentage, satellite in task.get_zipped_fields_as_list %}
+    {% for acquisition, clean_pixels, clean_pixel_percentage in task.get_zipped_fields_as_list %}
       <li>
         <table class="table scene_list_table">
           <tbody>
@@ -83,10 +83,10 @@ under the License.
               <td>Clean Pixel Percentage:</td>
               <td class="right_aligned_text">{{ clean_pixel_percentage|floatformat:2 }}%</td>
             </tr>
-            <tr>
+            <!--<tr>
               <td>Satellite:</td>
               <td class="right_aligned_text">{{ satellite }}</td>
-            </tr>
+            </tr> -->
           </tbody>
         </table>
       </li>
