@@ -1038,8 +1038,8 @@
     "fields": {
         "name": "Water Detection",
         "color_scale": "/static/assets/images/color_scales/water_detection_color_scale.png",
-        "areas": [],
-        "satellites": []
+        "areas": ["menindee_lakes", "vietnam", "lake_chad_full", "lake_cortijo", "amazon_river", "salgar_colombia", "tonga", "togo", "bangladesh", "kenya", "meta_river", "lake_chad", "lake_baringo", "colombia"],
+        "satellites": [1, 2, 3, 4]
     }
 }, {
     "model": "dc_algorithm.compositor",
@@ -1165,24 +1165,21 @@
     "pk": "cumulative",
     "fields": {
         "name": "Cumulative",
-        "data_variable": "None",
-        "band_number": "None"
+        "data_variable": "None"
     }
 }, {
     "model": "custom_mosaic_tool.animationtype",
     "pk": "none",
     "fields": {
         "name": "None",
-        "data_variable": "None",
-        "band_number": "None"
+        "data_variable": "None"
     }
 }, {
     "model": "custom_mosaic_tool.animationtype",
     "pk": "scene",
     "fields": {
         "name": "Scene",
-        "data_variable": "None",
-        "band_number": "None"
+        "data_variable": "None"
     }
 }, {
     "model": "coastal_change.toolinfo",
@@ -1205,24 +1202,21 @@
     "pk": "coastal_change",
     "fields": {
         "name": "Coastal Change",
-        "data_variable": "None",
-        "band_number": "None"
+        "data_variable": "None"
     }
 }, {
     "model": "coastal_change.animationtype",
     "pk": "coastline_change",
     "fields": {
         "name": "Coastline Change",
-        "data_variable": "None",
-        "band_number": "None"
+        "data_variable": "None"
     }
 }, {
     "model": "coastal_change.animationtype",
     "pk": "none",
     "fields": {
         "name": "None",
-        "data_variable": "None",
-        "band_number": "None"
+        "data_variable": "None"
     }
 }, {
     "model": "fractional_cover.toolinfo",
@@ -1301,148 +1295,28 @@
         "name": "Composite"
     }
 }, {
-    "model": "tsm.resulttype",
-    "pk": 1,
-    "fields": {
-        "satellite_id": "LANDSAT_7",
-        "result_id": "black_background",
-        "result_type": "Black",
-        "fill": "black"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 2,
-    "fields": {
-        "satellite_id": "LANDSAT_7",
-        "result_id": "white_background",
-        "result_type": "White",
-        "fill": "white"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 3,
-    "fields": {
-        "satellite_id": "LANDSAT_7",
-        "result_id": "transparent_background",
-        "result_type": "Transparent",
-        "fill": "transparent"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 4,
-    "fields": {
-        "satellite_id": "LANDSAT_7",
-        "result_id": "gray_background",
-        "result_type": "Gray",
-        "fill": "gray"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 5,
-    "fields": {
-        "satellite_id": "LANDSAT_5",
-        "result_id": "black_background",
-        "result_type": "Black",
-        "fill": "black\r"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 6,
-    "fields": {
-        "satellite_id": "LANDSAT_5",
-        "result_id": "white_background",
-        "result_type": "White",
-        "fill": "white"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 7,
-    "fields": {
-        "satellite_id": "LANDSAT_5",
-        "result_id": "transparent_background",
-        "result_type": "Transparent",
-        "fill": "transparent"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 8,
-    "fields": {
-        "satellite_id": "LANDSAT_5",
-        "result_id": "gray_background",
-        "result_type": "Gray",
-        "fill": "gray"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 9,
-    "fields": {
-        "satellite_id": "LANDSAT_8",
-        "result_id": "black_background",
-        "result_type": "Black",
-        "fill": "black\r"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 10,
-    "fields": {
-        "satellite_id": "LANDSAT_8",
-        "result_id": "white_background",
-        "result_type": "White",
-        "fill": "white"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 11,
-    "fields": {
-        "satellite_id": "LANDSAT_8",
-        "result_id": "transparent_background",
-        "result_type": "Transparent",
-        "fill": "transparent"
-    }
-}, {
-    "model": "tsm.resulttype",
+    "model": "water_detection.toolinfo",
     "pk": 12,
     "fields": {
-        "satellite_id": "LANDSAT_8",
-        "result_id": "gray_background",
-        "result_type": "Gray",
-        "fill": "gray"
+        "image_path": "/static/assets/images/thumbnails/water_detection_1.png",
+        "image_title": "Water Detection",
+        "image_description": "The Water Detection tool allows users to determine a per pixel analysis of water vs not-water for a given scene over many acquisitions."
     }
 }, {
-    "model": "tsm.resulttype",
-    "pk": 1453,
+    "model": "water_detection.toolinfo",
+    "pk": 13,
     "fields": {
-        "satellite_id": "LANDSAT_ALL",
-        "result_id": "gray_background",
-        "result_type": "Gray",
-        "fill": "gray"
+        "image_path": "/static/assets/images/thumbnails/water_detection_2.png",
+        "image_title": "Time Series Analysis",
+        "image_description": "Run analyses over time producing outputs visualizing cumulative acquisitions, water observations, and water percentages."
     }
 }, {
-    "model": "tsm.resulttype",
-    "pk": 1454,
+    "model": "water_detection.toolinfo",
+    "pk": 14,
     "fields": {
-        "satellite_id": "LANDSAT_ALL",
-        "result_id": "transparent_background",
-        "result_type": "Transparent",
-        "fill": "transparent"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 1455,
-    "fields": {
-        "satellite_id": "LANDSAT_ALL",
-        "result_id": "black_background",
-        "result_type": "Black",
-        "fill": "black"
-    }
-}, {
-    "model": "tsm.resulttype",
-    "pk": 1456,
-    "fields": {
-        "satellite_id": "LANDSAT_ALL",
-        "result_id": "white_background",
-        "result_type": "White",
-        "fill": "white"
+        "image_path": "/static/assets/images/thumbnails/water_detection_3.png",
+        "image_title": "Animated Images",
+        "image_description": "Create animated GIFs of water levels over time to show trends of increasing or decreasing water levels."
     }
 }, {
     "model": "water_detection.resulttype",
@@ -1467,5 +1341,40 @@
         "result_id": "transparent_background",
         "name": "Transparent",
         "fill": "transparent"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": "cumulative_acquisitions",
+    "fields": {
+        "name": "Cumulative Acquisitions",
+        "data_variable": "total_clean"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": "cumulative_observations",
+    "fields": {
+        "name": "Cumulative Observations",
+        "data_variable": "total_data"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": "cumulative_percentage",
+    "fields": {
+        "name": "Cumulative Percentages",
+        "data_variable": "normalized_data"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": "none",
+    "fields": {
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": "scene",
+    "fields": {
+        "name": "Scene",
+        "data_variable": "wofs"
     }
 }]

@@ -1,0 +1,57 @@
+[{
+    "model": "tsm.toolinfo",
+    "pk": 15,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/tsm_1.png",
+        "image_title": "Total Suspended Matter",
+        "image_description": "The TSM tool allows users to run an algorithm to determine the average amount of suspended matter in a given area."
+    }
+}, {
+    "model": "tsm.toolinfo",
+    "pk": 16,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/tsm_2.png",
+        "image_title": "Time Series Analysis",
+        "image_description": "Run analyses over a given time period and geographic area to produce a single cumulative product from multiple time slices."
+    }
+}, {
+    "model": "tsm.toolinfo",
+    "pk": 17,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/tsm_3.png",
+        "image_title": "Animated Images",
+        "image_description": "Create animated GIFs of TSM values over time to show trends of increasing or decreasing suspended matter."
+    }
+}, {
+    "model": "tsm.resulttype",
+    "pk": 1,
+    "fields": {
+        "result_id": "black_background",
+        "name": "Black",
+        "fill": "black"
+    }
+}, {
+    "model": "tsm.resulttype",
+    "pk": 2,
+    "fields": {
+        "result_id": "white_background",
+        "name": "White",
+        "fill": "white"
+    }
+}, {
+    "model": "tsm.resulttype",
+    "pk": 3,
+    "fields": {
+        "result_id": "transparent_background",
+        "name": "Transparent",
+        "fill": "transparent"
+    }
+}, {
+    "model": "tsm.resulttype",
+    "pk": 4,
+    "fields": {
+        "result_id": "gray_background",
+        "name": "Gray",
+        "fill": "gray"
+    }
+}]

@@ -50,20 +50,12 @@ under the License.
       <td class="right_aligned_text">({{ task.time_start|date:"m/d/Y" }}, {{ task.time_end|date:"m/d/Y" }})</td>
     </tr>
     <tr>
-      <td>Compositing Method:</td>
-      <td class="right_aligned_text">{{ task.compositor }}</td>
-    </tr>
-    <tr>
-      <td>Show Water Percentages:</td>
-      <td class="right_aligned_text"><input type="checkbox" checked='true' name="show_water_percentages" onclick="show_result(this, '{{ task.id }}', 0)"></td>
-    </tr>
-    <tr>
-      <td>Show Water Observations:</td>
-      <td class="right_aligned_text"><input type="checkbox" name="show_water_observations" onclick="show_result(this, '{{ task.id }}', 1)"></td>
+      <td>Show Average TSM:</td>
+      <td class="right_aligned_text"><input type="checkbox" checked='true' name="show_average_tsm" onclick="show_result(this, '{{ task.id }}', 0)"></td>
     </tr>
     <tr>
       <td>Show Clear Observations:</td>
-      <td class="right_aligned_text"><input type="checkbox" name="show_clear_observations" onclick="show_result(this, '{{ task.id }}', 2)"></td>
+      <td class="right_aligned_text"><input type="checkbox" name="show_clear_observations" onclick="show_result(this, '{{ task.id }}', 1)"></td>
     </tr>
   </tbody>
 </table>
@@ -71,7 +63,7 @@ under the License.
 {% block metadata_dl_block %}
   <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_{{ task.id }}">
     <!-- acquisition_list, clean_pixels_per_acquisition, clean_pixel_percentages_per_acquisition, satellite_list -->
-    {% for acquisition, clean_pixels, clean_pixel_percentage, water_pixels in task.get_zipped_fields_as_list %}
+    {% for acquisition, clean_pixels, clean_pixel_percentage in task.get_zipped_fields_as_list %}
       <li>
         <table class="table scene_list_table">
           <tbody>
@@ -90,10 +82,6 @@ under the License.
             <tr>
               <td>Clean Pixel Percentage:</td>
               <td class="right_aligned_text">{{ clean_pixel_percentage|floatformat:2 }}%</td>
-            </tr>
-            <tr>
-              <td>Water pixels:</td>
-              <td class="right_aligned_text">{{ water_pixels }}</td>
             </tr>
           </tbody>
         </table>
@@ -119,17 +107,14 @@ under the License.
 //toggles the nodata highlighting based on a checkbox.
 //outline is shown as visible
 function show_result(checkbox, task_id, id) {
-  map.remove_image_by_id(queries[task_id].id);
+  map.remove_image_by_id(tasks[task_id].id);
   switch(id) {
     case 0:
-      result_path = queries[task_id].result_path;
+      result_path = tasks[task_id].result_path;
     break;
     case 1:
-      result_path = queries[task_id].water_observations_path;
-    break;
-    case 2:
     default:
-      result_path = queries[task_id].clear_observations_path;
+      result_path = tasks[task_id].clear_observations_path;
     break;
   }
   $('input:checkbox').removeAttr('checked');
