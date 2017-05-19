@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^submit_single$', views.SubmitNewSubsetRequest.as_view(), name='submit_new_single_request'),
     url(r'^cancel$', views.CancelRequest.as_view(), name='cancel_request'),
     url(r'^result$', views.GetTaskResult.as_view(), name='get_result'),
+    url(r'^task_details/(?P<uuid>[^/]+)', views.TaskDetails.as_view(), name='get_task_details'),
     url(r'^(?P<area_id>[\w\-]+)/task_history$', views.UserHistory.as_view(), name='get_task_history'),
     url(r'^(?P<area_id>[\w\-]+)/results_list$', views.ResultList.as_view(), name='get_results_list'),
     url(r'^(?P<area_id>[\w\-]+)/output_list$', views.OutputList.as_view(), name='get_output_list'),

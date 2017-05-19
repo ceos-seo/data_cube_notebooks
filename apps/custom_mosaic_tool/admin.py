@@ -22,7 +22,7 @@
 from django.contrib import admin
 from . import models
 
-admin.site.register(models.CustomMosaicTask)
+admin.site.register(models.CustomMosaicToolTask)
 admin.site.register(models.ResultType)
 admin.site.register(models.UserHistory)
 admin.site.register(models.AnimationType)

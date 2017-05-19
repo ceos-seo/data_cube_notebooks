@@ -23,21 +23,12 @@ from django.shortcuts import render
 from django.template import loader, RequestContext
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
-from django.contrib import messages
+from django.apps import apps
 
 import json
 from datetime import datetime, timedelta
-"""
-from apps.custom_mosaic_tool.models import Result as cm_result, Query as cm_query, Metadata as cm_meta
-from apps.water_detection.models import Query as wd_query, Result as wd_result, Metadata as wd_meta
-from apps.tsm.models import Query as tsm_query, Result as tsm_result, Metadata as tsm_meta
-from apps.fractional_cover.models import Query as fractional_cover_query, Result as fractional_cover_result, Metadata as fractional_cover_meta
-"""
 
 from collections import OrderedDict
-"""
-Class holding all the views for the Task_Manager application in the UI Suite.
-"""
 
 applications = {}
 
@@ -106,29 +97,19 @@ def get_task_manager(request, app_id):
     :template:`task_manager/APP_NAME`
     """
 
-    # Lists to be returned to the html for display.
-    headers_dictionary = OrderedDict()
-    data_dictionary = OrderedDict()
+    camel_case = "".join(x.title() for x in app_id.split('_'))
 
-    queries = applications[app_id].Query
+    task_model = apps.get_model(".".join([app_id, camel_case + "Task"]))
+    tasks = task_model.objects.all()
 
-    headers_dictionary = build_headers_dictionary(queries)
-    for query in queries.objects.all().order_by('-query_start')[:100]:
-        data = list()
-        for v in headers_dictionary['ModelBase']:
-            data_val = query.__dict__[v].strftime("%m-%d-%Y") if type(query.__dict__[v]) == datetime else round(
-                query.__dict__[v], 4) if type(query.__dict__[v]) == float else query.__dict__[v]
-            data.append(str(data_val))
-            data_dictionary[query] = data
-
-    formatted_headers_dictionary = OrderedDict()
-    formatted_headers_dictionary['Query'] = format_headers(headers_dictionary)
+    # use the unique fields to form header.
+    header_fields = task_model._meta.unique_together[0]
+    header_fields = map(lambda x: " ".join(part.title() for part in x.split("_")), header_fields)
 
     # Context being built up.
     context = {
-        'data_dictionary': data_dictionary,  # Data to match headerss.
-        # Formatted headers for easier viewing.
-        'formatted_headers_dictionary': formatted_headers_dictionary,
+        'header_fields': header_fields,
+        'tasks': tasks,
         'application_id': app_id,
     }
 

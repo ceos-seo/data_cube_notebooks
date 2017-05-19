@@ -37,7 +37,7 @@ from .tasks import run
 from collections import OrderedDict
 
 from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, GetTaskResult, SubmitNewSubsetRequest, CancelRequest,
-                                     UserHistory, ResultList, OutputList, RegionSelection)
+                                     UserHistory, ResultList, OutputList, RegionSelection, TaskDetails)
 
 
 class RegionSelection(RegionSelection):
@@ -180,6 +180,17 @@ class OutputList(OutputList):
     Extends the OutputList abstract class, required attributes are the tool
     name and task model name. This will list all queries that are complete, have a
     OK status, and are registered to the user.
+    """
+    tool_name = 'app_name'
+    task_model_name = 'AppNameTask'
+
+
+class TaskDetails(TaskDetails):
+    """
+    Generate a template used to display the full task details for any
+    given task.
+    Extends the TaskDetails abstract class, required attributes are the tool
+    name and task model name.
     """
     tool_name = 'app_name'
     task_model_name = 'AppNameTask'

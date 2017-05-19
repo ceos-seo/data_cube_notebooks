@@ -15,7 +15,7 @@ from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write
                                 add_timestamp_data_to_xr, clear_attrs)
 from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
 
-from .models import CustomMosaicTask
+from .models import CustomMosaicToolTask
 from apps.dc_algorithm.models import Satellite
 
 
@@ -45,7 +45,7 @@ def parse_parameters_from_task(task_id):
         parameter dict with all keyword args required to load data.
 
     """
-    task = CustomMosaicTask.objects.get(pk=task_id)
+    task = CustomMosaicToolTask.objects.get(pk=task_id)
 
     parameters = {
         'platforms': sorted(task.platform.split(",")),
@@ -79,7 +79,7 @@ def validate_parameters(parameters, task_id):
         updates the task with ERROR and a message, returning None
 
     """
-    task = CustomMosaicTask.objects.get(pk=task_id)
+    task = CustomMosaicToolTask.objects.get(pk=task_id)
     dc = DataAccessApi(config=task.config_path)
 
     #validate for any number of criteria here - num acquisitions, etc.
@@ -122,7 +122,7 @@ def perform_task_chunking(parameters, task_id):
     if parameters is None:
         return None
 
-    task = CustomMosaicTask.objects.get(pk=task_id)
+    task = CustomMosaicToolTask.objects.get(pk=task_id)
     dc = DataAccessApi(config=task.config_path)
     dates = dc.list_combined_acquisition_dates(**parameters)
     task_chunk_sizing = task.get_chunk_size()
@@ -161,7 +161,7 @@ def start_chunk_processing(chunk_details, task_id):
     geographic_chunks = chunk_details.get('geographic_chunks')
     time_chunks = chunk_details.get('time_chunks')
 
-    task = CustomMosaicTask.objects.get(pk=task_id)
+    task = CustomMosaicToolTask.objects.get(pk=task_id)
     task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time'] if
                                                                      task.get_chunk_size()['time'] is not None else 1)
     task.scenes_processed = 0
@@ -210,7 +210,7 @@ def processing_task(task_id=None,
     """
 
     chunk_id = "_".join([str(geo_chunk_id), str(time_chunk_id)])
-    task = CustomMosaicTask.objects.get(pk=task_id)
+    task = CustomMosaicToolTask.objects.get(pk=task_id)
 
     print("Starting chunk: " + chunk_id)
     if not os.path.exists(task.get_temp_path()):
@@ -286,7 +286,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
 
     metadata = {}
-    task = CustomMosaicTask.objects.get(pk=task_id)
+    task = CustomMosaicToolTask.objects.get(pk=task_id)
 
     chunk_data = []
     for index, chunk in enumerate(total_chunks):
@@ -335,7 +335,7 @@ def recombine_time_chunks(chunks, task_id=None):
     print("RECOMBINE_TIME")
     #sorting based on time id - earlier processed first as they're incremented e.g. 0, 1, 2..
     total_chunks = sorted(chunks, key=lambda x: x[0]) if isinstance(chunks, list) else [chunks]
-    task = CustomMosaicTask.objects.get(pk=task_id)
+    task = CustomMosaicToolTask.objects.get(pk=task_id)
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
     metadata = {}
@@ -400,7 +400,7 @@ def create_output_products(data, task_id=None):
     print("CREATE_OUTPUT")
     full_metadata = data[1]
     dataset = xr.open_dataset(data[0])
-    task = CustomMosaicTask.objects.get(pk=task_id)
+    task = CustomMosaicToolTask.objects.get(pk=task_id)
 
     task.result_path = os.path.join(task.get_result_path(), "png_mosaic.png")
     task.result_filled_path = os.path.join(task.get_result_path(), "filled_png_mosaic.png")

@@ -37,25 +37,23 @@ under the License.
       <table class="table">
         <thead>
           <tr>
-            {% for key, values in formatted_headers_dictionary.items %}
-              {% for v in values %}
-                <th>
-                  {{v}}
-                </th>
-              {% endfor %}
-              <th>
-                More Info
-              </th>
+            {% for header_field in header_fields %}
+            <th>
+              {{ header_field }}
+            </th>
             {% endfor %}
+            <th>
+              More Info
+            </th>
           </tr>
         </thead>
         <tbody>
-          {% for key, values in data_dictionary.items %}
+          {% for task in tasks %}
           	<tr>
-          	  {% for v in values %}
-            	  <td class="even">{{v}}</td>
+          	  {% for field in task.get_unique_fields_as_list %}
+            	  <td class="even">{{ field }}</td>
           	  {% endfor %}
-              <td><a href="{% url 'get_query_details' application_id key.id %}" class="btn btn-primary">Details</a></td>
+              <td><a href="/{{application_id}}/task_details/{{task.pk}}" class="btn btn-primary">Details</a></td>
           	</tr>
         	{% endfor %}
         </tbody>

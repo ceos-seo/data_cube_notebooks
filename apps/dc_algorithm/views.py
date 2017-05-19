@@ -354,6 +354,39 @@ class OutputList(View, ToolClass):
         return render(request, "/".join([self._get_tool_name(), 'output_list.html']), context)
 
 
+class TaskDetails(View, ToolClass):
+    """Generate the detals view for the requested task.
+
+    This is a GET only view, so only the get function is defined.
+
+    Abstract properties and methods are used to define the required attributes for an implementation.
+    Inheriting OutputList without defining the required abstracted elements will throw an error.
+    Due to some complications with django and ABC, NotImplementedErrors are manually raised.
+
+    Required Attributes:
+        tool_name: Descriptive string name for the tool - used to identify the tool in the database.
+        task_model_name: Name of the model that represents your task - see models.Task for more information
+    """
+
+    def get(self, request, uuid):
+        """Get the user's currently loaded tasks
+
+        Tasks are loaded by ids and rendered using an existing template
+
+        Args:
+            POST data: task_ids[] - a list of task ids to load for the panel.
+
+        Returns:
+            A rendered html template containing a list of tasks and associated metadata.
+        """
+
+        task_model_class = self._get_tool_model(self._get_task_model_name())
+        task = task_model_class.objects.get(pk=uuid)
+
+        context = {'task': task}
+        return render(request, "/".join([self._get_tool_name(), 'task_details.html']), context)
+
+
 class SubmitNewRequest(View, ToolClass):
     """Submit a new request for processing using a task created with form data
 

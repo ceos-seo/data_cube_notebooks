@@ -37,7 +37,7 @@ from .tasks import run
 from collections import OrderedDict
 
 from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, GetTaskResult, SubmitNewSubsetRequest, CancelRequest,
-                                     UserHistory, ResultList, OutputList, RegionSelection)
+                                     UserHistory, ResultList, OutputList, RegionSelection, TaskDetails)
 
 
 class RegionSelection(RegionSelection):
@@ -61,7 +61,7 @@ class CustomMosaicTool(ToolView):
     """
 
     tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    task_model_name = 'CustomMosaicToolTask'
 
     def generate_form_dict(self, satellites, area):
         forms = {}
@@ -91,7 +91,7 @@ class SubmitNewRequest(SubmitNewRequest):
     See the dc_algorithm.views docstrings for more information.
     """
     tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    task_model_name = 'CustomMosaicToolTask'
     #celery_task_func = create_cloudfree_mosaic
     celery_task_func = run
     form_list = [DataSelectionForm, AdditionalOptionsForm]
@@ -106,7 +106,7 @@ class GetTaskResult(GetTaskResult):
     See the dc_algorithm.views docstrings for more information.
     """
     tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    task_model_name = 'CustomMosaicToolTask'
 
 
 class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
@@ -118,7 +118,7 @@ class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
     See the dc_algorithm.views docstrings for more information.
     """
     tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    task_model_name = 'CustomMosaicToolTask'
 
     celery_task_func = run
 
@@ -145,7 +145,7 @@ class CancelRequest(CancelRequest):
     disassociate it from the user's history.
     """
     tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    task_model_name = 'CustomMosaicToolTask'
 
 
 class UserHistory(UserHistory):
@@ -156,7 +156,7 @@ class UserHistory(UserHistory):
     OK status, and are registered to the user.
     """
     tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    task_model_name = 'CustomMosaicToolTask'
 
 
 class ResultList(ResultList):
@@ -167,7 +167,7 @@ class ResultList(ResultList):
     OK status, and are registered to the user.
     """
     tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    task_model_name = 'CustomMosaicToolTask'
 
 
 class OutputList(OutputList):
@@ -178,4 +178,15 @@ class OutputList(OutputList):
     OK status, and are registered to the user.
     """
     tool_name = 'custom_mosaic_tool'
-    task_model_name = 'CustomMosaicTask'
+    task_model_name = 'CustomMosaicToolTask'
+
+
+class TaskDetails(TaskDetails):
+    """
+    Generate a template used to display the full task details for any
+    given task.
+    Extends the TaskDetails abstract class, required attributes are the tool
+    name and task model name.
+    """
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicToolTask'

@@ -266,7 +266,7 @@ class Result(BaseResult):
         abstract = True
 
 
-class CustomMosaicTask(Query, Metadata, Result):
+class CustomMosaicToolTask(Query, Metadata, Result):
     """
     Combines the Query, Metadata, and Result abstract models
     """
