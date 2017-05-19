@@ -286,6 +286,13 @@ The first terminal acts as task chunking and flow management process - when task
 
 To test the workers we will need to add an area and dataset that you have ingested to the UI's database. This will happen in a seperate section.
 
+```
+sudo cp celeryd_conf /etc/default/data_cube_ui && sudo cp celeryd /etc/init.d/data_cube_ui
+sudo chmod x 640 /etc/init.d/data_cube_ui
+sudo chmod x 640 /etc/default/data_cube_ui
+```
+
+
 <a name="system_overview"></a> Task System Overview
 =================
 
