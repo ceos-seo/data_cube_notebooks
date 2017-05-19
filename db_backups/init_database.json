@@ -306,7 +306,7 @@
     "fields": {
         "name": "Coastal Change",
         "color_scale": "/static/assets/images/color_scales/coastal_change_color_scale.png",
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+        "areas": ["togo", "tonga", "vietnam"],
         "satellites": [1, 2, 3]
     }
 }, {
@@ -341,9 +341,9 @@
     "pk": "slip",
     "fields": {
         "name": "Slip",
-        "color_scale": "",
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
-        "satellites": [1, 2, 3]
+        "color_scale": null,
+        "areas": ["salgar_colombia"],
+        "satellites": [1]
     }
 }, {
     "model": "dc_algorithm.application",
@@ -351,7 +351,7 @@
     "fields": {
         "name": "Water Quality TSM",
         "color_scale": "/static/assets/images/color_scales/tsm_color_scale.png",
-        "areas": ["colombia", "togo", "lake_chad_full", "lake_chad", "tonga", "lake_baringo", "vietnam", "amazon_river", "salgar_colombia", "lake_cortijo", "meta_river", "kenya", "bangladesh", "menindee_lakes"],
+        "areas": ["lake_baringo", "lake_chad", "lake_chad_full", "menindee_lakes", "meta_river", "vietnam"],
         "satellites": [1, 2, 3, 4]
     }
 }, {
@@ -360,7 +360,7 @@
     "fields": {
         "name": "Water Detection",
         "color_scale": "/static/assets/images/color_scales/water_detection_color_scale.png",
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+        "areas": ["lake_baringo", "lake_chad", "lake_chad_full", "menindee_lakes", "meta_river", "vietnam"],
         "satellites": [1, 2, 3, 4]
     }
 }, {
@@ -392,18 +392,6 @@
     "pk": "most_recent",
     "fields": {
         "name": "Most Recent Pixel"
-    }
-}, {
-    "model": "dc_algorithm.baseline",
-    "pk": "average",
-    "fields": {
-        "name": "Average"
-    }
-}, {
-    "model": "dc_algorithm.baseline",
-    "pk": "composite",
-    "fields": {
-        "name": "Composite"
     }
 }, {
     "model": "custom_mosaic_tool.toolinfo",
@@ -508,14 +496,6 @@
     }
 }, {
     "model": "custom_mosaic_tool.animationtype",
-    "pk": 1,
-    "fields": {
-        "animation_id": "cumulative",
-        "name": "Cumulative",
-        "data_variable": "None"
-    }
-}, {
-    "model": "custom_mosaic_tool.animationtype",
     "pk": 0,
     "fields": {
         "animation_id": "none",
@@ -524,7 +504,15 @@
     }
 }, {
     "model": "custom_mosaic_tool.animationtype",
-    "pk": "2",
+    "pk": 1,
+    "fields": {
+        "animation_id": "cumulative",
+        "name": "Cumulative",
+        "data_variable": "None"
+    }
+}, {
+    "model": "custom_mosaic_tool.animationtype",
+    "pk": 2,
     "fields": {
         "animation_id": "scene",
         "name": "Scene",
@@ -548,10 +536,10 @@
     }
 }, {
     "model": "coastal_change.animationtype",
-    "pk": 2,
+    "pk": 0,
     "fields": {
-        "animation_id": "coastal_change",
-        "name": "Coastal Change",
+        "animation_id": "none",
+        "name": "None",
         "data_variable": "None"
     }
 }, {
@@ -564,10 +552,10 @@
     }
 }, {
     "model": "coastal_change.animationtype",
-    "pk": 0,
+    "pk": 2,
     "fields": {
-        "animation_id": "none",
-        "name": "None",
+        "animation_id": "coastal_change",
+        "name": "Coastal Change",
         "data_variable": "None"
     }
 }, {
@@ -704,14 +692,6 @@
     }
 }, {
     "model": "tsm.animationtype",
-    "pk": 2,
-    "fields": {
-        "animation_id": "cumulative_average",
-        "name": "Cumulative Average",
-        "data_variable": "normalized_data"
-    }
-}, {
-    "model": "tsm.animationtype",
     "pk": 0,
     "fields": {
         "animation_id": "none",
@@ -725,6 +705,14 @@
         "animation_id": "scene",
         "name": "Scene",
         "data_variable": "tsm"
+    }
+}, {
+    "model": "tsm.animationtype",
+    "pk": 2,
+    "fields": {
+        "animation_id": "cumulative_average",
+        "name": "Cumulative Average",
+        "data_variable": "normalized_data"
     }
 }, {
     "model": "water_detection.toolinfo",
@@ -776,22 +764,6 @@
     }
 }, {
     "model": "water_detection.animationtype",
-    "pk": 3,
-    "fields": {
-        "animation_id": "cumulative_observations",
-        "name": "Cumulative Observations",
-        "data_variable": "total_data"
-    }
-}, {
-    "model": "water_detection.animationtype",
-    "pk": 2,
-    "fields": {
-        "animation_id": "cumulative_percentage",
-        "name": "Cumulative Percentages",
-        "data_variable": "normalized_data"
-    }
-}, {
-    "model": "water_detection.animationtype",
     "pk": 0,
     "fields": {
         "animation_id": "none",
@@ -805,5 +777,21 @@
         "animation_id": "scene",
         "name": "Scene",
         "data_variable": "wofs"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 2,
+    "fields": {
+        "animation_id": "cumulative_percentage",
+        "name": "Cumulative Percentages",
+        "data_variable": "normalized_data"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 3,
+    "fields": {
+        "animation_id": "cumulative_observations",
+        "name": "Cumulative Observations",
+        "data_variable": "total_data"
     }
 }]

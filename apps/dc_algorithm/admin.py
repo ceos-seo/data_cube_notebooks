@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Satellite, Area, Compositor, Application, Baseline
+from .models import Satellite, Area, Compositor, Application
 
 
 class SatelliteAdmin(admin.ModelAdmin):
@@ -15,10 +15,6 @@ class CompositorAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
 
 
-class BaselineAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-
-
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
 
@@ -28,4 +24,3 @@ admin.site.register(Satellite, SatelliteAdmin)
 admin.site.register(Area, AreaAdmin)
 admin.site.register(Compositor, CompositorAdmin)
 admin.site.register(Application, ApplicationAdmin)
-admin.site.register(Baseline, BaselineAdmin)

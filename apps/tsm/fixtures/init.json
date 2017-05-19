@@ -54,4 +54,28 @@
         "name": "Gray",
         "fill": "gray"
     }
+}, {
+    "model": "tsm.animationtype",
+    "pk": 0,
+    "fields": {
+        "animation_id": "none",
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "tsm.animationtype",
+    "pk": 1,
+    "fields": {
+        "animation_id": "scene",
+        "name": "Scene",
+        "data_variable": "tsm"
+    }
+}, {
+    "model": "tsm.animationtype",
+    "pk": 2,
+    "fields": {
+        "animation_id": "cumulative_average",
+        "name": "Cumulative Average",
+        "data_variable": "normalized_data"
+    }
 }]

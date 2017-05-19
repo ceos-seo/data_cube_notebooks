@@ -14,4 +14,16 @@
         "image_title": "Threshold Control",
         "image_description": "Set the baseline thresholds to expand or narrow results of possible landslide data."
     }
+}, {
+    "model": "slip.baselinemethod",
+    "pk": "average",
+    "fields": {
+        "name": "Average"
+    }
+}, {
+    "model": "slip.baselinemethod",
+    "pk": "composite",
+    "fields": {
+        "name": "Composite"
+    }
 }]

@@ -1,25 +1,41 @@
 [{
-    "model": "ndvi.toolinfo",
+    "model": "coastal_change.toolinfo",
+    "pk": 18,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/coastal_change_1.png",
+        "image_title": "Coastline Identification",
+        "image_description": "Identify the coastline of a yearly mosaic and compare it to a baseline year."
+    }
+}, {
+    "model": "coastal_change.toolinfo",
+    "pk": 19,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/coastal_change_2.png",
+        "image_title": "Coastal Change",
+        "image_description": "Compute the area covered by receding coastline over a user defined period."
+    }
+}, {
+    "model": "coastal_change.animationtype",
+    "pk": 0,
+    "fields": {
+        "animation_id": "none",
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "coastal_change.animationtype",
     "pk": 1,
     "fields": {
-        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_1.png",
-        "image_title": "Run Band Math Analyses on Mosaics",
-        "image_description": "Run arbitrary band math calculations on mosaics that are generated automatically."
+        "animation_id": "coastline_change",
+        "name": "Coastline Change",
+        "data_variable": "None"
     }
 }, {
-    "model": "ndvi.toolinfo",
+    "model": "coastal_change.animationtype",
     "pk": 2,
     "fields": {
-        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_2.png",
-        "image_title": "Pixel Preference",
-        "image_description": "Choose how the 'best' pixel will be chosen: Most recent, least recent, median, or min/max NDVI value pixel."
-    }
-}, {
-    "model": "ndvi.toolinfo",
-    "pk": 3,
-    "fields": {
-        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_3.png",
-        "image_title": "Time Series",
-        "image_description": "Run powerful time series analyses that composites a series of acquisitions to produce a single image then calculates some band math equation."
+        "animation_id": "coastal_change",
+        "name": "Coastal Change",
+        "data_variable": "None"
     }
 }]

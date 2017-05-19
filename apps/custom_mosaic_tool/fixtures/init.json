@@ -1,0 +1,126 @@
+[{
+    "model": "custom_mosaic_tool.toolinfo",
+    "pk": 1,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_1.png",
+        "image_title": "True Color Mosaics",
+        "image_description": "The Custom Mosaic Tool allows users to create detailed true or false color images of given areas using optical data from various Landsat satellites."
+    }
+}, {
+    "model": "custom_mosaic_tool.toolinfo",
+    "pk": 2,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_2.png",
+        "image_title": "Pixel Preference",
+        "image_description": "Choose how the 'best' pixel will be chosen: Most recent, least recent, median, or min/max NDVI value pixel."
+    }
+}, {
+    "model": "custom_mosaic_tool.toolinfo",
+    "pk": 3,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_3.png",
+        "image_title": "Time Series",
+        "image_description": "Run powerful time series analyses that composites a series of acquisitions to produce a single image."
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 1,
+    "fields": {
+        "result_id": "true_color",
+        "name": "True color",
+        "red": "red",
+        "green": "green",
+        "blue": "blue",
+        "fill": "red"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 2,
+    "fields": {
+        "result_id": "nir_swir_swir",
+        "name": "NIR, SWIR1, SWIR2",
+        "red": "nir",
+        "green": "swir1",
+        "blue": "swir2",
+        "fill": "red"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 3,
+    "fields": {
+        "result_id": "nir_swir_red",
+        "name": "NIR, SWIR1, RED",
+        "red": "nir",
+        "green": "swir1",
+        "blue": "red",
+        "fill": "red"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 4,
+    "fields": {
+        "result_id": "swir_nir_red",
+        "name": "SWIR1, NIR, RED",
+        "red": "swir1",
+        "green": "nir",
+        "blue": "red",
+        "fill": "blue"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 5,
+    "fields": {
+        "result_id": "swir_nir_green",
+        "name": "SWIR2, NIR, GREEN",
+        "red": "swir2",
+        "green": "nir",
+        "blue": "green",
+        "fill": "red"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 6,
+    "fields": {
+        "result_id": "swir_nir_blue",
+        "name": "SWIR1, NIR, BLUE",
+        "red": "swir1",
+        "green": "nir",
+        "blue": "blue",
+        "fill": "blue"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 7,
+    "fields": {
+        "result_id": "nir_red_green",
+        "name": "NIR, RED, GREEN",
+        "red": "nir",
+        "green": "red",
+        "blue": "green",
+        "fill": "blue"
+    }
+}, {
+    "model": "custom_mosaic_tool.animationtype",
+    "pk": 0,
+    "fields": {
+        "animation_id": "none",
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "custom_mosaic_tool.animationtype",
+    "pk": 1,
+    "fields": {
+        "animation_id": "cumulative",
+        "name": "Cumulative",
+        "data_variable": "None"
+    }
+}, {
+    "model": "custom_mosaic_tool.animationtype",
+    "pk": 2,
+    "fields": {
+        "animation_id": "scene",
+        "name": "Scene",
+        "data_variable": "None"
+    }
+}]

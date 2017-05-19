@@ -155,16 +155,3 @@ class Compositor(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Baseline(models.Model):
-    """
-    stores a baseline type. E.g. mean, composite, etc. Used for change
-    detection applications.
-    """
-
-    id = models.CharField(max_length=25, unique=True, primary_key=True)
-    name = models.CharField(max_length=25)
-
-    def __str__(self):
-        return self.name
