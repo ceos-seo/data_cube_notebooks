@@ -487,7 +487,7 @@ class GetTaskResult(View, ToolClass):
         response = {'status': "WAIT"}
         try:
             requested_task = task_model.objects.get(pk=request.GET['id'])
-            if requested_task.complete:
+            if requested_task.status == "OK" and requested_task.complete:
                 response.update(model_to_dict(requested_task))
                 response['status'] = "OK"
             elif requested_task.status == "ERROR":
