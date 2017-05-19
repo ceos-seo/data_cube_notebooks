@@ -25,61 +25,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.apps import apps
 
-import json
-from datetime import datetime, timedelta
-
-from collections import OrderedDict
-
-applications = {}
-
-
-def build_headers_dictionary(model):
-    """
-    Utility method for dynamically building headres for any html table in a Django app.
-
-    Params:
-        model: Class from which to pull attributes
-
-    Returns:
-        headers_dictionary (dict): Dictionary with all the attributes from the model passed in.
-    """
-
-    # List of attributes to filter out.  Note that these should match the attributes of the
-    # class being passed in.
-    exclusion_list = ['query_id', 'user_id', 'product_type', 'description', 'query_start', 'query_end', 'id', 'product']
-
-    headers = list()
-    headers_dictionary = OrderedDict()
-    for field in model._meta.get_fields():
-        header = str(field).rsplit('.', 1)[-1]
-        if not any(header == exclusion for exclusion in exclusion_list):
-            headers.append(header)
-
-    headers_dictionary[model.__class__.__name__] = headers
-
-    return headers_dictionary
-
-
-def format_headers(unformatted_dict):
-    """
-    Utility method for formatting a dictionary of headers.
-
-    Params:
-        unformatted_dict (dict): Unformatted dictionary being submitted for formatting.
-
-    Returns:
-        formatted_headers (dict): Dictionary that has been camel cased with spaces replacing
-        underscores("_")
-    """
-
-    # Split and title the headers_dicionary for better display.
-    formatted_headers = list()
-
-    for field in unformatted_dict['ModelBase']:
-        formatted_headers.append(field.replace('_', " ").title())
-
-    return formatted_headers
-
 
 def get_task_manager(request, app_id):
     """
@@ -100,7 +45,7 @@ def get_task_manager(request, app_id):
     camel_case = "".join(x.title() for x in app_id.split('_'))
 
     task_model = apps.get_model(".".join([app_id, camel_case + "Task"]))
-    tasks = task_model.objects.all()
+    tasks = task_model.objects.filter(complete=True).exclude(status="ERROR")
 
     # use the unique fields to form header.
     header_fields = task_model._meta.unique_together[0]
@@ -114,40 +59,3 @@ def get_task_manager(request, app_id):
     }
 
     return render(request, 'task_manager/task_manager.html', context)
-
-
-def get_query_details(request, app_id, requested_query_id):
-    """
-    Returns the rendered html with appropriate data for a Query and its Metadata and Results.
-    Requires an ID to be passed from the previous page.
-
-    **Context**
-
-    ``query``
-        The specific query for which details are desired.
-    ``metadata``
-        The metadata model for a specific query.
-    ``result``
-        The result model for a specifi query.
-
-    **Template**
-
-    :template:`custom_mosaic_tool/query_details.html`
-    """
-
-    queries = applications[app_id].Query
-    metas = applications[app_id].Metadata
-    results = applications[app_id].Result
-    template = "map_tool/" + app_id + "/query_details.html"
-
-    query = queries.objects.get(id=requested_query_id)
-    metadata = metas.objects.get(query_id=query.query_id)
-    result = results.objects.get(query_id=query.query_id)
-
-    context = {
-        'query': query,
-        'metadata': metadata,
-        'result': result,
-    }
-
-    return render(request, template, context)

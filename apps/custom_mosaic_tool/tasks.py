@@ -407,7 +407,7 @@ def create_output_products(data, task_id=None):
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
     task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
     task.animation_path = os.path.join(task.get_result_path(),
-                                       "animation.gif") if task.animated_product != 'none' else ""
+                                       "animation.gif") if task.animated_product.animation_id != 'none' else ""
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
@@ -428,9 +428,9 @@ def create_output_products(data, task_id=None):
 
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
-            valid_range = reversed(range(len(
-                full_metadata))) if task.animated_product.animation_id == "scene" and task.get_reverse_time() else range(
-                    len(full_metadata))
+            valid_range = reversed(
+                range(len(full_metadata))) if task.animated_product.animation_id == "scene" and task.get_reverse_time(
+                ) else range(len(full_metadata))
             for index in valid_range:
                 path = os.path.join(task.get_temp_path(), "animation_{}.png".format(index))
                 if os.path.exists(path):

@@ -287,8 +287,6 @@ def recombine_time_chunks(chunks, task_id=None):
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
 
-        add_timestamp_data_to_xr(data)
-
         combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
 
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))

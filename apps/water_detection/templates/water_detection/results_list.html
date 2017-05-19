@@ -119,17 +119,17 @@ under the License.
 //toggles the nodata highlighting based on a checkbox.
 //outline is shown as visible
 function show_result(checkbox, task_id, id) {
-  map.remove_image_by_id(queries[task_id].id);
+  map.remove_image_by_id(tasks[task_id].id);
   switch(id) {
     case 0:
-      result_path = queries[task_id].result_path;
+      result_path = tasks[task_id].result_path;
     break;
     case 1:
-      result_path = queries[task_id].water_observations_path;
+      result_path = tasks[task_id].water_observations_path;
     break;
     case 2:
     default:
-      result_path = queries[task_id].clear_observations_path;
+      result_path = tasks[task_id].clear_observations_path;
     break;
   }
   $('input:checkbox').removeAttr('checked');
