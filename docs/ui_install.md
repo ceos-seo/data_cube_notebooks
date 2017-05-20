@@ -263,34 +263,31 @@ This will move the configuration files, do the migrations, and restart everythin
 
 We use Celery workers in our application to handle the asynchronous task processing. We use tmux to handle multiple detached windows to run things in the background. In the future, we will be moving to daemon processes, but for now we like to be able to see the debugging output.
 
-Open two new terminal sessions and activate the virtual environment in both:
+Open a new terminal sessions and activate the virtual environment in both:
 
 ```
 source ~/Datacube/datacube_env/bin/activate
 cd ~/Datacube/data_cube_ui
 ```
 
-In the first terminal, run the master process with:
+In the first terminal, run the celery process with:
 
 ```
-celery -A data_cube_ui worker -l info -c 1
+celery -A data_cube_ui worker -l info -c 4
 ```
 
-In the second terminal, run the slave process with:
+To test the workers we will need to add an area and dataset that you have ingested to the UI's database. This will happen in a separate section.
 
-```
-celery -A data_cube_ui worker -l info -c 3 -Q chunk_processing
-```
-
-The first terminal acts as task chunking and flow management process - when tasks are received, they are received there, split into parts, and sent to the slave workers. The slaves process the chunks, saving the results to disk and returning the resulting paths for the master process to combine and generate products.
-
-To test the workers we will need to add an area and dataset that you have ingested to the UI's database. This will happen in a seperate section.
+This process can be automated and daemonized with the following snippet:
 
 ```
 sudo cp celeryd_conf /etc/default/data_cube_ui && sudo cp celeryd /etc/init.d/data_cube_ui
-sudo chmod x 640 /etc/init.d/data_cube_ui
-sudo chmod x 640 /etc/default/data_cube_ui
+sudo chmod 777 /etc/init.d/data_cube_ui
+sudo chmod 777 /etc/default/data_cube_ui
+sudo /etc/init.d/data_cube_ui start
 ```
+
+You can alias the /etc/init.d/* script as whatever you like - you can start, stop, kill, restart, etc. the workers using this script.
 
 
 <a name="system_overview"></a> Task System Overview

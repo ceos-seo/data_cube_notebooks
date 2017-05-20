@@ -23,18 +23,18 @@ under the License.
 -->
 {% block javascript %}
 <script type="text/javascript" src="/static/assets/js/jquery-2.1.4.min.js"></script>
-<script type="text/javascript" src="/static/assets/js/task_manager.js"></script>
+<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>
 {% endblock %}
 {% block css %}
-<!-- Site specific css -->
 <link href="/static/assets/css/task_manager.css" rel="stylesheet" type="text/css" media="screen, projection" />
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.css">
 {% endblock %}
 {% block content %}
 
-<div class="container-fluid no-footer">
-  <div class="row fullscreen-row">
+<div class="container-fluid">
+  <div class="row">
     <div class="col-lg-12 seamless-col col-centered fullscreen-col table-container">
-      <table class="table">
+      <table id="data_table" class="table hover row-border">
         <thead>
           <tr>
             {% for header_field in header_fields %}
@@ -51,7 +51,7 @@ under the License.
           {% for task in tasks %}
           	<tr>
           	  {% for field in task.get_unique_fields_as_list %}
-            	  <td class="even">{{ field }}</td>
+            	  <td>{{ field }}</td>
           	  {% endfor %}
               <td><a href="/{{application_id}}/task_details/{{task.pk}}" class="btn btn-primary">Details</a></td>
           	</tr>
@@ -61,4 +61,11 @@ under the License.
     </div>
   </div>
 </div>
+<script>
+  $(document).ready( function () {
+    $('#data_table').DataTable({
+      "lengthMenu": [[15, 25, 50, -1], [15, 25, 50, "All"]]
+    });
+  } );
+</script>
 {% endblock %}

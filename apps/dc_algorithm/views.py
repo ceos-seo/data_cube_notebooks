@@ -152,7 +152,7 @@ class ToolView(View, ToolClass):
         task_model_class = self._get_tool_model(self._get_task_model_name())
         user_history = self._get_tool_model('userhistory').objects.filter(user_id=user_id)
 
-        running_tasks = task_model_class.get_queryset_from_history(user_history, complete=False)
+        running_tasks = task_model_class.get_queryset_from_history(user_history, complete=False, area_id=area_id)
 
         context = {
             'tool_name': tool_name,
