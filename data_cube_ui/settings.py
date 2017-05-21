@@ -192,8 +192,8 @@ CELERY_TIMEZONE = 'UTC'
 CELERYBEAT_SCHEDULE = {
     'daily-clear-cache': {
         'task': 'dc_algorithm.clear_cache',
-        'schedule': 30.0,
-        # 'schedule': crontab(hour=0, minute=0)
+        # 'schedule': 30.0,
+        'schedule': crontab(hour=0, minute=0)
     },
 }
 
