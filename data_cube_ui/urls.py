@@ -40,8 +40,6 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.home, name='home'),
-    url(r'^submit_feedback', views.submit_feedback, name='submit_feedback'),
     url(r'^admin/', admin.site.urls),
     url(r'^custom_mosaic_tool/', include('apps.custom_mosaic_tool.urls')),
     url(r'^water_detection/', include('apps.water_detection.urls')),
@@ -52,5 +50,6 @@ urlpatterns = [
     url(r'^ndvi_anomaly/', include('apps.ndvi_anomaly.urls')),
     url(r'^task_manager/', include('apps.task_manager.urls')),
     url(r'^accounts/', include('apps.accounts.urls')),
+    url(r'^', include('apps.pages.urls')),
 ] + static(
     settings.STATIC_URL, document_root=settings.STATIC_ROOT)

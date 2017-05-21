@@ -83,6 +83,24 @@ You will also need to create a base directory structure for results:
 mkdir /datacube/{ui_results,ui_results_temp}
 ```
 
+The Data Cube UI also sends admin mail, so a mail server is required:
+
+```
+# https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-as-a-send-only-smtp-server-on-ubuntu-14-04
+sudo apt-get install mailutils
+# configure as an internet site.
+```
+
+In /etc/postfix/main.cf:
+```
+myhostname = {your site name here}
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = localhost
+```
+
+and run `sudo service postfix restart`, then `echo "This is the body of the email" | mail -s "This is the subject line" {your_email@mail.com}` to verify the installation.
+
 With all of the packages above installed, you can now move on to the configuration step.
 
 <a name="configuration"></a> Configuring the Server

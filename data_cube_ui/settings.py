@@ -51,7 +51,7 @@ MASTER_NODE = '127.0.0.1'
 
 # Application definition
 BASE_HOST = "localhost:8000/"
-ADMIN_EMAIL = "admin@ceos-cube.org"
+ADMIN_EMAIL = "alfredo.h.delos_santos@ama-inc.com"
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = '25'
 
@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'apps.coastal_change',
     'apps.ndvi_anomaly',
     'apps.dc_algorithm',
+    'apps.pages',
     'data_cube_ui',
     'apps.accounts',
     'django.contrib.admin',
