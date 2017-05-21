@@ -276,16 +276,30 @@ In the first terminal, run the celery process with:
 celery -A data_cube_ui worker -l info -c 4
 ```
 
+To start the task scheduler, run the folliwng command:
+```
+celery -A data_cube_ui beat
+```
+
 To test the workers we will need to add an area and dataset that you have ingested to the UI's database. This will happen in a separate section.
 
 This process can be automated and daemonized with the following snippet:
 
 ```
-sudo cp celeryd_conf /etc/default/data_cube_ui && sudo cp celeryd /etc/init.d/data_cube_ui
+sudo cp config/celeryd_conf /etc/default/data_cube_ui && sudo cp config/celeryd /etc/init.d/data_cube_ui
 sudo chmod 777 /etc/init.d/data_cube_ui
 sudo chmod 777 /etc/default/data_cube_ui
 sudo /etc/init.d/data_cube_ui start
+
+sudo cp config/celerybeat_conf /etc/default/celerybeat && sudo cp config/celerybeat /etc/init.d/celerybeat
+sudo chmod 777 /etc/init.d/celerybeat
+sudo chmod 777 /etc/default/celerybeat
+sudo /etc/init.d/celerybeat start
+
 ```
+
+For the recurring tasks, you can start the following scripts:
+
 
 You can alias the /etc/init.d/* script as whatever you like - you can start, stop, kill, restart, etc. the workers using this script.
 
