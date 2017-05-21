@@ -61,13 +61,14 @@ class Query(BaseQuery):
     compositor = models.ForeignKey(Compositor)
 
     config_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
+    #TODO: add color scale here
     color_scale_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/default_color_scale'
     measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/band_math_app'
 
     class Meta(BaseQuery.Meta):
-        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
-                            'longitude_min', 'title', 'description', 'compositor'))
+        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+                            'longitude_max', 'longitude_min', 'title', 'description', 'compositor'))
         abstract = True
 
     def get_fields_with_labels(self, labels, field_names):
