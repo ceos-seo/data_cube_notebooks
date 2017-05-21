@@ -288,12 +288,12 @@ This process can be automated and daemonized with the following snippet:
 ```
 sudo cp config/celeryd_conf /etc/default/data_cube_ui && sudo cp config/celeryd /etc/init.d/data_cube_ui
 sudo chmod 777 /etc/init.d/data_cube_ui
-sudo chmod 777 /etc/default/data_cube_ui
+sudo chmod 644 /etc/default/data_cube_ui
 sudo /etc/init.d/data_cube_ui start
 
 sudo cp config/celerybeat_conf /etc/default/celerybeat && sudo cp config/celerybeat /etc/init.d/celerybeat
 sudo chmod 777 /etc/init.d/celerybeat
-sudo chmod 777 /etc/default/celerybeat
+sudo chmod 644 /etc/default/celerybeat
 sudo /etc/init.d/celerybeat start
 
 ```
