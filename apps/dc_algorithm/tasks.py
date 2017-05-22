@@ -1,4 +1,5 @@
-from celery.task import task
+from celery.decorators import periodic_task
+from celery.task.schedules import crontab
 from datetime import datetime, timedelta
 import os
 import shutil
@@ -7,7 +8,11 @@ from django.apps import apps
 from .models import Application
 
 
-@task(name="dc_algorithm.clear_cache")
+@periodic_task(
+    name="dc_algorithm.clear_cache",
+    #run_every=(30.0),
+    run_every=(crontab(hour=0, minute=0)),
+    ignore_result=True)
 def clear_cache():
     _apps = Application.objects.all()
     time_threshold = datetime.now() - timedelta(days=7)
