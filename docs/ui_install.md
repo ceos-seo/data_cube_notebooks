@@ -316,8 +316,7 @@ sudo /etc/init.d/celerybeat start
 
 ```
 
-For the recurring tasks, you can start the following scripts:
-
+This is done in the initial setup script.
 
 You can alias the /etc/init.d/* script as whatever you like - you can start, stop, kill, restart, etc. the workers using this script.
 
