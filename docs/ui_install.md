@@ -65,6 +65,7 @@ sudo apt-get install -y libapache2-mod-wsgi-py3
 sudo apt-get install -y redis-server
 sudo apt-get install -y libfreeimage3
 sudo apt-get install -y tmux
+sudo apt-get install -y imagemagick
 ```
 
 Next, you'll need various Python packages responsible for the entire application:
