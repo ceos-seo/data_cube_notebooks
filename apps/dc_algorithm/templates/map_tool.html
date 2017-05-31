@@ -24,21 +24,20 @@
 {% block css %}
 <link rel="stylesheet" href="/static/assets/css/map_tool.css" />
 
-<!-- Cesium Related.  -->
+<link href="/static/assets/js/leaflet/leaflet.css" rel="stylesheet" type="text/css" />
+<link href="/static/assets/js/Leaflet.draw/dist/leaflet.draw.css" rel="stylesheet" type="text/css" />
+
 <link href="/static/assets/js/Cesium/Build/CesiumUnminified/Widgets/widgets.css" rel="stylesheet" type="text/css" />
 <link href="/static/assets/js/Cesium/Build/CesiumUnminified/Widgets/lighter.css" rel="stylesheet" type="text/css" />
-
 {% endblock %}
 
 {% block javascript %}
-<!-- jquery related.  -->
+<script src="/static/assets/js/leaflet/leaflet.js"></script>
+<script src="/static/assets/js/Leaflet.draw/dist/leaflet.draw.js"></script>
 
-
-<!-- Cesium related.  -->
 <script src="/static/assets/js/Cesium/Build/CesiumUnminified/Cesium.js"></script>
 <script src="/static/assets/js/drawmap.js"></script>
 
-<!-- Task/worker related. -->
 <script src="/static/assets/js/dcw.js"></script>
 
 <script>

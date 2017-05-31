@@ -18,7 +18,7 @@ Using these common technologies provides a good starting platform for users who 
 Installation
 =================
 ```
-git clone https://github.com/ceos-seo/data_cube_notebooks.git -b master
+git clone https://github.com/ceos-seo/data_cube_ui.git -b master
 cd ~/Datacube/data_cube_ui
 git submodule init && git submodule update
 ```

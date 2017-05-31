@@ -42,9 +42,9 @@ def get_task_manager(request, app_id):
     :template:`task_manager/APP_NAME`
     """
 
-    camel_case = "".join(x.title() for x in app_id.split('_'))
+    app_id_camel_case = "".join(x.title() for x in app_id.split('_'))
 
-    task_model = apps.get_model(".".join([app_id, camel_case + "Task"]))
+    task_model = apps.get_model(".".join([app_id, app_id_camel_case + "Task"]))
     tasks = task_model.objects.filter(complete=True).exclude(status="ERROR")
 
     # use the unique fields to form header.

@@ -1,8 +1,3 @@
-/* Author: AHDS
-   Creation date: 2016-06-23
-   Modified by:
-   Last modified date: */
-
 /**
  * Returns a number whose value is limited to the given range.
  *
@@ -19,16 +14,7 @@ Number.prototype.clamp = function(min, max) {
 };
 
 
-/*
- * Begin DrawMap
- */
 
-//ARGS: Cesium div id, lat min, lat max, long min, long max ids. <-- arrays.
-//initializes a map with drawing capabilities. Starts the cesium instance,
-//sets up the camera, and stores the form fields that should be populated with
-//latlong bounds.
-//Draws an outline over valid bounds set by window variables, sets up static
-//imagery, and begins drawing. Mouse position is marked with lat/lon position.
 function DrawMap(container_id, min_lat, max_lat, min_lon, max_lon) {
     //holds the rectangle entity for the query bounds.
     this.query_bounds_entity = undefined;
@@ -48,6 +34,18 @@ function DrawMap(container_id, min_lat, max_lat, min_lon, max_lon) {
         return $("#" + v);
     });
 
+    this.map = new L.Map(container_id, {
+        zoomSnap: 0.25,
+    });
+
+    var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+    });
+
+    this.map.addLayer(osm);
+    this.create_data_outline();
+
+    /*
     //sets up the defaults view extent.
     var lat_diff = (Math.abs(window._MAX_LAT_DATA_BOUNDS_ - window._MIN_LAT_DATA_BOUNDS_)/2);
     var lon_diff = (Math.abs(window._MAX_LON_DATA_BOUNDS_ - window._MIN_LON_DATA_BOUNDS_)/2);
@@ -70,14 +68,6 @@ function DrawMap(container_id, min_lat, max_lat, min_lon, max_lon) {
         navigationHelpButton: true,
         navigationInstructionsInitiallyVisible: true,
         sceneMode: Cesium.SceneMode.SCENE2D,
-        /*imageryProvider : new Cesium.ArcGisMapServerImageryProvider({
-            url : 'http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer'
-        }),*/
-        /*imageryProvider: new Cesium.SingleTileImageryProvider({
-            url: "/static/assets/images/22.22222,-10,57.777777,10.png",
-            rectangle: Cesium.Rectangle.fromDegrees(22.22222,-10,57.77777,10)
-        }),*/
-        //TODO:? add a black box rather than this image?
         imageryProvider: new Cesium.SingleTileImageryProvider({
             url: window._MAIN_IMAGERY_,
             rectangle: Cesium.Rectangle.fromDegrees(-180,-101.25,180,101.25)
@@ -89,8 +79,6 @@ function DrawMap(container_id, min_lat, max_lat, min_lon, max_lon) {
         rectangle: Cesium.Rectangle.fromDegrees(window._MIN_LON_IMAGERY_BOUNDS_,window._MIN_LAT_IMAGERY_BOUNDS_,window._MAX_LON_IMAGERY_BOUNDS_,window._MAX_LAT_IMAGERY_BOUNDS_)
     }));
 
-    this.camera_setup();
-
     this.bounding_box = [Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_), Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_)]
 
     //removes the ability to click for a popup so it won't interfere with tile listing info.
@@ -99,28 +87,10 @@ function DrawMap(container_id, min_lat, max_lat, min_lon, max_lon) {
 
     this.images = [];
 
-    this.create_data_outline();
+
     this.set_mouse_label();
     this.start_rect_draw();
-}
-
-//Only responsible for zoom limits at this time. The imagery we use is finite resolution
-//so this stops things from being too grainy.
-DrawMap.prototype.camera_setup = function() {
-  var zoom_limits = [this.cesium.camera.positionCartographic.height/25, this.cesium.camera.positionCartographic.height];
-  //sets the initial view of the camera.
-  //var rectangle = Cesium.Rectangle.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_-1, window._MAX_LON_DATA_BOUNDS_, window._MAX_LAT_DATA_BOUNDS_+1);
-  //Cesium.Camera.DEFAULT_VIEW_RECTANGLE = rectangle;
-  /*this.cesium.camera.setView({
-      destination: rectangle
-  });*/
-  //var rect_center = Cesium.Rectangle.center(rectangle);
-  //this.cesium.camera.lookAt(Cesium.Cartesian3.fromRadians(rect_center.longitude, rect_center.latitude), new Cesium.Cartesian3(0, 0, 100000));
-
-  //enforces zoom limits
-  this.cesium.scene.screenSpaceCameraController.maximumZoomDistance = zoom_limits[1];
-  this.cesium.scene.screenSpaceCameraController.minimumZoomDistance = zoom_limits[0];
-
+    */
 }
 
 //starts the rectangle drawing process that updates the form fields/display.
@@ -163,7 +133,7 @@ DrawMap.prototype.start_rect_draw = function() {
                     instance.drawing = true;
                     firstClick = false;
                 }
-            //single click outside of the bounding box makes the box go away.
+                //single click outside of the bounding box makes the box go away.
             } else {
                 firstClick = true;
                 instance.bounding_box = [Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_), Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_)]
@@ -221,13 +191,21 @@ DrawMap.prototype.set_mouse_label = function() {
 
 //Uses the globally defined country boundaries to create a border defining acceptable data ranges.
 DrawMap.prototype.create_data_outline = function() {
-    polyline_from_bounds = [Cesium.Cartesian3.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MAX_LAT_DATA_BOUNDS_), Cesium.Cartesian3.fromDegrees(window._MAX_LON_DATA_BOUNDS_, window._MAX_LAT_DATA_BOUNDS_), Cesium.Cartesian3.fromDegrees(window._MAX_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_), Cesium.Cartesian3.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_), Cesium.Cartesian3.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MAX_LAT_DATA_BOUNDS_)];
-    this.cesium.entities.add({
-        polyline: {
-            positions: polyline_from_bounds,
-            width: 5.0,
-            material: Cesium.Color.ALICEBLUE
-        }
+    var points = [
+        [window._MIN_LAT_DATA_BOUNDS_, window._MIN_LON_DATA_BOUNDS_],
+        [window._MAX_LAT_DATA_BOUNDS_, window._MIN_LON_DATA_BOUNDS_],
+        [window._MAX_LAT_DATA_BOUNDS_, window._MAX_LON_DATA_BOUNDS_],
+        [window._MIN_LAT_DATA_BOUNDS_, window._MAX_LON_DATA_BOUNDS_],
+        [window._MIN_LAT_DATA_BOUNDS_, window._MIN_LON_DATA_BOUNDS_]
+    ];
+
+    var polyline = L.polyline(points, {
+        color: "#ff7800",
+        weight: 3
+    }).addTo(this.map);
+
+    this.map.fitBounds(polyline.getBounds(), {
+        padding: [100, 100]
     });
 }
 
@@ -268,8 +246,8 @@ DrawMap.prototype.insert_image_with_bounds = function(id, url, min_lat, max_lat,
     var layers = this.cesium.imageryLayers;
 
     this.images[id] = layers.addImageryProvider(new Cesium.SingleTileImageryProvider({
-        url : url,
-        rectangle : Cesium.Rectangle.fromDegrees(min_lon, min_lat, max_lon, max_lat)
+        url: url,
+        rectangle: Cesium.Rectangle.fromDegrees(min_lon, min_lat, max_lon, max_lat)
     }));
 
     /*this.cesium.entities.add({
@@ -286,7 +264,7 @@ DrawMap.prototype.insert_image_with_bounds = function(id, url, min_lat, max_lat,
 
     polyline_from_bounds = [Cesium.Cartesian3.fromDegrees(min_lon, max_lat), Cesium.Cartesian3.fromDegrees(max_lon, max_lat), Cesium.Cartesian3.fromDegrees(max_lon, min_lat), Cesium.Cartesian3.fromDegrees(min_lon, min_lat), Cesium.Cartesian3.fromDegrees(min_lon, max_lat)];
     this.cesium.entities.add({
-        id: id+"_outline",
+        id: id + "_outline",
         polyline: {
             positions: polyline_from_bounds,
             width: 5.0,
@@ -296,52 +274,54 @@ DrawMap.prototype.insert_image_with_bounds = function(id, url, min_lat, max_lat,
     });
 
     //clear out the box so it isn't tinted white/blue
-    if(!this.drawing)
-      this.bounding_box = [Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_), Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_)];
+    if (!this.drawing)
+        this.bounding_box = [Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_), Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_)];
 }
 
 //zooms and pans to an image by its id.
 DrawMap.prototype.zoom_to_image_by_id = function(id) {
-  var entity = this.cesium.entities.getById(id+"_outline");
-  if(entity) {
-    rect = Cesium.Rectangle.fromCartesianArray(entity.polyline.positions.getValue(), Cesium.Ellipsoid.WGS84);
-    //dest_cartographic = Cesium.Rectangle.center(rect);
-    //enforce max height.
-    //if(dest_cartographic.height < 150000)
-    //  dest_cartographic.height = 150000;
-    //dest = Cesium.Cartesian3.fromRadians(dest_cartographic.longitude, dest_cartographic.latitude, dest_cartographic.height);
-    this.cesium.camera.flyTo({destination: rect});
-  }
+    var entity = this.cesium.entities.getById(id + "_outline");
+    if (entity) {
+        rect = Cesium.Rectangle.fromCartesianArray(entity.polyline.positions.getValue(), Cesium.Ellipsoid.WGS84);
+        //dest_cartographic = Cesium.Rectangle.center(rect);
+        //enforce max height.
+        //if(dest_cartographic.height < 150000)
+        //  dest_cartographic.height = 150000;
+        //dest = Cesium.Cartesian3.fromRadians(dest_cartographic.longitude, dest_cartographic.latitude, dest_cartographic.height);
+        this.cesium.camera.flyTo({
+            destination: rect
+        });
+    }
 }
 
 //toggles the visibility of the outline by its id.
 DrawMap.prototype.toggle_outline_by_id = function(id, val) {
-  var entity = this.cesium.entities.getById(id+"_outline");
-  if(entity) {
-    if(val !== undefined) {
-      entity.show = val;
-    } else
-       entity.show = !entity.show;
-  }
+    var entity = this.cesium.entities.getById(id + "_outline");
+    if (entity) {
+        if (val !== undefined) {
+            entity.show = val;
+        } else
+            entity.show = !entity.show;
+    }
 }
 
 //toggles the visibility of the image by its id.
 DrawMap.prototype.toggle_visibility_by_id = function(id, val) {
-   //var entity = this.cesium.entities.getById(id);
-   var entity = this.images[id];
-   if(entity) {
-     if(val !== undefined) {
-       entity.show = val;
-     } else
-        entity.show = !entity.show;
-   }
+    //var entity = this.cesium.entities.getById(id);
+    var entity = this.images[id];
+    if (entity) {
+        if (val !== undefined) {
+            entity.show = val;
+        } else
+            entity.show = !entity.show;
+    }
 }
 
 //deletes and image and its outline by their ids.
 DrawMap.prototype.remove_image_by_id = function(id) {
     this.cesium.imageryLayers.remove(this.images[id]);
     //this.cesium.entities.removeById(id);
-    this.cesium.entities.removeById(id+"_outline");
+    this.cesium.entities.removeById(id + "_outline");
 }
 
 //checks if a point is within its boundaries as defined by global bounds.
