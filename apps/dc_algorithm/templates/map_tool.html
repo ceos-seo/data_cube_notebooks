@@ -273,8 +273,6 @@
     var selected_result = undefined;
     //Required for the use of the results list module.
     function set_selected_result(id) {
-        //$('#task_result_temp').attr("src", tasks[id].result_path);
-        //map.insert_image_with_bounds(id, tasks[id].result_path, tasks[id].latitude[0], tasks[id].latitude[1], tasks[id].longitude[0], tasks[id].longitude[1]);
         if (selected_result == id) {
             map.zoom_to_image_by_id(id);
             return;
