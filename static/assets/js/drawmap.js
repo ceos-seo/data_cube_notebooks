@@ -14,25 +14,24 @@ Number.prototype.clamp = function(min, max) {
 };
 
 
-
-function DrawMap(container_id, min_lat, max_lat, min_lon, max_lon) {
+/**
+ * Initialize a map instance using a container id and options.
+ * options include min/max lat/lon for creating data outlines.
+ */
+function DrawMap(container_id, options) {
     //holds the rectangle entity for the query bounds.
     this.query_bounds_entity = undefined;
     this.drawing = false;
 
-    //arrays containing ids that should be updated when the bounding box changes.
-    this.min_lat = $.map(min_lat, function(v) {
-        return $("#" + v);
-    });
-    this.max_lat = $.map(max_lat, function(v) {
-        return $("#" + v);
-    });
-    this.min_lon = $.map(min_lon, function(v) {
-        return $("#" + v);
-    });
-    this.max_lon = $.map(max_lon, function(v) {
-        return $("#" + v);
-    });
+    this.bb_points = [
+        [options.min_lat, options.min_lon],
+        [options.max_lat, options.min_lon],
+        [options.max_lat, options.max_lon],
+        [options.min_lat, options.max_lon],
+        [options.min_lat, options.min_lon]
+    ];
+
+    this.lat_lon_indicator = options.lat_lon_indicator == undefined ? "lat_lon_container": options.lat_lon_indicator;
 
     this.map = new L.Map(container_id, {
         zoomSnap: 0.25,
@@ -44,50 +43,9 @@ function DrawMap(container_id, min_lat, max_lat, min_lon, max_lon) {
 
     this.map.addLayer(osm);
     this.create_data_outline();
+    this.set_mouse_label(this.lat_lon_indicator);
 
     /*
-    //sets up the defaults view extent.
-    var lat_diff = (Math.abs(window._MAX_LAT_DATA_BOUNDS_ - window._MIN_LAT_DATA_BOUNDS_)/2);
-    var lon_diff = (Math.abs(window._MAX_LON_DATA_BOUNDS_ - window._MIN_LON_DATA_BOUNDS_)/2);
-    var rectangle = Cesium.Rectangle.fromDegrees(window._MIN_LON_DATA_BOUNDS_-lon_diff, window._MIN_LAT_DATA_BOUNDS_-lat_diff, window._MAX_LON_DATA_BOUNDS_+lon_diff, window._MAX_LAT_DATA_BOUNDS_+lat_diff);
-    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = rectangle;
-    Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
-
-    //init cesium.
-    this.cesium = new Cesium.Viewer(container_id, {
-        animation: false,
-        baseLayerPicker: false,
-        fullscreenButton: false,
-        vrButton: false,
-        geocoder: false,
-        homeButton: false,
-        infoBox: false,
-        sceneModePicker: false,
-        selectionIndicator: false,
-        timeline: false,
-        navigationHelpButton: true,
-        navigationInstructionsInitiallyVisible: true,
-        sceneMode: Cesium.SceneMode.SCENE2D,
-        imageryProvider: new Cesium.SingleTileImageryProvider({
-            url: window._MAIN_IMAGERY_,
-            rectangle: Cesium.Rectangle.fromDegrees(-180,-101.25,180,101.25)
-        }),
-    });
-
-    this.cesium.scene.imageryLayers.addImageryProvider(new Cesium.SingleTileImageryProvider({
-        url: window._DETAIL_IMAGERY_,
-        rectangle: Cesium.Rectangle.fromDegrees(window._MIN_LON_IMAGERY_BOUNDS_,window._MIN_LAT_IMAGERY_BOUNDS_,window._MAX_LON_IMAGERY_BOUNDS_,window._MAX_LAT_IMAGERY_BOUNDS_)
-    }));
-
-    this.bounding_box = [Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_), Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_)]
-
-    //removes the ability to click for a popup so it won't interfere with tile listing info.
-    this.cesium.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
-    this.cesium.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
-
-    this.images = [];
-
-
     this.set_mouse_label();
     this.start_rect_draw();
     */
@@ -161,45 +119,17 @@ DrawMap.prototype.start_rect_draw = function() {
 }
 
 //creates and updates a mouse label that lists the current geographic point.
-DrawMap.prototype.set_mouse_label = function() {
+DrawMap.prototype.set_mouse_label = function(lat_lon_container) {
     var instance = this;
-    /*var entity = instance.cesium.entities.add({
-        label: {
-            show: false,
-            pixelOffset: new Cesium.Cartesian2(135, 25),
-            //fillColor: Cesium.Color.BLACK
-        }
-    });*/
-    // Mouse over the globe to see the cartographic position
-    var label = $("#lat_lon_container");
-    handler = new Cesium.ScreenSpaceEventHandler(instance.cesium.scene.canvas);
-    handler.setInputAction(function(movement) {
-        var cartesian = instance.cesium.camera.pickEllipsoid(movement.endPosition, instance.cesium.scene.globe.ellipsoid);
-        if (cartesian) {
-            var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-            var longitudeString = Cesium.Math.toDegrees(cartographic.longitude).toFixed(4);
-            var latitudeString = Cesium.Math.toDegrees(cartographic.latitude).toFixed(4);
-            //entity.position = cartesian;
-            //entity.label.show = true;
-            //entity.label.text = '(' + longitudeString + ', ' + latitudeString + ')';
-            label.text('(' + longitudeString + ', ' + latitudeString + ')')
-        } else {
-            //entity.label.show = false;
-        }
-    }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+    var label = $("#" + lat_lon_container);
+    this.map.on('mousemove', function(e) {
+      label.text("Lat: " + e.latlng.lat.toFixed(3) + ", Lon: " + e.latlng.lng.toFixed(3));
+    });
 }
 
 //Uses the globally defined country boundaries to create a border defining acceptable data ranges.
 DrawMap.prototype.create_data_outline = function() {
-    var points = [
-        [window._MIN_LAT_DATA_BOUNDS_, window._MIN_LON_DATA_BOUNDS_],
-        [window._MAX_LAT_DATA_BOUNDS_, window._MIN_LON_DATA_BOUNDS_],
-        [window._MAX_LAT_DATA_BOUNDS_, window._MAX_LON_DATA_BOUNDS_],
-        [window._MIN_LAT_DATA_BOUNDS_, window._MAX_LON_DATA_BOUNDS_],
-        [window._MIN_LAT_DATA_BOUNDS_, window._MIN_LON_DATA_BOUNDS_]
-    ];
-
-    var polyline = L.polyline(points, {
+    var polyline = L.polyline(this.bb_points, {
         color: "#ff7800",
         weight: 3
     }).addTo(this.map);

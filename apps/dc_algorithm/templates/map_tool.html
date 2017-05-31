@@ -52,13 +52,7 @@
 
     window.tool_name = '{{ tool_name }}';
 
-    //hardcoded kenya bounds.
-    //TODO: Should I create a template for drawmap.js and put this there?
-    //these are used for the mapping functions as well
-    window._MIN_LAT_DATA_BOUNDS_ = {{ area.latitude_min }};
-    window._MAX_LAT_DATA_BOUNDS_ = {{ area.latitude_max }};
-    window._MIN_LON_DATA_BOUNDS_ = {{ area.longitude_min }};
-    window._MAX_LON_DATA_BOUNDS_ = {{ area.longitude_max }};
+
 
     window._MAIN_IMAGERY_ = '{{ area.main_imagery }}';
     window._DETAIL_IMAGERY_ = '{{ area.detail_imagery }}';
@@ -132,7 +126,7 @@
           max_lon_ids.push("{{ satellite.datacube_platform }}_longitude_max");
         {% endfor %}
         //container id, min lat, max lat, min lon, max lon
-        map = new DrawMap("map-cesium", min_lat_ids, max_lat_ids, min_lon_ids, max_lon_ids);
+        map = new DrawMap("map-cesium",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: "lat_lon_container"});
 
         //sets up the onchange, limits based on window._{{limits}}
         {% for satellite in satellites %}
