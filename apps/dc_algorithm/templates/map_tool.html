@@ -130,20 +130,20 @@
                   "#{{ satellite.datacube_platform }}_longitude_max").val());
           });
           $("#{{ satellite.datacube_platform }}_latitude_min").attr({
-              "min": window._MIN_LAT_DATA_BOUNDS_,
-              "max": window._MAX_LAT_DATA_BOUNDS_
+              "min": {{ area.latitude_min }},
+              "max": {{ area.latitude_max }}
           });
           $("#{{ satellite.datacube_platform }}_latitude_max").attr({
-              "min": window._MIN_LAT_DATA_BOUNDS_,
-              "max": window._MAX_LAT_DATA_BOUNDS_
+              "min": {{ area.latitude_min }},
+              "max": {{ area.latitude_max }}
           });
           $("#{{ satellite.datacube_platform }}_longitude_min").attr({
-              "min": window._MIN_LON_DATA_BOUNDS_,
-              "max": window._MAX_LON_DATA_BOUNDS_
+              "min": {{ area.longitude_min }},
+              "max": {{ area.longitude_max }}
           });
           $("#{{ satellite.datacube_platform }}_longitude_max").attr({
-              "min": window._MIN_LON_DATA_BOUNDS_,
-              "max": window._MAX_LON_DATA_BOUNDS_
+              "min": {{ area.longitude_min }},
+              "max": {{ area.longitude_max }}
           });
         {% endfor %}
 
