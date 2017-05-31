@@ -198,17 +198,17 @@ DrawMap.prototype.insert_image_with_bounds = function(id, url, min_lat, max_lat,
 
     this.images[id] = {
         image: L.imageOverlay(url, bounds),
-        outline: L.polyline(points, {
+        outline: L.polyline(bb_points, {
             color: "#00FFFF",
             weight: 4
         })
     };
 
-    this.map.addLayer(this.images[id].outline);
+    //this.map.addLayer(this.images[id].outline);
     this.map.addLayer(this.images[id].image);
 
-    if (self.bb_rectangle != undefined) {
-        self.map.removeLayer(self.bb_rectangle);
+    if (this.bb_rectangle != undefined) {
+        this.map.removeLayer(this.bb_rectangle);
     }
 }
 
@@ -247,7 +247,7 @@ DrawMap.prototype.toggle_outline_by_id = function(id, val) {
  */
 DrawMap.prototype.toggle_visibility_by_id = function(id, val) {
     var image = this.images[id].image;
-    var image_exists = this.map.hasLayer(outline)
+    var image_exists = this.map.hasLayer(image)
     if (val !== undefined) {
         if (!val && image_exists) {
             this.map.removeLayer(image);

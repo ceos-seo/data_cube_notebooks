@@ -277,7 +277,9 @@
             map.zoom_to_image_by_id(id);
             return;
         }
-        map.toggle_outline_by_id(selected_result, false);
+        if(selected_result != undefined) {
+          map.toggle_outline_by_id(selected_result, false);
+        }
         selected_result = id;
         map.toggle_outline_by_id(id, true);
         map.zoom_to_image_by_id(id);
@@ -304,9 +306,6 @@
 
     //uses the mapping scripts to hide or show results on the map. val is optional
     function toggle_visibility(id, val) {
-        //if(selected_result == tasks[id].id)
-        //map.toggle_outline_by_id(tasks[id].id, false);
-        //map.toggle_outline_by_id(tasks[id].id);
         map.toggle_visibility_by_id(tasks[id].id, val);
     }
     //End require
