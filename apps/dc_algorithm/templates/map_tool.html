@@ -32,7 +32,7 @@
 <script src="/static/assets/js/leaflet/leaflet.js"></script>
 <script src="/static/assets/js/Leaflet.draw/dist/leaflet.draw.js"></script>
 
-<script src="/static/assets/js/drawmap.js"></script>
+<script src="/static/assets/js/drawmap_leaflet.js"></script>
 
 <script src="/static/assets/js/dcw.js"></script>
 
@@ -47,16 +47,6 @@
     var map;
 
     window.tool_name = '{{ tool_name }}';
-
-
-
-    window._MAIN_IMAGERY_ = '{{ area.main_imagery }}';
-    window._DETAIL_IMAGERY_ = '{{ area.detail_imagery }}';
-
-    window._MIN_LAT_IMAGERY_BOUNDS_ = {{ area.detail_latitude_min }};
-    window._MAX_LAT_IMAGERY_BOUNDS_ = {{ area.detail_latitude_max }};
-    window._MIN_LON_IMAGERY_BOUNDS_ = {{ area.detail_longitude_min }};
-    window._MAX_LON_IMAGERY_BOUNDS_ = {{ area.detail_longitude_max }};
 
     //init functions, sets up tabs/panels. replaces the default submit w. custom.
     //custom submit does input sanitation, submits job.
@@ -107,13 +97,6 @@
         //This is VERY bad. Gets the parent div (li) of the element with divided/long in it..
         $("li:has(.field-divided)").css('width', '47%');
         $("li:has(.field-long)").css('width', '100%');
-
-        //Cesium setup.
-        //init the cesium stuff.
-        var min_lat_ids = [];
-        var max_lat_ids = [];
-        var min_lon_ids = [];
-        var max_lon_ids = [];
 
         //container id, min lat, max lat, min lon, max lon
         map = new DrawMap("map-cesium",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: "lat_lon_container"});
