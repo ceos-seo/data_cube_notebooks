@@ -26,16 +26,12 @@
 
 <link href="/static/assets/js/leaflet/leaflet.css" rel="stylesheet" type="text/css" />
 <link href="/static/assets/js/Leaflet.draw/dist/leaflet.draw.css" rel="stylesheet" type="text/css" />
-
-<link href="/static/assets/js/Cesium/Build/CesiumUnminified/Widgets/widgets.css" rel="stylesheet" type="text/css" />
-<link href="/static/assets/js/Cesium/Build/CesiumUnminified/Widgets/lighter.css" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block javascript %}
 <script src="/static/assets/js/leaflet/leaflet.js"></script>
 <script src="/static/assets/js/Leaflet.draw/dist/leaflet.draw.js"></script>
 
-<script src="/static/assets/js/Cesium/Build/CesiumUnminified/Cesium.js"></script>
 <script src="/static/assets/js/drawmap.js"></script>
 
 <script src="/static/assets/js/dcw.js"></script>
@@ -119,14 +115,13 @@
         var min_lon_ids = [];
         var max_lon_ids = [];
 
-        {% for satellite in satellites %}
-          min_lat_ids.push("{{ satellite.datacube_platform }}_latitude_min");
-          max_lat_ids.push("{{ satellite.datacube_platform }}_latitude_max");
-          min_lon_ids.push("{{ satellite.datacube_platform }}_longitude_min");
-          max_lon_ids.push("{{ satellite.datacube_platform }}_longitude_max");
-        {% endfor %}
         //container id, min lat, max lat, min lon, max lon
         map = new DrawMap("map-cesium",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: "lat_lon_container"});
+        map.set_rectangle_draw();
+
+        {% for satellite in satellites %}
+          map.set_bb_listeners({min_lat: "{{ satellite.datacube_platform }}_latitude_min", max_lat: "{{ satellite.datacube_platform }}_latitude_max", min_lon: "{{ satellite.datacube_platform }}_longitude_min", max_lon: "{{ satellite.datacube_platform }}_longitude_max"})
+        {% endfor %}
 
         //sets up the onchange, limits based on window._{{limits}}
         {% for satellite in satellites %}

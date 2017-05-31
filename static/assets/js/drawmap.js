@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Returns a number whose value is limited to the given range.
  *
@@ -16,25 +18,15 @@ Number.prototype.clamp = function(min, max) {
 
 /**
  * Initialize a map instance using a container id and options.
- * options include min/max lat/lon for creating data outlines.
+ * Options:
+ *    min/max lat/lon: Floating point numbers
+ *    lat_lon_indicator: id for a div to put the lat lon positions in
  */
 function DrawMap(container_id, options) {
-    //holds the rectangle entity for the query bounds.
-    this.query_bounds_entity = undefined;
-    this.drawing = false;
-
-    this.bb_points = [
-        [options.min_lat, options.min_lon],
-        [options.max_lat, options.min_lon],
-        [options.max_lat, options.max_lon],
-        [options.min_lat, options.max_lon],
-        [options.min_lat, options.min_lon]
-    ];
-
-    this.lat_lon_indicator = options.lat_lon_indicator == undefined ? "lat_lon_container": options.lat_lon_indicator;
+    this.lat_lon_indicator = options.lat_lon_indicator == undefined ? "lat_lon_container" : options.lat_lon_indicator;
 
     this.map = new L.Map(container_id, {
-        zoomSnap: 0.25,
+        zoomSnap: 0.25
     });
 
     var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -42,130 +34,143 @@ function DrawMap(container_id, options) {
     });
 
     this.map.addLayer(osm);
-    this.create_data_outline();
-    this.set_mouse_label(this.lat_lon_indicator);
 
-    /*
-    this.set_mouse_label();
-    this.start_rect_draw();
-    */
+    if ('min_lat' in options) {
+        var bb_points = [
+            [options.min_lat, options.min_lon],
+            [options.max_lat, options.min_lon],
+            [options.max_lat, options.max_lon],
+            [options.min_lat, options.max_lon],
+            [options.min_lat, options.min_lon]
+        ];
+
+        var polyline = this.create_outline(bb_points);
+        this.map.fitBounds(polyline.getBounds(), {
+            padding: [100, 100]
+        });
+        this.bounding_box = polyline.getBounds();
+    } else {
+        this.map.setView([0, 0], 3);
+        this.map.setMaxBounds([
+            [-60, -200],
+            [85, 200]
+        ]);
+    }
+
+    this.set_mouse_label(this.lat_lon_indicator);
 }
 
-//starts the rectangle drawing process that updates the form fields/display.
-//constantly updates form fields with values when drawing.
-//clicking outside of the valid area will hide the indicator, while
-//a single click in the bounds will start a draw.
-DrawMap.prototype.start_rect_draw = function() {
-    var instance = this;
-    instance.query_bounds_entity = instance.cesium.entities.add({
-        name: 'Query_bounding_box',
-        rectangle: {
-            coordinates: new Cesium.CallbackProperty(function() {
-                rect = Cesium.Rectangle.fromCartographicArray(instance.bounding_box);
-                return rect;
-            }, false),
-            material: Cesium.Color.ALICEBLUE.withAlpha(0.5),
-            extrudedHeight: 0.0,
-            height: 0.0
+/**
+ * Configure leaflet for rectangle drawing - adds a new control and starts the handlers.
+ */
+DrawMap.prototype.set_rectangle_draw = function() {
+    var draw_options = {
+        draw: {
+            polyline: false,
+            polygon: false,
+            circle: false,
+            rectangle: {
+                shapeOptions: {
+                    clickable: false
+                }
+            },
+            marker: false
+        },
+        edit: false
+    };
+
+    var drawControl = new L.Control.Draw(draw_options);
+    this.map.addControl(drawControl);
+    this.set_rect_draw_handlers();
+}
+
+/**
+ * Set all the handlers for rectangle drawing - start on click, creation w/ bounding box, removal on new draw.
+ */
+DrawMap.prototype.set_rect_draw_handlers = function() {
+    var self = this;
+    this.map.on(L.Draw.Event.CREATED, function(e) {
+        var type = e.layerType,
+            layer = e.layer;
+        var bounds = layer.getBounds();
+        self.bb_rectangle = L.rectangle(constrain_bounds(self.bounding_box, bounds));
+        self.map.addLayer(self.bb_rectangle)
+    });
+
+    this.map.on(L.Draw.Event.DRAWSTART, function(e) {
+        if (self.bb_rectangle != undefined) {
+            self.map.removeLayer(self.bb_rectangle);
         }
     });
 
-    var handler = new Cesium.ScreenSpaceEventHandler(instance.cesium.scene.canvas);
-    //Handles clicks.
-    var firstClick = true;
-    handler.setInputAction(function(position) {
-        var cartesian = instance.cesium.camera.pickEllipsoid(position.position, instance.cesium.scene.globe.ellipsoid);
-        if (cartesian) {
-            var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-            var longitude = Cesium.Math.toDegrees(cartographic.longitude);
-            var latitude = Cesium.Math.toDegrees(cartographic.latitude);
-            if (!firstClick) {
-                //convert to the more convenient uppre left/lower right format.
-                var rectangle = Cesium.Rectangle.fromCartographicArray(instance.bounding_box);
-                instance.drawing = false;
-                instance.bounding_box = [Cesium.Rectangle.northwest(rectangle), Cesium.Rectangle.southeast(rectangle)];
-                firstClick = true;
-            } else if (is_in_bounds(longitude, latitude)) {
-                if (firstClick) {
-                    instance.bounding_box = [cartographic.clone(), cartographic.clone()]
-                    instance.drawing = true;
-                    firstClick = false;
-                }
-                //single click outside of the bounding box makes the box go away.
-            } else {
-                firstClick = true;
-                instance.bounding_box = [Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_), Cesium.Cartographic.fromDegrees(window._MIN_LON_DATA_BOUNDS_, window._MIN_LAT_DATA_BOUNDS_)]
+    this.map.on('click', function(e) {
+        new L.Draw.Rectangle(self.map, {
+            shapeOptions: {
+                clickable: false
             }
-        }
-    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
-    //Handles movement.
-    handler.setInputAction(function(movement) {
-        var cartesian = instance.cesium.camera.pickEllipsoid(movement.endPosition, instance.cesium.scene.globe.ellipsoid);
-        if (cartesian) {
-            if (firstClick) {
-                //donothing?
-            } else {
-                var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-                var longitude = Cesium.Math.toDegrees(cartographic.longitude);
-                var latitude = Cesium.Math.toDegrees(cartographic.latitude);
-                var bounded_input = clamp_input(longitude, latitude);
-                instance.bounding_box[1] = Cesium.Cartographic.fromDegrees(bounded_input[0], bounded_input[1]);
-                instance.update_form_fields();
-            }
-        }
-    }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-
+        }).enable();
+    });
 }
 
-//creates and updates a mouse label that lists the current geographic point.
+/*
+ * Set ondraw listeners to update the min/max lat/lon inputs by id.
+ */
+DrawMap.prototype.set_bb_listeners = function(options) {
+    var self = this;
+
+    function set_input_bounds(bounds) {
+        jQuery("#" + options.max_lat).val(bounds.getNorth().toFixed(4));
+        jQuery("#" + options.min_lat).val(bounds.getSouth().toFixed(4));
+        jQuery("#" + options.min_lon).val(bounds.getWest().toFixed(4));
+        jQuery("#" + options.max_lon).val(bounds.getEast().toFixed(4));
+    }
+
+    this.map.on("draw:created", function(e) {
+        var bounds = e.layer.getBounds();
+        set_input_bounds(constrain_bounds(self.bounding_box, bounds));
+    })
+}
+
+/**
+ * Add a mousemove event that writes the lat/lng coords to the div id specified by lat_lon_container
+ */
 DrawMap.prototype.set_mouse_label = function(lat_lon_container) {
     var instance = this;
     var label = $("#" + lat_lon_container);
     this.map.on('mousemove', function(e) {
-      label.text("Lat: " + e.latlng.lat.toFixed(3) + ", Lon: " + e.latlng.lng.toFixed(3));
+        label.text("Lat: " + e.latlng.lat.toFixed(4) + ", Lon: " + e.latlng.lng.toFixed(4));
     });
 }
 
-//Uses the globally defined country boundaries to create a border defining acceptable data ranges.
-DrawMap.prototype.create_data_outline = function() {
-    var polyline = L.polyline(this.bb_points, {
+/**
+ * Create an outline on the map from a list of latlng points
+ *     Args:
+ *          points: list of Leaflet LatLng points
+ *     Returns:
+ *          polyline that has been added to the map.
+ */
+DrawMap.prototype.create_outline = function(points) {
+    var polyline = L.polyline(points, {
         color: "#ff7800",
         weight: 3
     }).addTo(this.map);
-
-    this.map.fitBounds(polyline.getBounds(), {
-        padding: [100, 100]
-    });
-}
-
-//Updates the form fields based on the current bounding box.
-DrawMap.prototype.update_form_fields = function() {
-    var rectangle = Cesium.Rectangle.fromCartographicArray(this.bounding_box);
-    var upper_left = Cesium.Rectangle.northwest(rectangle);
-    var lower_right = Cesium.Rectangle.southeast(rectangle);
-
-    //for each elem. since min/max pairs go together, there will always be the same number of them.
-    for (var index = 0; index < this.min_lat.length; index++) {
-        this.min_lat[index].val(Cesium.Math.toDegrees(lower_right.latitude).toFixed(4));
-        this.max_lat[index].val(Cesium.Math.toDegrees(upper_left.latitude).toFixed(4));
-        this.max_lon[index].val(Cesium.Math.toDegrees(lower_right.longitude).toFixed(4));
-        this.min_lon[index].val(Cesium.Math.toDegrees(upper_left.longitude).toFixed(4));
-    }
+    return polyline
 }
 
 //updates the bounding box from the form data if relevant.
 DrawMap.prototype.bounding_box_from_form = function(min_lat, max_lat, min_lon, max_lon) {
-    var min_point = [parseFloat(min_lon), parseFloat(min_lat)];
-    var max_point = [parseFloat(max_lon), parseFloat(max_lat)];
+    var min_point = [parseFloat(min_lat),parseFloat(min_lon)];
+    var max_point = [parseFloat(max_lat), parseFloat(max_lon)];
     if (isNaN(min_point[1]) || isNaN(max_point[1]) || isNaN(min_point[0]) || isNaN(max_point[0]))
         return;
-    if (min_point[1] > max_point[1] || min_point[0] > max_point[0])
-        return;
-    min_point = clamp_input(min_point[0], min_point[1]);
-    max_point = clamp_input(max_point[0], max_point[1]);
-    this.bounding_box = [Cesium.Cartographic.fromDegrees(min_point[0], min_point[1]), Cesium.Cartographic.fromDegrees(max_point[0], max_point[1])];
-    //this.bounding_box = [Cesium.Cartographic.fromDegrees(min_lon, min_lat), Cesium.Cartographic.fromDegrees(max_lon, max_lat)];
+
+    var bounds = L.latLngBounds([min_point, max_point]);
+
+    if (this.bb_rectangle != undefined) {
+        this.map.removeLayer(this.bb_rectangle);
+    }
+    this.bb_rectangle = L.rectangle(constrain_bounds(this.bounding_box, bounds));
+    this.map.addLayer(this.bb_rectangle)
 }
 
 //inserts an image onto the map using provided bounds. This currently uses the entity/rect methods, but
@@ -252,6 +257,13 @@ DrawMap.prototype.remove_image_by_id = function(id) {
     this.cesium.imageryLayers.remove(this.images[id]);
     //this.cesium.entities.removeById(id);
     this.cesium.entities.removeById(id + "_outline");
+}
+
+function constrain_bounds(constraint_bounds, bounds) {
+    return L.latLngBounds([
+        [bounds.getSouth().clamp(constraint_bounds.getSouth(), constraint_bounds.getNorth()), bounds.getWest().clamp(constraint_bounds.getWest(), constraint_bounds.getEast())],
+        [bounds.getNorth().clamp(constraint_bounds.getSouth(), constraint_bounds.getNorth()), bounds.getEast().clamp(constraint_bounds.getWest(), constraint_bounds.getEast())]
+    ]);
 }
 
 //checks if a point is within its boundaries as defined by global bounds.
