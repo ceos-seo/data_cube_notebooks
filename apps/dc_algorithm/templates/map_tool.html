@@ -340,7 +340,7 @@
                     remove_task_bar(data.id);
                 }
                 remove_result(data.id);
-                alert(data.message);
+                set_dialog_modal_content("Alert", data.message);
         }
     }
 
@@ -354,13 +354,8 @@
             values[field.name] = field.value;
         });
 
-        /*if (values['band_selection'] == null) {
-        alert('Please select at least a single band.')
-        return;
-        }*/
-
         if (values['latitude_max'] == "" || values['latitude_min'] == "" || values['longitude_max'] == "" || values['longitude_min'] == "" || values['time_start'] == "" || values['time_end'] == "") {
-            alert('Please fill out all task parameters')
+            set_dialog_modal_content("Alert", 'Please fill out all task parameters')
             return;
         }
         var start = new Date(values['time_start']);
@@ -393,8 +388,18 @@
           //tasks[tasks.length] = null;
           w.addEventListener("message", task_event_listener);
       } else {
-          alert("This browser does not support webworkers.");
+          set_dialog_modal_content("Alert", "This browser does not support webworkers.");
       }
+    }
+
+    function set_dialog_modal_content(title, body) {
+        jQuery("#dialog_modal .modal-title").text(title);
+        jQuery("#dialog_modal .modal-body p").text(body);
+        jQuery("#dialog_modal").modal();
+    }
+
+    function hide_dialog_modal() {
+        jQuery("#dialog_modal").modal('hide');
     }
 
     //end task monitoring
@@ -548,6 +553,23 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
             <button type="button" onclick="process_form(jQuery('.options.satellite_dependent:visible'))" class="btn btn-default" data-dismiss="modal">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="dialog_modal" class="modal fade" role="dialog">
+      <div class="modal-dialog modal-sm">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title"></h4>
+          </div>
+          <div class="modal-body">
+            <p></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
           </div>
         </div>
       </div>

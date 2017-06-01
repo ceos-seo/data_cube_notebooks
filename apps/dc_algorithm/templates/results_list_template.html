@@ -103,7 +103,7 @@ under the License.
         w.addEventListener("message", task_event_listener);
         $('#tabs_main li:eq(0) a').tab('show')
     } else {
-        alert("This browser does not support webworkers.");
+        set_dialog_modal_content("Alert", "This browser does not support webworkers.");
     }
     //console.log(id, date);
   }
