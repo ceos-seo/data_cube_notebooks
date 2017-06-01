@@ -20,10 +20,6 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License.
 -->
-<!-- Author: AHDS
-     Creation date: 2016-06-23
-     Modified by:
-     Last modified date: -->
 <!-- Requires other implementation of array tasks, csrf token, task_event_listener.  -->
 <div id="task_history_container" class="panel-group">
   {% for task in task_history %}
@@ -45,28 +41,3 @@ under the License.
   </div>
   {% endfor %}
 </div>
-<script>
-
-  /*$( "#task_history_container" ).accordion({
-      active: false,
-      collapsible: true,
-      heightStyle: "content"
-    });*/
-
-  function add_result_from_history(id, task_title) {
-    if (typeof(Worker) !== undefined) {
-        var w = new Worker("/static/assets/js/dcw.js");
-        w.postMessage({
-            'tool_name': window.tool_name,
-            'status' : "HISTORY",
-            'title': "Task from history",
-            'id': id,
-            'csrf': csrftoken
-        });
-        w.addEventListener("message", task_event_listener);
-        $('#tabs_main li:eq(0) a').tab('show')
-    } else {
-        set_dialog_modal_content("Alert", "This browser does not support webworkers.");
-    }
-  }
-</script>

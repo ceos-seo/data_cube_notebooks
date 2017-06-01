@@ -109,12 +109,28 @@ class ToolView(View, ToolClass):
     Inheriting the toolview without defining the required abstracted elements will throw an error.
     Due to some complications with django and ABC, NotImplementedErrors are manually raised.
 
+    Panels defines a list of templates with names and ids to render on the main template.
+
     Required Attributes:
         tool_name: Descriptive string name for the tool - used to identify the tool in the database.
         generate_form_dict(QueryDict(Satellite)): Generates a dictionary of forms to render on the page.
             Abstract method, so this will need to be implemented in each class that inherits from this.
 
     """
+
+    panels = [{
+        'id': 'history_panel',
+        'name': 'History',
+        'template': 'history_panel.html'
+    }, {
+        'id': 'results_panel',
+        'name': 'Results',
+        'template': 'results_panel.html'
+    }, {
+        'id': 'output_panel',
+        'name': 'Output',
+        'template': 'output_panel.html'
+    }]
 
     @method_decorator(login_required)
     def get(self, request, area_id):
@@ -161,6 +177,7 @@ class ToolView(View, ToolClass):
             'running_tasks': running_tasks,
             'area': area,
             'application': app,
+            'panels': self.panels
         }
 
         return render(request, 'map_tool.html', context)
@@ -282,7 +299,7 @@ class UserHistory(View, ToolClass):
         task_history = task_model_class.get_queryset_from_history(user_history, complete=True).exclude(status="ERROR")
 
         context = {'task_history': task_history}
-        return render(request, "/".join([self._get_tool_name(), 'task_history.html']), context)
+        return render(request, "/".join([self._get_tool_name(), 'task_history_list.html']), context)
 
 
 class ResultList(View, ToolClass):

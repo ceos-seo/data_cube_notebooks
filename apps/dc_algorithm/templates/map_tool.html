@@ -54,8 +54,7 @@
     //loads all currently running tasks, refreshes all panels, applies styling, and sets up map.
     $(function() {
 
-        refreshPanel();
-        loadHistoryPanel();
+        refresh_input_panel();
         loadResultsPanel();
         loadOutputPanel();
 
@@ -213,7 +212,7 @@
     }
 
     //Handles the actual panel - hides satellite forms not being used.
-    function refreshPanel(sel) {
+    function refresh_input_panel(sel) {
         $(".satellite_dependent").hide();
         id = $('#platform_sel').val();
         $("." + id).show();
@@ -224,33 +223,6 @@
     function update_hidden_fields(platform) {
       $(".hidden_form_platform").val(platform)
       $(".hidden_form_id").val("{{ area.id }}")
-    }
-
-    //handles the history panel: details view and loading.
-    function loadHistoryPanel() {
-        $.get('task_history', function(result) {
-            $('#past_tasks').html(result);
-        })
-    }
-
-    //the obj.map funct. doesn't work for older versions of ie... not sure if that matters.
-    //handles the results panel: task list, scenes list, meta.
-    //.hasOwnProperty('result_path')
-    function loadResultsPanel() {
-        var ids = Object.keys(tasks);
-        var valid_ids = [];
-        for (var index = 0; index < ids.length; index++) {
-            if (tasks[ids[index]].hasOwnProperty('result_path')) {
-                valid_ids.push(ids[index]);
-            }
-        }
-        $.get('results_list', {
-            'task_ids': valid_ids
-        }, function(result) {
-            $('#results_list').html(result);
-            $('.scenes_list').hide();
-            $('.scene_meta').hide();
-        })
     }
 
     //loads the output panel by posting a list of tasks and inserting
@@ -424,17 +396,15 @@
         <div class="col-lg-3 fullscreen-col seamless-col">
           <div class="col-lg-12 fullscreen-col side-panel">
             <div class="tab-content">
-
                 <ul id="tabs_main" class="nav nav-tabs">
-                    <li class="active"><a data-toggle="tab" href="#filters-panel">Filters</a></li>
-                    <li><a data-toggle="tab" href="#history-panel">History</a></li>
-                    <li><a data-toggle="tab" href="#results-panel">Results</a></li>
-                    <li><a data-toggle="tab" href="#output-panel">Output</a></li>
+                    <li class="active"><a data-toggle="tab" href="#filters_panel">Filters</a></li>
+                    {% for panel in panels %}
+                      <li><a data-toggle="tab" href="#{{panel.id}}">{{panel.name}}</a></li>
+                    {% endfor %}
                 </ul>
-
-                <div id="filters-panel" class="tab-pane fade in active">
+                <div id="filters_panel" class="tab-pane fade in active">
                     <label for="platform_sel">Satellite</label>
-                    <select class="form-control" id="platform_sel" name="platform_sel" tabindex="1" data-native-menu="false" onchange="refreshPanel();">
+                    <select class="form-control" id="platform_sel" name="platform_sel" tabindex="1" data-native-menu="false" onchange="refresh_input_panel();">
                         {% for satellite in satellites %}
                         <option value="{{ satellite.datacube_platform }}">{{satellite.name}}</option>
                         {% endfor %}
@@ -482,28 +452,9 @@
                         </div>
                     </div>
                 </div>
-                <div id="history-panel" class="tab-pane fade">
-                    <h2>Task History</h2>
-                    <hr>
-                    <div id='past_tasks' class="boxed_list">
-
-                    </div>
-                </div>
-                <div id="results-panel" class="tab-pane fade">
-                    <h2>Completed Tasks</h2>
-                    <hr>
-                    <div id="results_list">
-                        <!-- will be populated from a django template.  -->
-                    </div>
-                </div>
-                <div id="output-panel" class="tab-pane fade">
-                    <h2>Output</h2>
-                    <hr>
-                    <!-- Populated by django template.   -->
-                    <div id='output_panel'>
-
-                    </div>
-                </div>
+                {% for panel in panels %}
+                  {% include panel.template  %}
+                {% endfor %}
             </div>
           </div>
         </div>

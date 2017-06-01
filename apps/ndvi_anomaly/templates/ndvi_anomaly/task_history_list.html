@@ -24,7 +24,7 @@ under the License.
      Creation date: 2016-09-08
      Modified by:
      Last modified date: -->
-{% extends "task_history_template.html" %}
+{% extends "task_history_list_template.html" %}
 {% block table_rows %}
 <table class="table table-striped table-bordered">
   <tbody>
@@ -41,8 +41,8 @@ under the License.
       <td class="right_aligned_text">({{ task.time_start|date:"m/d/Y" }}, {{ task.time_end|date:"m/d/Y" }})</td>
     </tr>
     <tr>
-      <td>Animated Product:</td>
-      <td class="right_aligned_text">{{ task.animated_product }}</td>
+      <td class="title">Baseline Months:</td>
+      <td class="right_aligned_text">{{ task.get_baseline_name }}</td>
     </tr>
     <tr>
       <td class="title">Description:</td>

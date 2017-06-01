@@ -1,0 +1,28 @@
+<div id="results_panel" class="tab-pane fade">
+    <h2>Completed Tasks</h2>
+    <hr>
+    <div id="results_list">
+        <!-- will be populated from a django template.  -->
+    </div>
+</div>
+<script>
+//the obj.map funct. doesn't work for older versions of ie... not sure if that matters.
+//handles the results panel: task list, scenes list, meta.
+//.hasOwnProperty('result_path')
+function loadResultsPanel() {
+    var ids = Object.keys(tasks);
+    var valid_ids = [];
+    for (var index = 0; index < ids.length; index++) {
+        if (tasks[ids[index]].hasOwnProperty('result_path')) {
+            valid_ids.push(ids[index]);
+        }
+    }
+    $.get('results_list', {
+        'task_ids': valid_ids
+    }, function(result) {
+        $('#results_list').html(result);
+        $('.scenes_list').hide();
+        $('.scene_meta').hide();
+    })
+}
+</script>

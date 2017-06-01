@@ -27,7 +27,7 @@ hr {
 #running_tasks li .progress {
     margin-bottom: 0px;
 }
-#past_tasks {
+#task_history {
     height: 775px;
     border: 1px solid coral;
     overflow-y: auto;
