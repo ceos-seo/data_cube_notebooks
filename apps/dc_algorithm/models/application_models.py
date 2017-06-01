@@ -93,14 +93,7 @@ class Area(models.Model):
     longitude_min = models.FloatField(default=0)
     longitude_max = models.FloatField(default=0)
 
-    main_imagery = models.CharField(max_length=250, default="/static/assets/images/black.png")
-    detail_imagery = models.CharField(max_length=250, default="")
     thumbnail_imagery = models.CharField(max_length=250, default="")
-
-    detail_latitude_min = models.FloatField(default=0)
-    detail_latitude_max = models.FloatField(default=0)
-    detail_longitude_min = models.FloatField(default=0)
-    detail_longitude_max = models.FloatField(default=0)
 
     satellites = models.ManyToManyField(Satellite)
 

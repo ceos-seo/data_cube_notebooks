@@ -72,7 +72,7 @@ class TsmTool(ToolView):
                 AdditionalOptionsForm(
                     datacube_platform=satellite.datacube_platform, auto_id=satellite.datacube_platform + "_%s"),
                 'Geospatial Bounds':
-                DataSelectionForm(
+                DataSelectionForm(area=area,
                     time_start=satellite.date_min,
                     time_end=satellite.date_max,
                     auto_id=satellite.datacube_platform + "_%s")

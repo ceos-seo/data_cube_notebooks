@@ -49,6 +49,7 @@ class DataSelectionForm(forms.Form):
     def __init__(self, *args, **kwargs):
         time_start = kwargs.pop('time_start', None)
         time_end = kwargs.pop('time_end', None)
+        area = kwargs.pop('area', None)
         super(DataSelectionForm, self).__init__(*args, **kwargs)
         #meant to prevent this routine from running if trying to init from querydict.
         if time_start and time_end:
@@ -62,6 +63,11 @@ class DataSelectionForm(forms.Form):
                 label='End Date',
                 widget=forms.DateInput(attrs={'class': 'datepicker field-divided',
                                               'required': 'required'}))
+        if area:
+            self.fields['latitude_min'].widget.attrs.update({'min': area.latitude_min, 'max': area.latitude_max})
+            self.fields['latitude_max'].widget.attrs.update({'min': area.latitude_max, 'max': area.latitude_max})
+            self.fields['longitude_min'].widget.attrs.update({'min': area.longitude_min, 'max': area.longitude_max})
+            self.fields['longitude_max'].widget.attrs.update({'min': area.longitude_min, 'max': area.longitude_max})
 
     def clean(self):
         cleaned_data = super(DataSelectionForm, self).clean()

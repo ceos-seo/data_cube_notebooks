@@ -67,6 +67,10 @@
             {% endfor %}
         }
 
+        //container id, min lat, max lat, min lon, max lon
+        map = new DrawMap("map",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: true, {% if application.color_scale %}color_scale: "{{application.color_scale}}",{% endif %}});
+        map.set_rectangle_draw();
+
         {% for satellite in satellites %}
           //jquery to set the end date equal to the start date when its changed.
           $("#{{ satellite.datacube_platform }}_time_start.datepicker").on("input change", function(e) {
@@ -80,10 +84,6 @@
                   "#{{ satellite.datacube_platform }}_longitude_max").val());
           });
         {% endfor %}
-
-        //container id, min lat, max lat, min lon, max lon
-        map = new DrawMap("map",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: true, {% if application.color_scale %}color_scale: "{{application.color_scale}}",{% endif %}});
-        map.set_rectangle_draw();
 
         $(".options").on('submit', handleFormSubmission);
     });
