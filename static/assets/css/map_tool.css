@@ -87,16 +87,30 @@ hr {
     font-size: 17px;
 }
 
+.leaflet-control.info img {
+  max-height: 250px;
+  max-width:250px;
+}
+.leaflet-control.info.2d_plot img {
+  max-height: 250px;
+  max-width:500px;
+}
+.leaflet-bar.leaflet-control.leaflet-control-custom {
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
 .glyphicon_container {
     text-decoration: none;
 }
 .glyphicon.map_icon {
-    font-size: 27px;
-    display: block;
-    text-align: center;
-    margin: 0;
-    color: #fff;
     cursor: pointer;
+    font-size: 20px;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 30px;
+    width: 30px;
 }
 .fullscreen-col {
     overflow: auto;

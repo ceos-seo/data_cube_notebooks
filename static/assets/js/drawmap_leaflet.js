@@ -55,19 +55,56 @@ function DrawMap(container_id, options) {
         ]);
     }
 
-    if(options.lat_lon_indicator) {
-      this.lat_lon_indicator = L.control({position: 'topright'});
+    if (options.lat_lon_indicator) {
+        this.lat_lon_indicator = L.control({
+            position: 'topright'
+        });
 
-    	this.lat_lon_indicator.onAdd = function (map) {
-    		var div = L.DomUtil.create('div', 'lat_lon_container info');
-    		return div;
-    	};
+        this.lat_lon_indicator.onAdd = function(map) {
+            var div = L.DomUtil.create('div', 'lat_lon_container info');
+            div.innerHTML = "Lat: 0.0000, Lon: 0.0000";
+            return div;
+        };
 
-    	this.lat_lon_indicator.addTo(this.map);
-      this.set_lat_lon_indicator("lat_lon_container");
+        this.lat_lon_indicator.addTo(this.map);
+        this.set_lat_lon_indicator("lat_lon_container");
+    }
+
+    if (options.color_scale) {
+        var self = this;
+
+        this.color_scale_collapsed = L.control({
+            position: 'topright'
+        });
+        this.color_scale_expanded = L.control({
+            position: 'topright'
+        });
+        this.color_scale_collapsed.onAdd = function(map) {
+            var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+
+            container.onclick = function() {
+                self.map.removeControl(self.color_scale_collapsed);
+                self.map.addControl(self.color_scale_expanded);
+            }
+            container.innerHTML = `<span class="glyphicon map_icon glyphicon-tint tooltipped"></span>`;
+            return container;
+        };
+        this.color_scale_expanded.onAdd = function(map) {
+            var container = L.DomUtil.create('div', 'info');
+
+            container.onclick = function() {
+                self.map.removeControl(self.color_scale_expanded);
+                self.map.addControl(self.color_scale_collapsed);
+            }
+            container.innerHTML = `<img class="img-responsive thumbnail" src=` + options.color_scale + ` alt="">`;
+            return container;
+        };
+
+        this.color_scale_collapsed.addTo(this.map);
     }
 
     this.images = {};
+    this.controls = {};
 }
 
 
@@ -278,6 +315,30 @@ DrawMap.prototype.toggle_visibility_by_id = function(id, val) {
 DrawMap.prototype.remove_image_by_id = function(id) {
     this.map.removeLayer(this.images[id].outline);
     this.map.removeLayer(this.images[id].image);
+}
+
+/**
+ * Add a 2d plot in the form of a control div with an image url and id
+ */
+DrawMap.prototype.add_control = function(id, image_url) {
+    this.controls[id] = L.control({
+        position: 'bottomright'
+    });
+
+    this.controls[id].onAdd = function(map) {
+        var container = L.DomUtil.create('div', 'info 2d_plot');
+        container.innerHTML = `<img class="img-responsive thumbnail" src=` + image_url + ` alt="">`;
+        return container;
+    };
+
+    this.controls[id].addTo(this.map);
+}
+
+/**
+ * Remove 2D plot control div by id.
+ */
+DrawMap.prototype.remove_control_by_id = function(id) {
+    this.map.removeControl(this.controls[id]);
 }
 
 function constrain_bounds(constraint_bounds, bounds) {

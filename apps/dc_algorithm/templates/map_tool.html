@@ -43,7 +43,7 @@
     var tasks = {};
     var workers = {};
 
-    //holds Cesium map instance and all functs.related to mapping.
+    //holds map instance and all functs.related to mapping.
     var map;
 
     window.tool_name = '{{ tool_name }}';
@@ -99,7 +99,7 @@
         $("li:has(.field-long)").css('width', '100%');
 
         //container id, min lat, max lat, min lon, max lon
-        map = new DrawMap("map",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: true});
+        map = new DrawMap("map",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: true, {% if application.color_scale %}color_scale: "{{application.color_scale}}",{% endif %}});
         map.set_rectangle_draw();
 
         {% for satellite in satellites %}
@@ -342,17 +342,6 @@
                 remove_result(data.id);
                 alert(data.message);
         }
-    }
-
-    //handles the switching from cesium to a static img based map view.
-    var cesium_enabled = true;
-
-    function toggle_map_provider() {
-        if (cesium_enabled)
-            $("#map").hide();
-        else
-            $("#map").show();
-        cesium_enabled = !cesium_enabled;
     }
 
     //Handles the submission of form data, parameter checking, etc.
