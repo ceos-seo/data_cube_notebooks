@@ -23,8 +23,6 @@ Number.prototype.clamp = function(min, max) {
  *    lat_lon_indicator: id for a div to put the lat lon positions in
  */
 function DrawMap(container_id, options) {
-    this.lat_lon_indicator = options.lat_lon_indicator == undefined ? "lat_lon_container" : options.lat_lon_indicator;
-
     this.map = new L.Map(container_id, {
         zoomSnap: 0.25
     });
@@ -57,10 +55,21 @@ function DrawMap(container_id, options) {
         ]);
     }
 
-    this.set_mouse_label(this.lat_lon_indicator);
+    if(options.lat_lon_indicator) {
+      this.lat_lon_indicator = L.control({position: 'topright'});
+
+    	this.lat_lon_indicator.onAdd = function (map) {
+    		var div = L.DomUtil.create('div', 'lat_lon_container info');
+    		return div;
+    	};
+
+    	this.lat_lon_indicator.addTo(this.map);
+      this.set_lat_lon_indicator("lat_lon_container");
+    }
 
     this.images = {};
 }
+
 
 /**
  * Configure leaflet for rectangle drawing - adds a new control and starts the handlers.
@@ -136,9 +145,9 @@ DrawMap.prototype.set_bb_listeners = function(options) {
 /**
  * Add a mousemove event that writes the lat/lng coords to the div id specified by lat_lon_container
  */
-DrawMap.prototype.set_mouse_label = function(lat_lon_container) {
+DrawMap.prototype.set_lat_lon_indicator = function(lat_lon_container) {
     var instance = this;
-    var label = $("#" + lat_lon_container);
+    var label = $("." + lat_lon_container);
     this.map.on('mousemove', function(e) {
         label.text("Lat: " + e.latlng.lat.toFixed(4) + ", Lon: " + e.latlng.lng.toFixed(4));
     });

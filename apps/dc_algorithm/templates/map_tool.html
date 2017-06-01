@@ -99,7 +99,7 @@
         $("li:has(.field-long)").css('width', '100%');
 
         //container id, min lat, max lat, min lon, max lon
-        map = new DrawMap("map-cesium",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: "lat_lon_container"});
+        map = new DrawMap("map",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: true});
         map.set_rectangle_draw();
 
         {% for satellite in satellites %}
@@ -349,9 +349,9 @@
 
     function toggle_map_provider() {
         if (cesium_enabled)
-            $("#map-cesium").hide();
+            $("#map").hide();
         else
-            $("#map-cesium").show();
+            $("#map").show();
         cesium_enabled = !cesium_enabled;
     }
 
@@ -515,30 +515,7 @@
         </div>
         <div class="col-lg-9 fullscreen-col seamless-col">
           <div id="map-canvas" class="map">
-            <div id="mapButtons">
-              <!-- bad if statement in the style, but having that gap looks pretty bad. Real
-                   solution would be to group the cesium button with the icons but that wont' work as we still want the buttons
-                   if the cesium window is disabled. -->
-              <div class="buttons_on_map" style="{% if not application.color_scale %}right: 44px;{% endif %}">
-                {% if application.color_scale %}<button class="map_button tooltipped" data-toggle="collapse" data-target="#color_scales" style="text-decoration:none;" title="Show color scale(s)" onclick=""><span class="glyphicon map_icon glyphicon-tint tooltipped"></span></button>{% endif %}
-              </div>
-              {% if application.color_scale %}
-              <div id="color_scales" class="collapse panel_on_map col-lg-4">
-                <div class="page-header">
-                  <span class="form-section-header">Color Scale(s)</span>
-                </div>
-                <img class="img-responsive thumbnail" src="{{application.color_scale}}" alt="">
-              </div>
-              {% endif %}
-              <div id="geographic_context" class="collapse panel_on_map col-lg-4">
-                <div class="page-header">
-                  <span class="form-section-header">Geographic Context</span>
-                </div>
-                <img class="img-responsive thumbnail" src="{{area.thumbnail_imagery}}" alt="">
-              </div>
-            </div>
-            <div id="map-cesium" class="map">
-                <span id="lat_lon_container" class="label label-default lat_lon_map_indicator">(0.0000, 0.0000)</span>
+            <div id="map" class="map">
             </div>
           </div>
         </div>
