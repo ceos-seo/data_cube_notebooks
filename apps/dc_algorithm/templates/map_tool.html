@@ -23,7 +23,6 @@
   -->
 {% block css %}
 <link rel="stylesheet" href="/static/assets/css/map_tool.css" />
-
 <link href="/static/assets/js/leaflet/leaflet.css" rel="stylesheet" type="text/css" />
 <link href="/static/assets/js/Leaflet.draw/dist/leaflet.draw.css" rel="stylesheet" type="text/css" />
 {% endblock %}
@@ -31,31 +30,28 @@
 {% block javascript %}
 <script src="/static/assets/js/leaflet/leaflet.js"></script>
 <script src="/static/assets/js/Leaflet.draw/dist/leaflet.draw.js"></script>
-
 <script src="/static/assets/js/drawmap_leaflet.js"></script>
-
 <script src="/static/assets/js/dcw.js"></script>
 
 <script>
-    //these have matching indices; worker[0] corresponds to task[0]
-    //holds the task objs and the workers used to generate them. Any time one is added/removed,
-    //it must also be done to the other.
     var tasks = {};
     var workers = {};
 
-    //holds map instance and all functs.related to mapping.
     var map;
-
     window.tool_name = '{{ tool_name }}';
 
-    //init functions, sets up tabs/panels. replaces the default submit w. custom.
-    //custom submit does input sanitation, submits job.
-    //most of this requires everything to be loaded before it starts, which is why its in this
-    //loads all currently running tasks, refreshes all panels, applies styling, and sets up map.
     $(function() {
-
         refresh_input_panel();
-        
+
+        $("#tabs_main").tabs();
+        $('.datepicker').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            yearRange: "-30:+0"
+        });
+        $(".tooltipped").tooltip();
+
         //Persistent tasks: generated here.
         if (typeof(Worker) !== undefined) {
             {% for task in running_tasks %}
@@ -70,144 +66,28 @@
             w.addEventListener("message", task_event_listener);
             {% endfor %}
         }
-        //End persistent tasks.
-        //start dynamically generated form customization
+
         {% for satellite in satellites %}
-          //$("#{{ satellite.datacube_platform }}_band_selection_ms").css('float', 'right');
-          $("#{{ satellite.datacube_platform }}_band_selection_ms").css('width', '100%');
           //jquery to set the end date equal to the start date when its changed.
           $("#{{ satellite.datacube_platform }}_time_start.datepicker").on("input change", function(e) {
               date = $("#{{ satellite.datacube_platform }}_time_start").datepicker('getDate');
               date.setFullYear(date.getFullYear() + 1);
               $("#{{ satellite.datacube_platform }}_time_end").datepicker('setDate', date);
           })
+          map.set_bb_listeners({min_lat: "{{ satellite.datacube_platform }}_latitude_min", max_lat: "{{ satellite.datacube_platform }}_latitude_max", min_lon: "{{ satellite.datacube_platform }}_longitude_min", max_lon: "{{ satellite.datacube_platform }}_longitude_max"})
+          $("#{{ satellite.datacube_platform }}_latitude_min, #{{ satellite.datacube_platform }}_latitude_max, #{{ satellite.datacube_platform }}_longitude_min, #{{ satellite.datacube_platform }}_longitude_max").change(function() {
+              map.bounding_box_from_form($("#{{ satellite.datacube_platform }}_latitude_min").val(), $("#{{ satellite.datacube_platform }}_latitude_max").val(), $("#{{ satellite.datacube_platform }}_longitude_min").val(), $(
+                  "#{{ satellite.datacube_platform }}_longitude_max").val());
+          });
         {% endfor %}
-        //end customization
-        $("#tabs_main").tabs();
-        $('.datepicker').datepicker({
-            changeMonth: true,
-            changeYear: true,
-            showButtonPanel: true,
-            yearRange: "-30:+0"
-        });
-        $(".tooltipped").tooltip();
-        //This is VERY bad. Gets the parent div (li) of the element with divided/long in it..
-        $("li:has(.field-divided)").css('width', '47%');
-        $("li:has(.field-long)").css('width', '100%');
 
         //container id, min lat, max lat, min lon, max lon
         map = new DrawMap("map",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: true, {% if application.color_scale %}color_scale: "{{application.color_scale}}",{% endif %}});
         map.set_rectangle_draw();
 
-        {% for satellite in satellites %}
-          map.set_bb_listeners({min_lat: "{{ satellite.datacube_platform }}_latitude_min", max_lat: "{{ satellite.datacube_platform }}_latitude_max", min_lon: "{{ satellite.datacube_platform }}_longitude_min", max_lon: "{{ satellite.datacube_platform }}_longitude_max"})
-        {% endfor %}
-
-        //sets up the onchange, limits based on window._{{limits}}
-        {% for satellite in satellites %}
-          $("#{{ satellite.datacube_platform }}_latitude_min, #{{ satellite.datacube_platform }}_latitude_max, #{{ satellite.datacube_platform }}_longitude_min, #{{ satellite.datacube_platform }}_longitude_max").change(function() {
-              map.bounding_box_from_form($("#{{ satellite.datacube_platform }}_latitude_min").val(), $("#{{ satellite.datacube_platform }}_latitude_max").val(), $("#{{ satellite.datacube_platform }}_longitude_min").val(), $(
-                  "#{{ satellite.datacube_platform }}_longitude_max").val());
-          });
-          $("#{{ satellite.datacube_platform }}_latitude_min").attr({
-              "min": {{ area.latitude_min }},
-              "max": {{ area.latitude_max }}
-          });
-          $("#{{ satellite.datacube_platform }}_latitude_max").attr({
-              "min": {{ area.latitude_min }},
-              "max": {{ area.latitude_max }}
-          });
-          $("#{{ satellite.datacube_platform }}_longitude_min").attr({
-              "min": {{ area.longitude_min }},
-              "max": {{ area.longitude_max }}
-          });
-          $("#{{ satellite.datacube_platform }}_longitude_max").attr({
-              "min": {{ area.longitude_min }},
-              "max": {{ area.longitude_max }}
-          });
-        {% endfor %}
-
         $(".options").on('submit', handleFormSubmission);
-
-        var $mapButtons = $('#mapButtons');
-        $mapButtons.on('show.bs.collapse','.collapse', function() {
-            $mapButtons.find('.collapse.in').removeClass('in').attr("aria-expanded","false");
-        });
     });
 
-    // Sets up django with csrf.
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie != '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    var csrftoken = getCookie('csrftoken');
-
-    function csrfSafeMethod(method) {
-        // these HTTP methods do not require CSRF protection
-        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-    }
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            }
-        }
-    });
-    //end csrf setup.
-
-    //add a task bar that includes an updatable progress bar, title, and cancel button w/ onclick functions.
-    function add_task_bar(id, description) {
-        /*var ih = "<li id='task_" + id + "'><label for='task_" + id + "'>" + description + "</label><button class='pull-right' id='cancel_" + id + "' style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Cancel</button><div class='progressbar_" +
-            id + "'></div></li>";*/
-        var ih = "<li id='task_" + id + "'>" +
-                 "<label for='task_" + id + "'>" + description + "</label>" +
-                 "<button class='pull-right' id='cancel_" + id + "' style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Cancel</button>" +
-                 "<div class='progress'>" +
-                 "<div class='progress-bar progress-bar-danger active progressbar_" + id + " progress-bar-striped' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='width:0%'>" +
-                 "</div>" +
-                 "</div>" +
-                 "</li>";
-
-        $("#running_tasks").append(ih);
-
-        /*$("." + sanitize_id("progressbar_" + id)).progressbar({
-            value: 0
-        });*/
-        $("#" + sanitize_id("cancel_" + id)).click(function() {
-            workers[id].terminate();
-            if (tasks[id] != null)
-                $.get('/' + window.tool_name + '/cancel', {
-                    'id': tasks[id].id
-                }, function(result) {
-                    //console.log(result);
-                });
-            remove_task_bar(id);
-            remove_result(id);
-            loadHistoryPanel();
-        })
-    }
-
-    //removes the task by that was added by id.
-    function remove_task_bar(id) {
-        $("#" + sanitize_id("task_" + id)).remove();
-    }
-
-    //updates the value on a progress bar by id.
-    function update_progress_bar(id, value) {
-        $("." + sanitize_id("progressbar_" + id)).css('width', value+'%').attr('aria-valuenow', value);
-    }
 
     //Handles the actual panel - hides satellite forms not being used.
     function refresh_input_panel(sel) {
@@ -222,8 +102,6 @@
       $(".hidden_form_platform").val(platform)
       $(".hidden_form_id").val("{{ area.id }}")
     }
-
-
 
     var selected_result = undefined;
     //Required for the use of the results list module.
@@ -347,14 +225,41 @@
       }
     }
 
-    function set_dialog_modal_content(title, body) {
-        jQuery("#dialog_modal .modal-title").text(title);
-        jQuery("#dialog_modal .modal-body p").text(body);
-        jQuery("#dialog_modal").modal();
+    //add a task bar that includes an updatable progress bar, title, and cancel button w/ onclick functions.
+    function add_task_bar(id, description) {
+        var ih = "<li id='task_" + id + "'>" +
+                 "<label for='task_" + id + "'>" + description + "</label>" +
+                 "<button class='pull-right' id='cancel_" + id + "' style='background:none; border:none; padding:0; margin:0; cursor:pointer;'>Cancel</button>" +
+                 "<div class='progress'>" +
+                 "<div class='progress-bar progress-bar-danger active progressbar_" + id + " progress-bar-striped' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='width:0%'>" +
+                 "</div>" +
+                 "</div>" +
+                 "</li>";
+
+        $("#running_tasks").append(ih);
+
+        $("#" + sanitize_id("cancel_" + id)).click(function() {
+            workers[id].terminate();
+            if (tasks[id] != null)
+                $.get('/' + window.tool_name + '/cancel', {
+                    'id': tasks[id].id
+                }, function(result) {
+                    //console.log(result);
+                });
+            remove_task_bar(id);
+            remove_result(id);
+            loadHistoryPanel();
+        })
     }
 
-    function hide_dialog_modal() {
-        jQuery("#dialog_modal").modal('hide');
+    //removes the task by that was added by id.
+    function remove_task_bar(id) {
+        $("#" + sanitize_id("task_" + id)).remove();
+    }
+
+    //updates the value on a progress bar by id.
+    function update_progress_bar(id, value) {
+        $("." + sanitize_id("progressbar_" + id)).css('width', value+'%').attr('aria-valuenow', value);
     }
 
     //end task monitoring
@@ -364,6 +269,16 @@
 
       jQuery(".hidden_form_title").val(title);
       jQuery(".hidden_form_description").val(description);
+    }
+
+    function set_dialog_modal_content(title, body) {
+        jQuery("#dialog_modal .modal-title").text(title);
+        jQuery("#dialog_modal .modal-body p").text(body);
+        jQuery("#dialog_modal").modal();
+    }
+
+    function hide_dialog_modal() {
+        jQuery("#dialog_modal").modal('hide');
     }
 
     //required for ids with 'special' chars.
