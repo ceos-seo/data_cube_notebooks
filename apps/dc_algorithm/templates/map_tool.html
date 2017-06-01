@@ -55,9 +55,7 @@
     $(function() {
 
         refresh_input_panel();
-        loadResultsPanel();
-        loadOutputPanel();
-
+        
         //Persistent tasks: generated here.
         if (typeof(Worker) !== undefined) {
             {% for task in running_tasks %}
@@ -225,22 +223,7 @@
       $(".hidden_form_id").val("{{ area.id }}")
     }
 
-    //loads the output panel by posting a list of tasks and inserting
-    //the rendered response in its div.
-    function loadOutputPanel() {
-        var ids = Object.keys(tasks);
-        var valid_ids = [];
-        for (var index = 0; index < ids.length; index++) {
-            if (tasks[ids[index]].hasOwnProperty('result_path')) {
-                valid_ids.push(ids[index]);
-            }
-        }
-        $.get('output_list', {
-            'task_ids': valid_ids
-        }, function(result) {
-            $('#output_panel').html(result);
-        })
-    }
+
 
     var selected_result = undefined;
     //Required for the use of the results list module.

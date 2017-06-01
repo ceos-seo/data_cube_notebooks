@@ -20,15 +20,6 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License.
 -->
-<!-- Author: AHDS
-     Creation date: 2016-06-23
-     Modified by:
-     Last modified date: -->
-<!-- Requires other implementation of set_selected_result(id), remove_result(id), toggle_visibility, sanitize_id-->
-
-{% block css %}
-{% endblock %}
-
 <div id="task_list" class="boxed_list panel-group">
   {% for task in tasks %}
     <div class="panel panel-default">
@@ -72,39 +63,4 @@ under the License.
 <script>
   {% block functions_block %}
   {% endblock %}
-</script>
-<script>
-
-  $(".tooltipped").tooltip();
-
-  function resultClicked(id) {
-      //$("#task_list .selectTask").removeClass('sel_high');
-      //$("#result_" + id).addClass('sel_high');
-      set_selected_result(id);
-      $('.scenes_list').hide();
-      $('.scene_meta').hide();
-      $('#' + sanitize_id('scenes_' + id)).show();
-      $('#' + sanitize_id('meta_' + id)).show();
-  }
-
-  function load_scene_from_task(id, date) {
-    //hide the current task, add the new single scene task.
-    toggle_visibility(id, false);
-    if (typeof(Worker) !== undefined) {
-        var w = new Worker("/static/assets/js/dcw.js");
-        w.postMessage({
-            'tool_name': window.tool_name,
-            'status' : "SINGLE",
-            'result_type': "Single Scene task",
-            'id': id,
-            'date': date,
-            'csrf': csrftoken
-        });
-        w.addEventListener("message", task_event_listener);
-        $('#tabs_main li:eq(0) a').tab('show')
-    } else {
-        set_dialog_modal_content("Alert", "This browser does not support webworkers.");
-    }
-    //console.log(id, date);
-  }
 </script>
