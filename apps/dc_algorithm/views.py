@@ -121,15 +121,15 @@ class ToolView(View, ToolClass):
     panels = [{
         'id': 'history_panel',
         'name': 'History',
-        'template': 'history_panel.html'
+        'template': 'panels/history_panel.html'
     }, {
         'id': 'results_panel',
         'name': 'Results',
-        'template': 'results_panel.html'
+        'template': 'panels/results_panel.html'
     }, {
         'id': 'output_panel',
         'name': 'Output',
-        'template': 'output_panel.html'
+        'template': 'panels/output_panel.html'
     }]
 
     @method_decorator(login_required)
