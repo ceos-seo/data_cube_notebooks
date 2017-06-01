@@ -283,12 +283,10 @@
         selected_result = id;
         map.toggle_outline_by_id(id, true);
         map.zoom_to_image_by_id(id);
-        $("#static-map-img").attr("src", tasks[id].result_path);
     }
 
     //adds a task to the map by its id. if boolean filled is true, use the filled version.
     function add_result_to_map(id, result_path) {
-        $("#static-map-img").attr("src", result_path);
         map.insert_image_with_bounds(id, result_path, tasks[id].latitude_min, tasks[id].latitude_max, tasks[id].longitude_min, tasks[id].longitude_max);
     }
 
@@ -299,7 +297,6 @@
             map.remove_image_by_id(tasks[id].id);
         delete tasks[id];
         delete workers[id];
-        $("#static-map-img").attr("src", '{{ area.detail_imagery }}');
         loadResultsPanel();
         loadOutputPanel();
     }
@@ -523,8 +520,6 @@
                    solution would be to group the cesium button with the icons but that wont' work as we still want the buttons
                    if the cesium window is disabled. -->
               <div class="buttons_on_map" style="{% if not application.color_scale %}right: 44px;{% endif %}">
-                <button class="map_button tooltipped" title="Toggle globe view" onclick="toggle_map_provider()"><span class="glyphicon map_icon glyphicon-globe"></span></button>
-                <button class="map_button tooltipped" data-toggle="collapse" data-target="#geographic_context" style="text-decoration:none;" title="Show geographic context" onclick=""><span class="glyphicon map_icon glyphicon-map-marker tooltipped"></span></button>
                 {% if application.color_scale %}<button class="map_button tooltipped" data-toggle="collapse" data-target="#color_scales" style="text-decoration:none;" title="Show color scale(s)" onclick=""><span class="glyphicon map_icon glyphicon-tint tooltipped"></span></button>{% endif %}
               </div>
               {% if application.color_scale %}
@@ -544,9 +539,6 @@
             </div>
             <div id="map-cesium" class="map">
                 <span id="lat_lon_container" class="label label-default lat_lon_map_indicator">(0.0000, 0.0000)</span>
-            </div>
-            <div id="static-map" class="map">
-              <img id="static-map-img" class="image-display-vertically-centered" src="{{ area.detail_imagery }}" alt="Submit a task and click the result in either the Results or Output panel to load a mosaic.">
             </div>
           </div>
         </div>
