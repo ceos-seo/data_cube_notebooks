@@ -1,190 +1,124 @@
-h2
-{
+h2 {
     font-size: 20px;
     margin-top: 10px;
     margin-bottom: 0px;
 }
-
-hr
-{
+hr {
     margin-top: 5px;
     margin-bottom: 5px;
 }
 
 /* Filter specific */
-#filters-panel
-{
+
+#filters-panel {
     padding-top: 10px;
     padding-bottom: 10px;
 }
-
-#running_queries
-{
+#running_tasks {
     height: 225px;
     border: 1px solid coral;
     padding-left: 0;
     list-style: none;
     overflow-y: auto;
 }
-
-#running_queries li {
-  padding: 2px;
+#running_tasks li {
+    padding: 2px;
 }
-
-#running_queries li .progress {
-  margin-bottom: 0px;
+#running_tasks li .progress {
+    margin-bottom: 0px;
 }
-
-#past_queries
-{
-    height:775px;
+#task_history {
+    height: 775px;
     border: 1px solid coral;
-    overflow-y:auto;
+    overflow-y: auto;
 }
-
-#task_list
-{
+#task_list {
     height: 290px;
     border: 1px solid coral;
     overflow-y: auto;
 }
-
-#scenes_list
-{
+#scenes_list {
     height: 250px;
     border: 1px solid coral;
     overflow-y: auto;
 }
-
-#query_metadata
-{
+#task_metadata {
     height: 150px;
     border: 1px solid coral;
     overflow-y: auto;
 }
-
-#infoPanelContent
-{
+#infoPanelContent {
     height: 100%;
     border: 1px solid lightgrey;
     padding: 5px;
 }
 
 /* Output box css */
-#output_list
-{
+
+#output_list {
     height: 400px;
     overflow-y: auto;
     border: 1px solid coral;
     margin-bottom: 0px;
 }
-
 #data_guide {
-  height: 275px;
-  overflow-y: auto;
-  border: 1px solid coral;
-  margin-bottom: 0px;
+    height: 275px;
+    overflow-y: auto;
+    border: 1px solid coral;
+    margin-bottom: 0px;
 }
-
 #data_guide .helper {
-  float: none;
+    float: none;
 }
-
-#download_sel
-{
+#download_sel {
     margin-top: 10px;
 }
 
 /* Map css */
-.buttons_on_map {
-  position: absolute;
-  z-index: 10000;
-  right: 5px;
-  top: 8px;
+.leaflet-control.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+}
+.leaflet-control.info.lat_lon_container {
+    font-size: 17px;
 }
 
-.map_button {
-  display: inline-block;
-  position: relative;
-  background: #303336;
-  border: 1px solid #444;
-  color: #edffff;
-  fill: #edffff;
-  border-radius: 4px;
-  padding: 2px 3px;
-  cursor: pointer;
-  overflow: hidden;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+.leaflet-control.info img {
+  max-height: 250px;
+  max-width:250px;
 }
-
-.map_button:focus {
-    color: #fff; /* For text buttons */
-    fill: #fff; /* For SVG buttons */
-    border-color: #ea4;
-    outline: none;
+.leaflet-control.info.2d_plot img {
+  max-height: 250px;
+  max-width:500px;
 }
-
-.map_button:hover {
-    color: #fff; /* For text buttons */
-    fill: #fff; /* For SVG buttons */
-    background: #48b;
-    border-color: #aef;
-    box-shadow: 0 0 8px #fff;
-}
-
-.map_button:active {
-    color: #000; /* For text buttons */
-    fill: #000; /* For SVG buttons */
-    background: #adf;
-    border-color: #fff;
-    box-shadow: 0 0 8px #fff;
-}
-
-.panel_on_map {
-  position: absolute;
-  z-index: 10000;
-  right:5px;
-  top: 45px;
-  border: 1px solid #444;
-  background-color: rgba(38, 38, 38, 0.75);
-  padding: 5px;
-  border-radius: 10px;
-  color:white;
+.leaflet-bar.leaflet-control.leaflet-control-custom {
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .glyphicon_container {
-  text-decoration: none;
+    text-decoration: none;
 }
-
 .glyphicon.map_icon {
-  font-size: 27px;
-  display: block;
-  text-align: center;
-  margin: 0;
-  color: #fff;
-  cursor:pointer;
+    cursor: pointer;
+    font-size: 20px;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 30px;
+    width: 30px;
 }
-
-.lat_lon_map_indicator {
-    position: absolute;
-    z-index: 10000;
-    right: 5px;
-    bottom: 5px;
-    font-size: 20px !important;
-}
-
 .fullscreen-col {
-  overflow: auto;
+    overflow: auto;
 }
-
 .side-panel {
-  padding-top: 10px;
-  padding-bottom: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
-
 .map {
     position: relative;
     z-index: 1;
@@ -197,12 +131,9 @@ hr
     background-size: cover;
     background-color: lightgray;
 }
-
-.form-group
-{
+.form-group {
     padding-left: 10px;
 }
-
 .image-display-vertically-centered {
     position: absolute;
     top: 0;
@@ -215,92 +146,69 @@ hr
     max-width: 100%;
     border: rgb(255, 127, 80) 2px outset;
 }
-
 .form-section-header {
-  font-size: 1.5em;
-  font-weight: bold;
-}
-
-.page-header {
-  margin: 0;
-  padding-bottom:0;
-  padding-top: 10px;
-}
-
-.panel-title.info-panel
-{
+    font-size: 1.5em;
     font-weight: bold;
 }
-
-.panel-body
-{
+.page-header {
+    margin: 0;
+    padding-bottom: 0;
+    padding-top: 10px;
+}
+.panel-title.info-panel {
+    font-weight: bold;
+}
+.panel-body {
     overflow-y: auto;
 }
-
 .image-display {
     display: block;
     margin: 0 auto;
-  	max-width: 100%;
+    max-width: 100%;
     max-height: 100%;
-    border: rgb(255,127,80) 2px outset;
+    border: rgb(255, 127, 80) 2px outset;
 }
-
-
 .scene_list_table {
-  margin-bottom: 0px;
+    margin-bottom: 0px;
 }
-
 .scene_list_table thead tr th {
-  padding-bottom: 0;
+    padding-bottom: 0;
 }
-
 .scene_list_table tbody tr td {
-  border-top: none;
-  padding: 2px;
-  padding-left: 25px;
-  padding-right: 10px;
+    border-top: none;
+    padding: 2px;
+    padding-left: 25px;
+    padding-right: 10px;
 }
-
-
 .right_aligned_text {
     text-align: right;
 }
-
-.form-horizontal .form-group
-{
+.form-horizontal .form-group {
     padding-top: 0px;
     padding-bottom: 0px;
     margin-bottom: 0px;
 }
-
-.btn-primary
-{
+.btn-primary {
     margin-top: 10px;
 }
 
 /* Generic */
-.nav-tabs>li.active>a
-{
+
+.nav-tabs>li.active>a {
     background-color: coral;
     color: white;
 }
-
-.nav-tabs>li.active>a:focus
-			  {
-			      background-color: coral;
-			      color: white;
-			  }
-
-.nav-tabs>li.active>a:hover
-			  {
-			      background-color: coral;
-			      color: white;
-			  }
-
+.nav-tabs>li.active>a:focus {
+    background-color: coral;
+    color: white;
+}
+.nav-tabs>li.active>a:hover {
+    background-color: coral;
+    color: white;
+}
 .alternating li:nth-child(odd) {
     background: rgba(255, 127, 80, 0.15);
 }
-
 .helper {
     float: left;
     display: inline-block;

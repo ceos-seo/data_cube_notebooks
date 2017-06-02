@@ -1,0 +1,25 @@
+[{
+    "model": "ndvi_anomaly.toolinfo",
+    "pk": 9,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/ndvi_anomaly_1.png",
+        "image_title": "NDVI Anomaly",
+        "image_description": "The NDVI Anomaly tool allows users to calculate and visualize the NDVI change between a single scene and a user defined baseline composite of scenes preceding it."
+    }
+}, {
+    "model": "ndvi_anomaly.toolinfo",
+    "pk": 10,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/ndvi_anomaly_2.png",
+        "image_title": "Baselines for Seasons",
+        "image_description": "Define a custom baseline of specific months to create seasonal baselines unique to your region."
+    }
+}, {
+    "model": "ndvi_anomaly.toolinfo",
+    "pk": 11,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/ndvi_anomaly_3.png",
+        "image_title": "Specific Scene Selection",
+        "image_description": "Pick a specific acquisition date for analysis and calculate the difference and percentage change from a composite of all acquisitions prior to that date."
+    }
+}]

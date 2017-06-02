@@ -18,7 +18,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
 """data_cube_ui URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -41,10 +40,7 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.home, name='home'),
-    url(r'^submit_feedback', views.submit_feedback, name='submit_feedback'),
     url(r'^admin/', admin.site.urls),
-    url(r'^(?P<app_id>[\w\-]+)/region_selection/$', views.region_selection, name='region_selection'),
     url(r'^custom_mosaic_tool/', include('apps.custom_mosaic_tool.urls')),
     url(r'^water_detection/', include('apps.water_detection.urls')),
     url(r'^tsm/', include('apps.tsm.urls')),
@@ -54,4 +50,6 @@ urlpatterns = [
     url(r'^ndvi_anomaly/', include('apps.ndvi_anomaly.urls')),
     url(r'^task_manager/', include('apps.task_manager.urls')),
     url(r'^accounts/', include('apps.accounts.urls')),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    url(r'^', include('apps.pages.urls')),
+] + static(
+    settings.STATIC_URL, document_root=settings.STATIC_ROOT)

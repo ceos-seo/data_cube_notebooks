@@ -1,0 +1,29 @@
+[{
+    "model": "slip.toolinfo",
+    "pk": 7,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/slip_1.png",
+        "image_title": "Landslide Detection",
+        "image_description": "The SLIP tools uses algorithms to combine optical and elevation data to determine possible locations for recent landslides"
+    }
+}, {
+    "model": "slip.toolinfo",
+    "pk": 8,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/slip_2.png",
+        "image_title": "Threshold Control",
+        "image_description": "Set the baseline thresholds to expand or narrow results of possible landslide data."
+    }
+}, {
+    "model": "slip.baselinemethod",
+    "pk": "average",
+    "fields": {
+        "name": "Average"
+    }
+}, {
+    "model": "slip.baselinemethod",
+    "pk": "composite",
+    "fields": {
+        "name": "Composite"
+    }
+}]
