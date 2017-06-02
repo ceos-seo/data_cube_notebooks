@@ -57,13 +57,7 @@
         "latitude_max": -2.0,
         "longitude_min": -71.5,
         "longitude_max": -69.0,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/amazon_river_main.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/amazon_river_thumbnail_74W_66W_7S_1N.png",
-        "detail_latitude_min": -4.5,
-        "detail_latitude_max": -2.0,
-        "detail_longitude_min": -71.5,
-        "detail_longitude_max": -69.0,
         "satellites": [1]
     }
 }, {
@@ -75,13 +69,7 @@
         "latitude_max": 25.6,
         "longitude_min": 89.25,
         "longitude_max": 92.0,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/bangladesh_main_89_22.925_92.25_26.175.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/bangladesh_thumbnail_88E_93E_22N27N.png",
-        "detail_latitude_min": 22.925,
-        "detail_latitude_max": 26.175,
-        "detail_longitude_min": 89.0,
-        "detail_longitude_max": 92.25,
         "satellites": [1, 3]
     }
 }, {
@@ -93,13 +81,19 @@
         "latitude_max": 2.5,
         "longitude_min": -77.2,
         "longitude_max": -73.7,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/colombia_main.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/colombia_thumbnail_78W_71W_2S_4N.png",
-        "detail_latitude_min": -1.0,
-        "detail_latitude_max": 2.5,
-        "detail_longitude_min": -77.2,
-        "detail_longitude_max": -73.7,
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "ghana",
+    "fields": {
+        "name": "Ghana",
+        "latitude_min": 7.7,
+        "latitude_max": 9.7,
+        "longitude_min": -3.6,
+        "longitude_max": -1.4,
+        "thumbnail_imagery": "http://192.168.100.202/static/assets/images/thumbnails/area_thumbnails/ghana_thumbnail_-5_6_0_11.png",
         "satellites": [1]
     }
 }, {
@@ -111,13 +105,7 @@
         "latitude_max": 1.0,
         "longitude_min": 34.0,
         "longitude_max": 37.0,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/34,-1.5,37,1.5.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/kenya_micro_cube_32E_39E_3_5S_3_5N.png",
-        "detail_latitude_min": -1.5,
-        "detail_latitude_max": 1.5,
-        "detail_longitude_min": 34.0,
-        "detail_longitude_max": 37.0,
         "satellites": [1]
     }
 }, {
@@ -129,13 +117,7 @@
         "latitude_max": 0.75,
         "longitude_min": 36.0,
         "longitude_max": 36.25,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/35.5,0,37,1.5.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/lake_baringo_thumbnail_34E_37E_1S_1N.png",
-        "detail_latitude_min": 0.0,
-        "detail_latitude_max": 1.5,
-        "detail_longitude_min": 35.5,
-        "detail_longitude_max": 37.0,
         "satellites": [1]
     }
 }, {
@@ -147,13 +129,7 @@
         "latitude_max": 13.0,
         "longitude_min": 14.25,
         "longitude_max": 14.5,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/13.75,12.25,15,13.5.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/lake_chad_thumbail_14E_15E_12N_13N.png",
-        "detail_latitude_min": 12.25,
-        "detail_latitude_max": 13.5,
-        "detail_longitude_min": 13.75,
-        "detail_longitude_max": 15.0,
         "satellites": [1]
     }
 }, {
@@ -165,13 +141,7 @@
         "latitude_max": 13.975,
         "longitude_min": 13.65,
         "longitude_max": 15.5,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/lake_chad_main.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/lake_chad_full_thumbnail_0_1E_35N_37N.png",
-        "detail_latitude_min": 12.125,
-        "detail_latitude_max": 13.975,
-        "detail_longitude_min": 13.65,
-        "detail_longitude_max": 15.5,
         "satellites": [1, 2, 3, 4]
     }
 }, {
@@ -183,13 +153,7 @@
         "latitude_max": 5.3,
         "longitude_min": -75.75,
         "longitude_max": -73.3,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/cortijo_main_-76_2.75_-73_5.75.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/cortijo_thumbnail_-77W_-72W_1.5N_6.5N.png",
-        "detail_latitude_min": 2.75,
-        "detail_latitude_max": 5.75,
-        "detail_longitude_min": -76.0,
-        "detail_longitude_max": -73.0,
         "satellites": [1]
     }
 }, {
@@ -201,13 +165,7 @@
         "latitude_max": -31.24,
         "longitude_min": 141.8,
         "longitude_max": 143.1,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/meninee_lakes_main_141.25_-33.5_143.75_-31.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/meninee_lakes_thumbnail_140.25E_144.25E_33.5S_30S.png",
-        "detail_latitude_min": -33.5,
-        "detail_latitude_max": -31.0,
-        "detail_longitude_min": 141.25,
-        "detail_longitude_max": 143.75,
         "satellites": [1]
     }
 }, {
@@ -219,13 +177,7 @@
         "latitude_max": 5.0,
         "longitude_min": -72.0,
         "longitude_max": -71.0,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/-72,4-71,5.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/meta_river_thumbnail_75W_67W_0_5N_8_5N.png",
-        "detail_latitude_min": 4.0,
-        "detail_latitude_max": 5.0,
-        "detail_longitude_min": -72.0,
-        "detail_longitude_max": -71.0,
         "satellites": [1, 2, 4]
     }
 }, {
@@ -237,13 +189,7 @@
         "latitude_max": 6.0,
         "longitude_min": -75.925,
         "longitude_max": -75.825,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/salgar_colombia_main.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/colombia_thumbnail_78W_71W_2S_4N.png",
-        "detail_latitude_min": 5.9,
-        "detail_latitude_max": 6.0,
-        "detail_longitude_min": -75.925,
-        "detail_longitude_max": -75.825,
         "satellites": [1]
     }
 }, {
@@ -255,13 +201,7 @@
         "latitude_max": 7.25,
         "longitude_min": 0.0,
         "longitude_max": 3.0,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/togo_main.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/togo_thumbnail_1W_4E_3N_8N.png",
-        "detail_latitude_min": 4.25,
-        "detail_latitude_max": 7.25,
-        "detail_longitude_min": 0.0,
-        "detail_longitude_max": 3.0,
         "satellites": [1]
     }
 }, {
@@ -273,13 +213,7 @@
         "latitude_max": -20.0,
         "longitude_min": -177.375,
         "longitude_max": -174.375,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/tonga_main.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/tonga_thumbnail_177W_174W_23S_20S.png",
-        "detail_latitude_min": -23.0,
-        "detail_latitude_max": -20.0,
-        "detail_longitude_min": -177.375,
-        "detail_longitude_max": -174.375,
         "satellites": [1]
     }
 }, {
@@ -291,13 +225,7 @@
         "latitude_max": 12.62,
         "longitude_min": 106.75,
         "longitude_max": 109.0,
-        "main_imagery": "/static/assets/images/black.png",
-        "detail_imagery": "/static/assets/images/vietnam_main_106.5_10.3_109_12.8.png",
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/vietnam_thumbnail_105E_110E_9N_14N.png",
-        "detail_latitude_min": 10.3,
-        "detail_latitude_max": 12.8,
-        "detail_longitude_min": 106.5,
-        "detail_longitude_max": 109.0,
         "satellites": [1, 2]
     }
 }, {
@@ -315,7 +243,7 @@
     "fields": {
         "name": "Custom Mosaic",
         "color_scale": null,
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam", "ghana"],
         "satellites": [1, 2, 3, 4]
     }
 }, {
@@ -324,7 +252,7 @@
     "fields": {
         "name": "Fractional Cover",
         "color_scale": "/static/assets/images/color_scales/fractional_cover_color_scale.png",
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam", "ghana"],
         "satellites": [1, 2, 3, 4]
     }
 }, {
@@ -333,7 +261,7 @@
     "fields": {
         "name": "NDVI Anomaly",
         "color_scale": "/static/assets/images/color_scales/ndvi_color_scale.png",
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam", "ghana"],
         "satellites": [1, 2, 3]
     }
 }, {
