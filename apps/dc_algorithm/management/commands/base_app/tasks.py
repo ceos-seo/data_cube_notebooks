@@ -11,7 +11,7 @@ import imageio
 from collections import OrderedDict
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
+from utils.dc_utilities import ( create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
                                 add_timestamp_data_to_xr, clear_attrs)
 from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
 
@@ -303,7 +303,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     for index, chunk in enumerate(total_chunks):
         metadata = task.combine_metadata(metadata, chunk[1])
-        chunk_data.append(xr.open_dataset(chunk[0]))
+        chunk_data.append(, autoclose=True(chunk[0], autoclose=True))
 
     combined_data = combine_geographic_chunks(chunk_data)
 
@@ -320,7 +320,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
                 path = os.path.join(task.get_temp_path(),
                                     "animation_{}_{}.nc".format(str(geo_chunk_index), str(base_index + index)))
                 if os.path.exists(path):
-                    animated_data.append(xr.open_dataset(path))
+                    animated_data.append(xr.open_dataset(path, autoclose=True))
             path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
             if len(animated_data) > 0:
                 combine_geographic_chunks(animated_data).to_netcdf(path)
@@ -360,7 +360,7 @@ def recombine_time_chunks(chunks, task_id=None):
         for index in range((task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1)):
             path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
             if os.path.exists(path):
-                animated_data = xr.open_dataset(path)
+                animated_data = xr.open_dataset(path, autoclose=True)
                 if task.animated_product.animation_id == "cumulative":
                     animated_data['time'] = [0]
                     clear_mask = create_cfmask_clean_mask(
@@ -379,7 +379,7 @@ def recombine_time_chunks(chunks, task_id=None):
     combined_data = None
     for index, chunk in enumerate(total_chunks):
         metadata.update(chunk[1])
-        data = xr.open_dataset(chunk[0])
+        data = xr.open_dataset(chunk[0], autoclose=True)
         if combined_data is None:
             # TODO: If there is no animation, remove this.
             if task.animated_product.animation_id != "none":
@@ -416,7 +416,7 @@ def create_output_products(data, task_id=None):
     """
     print("CREATE_OUTPUT")
     full_metadata = data[1]
-    dataset = xr.open_dataset(data[0])
+    dataset = xr.open_dataset(data[0], autoclose=True)
     task = AppNameTask.objects.get(pk=task_id)
 
     # TODO: Add any paths that you've added in your models.py Result model and remove the ones that aren't there.

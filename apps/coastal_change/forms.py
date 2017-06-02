@@ -61,7 +61,7 @@ class DataSelectionForm(DataSelectionForm):
 
         if area:
             self.fields['latitude_min'].widget.attrs.update({'min': area.latitude_min, 'max': area.latitude_max})
-            self.fields['latitude_max'].widget.attrs.update({'min': area.latitude_max, 'max': area.latitude_max})
+            self.fields['latitude_max'].widget.attrs.update({'min': area.latitude_min, 'max': area.latitude_max})
             self.fields['longitude_min'].widget.attrs.update({'min': area.longitude_min, 'max': area.longitude_max})
             self.fields['longitude_max'].widget.attrs.update({'min': area.longitude_min, 'max': area.longitude_max})
 

@@ -12,7 +12,7 @@ import imageio
 from collections import OrderedDict
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
+from utils.dc_utilities import ( create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
                                 write_single_band_png_from_xr, add_timestamp_data_to_xr, clear_attrs)
 from utils.dc_chunker import (create_geographic_chunks, group_datetimes_by_month, combine_geographic_chunks)
 from utils.dc_ndvi_anomaly import compute_ndvi_anomaly
@@ -317,7 +317,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     for index, chunk in enumerate(total_chunks):
         metadata = task.combine_metadata(metadata, chunk[1])
-        chunk_data.append(xr.open_dataset(chunk[0]))
+        chunk_data.append(xr.open_dataset(chunk[0], autoclose=True))
 
     combined_data = combine_geographic_chunks(chunk_data)
 
@@ -341,7 +341,7 @@ def create_output_products(data, task_id=None):
     """
     print("CREATE_OUTPUT")
     full_metadata = data[1]
-    dataset = xr.open_dataset(data[0])
+    dataset = xr.open_dataset(data[0], autoclose=True)
     task = NdviAnomalyTask.objects.get(pk=task_id)
 
     task.result_path = os.path.join(task.get_result_path(), "ndvi_difference.png")

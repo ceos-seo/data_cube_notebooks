@@ -286,15 +286,16 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     for index, chunk in enumerate(total_chunks):
         metadata = task.combine_metadata(metadata, chunk[1])
-        chunk_data.append(xr.open_dataset(chunk[0]))
+        chunk_data.append(xr.open_dataset(chunk[0], autoclose=True))
 
     combined_data = combine_geographic_chunks(chunk_data)
 
     if task.animated_product.animation_id != "none":
         path = os.path.join(task.get_temp_path(), "animation_{}.png".format(time_chunk_id))
         animated_data = mask_mosaic_with_coastlines(
-            combined_data) if task.animated_product.animation_id == "coastline_change" else mask_mosaic_with_coastal_change(
-                combined_data)
+            combined_data
+        ) if task.animated_product.animation_id == "coastline_change" else mask_mosaic_with_coastal_change(
+            combined_data)
         write_png_from_xr(path, animated_data, bands=['red', 'green', 'blue'], scale=(0, 4096))
 
     path = os.path.join(task.get_temp_path(), "recombined_geo_{}.nc".format(time_chunk_id))
@@ -350,7 +351,7 @@ def create_output_products(data, task_id=None):
     """
     print("CREATE_OUTPUT")
     full_metadata = data[1]
-    dataset = xr.open_dataset(data[0])
+    dataset = xr.open_dataset(data[0], autoclose=True)
     task = CoastalChangeTask.objects.get(pk=task_id)
 
     task.result_path = os.path.join(task.get_result_path(), "coastline_change.png")

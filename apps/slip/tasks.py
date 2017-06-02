@@ -11,7 +11,7 @@ import imageio
 from collections import OrderedDict
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
+from utils.dc_utilities import ( create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
                                 add_timestamp_data_to_xr, clear_attrs)
 from utils.dc_chunker import (create_geographic_chunks, generate_baseline, combine_geographic_chunks)
 from utils.dc_slip import compute_slip, mask_mosaic_with_slip
@@ -313,7 +313,7 @@ def recombine_time_chunks(chunks, task_id=None):
     combined_slip = None
     for index, chunk in enumerate(reversed(total_chunks)):
         metadata.update(chunk[1])
-        data = xr.open_dataset(chunk[0])
+        data = xr.open_dataset(chunk[0], autoclose=True)
         if combined_data is None:
             combined_data = data.drop('slip')
             combined_slip = data.slip.copy(deep=True)
@@ -359,7 +359,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     for index, chunk in enumerate(total_chunks):
         metadata = task.combine_metadata(metadata, chunk[1])
-        chunk_data.append(xr.open_dataset(chunk[0]))
+        chunk_data.append(xr.open_dataset(chunk[0], autoclose=True))
 
     combined_data = combine_geographic_chunks(chunk_data)
 
@@ -383,7 +383,7 @@ def create_output_products(data, task_id=None):
     """
     print("CREATE_OUTPUT")
     full_metadata = data[1]
-    dataset = xr.open_dataset(data[0])
+    dataset = xr.open_dataset(data[0], autoclose=True)
     task = SlipTask.objects.get(pk=task_id)
 
     task.result_path = os.path.join(task.get_result_path(), "slip_result.png")

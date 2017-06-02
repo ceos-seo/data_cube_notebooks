@@ -53,7 +53,7 @@ under the License.
           	  {% for field in task.get_unique_fields_as_list %}
             	  <td>{{ field }}</td>
           	  {% endfor %}
-              <td><a href="/{{application_id}}/task_details/{{task.pk}}" class="btn btn-primary">Details</a></td>
+              <td><a {% if not task.complete %}disabled="disabled"{% endif %} href="/{{application_id}}/task_details/{{task.pk}}" class="btn btn-primary">Details</a></td>
           	</tr>
         	{% endfor %}
         </tbody>

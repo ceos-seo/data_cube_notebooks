@@ -313,8 +313,10 @@ DrawMap.prototype.toggle_visibility_by_id = function(id, val) {
  * Remove an image and its outline by id.
  */
 DrawMap.prototype.remove_image_by_id = function(id) {
-    this.map.removeLayer(this.images[id].outline);
-    this.map.removeLayer(this.images[id].image);
+    if (this.images[id]) {
+        this.map.removeLayer(this.images[id].outline);
+        this.map.removeLayer(this.images[id].image);
+    }
 }
 
 /**
@@ -338,7 +340,9 @@ DrawMap.prototype.add_control = function(id, image_url) {
  * Remove 2D plot control div by id.
  */
 DrawMap.prototype.remove_control_by_id = function(id) {
-    this.map.removeControl(this.controls[id]);
+    if (this.controls[id]) {
+        this.map.removeControl(this.controls[id]);
+    }
 }
 
 function constrain_bounds(constraint_bounds, bounds) {

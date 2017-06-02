@@ -65,7 +65,7 @@ class DataSelectionForm(forms.Form):
                                               'required': 'required'}))
         if area:
             self.fields['latitude_min'].widget.attrs.update({'min': area.latitude_min, 'max': area.latitude_max})
-            self.fields['latitude_max'].widget.attrs.update({'min': area.latitude_max, 'max': area.latitude_max})
+            self.fields['latitude_max'].widget.attrs.update({'min': area.latitude_min, 'max': area.latitude_max})
             self.fields['longitude_min'].widget.attrs.update({'min': area.longitude_min, 'max': area.longitude_max})
             self.fields['longitude_max'].widget.attrs.update({'min': area.longitude_min, 'max': area.longitude_max})
 
@@ -85,3 +85,9 @@ class DataSelectionForm(forms.Form):
         if cleaned_data.get('time_start') >= cleaned_data.get('time_end'):
             self.add_error('time_start',
                            "Please enter a valid start and end time range where the start is before the end.")
+
+        area = (cleaned_data.get('latitude_max') - cleaned_data.get('latitude_min')) * (
+            cleaned_data.get('longitude_max') - cleaned_data.get('longitude_min'))
+
+        if area > 4.0:
+            self.add_error(None, 'Tasks over an area greater than four square degrees are not permitted.')
