@@ -4,3 +4,6 @@ CELERY_APP="data_cube_ui"
 DJANGO_SETTINGS_MODULE="data_cube_ui.settings"
 
 CELERYD_CHDIR="/home/localuser/Datacube/data_cube_ui/"
+
+CELERYD_USER="localuser"
+CELERYD_GROUP="localuser"
