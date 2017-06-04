@@ -2,6 +2,7 @@ from django.db.models import F
 
 from celery.task import task
 from celery import chain, group, chord
+from celery.utils.log import get_task_logger
 from datetime import datetime, timedelta
 import shutil
 import xarray as xr
@@ -18,6 +19,8 @@ from utils.dc_chunker import (create_geographic_chunks, group_datetimes_by_year,
 
 from .models import CoastalChangeTask
 from apps.dc_algorithm.models import Satellite
+
+logger = get_task_logger(__name__)
 
 
 @task(name="coastal_change.run")
@@ -138,7 +141,7 @@ def perform_task_chunking(parameters, task_id):
     else:
         initial_year = grouped_dates.pop(task.time_start)
         time_chunks = [[initial_year, grouped_dates[year]] for year in grouped_dates]
-    print("Time chunks: {}, Geo chunks: {}".format(len(time_chunks), len(geographic_chunks)))
+    logger.info("Time chunks: {}, Geo chunks: {}".format(len(time_chunks), len(geographic_chunks)))
 
     dc.close()
     task.update_status("WAIT", "Chunked parameter set.")
@@ -172,7 +175,7 @@ def start_chunk_processing(chunk_details, task_id):
     task.scenes_processed = 0
     task.update_status("WAIT", "Starting processing.")
 
-    print("START_CHUNK_PROCESSING")
+    logger.info("START_CHUNK_PROCESSING")
 
     processing_pipeline = group([
         group([
@@ -217,7 +220,7 @@ def processing_task(task_id=None,
     chunk_id = "_".join([str(geo_chunk_id), str(time_chunk_id)])
     task = CoastalChangeTask.objects.get(pk=task_id)
 
-    print("Starting chunk: " + chunk_id)
+    logger.info("Starting chunk: " + chunk_id)
     if not os.path.exists(task.get_temp_path()):
         return None
 
@@ -237,7 +240,7 @@ def processing_task(task_id=None,
         updated_params.update({'time': time})
         data = dc.get_dataset_by_extent(**updated_params)
         if data is None or 'time' not in data:
-            print("Invalid chunk.")
+            logger.info("Invalid chunk.")
             return data
 
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
@@ -257,7 +260,7 @@ def processing_task(task_id=None,
 
     path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
     output_product.to_netcdf(path)
-    print("Done with chunk: " + chunk_id)
+    logger.info("Done with chunk: " + chunk_id)
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
@@ -274,7 +277,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     Returns:
         path to the output product, metadata dict, and a dict containing the geo/time ids
     """
-    print("RECOMBINE_GEO")
+    logger.info("RECOMBINE_GEO")
     total_chunks = [chunks] if not isinstance(chunks, list) else chunks
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
@@ -300,7 +303,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     path = os.path.join(task.get_temp_path(), "recombined_geo_{}.nc".format(time_chunk_id))
     combined_data.to_netcdf(path)
-    print("Done combining geographic chunks for time: " + str(time_chunk_id))
+    logger.info("Done combining geographic chunks for time: " + str(time_chunk_id))
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
@@ -319,7 +322,7 @@ def recombine_time_chunks(chunks, task_id=None):
         path to the output product, metadata dict, and a dict containing the geo/time ids
 
     """
-    print("RECOMBINE_TIME")
+    logger.info("RECOMBINE_TIME")
     #sorting based on time id - earlier processed first as they're incremented e.g. 0, 1, 2..
     total_chunks = sorted(chunks, key=lambda x: x[0]) if isinstance(chunks, list) else [chunks]
     task = CoastalChangeTask.objects.get(pk=task_id)
@@ -349,7 +352,7 @@ def create_output_products(data, task_id=None):
         data: tuple in the format of processing_task function - path, metadata, and {chunk ids}
 
     """
-    print("CREATE_OUTPUT")
+    logger.info("CREATE_OUTPUT")
     full_metadata = data[1]
     dataset = xr.open_dataset(data[0], autoclose=True)
     task = CoastalChangeTask.objects.get(pk=task_id)
@@ -387,7 +390,7 @@ def create_output_products(data, task_id=None):
                     image = imageio.imread(path)
                     writer.append_data(image)
 
-    print("All products created.")
+    logger.info("All products created.")
     task.complete = True
     task.execution_end = datetime.now()
     task.update_status("OK", "All products have been generated. Your result will be loaded on the map.")

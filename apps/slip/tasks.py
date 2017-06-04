@@ -2,6 +2,7 @@ from django.db.models import F
 
 from celery.task import task
 from celery import chain, group, chord
+from celery.utils.log import get_task_logger
 from datetime import datetime, timedelta
 import shutil
 import xarray as xr
@@ -11,7 +12,7 @@ import imageio
 from collections import OrderedDict
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import ( create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
+from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
                                 add_timestamp_data_to_xr, clear_attrs)
 from utils.dc_chunker import (create_geographic_chunks, generate_baseline, combine_geographic_chunks)
 from utils.dc_slip import compute_slip, mask_mosaic_with_slip
@@ -19,6 +20,8 @@ from utils.dc_mosaic import create_mosaic
 
 from .models import SlipTask
 from apps.dc_algorithm.models import Satellite
+
+logger = get_task_logger(__name__)
 
 
 @task(name="slip.get_acquisition_list")
@@ -152,7 +155,7 @@ def perform_task_chunking(parameters, task_id):
 
     time_chunks = generate_baseline(dates, task.baseline_length)
 
-    print("Time chunks: {}, Geo chunks: {}".format(len(time_chunks), len(geographic_chunks)))
+    logger.info("Time chunks: {}, Geo chunks: {}".format(len(time_chunks), len(geographic_chunks)))
 
     dc.close()
     task.update_status("WAIT", "Chunked parameter set.")
@@ -185,7 +188,7 @@ def start_chunk_processing(chunk_details, task_id):
     task.scenes_processed = 0
     task.update_status("WAIT", "Starting processing.")
 
-    print("START_CHUNK_PROCESSING")
+    logger.info("START_CHUNK_PROCESSING")
 
     processing_pipeline = group([
         group([
@@ -232,7 +235,7 @@ def processing_task(task_id=None,
     chunk_id = "_".join([str(geo_chunk_id), str(time_chunk_id)])
     task = SlipTask.objects.get(pk=task_id)
 
-    print("Starting chunk: " + chunk_id)
+    logger.info("Starting chunk: " + chunk_id)
     if not os.path.exists(task.get_temp_path()):
         return None
 
@@ -282,7 +285,7 @@ def processing_task(task_id=None,
     path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
     clear_attrs(target_data)
     target_data.to_netcdf(path)
-    print("Done with chunk: " + chunk_id)
+    logger.info("Done with chunk: " + chunk_id)
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
@@ -301,7 +304,7 @@ def recombine_time_chunks(chunks, task_id=None):
         path to the output product, metadata dict, and a dict containing the geo/time ids
 
     """
-    print("RECOMBINE_TIME")
+    logger.info("RECOMBINE_TIME")
     #sorting based on time id - earlier processed first as they're incremented e.g. 0, 1, 2..
     total_chunks = sorted(chunks, key=lambda x: x[0]) if isinstance(chunks, list) else [chunks]
     task = SlipTask.objects.get(pk=task_id)
@@ -330,7 +333,7 @@ def recombine_time_chunks(chunks, task_id=None):
     combined_data['slip'] = combined_slip
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
     combined_data.to_netcdf(path)
-    print("Done combining time chunks for geo: " + str(geo_chunk_id))
+    logger.info("Done combining time chunks for geo: " + str(geo_chunk_id))
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
@@ -347,7 +350,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     Returns:
         path to the output product, metadata dict, and a dict containing the geo/time ids
     """
-    print("RECOMBINE_GEO")
+    logger.info("RECOMBINE_GEO")
     total_chunks = [chunks] if not isinstance(chunks, list) else chunks
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
@@ -365,7 +368,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     path = os.path.join(task.get_temp_path(), "recombined_geo_{}.nc".format(time_chunk_id))
     combined_data.to_netcdf(path)
-    print("Done combining geographic chunks for time: " + str(time_chunk_id))
+    logger.info("Done combining geographic chunks for time: " + str(time_chunk_id))
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
@@ -381,7 +384,7 @@ def create_output_products(data, task_id=None):
         data: tuple in the format of processing_task function - path, metadata, and {chunk ids}
 
     """
-    print("CREATE_OUTPUT")
+    logger.info("CREATE_OUTPUT")
     full_metadata = data[1]
     dataset = xr.open_dataset(data[0], autoclose=True)
     task = SlipTask.objects.get(pk=task_id)
@@ -402,7 +405,7 @@ def create_output_products(data, task_id=None):
     write_png_from_xr(task.result_path, mask_mosaic_with_slip(dataset), bands=['red', 'green', 'blue'], scale=(0, 4096))
     write_png_from_xr(task.result_mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
 
-    print("All products created.")
+    logger.info("All products created.")
     task.complete = True
     task.execution_end = datetime.now()
     task.update_status("OK", "All products have been generated. Your result will be loaded on the map.")

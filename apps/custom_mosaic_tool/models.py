@@ -104,7 +104,7 @@ class Query(BaseQuery):
 
         """
         if self.compositor.id == "median_pixel":
-            return {'time': None, 'geographic': 0.001}
+            return {'time': None, 'geographic': 0.005}
         return {'time': 10, 'geographic': 0.5}
 
     def get_iterative(self):
