@@ -93,7 +93,7 @@
         "latitude_max": 9.7,
         "longitude_min": -3.6,
         "longitude_max": -1.4,
-        "thumbnail_imagery": "http://192.168.100.202/static/assets/images/thumbnails/area_thumbnails/ghana_thumbnail_-5_6_0_11.png",
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/ghana_thumbnail_-5_6_0_11.png",
         "satellites": [1]
     }
 }, {
