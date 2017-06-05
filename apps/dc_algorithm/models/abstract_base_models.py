@@ -122,8 +122,8 @@ class Query(models.Model):
 
         """
         """if self.compositor.id == "median_pixel":
-            return {'time': None, 'geographic': 0.001}
-        return {'time': 10, 'geographic': 0.5}"""
+            return {'time': None, 'geographic': 0.005}
+        return {'time': 25, 'geographic': 0.5}"""
         raise NotImplementedError("You must define 'get_reverse_time' in the inheriting class.")
 
     def get_iterative(self):

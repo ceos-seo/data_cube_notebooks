@@ -114,8 +114,8 @@ class Query(BaseQuery):
 
         """
         if self.compositor.id == "median_pixel":
-            return {'time': None, 'geographic': 0.001}
-        return {'time': 10, 'geographic': 0.5}
+            return {'time': None, 'geographic': 0.005}
+        return {'time': 25, 'geographic': 0.5}
 
     # TODO: Is this app iterative over the time dimension, or does all time data need to be loaded at once?
     def get_iterative(self):

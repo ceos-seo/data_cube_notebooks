@@ -90,4 +90,4 @@ class DataSelectionForm(forms.Form):
             cleaned_data.get('longitude_max') - cleaned_data.get('longitude_min'))
 
         if area > 4.0:
-            self.add_error(None, 'Tasks over an area greater than four square degrees are not permitted.')
+            self.add_error('latitude_min', 'Tasks over an area greater than four square degrees are not permitted.')
