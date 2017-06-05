@@ -252,16 +252,19 @@ def processing_task(task_id=None,
     updated_params.update({'time': time_range})
     data = dc.get_dataset_by_extent(**updated_params)
 
-    #target data is most recent, with the baseline being everything else.
-    target_data = data.isel(time=-1, drop=True)
-    baseline_data = data.isel(time=slice(None, -1))
-
     #grab dem data as well
     dem_parameters = {**updated_params}
     dem_parameters.update({'product': 'terra_aster_gdm_' + task.area_id, 'platform': 'TERRA'})
     dem_parameters.pop('time')
     dem_parameters.pop('measurements')
     dem_data = dc.get_dataset_by_extent(**dem_parameters)
+
+    if 'time' not in data or 'time' not in dem_data:
+        return None
+
+    #target data is most recent, with the baseline being everything else.
+    target_data = data.isel(time=-1, drop=True)
+    baseline_data = data.isel(time=slice(None, -1))
 
     clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa, [1, 2])
     combined_baseline = task.get_processing_method()(baseline_data, clean_mask=clear_mask[:-1, :, :])
@@ -306,7 +309,12 @@ def recombine_time_chunks(chunks, task_id=None):
     """
     logger.info("RECOMBINE_TIME")
     #sorting based on time id - earlier processed first as they're incremented e.g. 0, 1, 2..
-    total_chunks = sorted(chunks, key=lambda x: x[0]) if isinstance(chunks, list) else [chunks]
+    chunks = chunks if isinstance(chunks, list) else [chunks]
+    chunks = [chunk for chunk in chunks if chunk is not None]
+    if len(chunks) == 0:
+        return None
+
+    total_chunks = sorted(chunks, key=lambda x: x[0])
     task = SlipTask.objects.get(pk=task_id)
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
@@ -352,6 +360,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     """
     logger.info("RECOMBINE_GEO")
     total_chunks = [chunks] if not isinstance(chunks, list) else chunks
+    total_chunks = [chunk for chunk in total_chunks if chunk is not None]
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
 

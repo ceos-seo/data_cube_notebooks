@@ -261,15 +261,19 @@ def processing_task(task_id=None,
             continue
         full_dataset.append(data.copy(deep=True))
 
+    # load selected scene and mosaic just in case we got two scenes (handles scene boundaries/overlapping data)
+    updated_params.update({'time': base_scene_time_range})
+    selected_scene = dc.get_dataset_by_extent(**updated_params)
+
+    if len(full_dataset) == 0 or 'time' not in selected_scene:
+        return None
+
     #concat individual slices over time, compute metadata + mosaic
     baseline_data = xr.concat(full_dataset, 'time')
     baseline_clear_mask = create_cfmask_clean_mask(
         baseline_data.cf_mask) if 'cf_mask' in baseline_data else create_bit_mask(baseline_data.pixel_qa, [1, 2])
     metadata = task.metadata_from_dataset(metadata, baseline_data, baseline_clear_mask, parameters)
 
-    # load selected scene and mosaic just in case we got two scenes (handles scene boundaries/overlapping data)
-    updated_params.update({'time': base_scene_time_range})
-    selected_scene = dc.get_dataset_by_extent(**updated_params)
     selected_scene_clear_mask = create_cfmask_clean_mask(
         selected_scene.cf_mask) if 'cf_mask' in selected_scene else create_bit_mask(selected_scene.pixel_qa, [1, 2])
     metadata = task.metadata_from_dataset(metadata, selected_scene, selected_scene_clear_mask, parameters)
@@ -312,6 +316,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     """
     logger.info("RECOMBINE_GEO")
     total_chunks = [chunks] if not isinstance(chunks, list) else chunks
+    total_chunks = [chunk for chunk in total_chunks if chunk is not None]
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
 

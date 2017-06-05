@@ -254,6 +254,10 @@ def processing_task(task_id=None,
 
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
+
+    if iteration_data is None:
+        return None
+
     path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
     iteration_data.to_netcdf(path)
     logger.info("Done with chunk: " + chunk_id)
@@ -277,7 +281,12 @@ def recombine_time_chunks(chunks, task_id=None):
     """
     logger.info("RECOMBINE_TIME")
     #sorting based on time id - earlier processed first as they're incremented e.g. 0, 1, 2..
-    total_chunks = sorted(chunks, key=lambda x: x[0]) if isinstance(chunks, list) else [chunks]
+    chunks = chunks if isinstance(chunks, list) else [chunks]
+    chunks = [chunk for chunk in chunks if chunk is not None]
+    if len(chunks) == 0:
+        return None
+
+    total_chunks = sorted(chunks, key=lambda x: x[0])
     task = FractionalCoverTask.objects.get(pk=task_id)
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
@@ -297,44 +306,12 @@ def recombine_time_chunks(chunks, task_id=None):
 
         combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
 
+    if combined_data is None:
+        return None
+
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
     combined_data.to_netcdf(path)
     logger.info("Done combining time chunks for geo: " + str(geo_chunk_id))
-    return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
-
-
-@task(name="fractional_cover.recombine_geographic_chunks")
-def recombine_geographic_chunks(chunks, task_id=None):
-    """Recombine processed data over the geographic indices
-
-    For each geographic chunk process spawned by the main task, open the resulting dataset
-    and combine it into a single dataset. Combine metadata as well, writing to disk.
-
-    Args:
-        chunks: list of the return from the processing_task function - path, metadata, and {chunk ids}
-
-    Returns:
-        path to the output product, metadata dict, and a dict containing the geo/time ids
-    """
-    logger.info("RECOMBINE_GEO")
-    total_chunks = [chunks] if not isinstance(chunks, list) else chunks
-    geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
-    time_chunk_id = total_chunks[0][2]['time_chunk_id']
-
-    metadata = {}
-    task = FractionalCoverTask.objects.get(pk=task_id)
-
-    chunk_data = []
-
-    for index, chunk in enumerate(total_chunks):
-        metadata = task.combine_metadata(metadata, chunk[1])
-        chunk_data.append(xr.open_dataset(chunk[0], autoclose=True))
-
-    combined_data = combine_geographic_chunks(chunk_data)
-
-    path = os.path.join(task.get_temp_path(), "recombined_geo_{}.nc".format(time_chunk_id))
-    combined_data.to_netcdf(path)
-    logger.info("Done combining geographic chunks for time: " + str(time_chunk_id))
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
@@ -357,12 +334,51 @@ def process_band_math(chunk, task_id=None):
 
         return frac_coverage_classify(dataset, clean_mask=clear_mask)
 
+    if chunk is None:
+        return None
+
     dataset = xr.open_dataset(chunk[0], autoclose=True).load()
     dataset = xr.merge([dataset, _apply_band_math(dataset)])
     #remove previous nc and write band math to disk
     os.remove(chunk[0])
     dataset.to_netcdf(chunk[0])
     return chunk
+
+
+@task(name="fractional_cover.recombine_geographic_chunks")
+def recombine_geographic_chunks(chunks, task_id=None):
+    """Recombine processed data over the geographic indices
+
+    For each geographic chunk process spawned by the main task, open the resulting dataset
+    and combine it into a single dataset. Combine metadata as well, writing to disk.
+
+    Args:
+        chunks: list of the return from the processing_task function - path, metadata, and {chunk ids}
+
+    Returns:
+        path to the output product, metadata dict, and a dict containing the geo/time ids
+    """
+    logger.info("RECOMBINE_GEO")
+    total_chunks = [chunks] if not isinstance(chunks, list) else chunks
+    total_chunks = [chunk for chunk in total_chunks if chunk is not None]
+    geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
+    time_chunk_id = total_chunks[0][2]['time_chunk_id']
+
+    metadata = {}
+    task = FractionalCoverTask.objects.get(pk=task_id)
+
+    chunk_data = []
+
+    for index, chunk in enumerate(total_chunks):
+        metadata = task.combine_metadata(metadata, chunk[1])
+        chunk_data.append(xr.open_dataset(chunk[0], autoclose=True))
+
+    combined_data = combine_geographic_chunks(chunk_data)
+
+    path = os.path.join(task.get_temp_path(), "recombined_geo_{}.nc".format(time_chunk_id))
+    combined_data.to_netcdf(path)
+    logger.info("Done combining geographic chunks for time: " + str(time_chunk_id))
+    return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
 @task(name="fractional_cover.create_output_products")

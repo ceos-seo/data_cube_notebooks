@@ -251,6 +251,10 @@ def processing_task(task_id=None,
 
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
+
+    if water_analysis is None:
+        return None
+
     path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
     water_analysis.to_netcdf(path)
     logger.info("Done with chunk: " + chunk_id)
@@ -272,6 +276,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     """
     logger.info("RECOMBINE_GEO")
     total_chunks = [chunks] if not isinstance(chunks, list) else chunks
+    total_chunks = [chunk for chunk in total_chunks if chunk is not None]
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
 
@@ -324,7 +329,9 @@ def recombine_time_chunks(chunks, task_id=None):
     """
     logger.info("RECOMBINE_TIME")
     #sorting based on time id - earlier processed first as they're incremented e.g. 0, 1, 2..
-    total_chunks = sorted(chunks, key=lambda x: x[0]) if isinstance(chunks, list) else [chunks]
+    chunks = chunks if isinstance(chunks, list) else [chunks]
+    chunks = [chunk for chunk in chunks if chunk is not None]
+    total_chunks = sorted(chunks, key=lambda x: x[0])
     task = WaterDetectionTask.objects.get(pk=task_id)
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']

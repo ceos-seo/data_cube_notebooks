@@ -250,6 +250,10 @@ def processing_task(task_id=None,
 
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
+
+    if iteration_data is None:
+        return None
+
     path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
     iteration_data.to_netcdf(path)
     logger.info("Done with chunk: " + chunk_id)
@@ -273,7 +277,12 @@ def recombine_time_chunks(chunks, task_id=None):
     """
     logger.info("RECOMBINE_TIME")
     #sorting based on time id - earlier processed first as they're incremented e.g. 0, 1, 2..
-    total_chunks = sorted(chunks, key=lambda x: x[0]) if isinstance(chunks, list) else [chunks]
+    chunks = chunks if isinstance(chunks, list) else [chunks]
+    chunks = [chunk for chunk in chunks if chunk is not None]
+    if len(chunks) == 0:
+        return None
+
+    total_chunks = sorted(chunks, key=lambda x: x[0])
     task = BandMathTask.objects.get(pk=task_id)
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
@@ -298,6 +307,31 @@ def recombine_time_chunks(chunks, task_id=None):
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
+@task(name="band_math_app.process_band_math")
+def process_band_math(chunk, task_id=None):
+    """Apply some band math to a chunk and return the args
+
+    Opens the chunk dataset and applys some band math defined by _apply_band_math(dataset)
+    _apply_band_math creates some product using the bands already present in the dataset and
+    returns the dataarray. The data array is then appended under 'band_math', then saves the
+    result to disk in the same path as the nc file already exists.
+    """
+
+    def _apply_band_math(dataset):
+        #TODO: apply your band math here!
+        return (dataset.nir - dataset.red) / (dataset.nir + dataset.red)
+
+    if chunk is None:
+        return None
+
+    dataset = xr.open_dataset(chunk[0], autoclose=True).load()
+    dataset['band_math'] = _apply_band_math(dataset)
+    #remove previous nc and write band math to disk
+    os.remove(chunk[0])
+    dataset.to_netcdf(chunk[0])
+    return chunk
+
+
 @task(name="band_math_app.recombine_geographic_chunks")
 def recombine_geographic_chunks(chunks, task_id=None):
     """Recombine processed data over the geographic indices
@@ -313,6 +347,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     """
     logger.info("RECOMBINE_GEO")
     total_chunks = [chunks] if not isinstance(chunks, list) else chunks
+    total_chunks = [chunk for chunk in total_chunks if chunk is not None]
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
 
@@ -331,28 +366,6 @@ def recombine_geographic_chunks(chunks, task_id=None):
     combined_data.to_netcdf(path)
     logger.info("Done combining geographic chunks for time: " + str(time_chunk_id))
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
-
-
-@task(name="band_math_app.process_band_math")
-def process_band_math(chunk, task_id=None):
-    """Apply some band math to a chunk and return the args
-
-    Opens the chunk dataset and applys some band math defined by _apply_band_math(dataset)
-    _apply_band_math creates some product using the bands already present in the dataset and
-    returns the dataarray. The data array is then appended under 'band_math', then saves the
-    result to disk in the same path as the nc file already exists.
-    """
-
-    def _apply_band_math(dataset):
-        #TODO: apply your band math here!
-        return (dataset.nir - dataset.red) / (dataset.nir + dataset.red)
-
-    dataset = xr.open_dataset(chunk[0], autoclose=True).load()
-    dataset['band_math'] = _apply_band_math(dataset)
-    #remove previous nc and write band math to disk
-    os.remove(chunk[0])
-    dataset.to_netcdf(chunk[0])
-    return chunk
 
 
 @task(name="band_math_app.create_output_products")

@@ -241,7 +241,7 @@ def processing_task(task_id=None,
         data = dc.get_dataset_by_extent(**updated_params)
         if data is None or 'time' not in data:
             logger.info("Invalid chunk.")
-            return data
+            return None, None
 
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
@@ -250,6 +250,9 @@ def processing_task(task_id=None,
 
     old_mosaic, old_metadata = _compute_mosaic(starting_year)
     new_mosaic, new_metadata = _compute_mosaic(comparison_year)
+
+    if old_mosaic is None or new_mosaic is None:
+        return None
 
     metadata = {**old_metadata, **new_metadata}
 
@@ -279,6 +282,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     """
     logger.info("RECOMBINE_GEO")
     total_chunks = [chunks] if not isinstance(chunks, list) else chunks
+    total_chunks = [chunk for chunk in total_chunks if chunk is not None]
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
 
