@@ -357,10 +357,12 @@ def process_band_math(chunk, task_id=None):
 
         return frac_coverage_classify(dataset, clean_mask=clear_mask)
 
-    dataset = xr.open_dataset(chunk[0], autoclose=True)
+    dataset = xr.open_dataset(chunk[0], autoclose=True).load()
     dataset = xr.merge([dataset, _apply_band_math(dataset)])
     #remove previous nc and write band math to disk
     os.remove(chunk[0])
+    from celery.contrib import rdb
+    rdb.set_trace()
     dataset.to_netcdf(chunk[0])
     return chunk
 

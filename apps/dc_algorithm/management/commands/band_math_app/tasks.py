@@ -347,7 +347,7 @@ def process_band_math(chunk, task_id=None):
         #TODO: apply your band math here!
         return (dataset.nir - dataset.red) / (dataset.nir + dataset.red)
 
-    dataset = xr.open_dataset(chunk[0], autoclose=True)
+    dataset = xr.open_dataset(chunk[0], autoclose=True).load()
     dataset['band_math'] = _apply_band_math(dataset)
     #remove previous nc and write band math to disk
     os.remove(chunk[0])
