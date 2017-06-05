@@ -82,8 +82,8 @@ class Query(BaseQuery):
 
     def get_baseline_name(self):
         months = [
-            "January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
-            "November", "December"
+            "PLACEHOLDER", "January", "February", "March", "April", "May", "June", "July", "August", "September",
+            "October", "November", "December"
         ]
         return ", ".join([months[month] for month in map(int, self.baseline_selection.split(","))])
 

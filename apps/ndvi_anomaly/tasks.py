@@ -95,7 +95,9 @@ def validate_parameters(parameters, task_id):
     # the actual acquisitino exists, lets try the baseline:
     validation_params = {**parameters}
     # there were no acquisitions in the year 1000, hopefully
-    validation_params.update({'time': (datetime(1000, 1, 1), task.time_start - timedelta(microseconds=1))})
+    validation_params.update({
+        'time': (task.time_start.replace(year=task.time_start.year - 5), task.time_start - timedelta(microseconds=1))
+    })
     acquisitions = dc.list_acquisition_dates(**validation_params)
 
     # list/map/int chain required to cast int to each baseline month, it won't work if they're strings.
