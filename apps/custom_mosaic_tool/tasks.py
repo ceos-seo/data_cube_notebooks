@@ -277,6 +277,7 @@ def processing_task(task_id=None,
         return None
     iteration_data.to_netcdf(path)
 
+    dc.close()
     logger.info("Done with chunk: " + chunk_id)
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 

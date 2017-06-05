@@ -257,6 +257,7 @@ def processing_task(task_id=None,
 
     path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
     water_analysis.to_netcdf(path)
+    dc.close()
     logger.info("Done with chunk: " + chunk_id)
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
