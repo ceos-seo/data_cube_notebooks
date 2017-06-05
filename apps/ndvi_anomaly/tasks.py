@@ -385,6 +385,7 @@ def create_output_products(data, task_id=None):
     write_png_from_xr(task.result_mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
 
     logger.info("All products created.")
+    task.update_bounds_from_dataset(dataset)
     task.complete = True
     task.execution_end = datetime.now()
     task.update_status("OK", "All products have been generated. Your result will be loaded on the map.")

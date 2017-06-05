@@ -111,6 +111,13 @@ class Query(models.Model):
             pass
         return result_dir
 
+    def update_bounds_from_dataset(self, dataset):
+        self.latitude_min = min(dataset.latitude)
+        self.latitude_max = max(dataset.latitude)
+        self.longitude_min = min(dataset.longitude)
+        self.longitude_max = max(dataset.longitude)
+        self.save()
+
     def get_chunk_size(self):
         """gets the required geographic and time chunk sizes
 

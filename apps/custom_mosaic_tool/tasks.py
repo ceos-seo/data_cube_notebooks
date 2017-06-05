@@ -272,6 +272,9 @@ def processing_task(task_id=None,
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
     path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
+
+    if iteration_data is None:
+        return None
     iteration_data.to_netcdf(path)
 
     logger.info("Done with chunk: " + chunk_id)
@@ -293,6 +296,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
     """
     logger.info("RECOMBINE_GEO")
     total_chunks = [chunks] if not isinstance(chunks, list) else chunks
+    total_chunks = [chunk for chunk in total_chunks if chunk is not None]
     geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
 
@@ -449,6 +453,7 @@ def create_output_products(data, task_id=None):
                     writer.append_data(image)
 
     logger.info("All products created.")
+    task.update_bounds_from_dataset(dataset)
     task.complete = True
     task.execution_end = datetime.now()
     task.update_status("OK", "All products have been generated. Your result will be loaded on the map.")

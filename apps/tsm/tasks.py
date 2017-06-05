@@ -448,6 +448,7 @@ def create_output_products(data, task_id=None):
                     writer.append_data(image)
 
     logger.info("All products created.")
+    task.update_bounds_from_dataset(dataset_masked)
     task.complete = True
     task.execution_end = datetime.now()
     task.update_status("OK", "All products have been generated. Your result will be loaded on the map.")
