@@ -32,7 +32,7 @@
     "model": "dc_algorithm.satellite",
     "pk": 4,
     "fields": {
-        "datacube_platform": "LANDSAT_5,LANDSAT_7,LANDSAT8",
+        "datacube_platform": "LANDSAT_5,LANDSAT_7,LANDSAT_8",
         "name": "Landsat 5/7/8",
         "product_prefix": "all",
         "date_min": "1984-03-01",

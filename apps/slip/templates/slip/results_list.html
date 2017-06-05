@@ -139,7 +139,7 @@ function show_result(checkbox, task_id, id) {
       result_path = tasks[task_id].baseline_mosaic_path;
       break;
   }
-  $('input:checkbox').removeAttr('checked');
+  jQuery("input:checkbox").prop('checked', false);
   checkbox.checked = true;
   add_result_to_map(task_id, result_path);
   map.toggle_outline_by_id(task_id, true);

@@ -97,7 +97,7 @@ class Query(BaseQuery):
         See the base query class docstring for more information.
 
         """
-        return {'time': None, 'geographic': 0.0075}
+        return {'time': None, 'geographic': 0.01}
 
     def get_iterative(self):
         """implements get_iterative as required by the base class
