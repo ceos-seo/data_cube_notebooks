@@ -76,8 +76,8 @@ class Query(BaseQuery):
     }
 
     class Meta(BaseQuery.Meta):
-        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'baseline_selection', 'latitude_max', 'latitude_min',
-                            'longitude_max', 'longitude_min', 'title', 'description'))
+        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'baseline_selection', 'latitude_max',
+                            'latitude_min', 'longitude_max', 'longitude_min', 'title', 'description'))
         abstract = True
 
     def get_baseline_name(self):
@@ -97,7 +97,7 @@ class Query(BaseQuery):
         See the base query class docstring for more information.
 
         """
-        return {'time': None, 'geographic': 0.005}
+        return {'time': None, 'geographic': 0.0075}
 
     def get_iterative(self):
         """implements get_iterative as required by the base class

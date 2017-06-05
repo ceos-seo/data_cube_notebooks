@@ -361,8 +361,6 @@ def process_band_math(chunk, task_id=None):
     dataset = xr.merge([dataset, _apply_band_math(dataset)])
     #remove previous nc and write band math to disk
     os.remove(chunk[0])
-    from celery.contrib import rdb
-    rdb.set_trace()
     dataset.to_netcdf(chunk[0])
     return chunk
 
