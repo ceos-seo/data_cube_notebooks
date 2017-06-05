@@ -159,9 +159,6 @@ class Query(BaseQuery):
         query_data['description'] = "None" if 'description' not in form_data or form_data[
             'description'] == '' else form_data['description']
 
-        query_data['platform'] = "LANDSAT_5,LANDSAT_7,LANDSAT_8" if query_data[
-            'platform'] == 'LANDSAT_ALL' else query_data['platform']
-
         valid_query_fields = [field.name for field in cls._meta.get_fields()]
         query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
 

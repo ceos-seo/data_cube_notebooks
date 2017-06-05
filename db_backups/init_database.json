@@ -32,7 +32,7 @@
     "model": "dc_algorithm.satellite",
     "pk": 4,
     "fields": {
-        "datacube_platform": "LANDSAT_ALL",
+        "datacube_platform": "LANDSAT_5,LANDSAT_7,LANDSAT8",
         "name": "Landsat 5/7/8",
         "product_prefix": "all",
         "date_min": "1984-03-01",
@@ -47,6 +47,16 @@
         "product_prefix": "s1a_gamma0_",
         "date_min": "2015-01-01",
         "date_max": "2017-03-16"
+    }
+}, {
+    "model": "dc_algorithm.satellite",
+    "pk": 6,
+    "fields": {
+        "datacube_platform": "LANDSAT_7,LANDSAT_8",
+        "name": "Landsat 7/8",
+        "product_prefix": "all",
+        "date_min": "1999-04-15",
+        "date_max": "2016-12-26"
     }
 }, {
     "model": "dc_algorithm.area",
@@ -93,7 +103,7 @@
         "latitude_max": 9.7,
         "longitude_min": -3.6,
         "longitude_max": -1.4,
-        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/ghana_thumbnail_-5_6_0_11.png",
+        "thumbnail_imagery": "http://192.168.100.202/static/assets/images/thumbnails/area_thumbnails/ghana_thumbnail_-5_6_0_11.png",
         "satellites": [1]
     }
 }, {
@@ -178,7 +188,7 @@
         "longitude_min": -72.0,
         "longitude_max": -71.0,
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/meta_river_thumbnail_75W_67W_0_5N_8_5N.png",
-        "satellites": [1, 2, 4]
+        "satellites": [1, 2, 6]
     }
 }, {
     "model": "dc_algorithm.area",
@@ -226,7 +236,7 @@
         "longitude_min": 106.75,
         "longitude_max": 109.0,
         "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/vietnam_thumbnail_105E_110E_9N_14N.png",
-        "satellites": [1, 2]
+        "satellites": [1, 2, 6]
     }
 }, {
     "model": "dc_algorithm.application",
@@ -243,8 +253,8 @@
     "fields": {
         "name": "Custom Mosaic",
         "color_scale": null,
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam", "ghana"],
-        "satellites": [1, 2, 3, 4]
+        "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "salgar_colombia", "togo", "tonga", "meta_river", "vietnam"],
+        "satellites": [1, 2, 3, 4, 6]
     }
 }, {
     "model": "dc_algorithm.application",
@@ -252,8 +262,8 @@
     "fields": {
         "name": "Fractional Cover",
         "color_scale": "/static/assets/images/color_scales/fractional_cover_color_scale.png",
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam", "ghana"],
-        "satellites": [1, 2, 3, 4]
+        "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "salgar_colombia", "togo", "tonga", "meta_river", "vietnam"],
+        "satellites": [1, 2, 3, 4, 6]
     }
 }, {
     "model": "dc_algorithm.application",
@@ -261,7 +271,7 @@
     "fields": {
         "name": "NDVI Anomaly",
         "color_scale": "/static/assets/images/color_scales/ndvi_color_scale.png",
-        "areas": ["amazon_river", "bangladesh", "colombia", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam", "ghana"],
+        "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "salgar_colombia", "togo", "tonga", "meta_river", "vietnam"],
         "satellites": [1, 2, 3]
     }
 }, {
@@ -280,7 +290,7 @@
         "name": "Water Quality TSM",
         "color_scale": "/static/assets/images/color_scales/tsm_color_scale.png",
         "areas": ["lake_baringo", "lake_chad", "lake_chad_full", "menindee_lakes", "meta_river", "vietnam"],
-        "satellites": [1, 2, 3, 4]
+        "satellites": [1, 2, 3, 4, 6]
     }
 }, {
     "model": "dc_algorithm.application",
@@ -289,7 +299,7 @@
         "name": "Water Detection",
         "color_scale": "/static/assets/images/color_scales/water_detection_color_scale.png",
         "areas": ["lake_baringo", "lake_chad", "lake_chad_full", "menindee_lakes", "meta_river", "vietnam"],
-        "satellites": [1, 2, 3, 4]
+        "satellites": [1, 2, 3, 4, 6]
     }
 }, {
     "model": "dc_algorithm.compositor",

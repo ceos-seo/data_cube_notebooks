@@ -97,8 +97,9 @@ class Query(BaseQuery):
     base_result_dir = '/datacube/ui_results/app_name'
 
     class Meta(BaseQuery.Meta):
-        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
-                            'longitude_min', 'title', 'description', 'query_type', 'animated_product', 'compositor'))
+        unique_together = (
+            ('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
+             'longitude_min', 'title', 'description', 'query_type', 'animated_product', 'compositor'))
         abstract = True
 
     def get_fields_with_labels(self, labels, field_names):
@@ -173,10 +174,6 @@ class Query(BaseQuery):
             'title'] == '' else form_data['title']
         query_data['description'] = "None" if 'description' not in form_data or form_data[
             'description'] == '' else form_data['description']
-
-        # TODO: Is this a multisensory application? If not, this line can be removed.
-        query_data['platform'] = "LANDSAT_5,LANDSAT_7,LANDSAT_8" if query_data[
-            'platform'] == 'LANDSAT_ALL' else query_data['platform']
 
         valid_query_fields = [field.name for field in cls._meta.get_fields()]
         query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
