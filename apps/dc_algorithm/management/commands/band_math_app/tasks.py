@@ -91,6 +91,11 @@ def validate_parameters(parameters, task_id):
         task.update_status("ERROR", "There are no acquistions for this parameter set.")
         return None
 
+    if task.compositor.id == "median_pixel" and len(acquisitions) > 25:
+        task.complete = True
+        task.update_status("ERROR", "Median pixel operations are only supported for single year time periods.")
+        return None
+
     task.update_status("WAIT", "Validated parameters.")
 
     if not dc.validate_measurements(parameters['product'], parameters['measurements']):
