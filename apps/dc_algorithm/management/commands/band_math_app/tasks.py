@@ -91,7 +91,7 @@ def validate_parameters(parameters, task_id):
         task.update_status("ERROR", "There are no acquistions for this parameter set.")
         return None
 
-    if task.compositor.id == "median_pixel" and len(acquisitions) > 25:
+    if task.compositor.id == "median_pixel" and (task.time_end - task.time_start).days > 367:
         task.complete = True
         task.update_status("ERROR", "Median pixel operations are only supported for single year time periods.")
         return None
