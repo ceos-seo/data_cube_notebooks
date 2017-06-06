@@ -274,6 +274,7 @@ def processing_task(task_id=None,
     clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa, [1, 2])
     combined_baseline = task.get_processing_method()(baseline_data, clean_mask=clear_mask[:-1, :, :])
 
+    target_data = xr.concat([target_data], 'time')
     target_data['time'] = [0]
     target_data = create_mosaic(target_data, clean_mask=clear_mask[-1, :, :])
 
@@ -336,6 +337,7 @@ def recombine_time_chunks(chunks, task_id=None):
             combined_slip = data.slip.copy(deep=True)
             continue
         #give time an indice to keep mosaicking from breaking.
+        data = xr.concat([data], 'time')
         data['time'] = [0]
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])

@@ -306,6 +306,7 @@ def recombine_time_chunks(chunks, task_id=None):
             combined_data = data
             continue
         #give time an indice to keep mosaicking from breaking.
+        data = xr.concat([data], 'time')
         data['time'] = [0]
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
