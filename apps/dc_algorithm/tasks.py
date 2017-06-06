@@ -26,13 +26,11 @@ class DCAlgorithmBase(celery.Task):
         history_model = apps.get_model(".".join([self._get_app_name(), "UserHistory"]))
         try:
             task = task_model.objects.get(pk=task_id)
+            if task.complete:
+                return
             task.complete = True
-            task.update_status(
-                "ERROR",
-                "There was an exception during the processing of your task. Please try again later and contact an admin if the problem persists."
-            )
+            task.update_status("ERROR", "There was an unhandled exception during the processing of your task.")
             history_model.objects.filter(task_id=task.pk).delete()
-            shutil.rmtree(task.get_result_path())
         except task_model.DoesNotExist:
             pass
 
