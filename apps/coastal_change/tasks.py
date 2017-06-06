@@ -19,8 +19,13 @@ from utils.dc_chunker import (create_geographic_chunks, group_datetimes_by_year,
 
 from .models import CoastalChangeTask
 from apps.dc_algorithm.models import Satellite
+from apps.dc_algorithm.tasks import DCAlgorithmBase
 
 logger = get_task_logger(__name__)
+
+
+class BaseTask(DCAlgorithmBase):
+    app_name = 'coastal_change'
 
 
 @task(name="coastal_change.run", base=BaseTask)

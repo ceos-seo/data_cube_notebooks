@@ -20,8 +20,13 @@ from utils.dc_mosaic import create_mosaic
 
 from .models import SlipTask
 from apps.dc_algorithm.models import Satellite
+from apps.dc_algorithm.tasks import DCAlgorithmBase
 
 logger = get_task_logger(__name__)
+
+
+class BaseTask(DCAlgorithmBase):
+    app_name = 'slip'
 
 
 @task(name="slip.get_acquisition_list")

@@ -18,9 +18,12 @@ from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, comb
 
 from .models import AppNameTask
 from apps.dc_algorithm.models import Satellite
+from apps.dc_algorithm.tasks import DCAlgorithmBase
+
 
 logger = get_task_logger(__name__)
-
+class BaseTask(DCAlgorithmBase):
+    app_name = 'app_name'
 
 @task(name="app_name.run", base=BaseTask)
 def run(task_id):

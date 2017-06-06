@@ -20,8 +20,13 @@ from utils.dc_ndvi_anomaly import compute_ndvi_anomaly
 
 from .models import NdviAnomalyTask
 from apps.dc_algorithm.models import Satellite
+from apps.dc_algorithm.tasks import DCAlgorithmBase
 
 logger = get_task_logger(__name__)
+
+
+class BaseTask(DCAlgorithmBase):
+    app_name = 'ndvi_anomaly'
 
 
 @task(name="ndvi_anomaly.run", base=BaseTask)

@@ -20,8 +20,13 @@ from utils.dc_water_classifier import wofs_classify
 
 from .models import FractionalCoverTask
 from apps.dc_algorithm.models import Satellite
+from apps.dc_algorithm.tasks import DCAlgorithmBase
 
 logger = get_task_logger(__name__)
+
+
+class BaseTask(DCAlgorithmBase):
+    app_name = 'fractional_cover'
 
 
 @task(name="fractional_cover.run", base=BaseTask)

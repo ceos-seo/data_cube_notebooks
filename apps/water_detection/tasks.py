@@ -19,8 +19,13 @@ from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, comb
 
 from .models import WaterDetectionTask
 from apps.dc_algorithm.models import Satellite
+from apps.dc_algorithm.tasks import DCAlgorithmBase
 
 logger = get_task_logger(__name__)
+
+
+class BaseTask(DCAlgorithmBase):
+    app_name = 'water_detection'
 
 
 @task(name="water_detection.run", base=BaseTask)

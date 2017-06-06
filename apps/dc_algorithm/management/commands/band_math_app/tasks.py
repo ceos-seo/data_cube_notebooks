@@ -18,8 +18,13 @@ from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, comb
 
 from .models import BandMathTask
 from apps.dc_algorithm.models import Satellite
+from apps.dc_algorithm.tasks import DCAlgorithmBase
 
 logger = get_task_logger(__name__)
+
+
+class BaseTask(DCAlgorithmBase):
+    app_name = 'band_math_app'
 
 
 @task(name="band_math_app.run", base=BaseTask)

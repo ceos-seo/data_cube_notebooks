@@ -20,8 +20,13 @@ from utils.dc_tsm import tsm, mask_tsm
 
 from .models import TsmTask
 from apps.dc_algorithm.models import Satellite
+from apps.dc_algorithm.tasks import DCAlgorithmBase
 
 logger = get_task_logger(__name__)
+
+
+class BaseTask(DCAlgorithmBase):
+    app_name = 'tsm'
 
 
 @task(name="tsm.run", base=BaseTask)
