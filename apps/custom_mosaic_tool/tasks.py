@@ -18,11 +18,16 @@ from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, comb
 
 from .models import CustomMosaicToolTask
 from apps.dc_algorithm.models import Satellite
+from apps.dc_algorithm.tasks import DCAlgorithmBase
 
 logger = get_task_logger(__name__)
 
 
-@task(name="custom_mosaic_tool.run")
+class CustomMosaicToolTaskBase(DCAlgorithmBase):
+    tool_name = 'custom_mosaic_tool'
+
+
+@task(name="custom_mosaic_tool.run", base=CustomMosaicToolTaskBase)
 def run(task_id):
     """Responsible for launching task processing using celery asynchronous processes
 

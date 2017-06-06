@@ -1,3 +1,4 @@
+import celery
 from celery.decorators import periodic_task
 from celery.task.schedules import crontab
 from datetime import datetime, timedelta
@@ -6,6 +7,42 @@ import shutil
 from django.apps import apps
 
 from .models import Application
+
+
+class DCAlgorithmBase(celery.Task):
+    """Serves as a base class for all DC algorithm celery tasks"""
+    app_name = None
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        """Onfailure call for celery tasks
+
+        all tasks should have a kwarg 'task_id' that can be used to 'get' the model
+        from the app.
+
+        """
+        task_id = kwargs.get('task_id')
+        camel_case = "".join(x.title() for x in self._get_app_name().split('_'))
+        task_model = apps.get_model(".".join([self._get_app_name(), camel_case + "Task"]))
+        history_model = apps.get_model(".".join([self._get_app_name(), "UserHistory"]))
+        try:
+            task = task_model.objects.get(pk=task_id)
+            task.complete = True
+            task.update_status(
+                "ERROR",
+                "There was an exception during the processing of your task. Please try again later and contact an admin if the problem persists."
+            )
+            history_model.objects.filter(task_id=task.pk).delete()
+            shutil.rmtree(task.get_result_path())
+        except task_model.DoesNotExist:
+            pass
+
+    def _get_app_name(self):
+        """Get the app name of the task - raise an error if None"""
+        if self.app_name is None:
+            raise NotImplementedError(
+                "You must specify an app_name in classes that inherit DCAlgorithmBase. See the DCAlgorithmBase docstring for more details."
+            )
+        return self.app_name
 
 
 @periodic_task(
