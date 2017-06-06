@@ -22,5 +22,5 @@
 from django.apps import AppConfig
 
 
-class TsmConfig(AppConfig):
+class TsmToolConfig(AppConfig):
     name = 'tsm'

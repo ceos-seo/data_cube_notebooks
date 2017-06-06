@@ -123,6 +123,8 @@ Now that all requirements have been satisfied, run the setup.py script in the ag
 ```
 cd ~/Datacube/agdc-v2
 python setup.py develop
+# Cython may be required, depending on your system. If there is an issue, run:
+pip install Cython
 ```
 
 This should produce a considerable amount of console output, but will ultimately end with a line resembling:

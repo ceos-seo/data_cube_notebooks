@@ -1,473 +1,429 @@
-# Copyright 2016 United States Government as represented by the Administrator
-# of the National Aeronautics and Space Administration. All Rights Reserved.
-#
-# Portion of this code is Copyright Geoscience Australia, Licensed under the
-# Apache License, Version 2.0 (the "License"); you may not use this file
-# except in compliance with the License. You may obtain a copy of the License
-# at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# http://www.apache.org/licenses/LICENSE-2.0.
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
+from django.db.models import F
 
-# Django specific
-from celery.decorators import task
-from celery.signals import worker_process_init, worker_process_shutdown
-from celery import group
-from celery.task.control import revoke
-from .models import Query, Result, Metadata
-
-import numpy as np
-import math
-import xarray as xr
-import collections
-import gdal
+from celery.task import task
+from celery import chain, group, chord
+from celery.utils.log import get_task_logger
+from datetime import datetime, timedelta
 import shutil
-import sys
-import osr
+import xarray as xr
+import numpy as np
 import os
-import datetime
+import imageio
 from collections import OrderedDict
-from dateutil.tz import tzutc
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
-from utils.dc_utilities import (get_spatial_ref, save_to_geotiff, create_rgb_png_from_tiff, create_cfmask_clean_mask,
-                                split_task)
-
+from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
+                                write_single_band_png_from_xr, add_timestamp_data_to_xr, clear_attrs)
+from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
 from utils.dc_fractional_coverage_classifier import frac_coverage_classify
-from utils.dc_utilities import (split_task, fill_nodata, min_value, max_value, generate_time_ranges)
-from data_cube_ui.utils import (update_model_bounds_with_dataset, combine_metadata, map_ranges, cancel_task,
-                                error_with_message)
+from utils.dc_water_classifier import wofs_classify
 
-from data_cube_ui.tasks import generate_chunk
-"""
-Class for handling loading celery workers to perform tasks asynchronously.
-"""
+from .models import FractionalCoverTask
+from apps.dc_algorithm.models import Satellite
+from apps.dc_algorithm.tasks import DCAlgorithmBase
 
-# Author: AHDS
-# Creation date: 2016-06-23
-# Modified by:
-# Last modified date:
-
-# constants up top for easy access/modification
-base_result_path = '/datacube/ui_results/fractional_cover/'
-base_temp_path = '/datacube/ui_results_temp/'
-
-# Datacube instance to be initialized.
-# A seperate DC instance is created for each worker.
-dc = None
-
-#default measurements. leaves out all qa bands.
-measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
-
-#holds the different compositing algorithms. Most/least recent, max/min ndvi, median, etc.
-# all options are required. setting None to a option will have the algo/task splitting
-# process disregard it.
-#experimentally optimized geo/time/slices_per_iter
-processing_algorithms = {
-    'most_recent': {
-        'geo_chunk_size': 0.10,
-        'time_chunks': None,
-        'time_slices_per_iteration': 5,
-        'reverse_time': True,
-        'chunk_combination_method': fill_nodata,
-        'processing_method': create_mosaic,
-        'base_path': base_temp_path
-    },
-    'least_recent': {
-        'geo_chunk_size': 0.10,
-        'time_chunks': None,
-        'time_slices_per_iteration': 1,
-        'reverse_time': False,
-        'chunk_combination_method': fill_nodata,
-        'processing_method': create_mosaic,
-        'base_path': base_temp_path
-    },
-    'max_ndvi': {
-        'geo_chunk_size': 0.10,
-        'time_chunks': None,
-        'time_slices_per_iteration': 5,
-        'reverse_time': False,
-        'chunk_combination_method': max_value,
-        'processing_method': create_max_ndvi_mosaic,
-        'base_path': base_temp_path
-    },
-    'min_ndvi': {
-        'geo_chunk_size': 0.10,
-        'time_chunks': None,
-        'time_slices_per_iteration': 5,
-        'reverse_time': False,
-        'chunk_combination_method': min_value,
-        'processing_method': create_min_ndvi_mosaic,
-        'base_path': base_temp_path
-    },
-    'median_pixel': {
-        'geo_chunk_size': 0.005,
-        'time_chunks': None,
-        'time_slices_per_iteration': None,
-        'reverse_time': False,
-        'chunk_combination_method': fill_nodata,
-        'processing_method': create_median_mosaic,
-        'base_path': base_temp_path
-    },
-}
+logger = get_task_logger(__name__)
 
 
-@task(name="fractional_cover_task")
-def create_fractional_cover(query_id, user_id, single=False):
+class BaseTask(DCAlgorithmBase):
+    app_name = 'fractional_cover'
+
+
+@task(name="fractional_cover.run", base=BaseTask)
+def run(task_id=None):
+    """Responsible for launching task processing using celery asynchronous processes
+
+    Chains the parsing of parameters, validation, chunking, and the start to data processing.
     """
-    Creates metadata and result objects from a query id. gets the query, computes metadata for the
-    parameters and saves the model. Uses the metadata to query the datacube for relevant data and
-    creates the result. Results computed in single time slices for memory efficiency, pushed into a
-    single numpy array containing the total result. this is then used to create png/tifs to populate
-    a result model. Result model is constantly updated with progress and checked for task
-    cancellation.
+    chain(
+        parse_parameters_from_task.s(task_id),
+        validate_parameters.s(task_id), perform_task_chunking.s(task_id), start_chunk_processing.s(task_id))()
+    return True
 
-    Args:
-        query_id (int): The ID of the query that will be created.
-        user_id (string): The ID of the user that requested the query be made.
+
+@task(name="fractional_cover.parse_parameters_from_task", base=BaseTask)
+def parse_parameters_from_task(task_id=None):
+    """Parse out required DC parameters from the task model.
+
+    See the DataAccessApi docstrings for more information.
+    Parses out platforms, products, etc. to be used with DataAccessApi calls.
+
+    If this is a multisensor app, platform and product should be pluralized and used
+    with the get_stacked_datasets_by_extent call rather than the normal get.
 
     Returns:
-        Returns image url, data url for use only in tasks that reference this task.
+        parameter dict with all keyword args required to load data.
+
     """
+    task = FractionalCoverTask.objects.get(pk=task_id)
 
-    print("Starting for query:" + query_id)
+    parameters = {
+        'platforms': sorted(task.platform.split(",")),
+        'time': (task.time_start, task.time_end),
+        'longitude': (task.longitude_min, task.longitude_max),
+        'latitude': (task.latitude_min, task.latitude_max),
+        'measurements': task.measurements
+    }
 
-    query = Query._fetch_query_object(query_id, user_id)
+    parameters['products'] = [
+        Satellite.objects.get(datacube_platform=platform).product_prefix + task.area_id
+        for platform in parameters['platforms']
+    ]
 
-    if query is None:
-        print("Query does not yet exist.")
-        return
+    task.execution_start = datetime.now()
+    task.update_status("WAIT", "Parsed out parameters.")
 
-    if query._is_cached(Result):
-        print("Repeat query, client will receive cached result.")
-        return
-
-    print("Got the query, creating metadata.")
-
-    # creates the empty result.
-    result = query.generate_result()
-
-    if query.platform == "LANDSAT_ALL":
-        error_with_message(result, "Combined products are not supported for fractional cover calculations.",
-                           base_temp_path)
-        return
-
-    product_details = dc.dc.list_products()[dc.dc.list_products().name == query.product]
-    # wrapping this in a try/catch, as it will throw a few different errors
-    # having to do with memory etc.
-    try:
-        # lists all acquisition dates for use in single tmeslice queries.
-        acquisitions = dc.list_acquisition_dates(
-            query.platform,
-            query.product,
-            time=(query.time_start, query.time_end),
-            longitude=(query.longitude_min, query.longitude_max),
-            latitude=(query.latitude_min, query.latitude_max))
-
-        if len(acquisitions) < 1:
-            error_with_message(result, "There were no acquisitions for this parameter set.", base_temp_path)
-            return
-
-        if query.compositor == "median_pixel" and (query.time_end.year - query.time_start.year) > 1:
-            error_with_message(
-                result,
-                "Median pixel operations of time periods exceeding 1 year are not supported. Please enter a shorter time range.",
-                base_temp_path)
-            return
-
-        processing_options = processing_algorithms[query.compositor]
-        #if its a single scene, load it all at once to prevent errors.
-        if single:
-            processing_options['time_chunks'] = None
-            processing_options['time_slices_per_iteration'] = None
-
-        # Reversed time = True will make it so most recent = First, oldest = Last.
-        #default is in order from oldest -> newwest.
-        lat_ranges, lon_ranges, time_ranges = split_task(
-            resolution=product_details.resolution.values[0][1],
-            latitude=(query.latitude_min, query.latitude_max),
-            longitude=(query.longitude_min, query.longitude_max),
-            acquisitions=acquisitions,
-            geo_chunk_size=processing_options['geo_chunk_size'],
-            time_chunks=processing_options['time_chunks'],
-            reverse_time=processing_options['reverse_time'])
-
-        result.total_scenes = len(time_ranges)
-        result.save()
-        # Iterates through the acquisition dates with the step in acquisitions_per_iteration.
-        # Uses a time range computed with the index and index+acquisitions_per_iteration.
-        # ensures that the start and end are both valid.
-        print("Getting data and creating product")
-        # create a temp folder that isn't on the nfs server so we can quickly
-        # access/delete.
-        if not os.path.exists(base_temp_path + query.query_id):
-            os.mkdir(base_temp_path + query.query_id)
-            os.chmod(base_temp_path + query.query_id, 0o777)
-
-        # iterate over the time chunks.
-        print("Time chunks: " + str(len(time_ranges)))
-        print("Geo chunks: " + str(len(lat_ranges)))
-        # create a group of geographic tasks for each time slice.
-        time_chunk_tasks = [
-            group(
-                generate_fractional_cover_chunk.s(
-                    time_range_index,
-                    geographic_chunk_index,
-                    processing_options=processing_options,
-                    query=query,
-                    acquisition_list=time_ranges[time_range_index],
-                    lat_range=lat_ranges[geographic_chunk_index],
-                    lon_range=lon_ranges[geographic_chunk_index],
-                    measurements=measurements) for geographic_chunk_index in range(len(lat_ranges))).apply_async()
-            for time_range_index in range(len(time_ranges))
-        ]
-
-        # holds some acquisition based metadata. dict of objs keyed by date
-        dataset_out_mosaic = None
-        dataset_out_fractional_cover = None
-        acquisition_metadata = {}
-        for geographic_group in time_chunk_tasks:
-            full_dataset = None
-            tiles = []
-            # get the geographic chunk data and drop all None values
-            while not geographic_group.ready():
-                result.refresh_from_db()
-                if result.status == "CANCEL":
-                    #revoke all tasks. Running tasks will continue to execute.
-                    for task_group in time_chunk_tasks:
-                        for child in task_group.children:
-                            child.revoke()
-                    cancel_task(query, result, base_temp_path)
-                    return
-            group_data = [data for data in geographic_group.get() if data is not None]
-            result.scenes_processed += 1
-            result.save()
-            print("Got results for a time slice, computing intermediate product..")
-            if len(group_data) < 1:
-                time_range_index += 1
-                continue
-            acquisition_metadata = combine_metadata(acquisition_metadata, [tile[2] for tile in group_data])
-
-            dataset_mosaic = xr.concat(
-                reversed([xr.open_dataset(tile[0]) for tile in group_data]), dim='latitude').load()
-            dataset_out_mosaic = processing_options['chunk_combination_method'](dataset_mosaic, dataset_out_mosaic)
-
-            dataset_fractional_cover = xr.concat(
-                reversed([xr.open_dataset(tile[1]) for tile in group_data]), dim='latitude').load()
-            dataset_out_fractional_cover = processing_options['chunk_combination_method'](dataset_fractional_cover,
-                                                                                          dataset_out_fractional_cover)
-
-        latitude = dataset_out_mosaic.latitude
-        longitude = dataset_out_mosaic.longitude
-
-        # grabs the resolution.
-        geotransform = [
-            longitude.values[0], product_details.resolution.values[0][1], 0.0, latitude.values[0], 0.0,
-            product_details.resolution.values[0][0]
-        ]
-        #hardcoded crs for now. This is not ideal. Should maybe store this in the db with product type?
-        crs = str("EPSG:4326")
-
-        # remove intermediates
-        shutil.rmtree(base_temp_path + query.query_id)
-
-        # populate metadata values.
-        dates = list(acquisition_metadata.keys())
-        dates.sort()
-
-        meta = query.generate_metadata(scene_count=len(dates), pixel_count=len(latitude) * len(longitude))
-
-        for date in reversed(dates):
-            meta.acquisition_list += date.strftime("%m/%d/%Y") + ","
-            meta.clean_pixels_per_acquisition += str(acquisition_metadata[date]['clean_pixels']) + ","
-            meta.clean_pixel_percentages_per_acquisition += str(acquisition_metadata[date]['clean_pixels'] * 100 /
-                                                                meta.pixel_count) + ","
-
-        # Count clean pixels and correct for the number of measurements.
-        clean_pixels = np.sum(dataset_out_mosaic[measurements[0]].values != -9999)
-        meta.clean_pixel_count = clean_pixels
-        meta.percentage_clean_pixels = (meta.clean_pixel_count / meta.pixel_count) * 100
-        meta.save()
-
-        # generate all the results
-        file_path = base_result_path + query_id
-        tif_path = file_path + '.tif'
-        netcdf_path = file_path + '.nc'
-        mosaic_png_path = file_path + '_mosaic.png'
-        fractional_cover_png_path = file_path + "_fractional_cover.png"
-
-        print("Creating query results.")
-        #Mosaic
-        save_to_geotiff(
-            tif_path,
-            gdal.GDT_Int16,
-            dataset_out_mosaic,
-            geotransform,
-            get_spatial_ref(crs),
-            x_pixels=dataset_out_mosaic.dims['longitude'],
-            y_pixels=dataset_out_mosaic.dims['latitude'],
-            band_order=['blue', 'green', 'red', 'nir', 'swir1', 'swir2'])
-        # we've got the tif, now do the png. -> RGB
-        bands = [3, 2, 1]
-        create_rgb_png_from_tiff(
-            tif_path, mosaic_png_path, png_filled_path=None, fill_color=None, bands=bands, scale=(0, 4096))
-
-        #fractional_cover
-        dataset_out_fractional_cover.to_netcdf(netcdf_path)
-        save_to_geotiff(
-            tif_path,
-            gdal.GDT_Int32,
-            dataset_out_fractional_cover,
-            geotransform,
-            get_spatial_ref(crs),
-            x_pixels=dataset_out_mosaic.dims['longitude'],
-            y_pixels=dataset_out_mosaic.dims['latitude'],
-            band_order=['bs', 'pv', 'npv'])
-        create_rgb_png_from_tiff(
-            tif_path, fractional_cover_png_path, png_filled_path=None, fill_color=None, scale=None, bands=[1, 2, 3])
-
-        # update the results and finish up.
-        update_model_bounds_with_dataset([result, meta, query], dataset_out_mosaic)
-        result.result_mosaic_path = mosaic_png_path
-        result.result_path = fractional_cover_png_path
-        result.data_path = tif_path
-        result.data_netcdf_path = netcdf_path
-        result.status = "OK"
-        result.total_scenes = len(acquisitions)
-        result.save()
-        print("Finished processing results")
-        # all data has been processed, create results and finish up.
-        query.complete = True
-        query.query_end = datetime.datetime.now()
-        query.save()
-    except:
-        error_with_message(result, "There was an exception when handling this query.", base_temp_path)
-        raise
-    # end error wrapping.
-    return
+    return parameters
 
 
-@task(name="generate_fractional_cover_chunk")
-def generate_fractional_cover_chunk(time_num,
-                                    chunk_num,
-                                    processing_options=None,
-                                    query=None,
-                                    acquisition_list=None,
-                                    lat_range=None,
-                                    lon_range=None,
-                                    measurements=None):
+@task(name="fractional_cover.validate_parameters", base=BaseTask)
+def validate_parameters(parameters, task_id=None):
+    """Validate parameters generated by the parameter parsing task
+
+    All validation should be done here - are there data restrictions?
+    Combinations that aren't allowed? etc.
+
+    Returns:
+        parameter dict with all keyword args required to load data.
+        -or-
+        updates the task with ERROR and a message, returning None
+
     """
-    responsible for generating a piece of a fractional_cover product. This grabs the x/y area specified in the lat/lon ranges, gets all data
-    from acquisition_list, which is a list of acquisition dates, and creates the fractional_cover using the function named in processing_options.
-    saves the result to disk using time/chunk num, and returns the path and the acquisition date keyed metadata.
-    """
+    task = FractionalCoverTask.objects.get(pk=task_id)
+    dc = DataAccessApi(config=task.config_path)
 
-    #if the path has been removed, the task is cancelled and this is only running due to the prefetch.
-    if not os.path.exists(base_temp_path + query.query_id):
+    #validate for any number of criteria here - num acquisitions, etc.
+    acquisitions = dc.list_combined_acquisition_dates(**parameters)
+
+    if len(acquisitions) < 1:
+        task.complete = True
+        task.update_status("ERROR", "There are no acquistions for this parameter set.")
         return None
 
-    time_index = 0
+    if task.compositor.id == "median_pixel" and (task.time_end - task.time_start).days > 367:
+        task.complete = True
+        task.update_status("ERROR", "Median pixel operations are only supported for single year time periods.")
+        return None
+
+    task.update_status("WAIT", "Validated parameters.")
+
+    if not dc.validate_measurements(parameters['products'][0], parameters['measurements']):
+        parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+
+    dc.close()
+    return parameters
+
+
+@task(name="fractional_cover.perform_task_chunking", base=BaseTask)
+def perform_task_chunking(parameters, task_id=None):
+    """Chunk parameter sets into more manageable sizes
+
+    Uses functions provided by the task model to create a group of
+    parameter sets that make up the arg.
+
+    Args:
+        parameters: parameter stream containing all kwargs to load data
+
+    Returns:
+        parameters with a list of geographic and time ranges
+
+    """
+
+    if parameters is None:
+        return None
+
+    task = FractionalCoverTask.objects.get(pk=task_id)
+    dc = DataAccessApi(config=task.config_path)
+    dates = dc.list_combined_acquisition_dates(**parameters)
+    task_chunk_sizing = task.get_chunk_size()
+
+    geographic_chunks = create_geographic_chunks(
+        longitude=parameters['longitude'],
+        latitude=parameters['latitude'],
+        geographic_chunk_size=task_chunk_sizing['geographic'])
+
+    time_chunks = create_time_chunks(
+        dates, _reversed=task.get_reverse_time(), time_chunk_size=task_chunk_sizing['time'])
+    logger.info("Time chunks: {}, Geo chunks: {}".format(len(time_chunks), len(geographic_chunks)))
+
+    dc.close()
+    task.update_status("WAIT", "Chunked parameter set.")
+    return {'parameters': parameters, 'geographic_chunks': geographic_chunks, 'time_chunks': time_chunks}
+
+
+@task(name="fractional_cover.start_chunk_processing", base=BaseTask)
+def start_chunk_processing(chunk_details, task_id=None):
+    """Create a fully asyncrhonous processing pipeline from paramters and a list of chunks.
+
+    The most efficient way to do this is to create a group of time chunks for each geographic chunk,
+    recombine over the time index, then combine geographic last.
+    If we create an animation, this needs to be reversed - e.g. group of geographic for each time,
+    recombine over geographic, then recombine time last.
+
+    The full processing pipeline is completed, then the create_output_products task is triggered, completing the task.
+
+    """
+
+    if chunk_details is None:
+        return None
+
+    parameters = chunk_details.get('parameters')
+    geographic_chunks = chunk_details.get('geographic_chunks')
+    time_chunks = chunk_details.get('time_chunks')
+
+    task = FractionalCoverTask.objects.get(pk=task_id)
+    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time'] if
+                                                                     task.get_chunk_size()['time'] is not None else 1)
+    task.scenes_processed = 0
+    task.update_status("WAIT", "Starting processing.")
+
+    logger.info("START_CHUNK_PROCESSING")
+
+    processing_pipeline = group([
+        group([
+            processing_task.s(
+                task_id=task_id,
+                geo_chunk_id=geo_index,
+                time_chunk_id=time_index,
+                geographic_chunk=geographic_chunk,
+                time_chunk=time_chunk,
+                **parameters) for time_index, time_chunk in enumerate(time_chunks)
+        ]) | recombine_time_chunks.s(task_id=task_id) | process_band_math.s(task_id=task_id)
+        for geo_index, geographic_chunk in enumerate(geographic_chunks)
+    ]) | recombine_geographic_chunks.s(task_id=task_id)
+
+    processing_pipeline = (processing_pipeline | create_output_products.s(task_id=task_id)).apply_async()
+    return True
+
+
+@task(name="fractional_cover.processing_task", acks_late=True, base=BaseTask)
+def processing_task(task_id=None,
+                    geo_chunk_id=None,
+                    time_chunk_id=None,
+                    geographic_chunk=None,
+                    time_chunk=None,
+                    **parameters):
+    """Process a parameter set and save the results to disk.
+
+    Uses the geographic and time chunk id to identify output products.
+    **params is updated with time and geographic ranges then used to load data.
+    the task model holds the iterative property that signifies whether the algorithm
+    is iterative or if all data needs to be loaded at once.
+
+    Args:
+        task_id, geo_chunk_id, time_chunk_id: identification for the main task and what chunk this is processing
+        geographic_chunk: range of latitude and longitude to load - dict with keys latitude, longitude
+        time_chunk: list of acquisition dates
+        parameters: all required kwargs to load data.
+
+    Returns:
+        path to the output product, metadata dict, and a dict containing the geo/time ids
+    """
+
+    chunk_id = "_".join([str(geo_chunk_id), str(time_chunk_id)])
+    task = FractionalCoverTask.objects.get(pk=task_id)
+
+    logger.info("Starting chunk: " + chunk_id)
+    if not os.path.exists(task.get_temp_path()):
+        return None
+
     iteration_data = None
-    acquisition_metadata = {}
-    print("Starting chunk: " + str(time_num) + " " + str(chunk_num))
+    metadata = {}
 
-    #dc.load doesn't support generators so do it this way.
-    time_ranges = list(
-        generate_time_ranges(acquisition_list, processing_options['reverse_time'], processing_options[
-            'time_slices_per_iteration']))
+    def _get_datetime_range_containing(*time_ranges):
+        return (min(time_ranges) - timedelta(microseconds=1), max(time_ranges) + timedelta(microseconds=1))
 
-    # holds some acquisition based metadata.
-    for time_index, time_range in enumerate(time_ranges):
-
-        raw_data = dc.get_dataset_by_extent(
-            query.product,
-            product_type=None,
-            platform=query.platform,
-            time=time_range,
-            longitude=lon_range,
-            latitude=lat_range,
-            measurements=measurements)
-
-        if "cf_mask" not in raw_data:
+    times = list(
+        map(_get_datetime_range_containing, time_chunk)
+        if task.get_iterative() else [_get_datetime_range_containing(time_chunk[0], time_chunk[-1])])
+    dc = DataAccessApi(config=task.config_path)
+    updated_params = parameters
+    updated_params.update(geographic_chunk)
+    #updated_params.update({'products': parameters['']})
+    iteration_data = None
+    base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
+    for time_index, time in enumerate(times):
+        updated_params.update({'time': time})
+        data = dc.get_stacked_datasets_by_extent(**updated_params)
+        if data is None or 'time' not in data:
+            logger.info("Invalid chunk.")
             continue
 
-        clear_mask = create_cfmask_clean_mask(raw_data.cf_mask)
+        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
+                                                                                                      [1, 2])
+        add_timestamp_data_to_xr(data)
 
-        # update metadata. # here the clear mask has all the clean
-        # pixels for each acquisition.
-        for timeslice in range(clear_mask.shape[0]):
-            time = raw_data.time.values[timeslice] if type(
-                raw_data.time.values[timeslice]) == datetime.datetime else datetime.datetime.utcfromtimestamp(
-                    raw_data.time.values[timeslice].astype(int) * 1e-9)
-            clean_pixels = np.sum(clear_mask[timeslice, :, :] == True)
-            if time not in acquisition_metadata:
-                acquisition_metadata[time] = {}
-                acquisition_metadata[time]['clean_pixels'] = 0
-            acquisition_metadata[time]['clean_pixels'] += clean_pixels
+        metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
 
-        iteration_data = processing_options['processing_method'](raw_data,
-                                                                 clean_mask=clear_mask,
-                                                                 intermediate_product=iteration_data,
-                                                                 reverse_time=processing_options['reverse_time'])
+        iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
 
-    # Save this geographic chunk to disk.
-    geo_path = base_temp_path + query.query_id + "/geo_chunk_" + \
-        str(time_num) + "_" + str(chunk_num) + ".nc"
-    fractional_cover_path = base_temp_path + query.query_id + "/geo_chunk_fractional_" + \
-        str(time_num) + "_" + str(chunk_num) + ".nc"
-    # if this is an empty chunk, just return an empty dataset.
-    if iteration_data is None or not os.path.exists(base_temp_path + query.query_id):
+        task.scenes_processed = F('scenes_processed') + 1
+        task.save()
+
+    if iteration_data is None:
         return None
-    iteration_data.to_netcdf(geo_path)
-    ##################################################################
-    # Compute fractional cover here.
-    clear_mask = create_cfmask_clean_mask(iteration_data.cf_mask)
-    # mask out water manually. Necessary for frac. cover.
-    clear_mask[iteration_data.cf_mask.values == 1] = False
-    fractional_cover = frac_coverage_classify(iteration_data, clean_mask=clear_mask)
-    ##################################################################
-    if not os.path.exists(base_temp_path + query.query_id):
+
+    path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
+    iteration_data.to_netcdf(path)
+    dc.close()
+    logger.info("Done with chunk: " + chunk_id)
+    return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
+
+
+@task(name="fractional_cover.recombine_time_chunks", base=BaseTask)
+def recombine_time_chunks(chunks, task_id=None):
+    """Recombine processed chunks over the time index.
+
+    Open time chunked processed datasets and recombine them using the same function
+    that was used to process them. This assumes an iterative algorithm - if it is not, then it will
+    simply return the data again.
+
+    Args:
+        chunks: list of the return from the processing_task function - path, metadata, and {chunk ids}
+
+    Returns:
+        path to the output product, metadata dict, and a dict containing the geo/time ids
+
+    """
+    logger.info("RECOMBINE_TIME")
+    #sorting based on time id - earlier processed first as they're incremented e.g. 0, 1, 2..
+    chunks = chunks if isinstance(chunks, list) else [chunks]
+    chunks = [chunk for chunk in chunks if chunk is not None]
+    if len(chunks) == 0:
         return None
-    fractional_cover.to_netcdf(fractional_cover_path)
-    print("Done with chunk: " + str(time_num) + " " + str(chunk_num))
-    return [geo_path, fractional_cover_path, acquisition_metadata]
+
+    total_chunks = sorted(chunks, key=lambda x: x[0])
+    task = FractionalCoverTask.objects.get(pk=task_id)
+    geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
+    time_chunk_id = total_chunks[0][2]['time_chunk_id']
+    metadata = {}
+
+    combined_data = None
+    for index, chunk in enumerate(total_chunks):
+        metadata.update(chunk[1])
+        data = xr.open_dataset(chunk[0], autoclose=True)
+        if combined_data is None:
+            combined_data = data
+            continue
+        #give time an indice to keep mosaicking from breaking.
+        data['time'] = [0]
+        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
+                                                                                                      [1, 2])
+
+        combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
+
+    if combined_data is None:
+        return None
+
+    path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
+    combined_data.to_netcdf(path)
+    logger.info("Done combining time chunks for geo: " + str(geo_chunk_id))
+    return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
-# Init/shutdown functions for handling dc instances.
-# this is done to prevent synchronization/conflicts between workers when
-# accessing DC resources.
-@worker_process_init.connect
-def init_worker(**kwargs):
+@task(name="fractional_cover.process_band_math", base=BaseTask)
+def process_band_math(chunk, task_id=None):
+    """Apply some band math to a chunk and return the args
+
+    Opens the chunk dataset and applys some band math defined by _apply_band_math(dataset)
+    _apply_band_math creates some product using the bands already present in the dataset and
+    returns the dataarray. The data array is then appended under 'band_math', then saves the
+    result to disk in the same path as the nc file already exists.
     """
-    Creates an instance of the DataAccessApi worker.
+
+    def _apply_band_math(dataset):
+        clear_mask = create_cfmask_clean_mask(dataset.cf_mask) if 'cf_mask' in dataset else create_bit_mask(
+            dataset.pixel_qa, [1, 2])
+        # mask out water manually. Necessary for frac. cover.
+        wofs = wofs_classify(dataset, clean_mask=clear_mask, mosaic=True)
+        clear_mask[wofs.wofs.values == 1] = False
+
+        return frac_coverage_classify(dataset, clean_mask=clear_mask)
+
+    if chunk is None:
+        return None
+
+    dataset = xr.open_dataset(chunk[0], autoclose=True).load()
+    dataset = xr.merge([dataset, _apply_band_math(dataset)])
+    #remove previous nc and write band math to disk
+    os.remove(chunk[0])
+    dataset.to_netcdf(chunk[0])
+    return chunk
+
+
+@task(name="fractional_cover.recombine_geographic_chunks", base=BaseTask)
+def recombine_geographic_chunks(chunks, task_id=None):
+    """Recombine processed data over the geographic indices
+
+    For each geographic chunk process spawned by the main task, open the resulting dataset
+    and combine it into a single dataset. Combine metadata as well, writing to disk.
+
+    Args:
+        chunks: list of the return from the processing_task function - path, metadata, and {chunk ids}
+
+    Returns:
+        path to the output product, metadata dict, and a dict containing the geo/time ids
     """
+    logger.info("RECOMBINE_GEO")
+    total_chunks = [chunks] if not isinstance(chunks, list) else chunks
+    total_chunks = [chunk for chunk in total_chunks if chunk is not None]
+    geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
+    time_chunk_id = total_chunks[0][2]['time_chunk_id']
 
-    print("Creating DC instance for worker.")
-    global dc
-    from django.conf import settings
-    dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf')
-    if not os.path.exists(base_result_path):
-        os.mkdir(base_result_path)
-        os.chmod(base_result_path, 0o777)
+    metadata = {}
+    task = FractionalCoverTask.objects.get(pk=task_id)
+
+    chunk_data = []
+
+    for index, chunk in enumerate(total_chunks):
+        metadata = task.combine_metadata(metadata, chunk[1])
+        chunk_data.append(xr.open_dataset(chunk[0], autoclose=True))
+
+    combined_data = combine_geographic_chunks(chunk_data)
+
+    path = os.path.join(task.get_temp_path(), "recombined_geo_{}.nc".format(time_chunk_id))
+    combined_data.to_netcdf(path)
+    logger.info("Done combining geographic chunks for time: " + str(time_chunk_id))
+    return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
-@worker_process_shutdown.connect
-def shutdown_worker(**kwargs):
+@task(name="fractional_cover.create_output_products", base=BaseTask)
+def create_output_products(data, task_id=None):
+    """Create the final output products for this algorithm.
+
+    Open the final dataset and metadata and generate all remaining metadata.
+    Convert and write the dataset to variuos formats and register all values in the task model
+    Update status and exit.
+
+    Args:
+        data: tuple in the format of processing_task function - path, metadata, and {chunk ids}
+
     """
-    Deletes the instance of the DataAccessApi worker.
-    """
+    logger.info("CREATE_OUTPUT")
+    full_metadata = data[1]
+    dataset = xr.open_dataset(data[0], autoclose=True)
+    task = FractionalCoverTask.objects.get(pk=task_id)
 
-    print('Closing DC instance for worker.')
-    global dc
-    dc.dc.close()
+    task.result_path = os.path.join(task.get_result_path(), "band_math.png")
+    task.mosaic_path = os.path.join(task.get_result_path(), "png_mosaic.png")
+    task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
+    task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
+    task.final_metadata_from_dataset(dataset)
+    task.metadata_from_dict(full_metadata)
+
+    bands = [
+        'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'pv', 'npv', 'bs'
+    ] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa', 'pv', 'npv', 'bs']
+
+    dataset.to_netcdf(task.data_netcdf_path)
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
+    write_png_from_xr(task.mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
+    write_png_from_xr(task.result_path, dataset, bands=['bs', 'pv', 'npv'])
+
+    logger.info("All products created.")
+    task.update_bounds_from_dataset(dataset)
+    task.complete = True
+    task.execution_end = datetime.now()
+    task.update_status("OK", "All products have been generated. Your result will be loaded on the map.")
+    shutil.rmtree(task.get_temp_path())
+    return True

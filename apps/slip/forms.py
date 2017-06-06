@@ -23,31 +23,19 @@ from django import forms
 
 import datetime
 
-from data_cube_ui.models import Baseline
-"""
-File designed to house the different forms for taking in user input in the web application.  Forms
-allow for input validation and passing of data.  Includes forms for creating Queries to be ran.
-"""
-
-# Author: AHDS
-# Creation date: 2016-06-23
-# Modified by:
-# Last modified date:
-
-years_range = list(range(1990, datetime.datetime.now().year + 1))
+from .models import BaselineMethod
+from apps.dc_algorithm.models import Area
 
 
-class DataSelectForm(forms.Form):
+class AdditionalOptionsForm(forms.Form):
     """
     Django form to be created for selecting information and validating input for:
         result_type
         band_selection
         title
         description
+    Init function to initialize dynamic forms.
     """
-
-    title = forms.CharField(widget=forms.HiddenInput())
-    description = forms.CharField(widget=forms.HiddenInput())
 
     baseline_length = forms.ChoiceField(
         help_text='Select the number of acquisitions that will be used to create the baseline',
@@ -55,11 +43,15 @@ class DataSelectForm(forms.Form):
         choices=[(number, number) for number in range(1, 11)],
         widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
+    baseline_method = forms.ModelChoiceField(
+        queryset=None,
+        to_field_name="id",
+        empty_label=None,
+        help_text='Select the method by which the baseline will be created.',
+        label='Baseline Method:',
+        widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+
     def __init__(self, *args, **kwargs):
-        super(DataSelectForm, self).__init__(*args, **kwargs)
-        baseline_list = [(baseline.baseline_id, baseline.baseline_name) for baseline in Baseline.objects.all()]
-        self.fields["baseline_selection"] = forms.ChoiceField(
-            help_text='Select the method by which the baseline will be created.',
-            label="Baseline Method:",
-            choices=baseline_list,
-            widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
+        datacube_platform = kwargs.pop('datacube_platform', None)
+        super(AdditionalOptionsForm, self).__init__(*args, **kwargs)
+        self.fields["baseline_method"].queryset = BaselineMethod.objects.all()

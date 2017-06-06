@@ -29,304 +29,165 @@ from django.forms.models import model_to_dict
 import json
 from datetime import datetime, timedelta
 
-from .models import ResultType, Result, Query, Metadata
-from data_cube_ui.models import Satellite, Area, Application
-from data_cube_ui.forms import GeospatialForm
-from .forms import DataSelectForm
-from .tasks import create_cloudfree_mosaic
-
-from .utils import create_query_from_post
+from apps.dc_algorithm.models import Satellite, Area, Application
+from apps.dc_algorithm.forms import DataSelectionForm
+from .forms import AdditionalOptionsForm
+from .tasks import run
 
 from collections import OrderedDict
-"""
-Class holding all the views for the custom_mosaic_tool app in the project.
-"""
 
-# Author: AHDS
-# Creation date: 2016-06-23
-# Modified by: MAP
-# Last modified date:
+from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, GetTaskResult, SubmitNewSubsetRequest, CancelRequest,
+                                     UserHistory, ResultList, OutputList, RegionSelection, TaskDetails)
 
 
-@login_required
-def custom_mosaic_tool(request, area_id):
+class RegionSelection(RegionSelection):
+    """Creates the region selection page for the tool by extending the RegionSelection class
+
+    Extends the RegionSelection abstract class - tool_name is the only required parameter -
+    all other parameters are provided by the context processor.
+
+    See the dc_algorithm.views docstring for more information
     """
-    Loads the custom mosaic tool page. Includes the relevant forms/satellites, as well as running
-    queries for the user. A form is created for each satellite based on the db contents for any
-    given satellite.
+    tool_name = 'custom_mosaic_tool'
 
-    **Context**
 
-    ``satellites``
-        List of available satellites to choose from for submission
-    ``forms``
-        The forms to be loaded to allow for user input.
-    ``running_queries``
-        A list of all tasks currently running.
+class CustomMosaicTool(ToolView):
+    """Creates the main view for the custom mosaic tool by extending the ToolView class
 
-    ``area``
-    The desired area that was selected from the previous screen.
+    Extends the ToolView abstract class - required attributes are the tool_name and the
+    generate_form_dict function.
 
-    **Template**
-
-    :template:`custom_mosaic_tool/map_tool.html`
+    See the dc_algorithm.views docstring for more details.
     """
 
-    user_id = 0
-    if request.user.is_authenticated():
-        user_id = request.user.username
-    area = Area.objects.get(area_id=area_id)
-    app = Application.objects.get(application_id="custom_mosaic_tool")
-    satellites = area.satellites.all() & app.satellites.all()  #Satellite.objects.all().order_by('satellite_id')
-    forms = {}
-    for satellite in satellites:
-        forms[satellite.satellite_id] = {
-            'Data Selection':
-            DataSelectForm(satellite_id=satellite.satellite_id, auto_id=satellite.satellite_id + "_%s"),
-            'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.satellite_id + "_%s")
-        }
-    running_queries = Query.objects.filter(user_id=user_id, area_id=area_id, complete=False)
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicToolTask'
 
-    context = {
-        'tool_name': 'custom_mosaic_tool',
-        'info_panel': 'map_tool/custom_mosaic_tool/info_panel.html',
-        'satellites': satellites,
-        'forms': forms,
-        'running_queries': running_queries,
-        'area': area,
-        'application': app,
-    }
-
-    return render(request, 'map_tool/map_tool.html', context)
+    def generate_form_dict(self, satellites, area):
+        forms = {}
+        for satellite in satellites:
+            forms[satellite.datacube_platform] = {
+                'Data Selection':
+                AdditionalOptionsForm(
+                    datacube_platform=satellite.datacube_platform, auto_id=satellite.datacube_platform + "_%s"),
+                'Geospatial Bounds':
+                DataSelectionForm(
+                    area=area,
+                    time_start=satellite.date_min,
+                    time_end=satellite.date_max,
+                    auto_id=satellite.datacube_platform + "_%s")
+            }
+        return forms
 
 
-@login_required
-def submit_new_request(request):
+class SubmitNewRequest(SubmitNewRequest):
     """
-    Submit a new request using post data. A query model is created with the relevant information and
-    user id, then the data task is started. The response is a json obj. containing the query id.
+    Submit new request REST API Endpoint
+    Extends the SubmitNewRequest abstract class - required attributes are the tool_name,
+    task_model_name, form_list, and celery_task_func
 
-    **Context**
+    Note:
+        celery_task_func should be callable with .delay() and take a single argument of a TaskModel pk.
 
-    **Template**
+    See the dc_algorithm.views docstrings for more information.
     """
-
-    user_id = 0
-    if request.user.is_authenticated():
-        user_id = request.user.username
-    if request.method == 'POST':
-        response = {}
-        response['msg'] = "OK"
-        try:
-            query_id = create_query_from_post(user_id, request.POST)
-            create_cloudfree_mosaic.delay(query_id, user_id)
-            response.update(model_to_dict(Query.objects.filter(query_id=query_id, user_id=user_id)[0]))
-        except:
-            response['msg'] = "ERROR"
-            raise
-        return JsonResponse(response)
-    else:
-        return JsonResponse({'msg': "ERROR"})
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicToolTask'
+    #celery_task_func = create_cloudfree_mosaic
+    celery_task_func = run
+    form_list = [DataSelectionForm, AdditionalOptionsForm]
 
 
-@login_required
-def submit_new_single_request(request):
+class GetTaskResult(GetTaskResult):
     """
-    Submit a new requset for a single scene from an existing query. Clones the existing query and
-    updates the date fields for a single day.
+    Get task result REST API endpoint
+    Extends the GetTaskResult abstract class, required attributes are the tool_name
+    and task_model_name
 
-    **Context**
-
-    **Template**
+    See the dc_algorithm.views docstrings for more information.
     """
-
-    user_id = 0
-    if request.user.is_authenticated():
-        user_id = request.user.username
-    if request.method == 'POST':
-        response = {}
-        response['msg'] = "OK"
-        try:
-            #Get the query that this is a derivation of, clone it by setting pk to none.
-            query = Query.objects.filter(query_id=request.POST['query_id'], user_id=user_id)[0]
-            query.pk = None
-            query.time_start = datetime.strptime(request.POST['date'], '%m/%d/%Y')
-            query.time_end = query.time_start + timedelta(days=1)
-            query.complete = False
-            query.title = "Single acquisition for " + request.POST['date']
-            query.query_id = query.generate_query_id()
-            query.save()
-            create_cloudfree_mosaic.delay(query.query_id, user_id, single=True)
-            response.update(model_to_dict(query))
-        except:
-            raise
-            response['msg'] = "ERROR"
-        return JsonResponse(response)
-    else:
-        return JsonResponse({'msg': "ERROR"})
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicToolTask'
 
 
-@login_required
-def cancel_request(request):
+class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
     """
-    Cancel a running task by id. Post data includes a query id to be cancelled. The result model is
-    obtained, and if it is still running then the job is cancelled. If it is too late, then the job
-    will proceed until completion.
+    Submit new subset request REST API endpoint
+    Extends the SubmitNewSubsetRequest abstract class, required attributes are
+    the tool_name, task_model_name, celery_task_func, and task_model_update_func.
 
-    **Context**
-
-    **Template**
+    See the dc_algorithm.views docstrings for more information.
     """
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicToolTask'
 
-    user_id = 0
-    if request.user.is_authenticated():
-        user_id = request.user.username
-    if request.method == 'POST':
-        response = {}
-        response['msg'] = "OK"
-        try:
-            query = Query.objects.get(query_id=request.POST['query_id'], user_id=user_id)
-            result = Result.objects.get(query_id=request.POST['query_id'])
-            if result.status == "WAIT" and query.complete == False:
-                result.status = "CANCEL"
-                result.save()
-        except:
-            response['msg'] = "ERROR"
-        return JsonResponse(response)
-    else:
-        return JsonResponse({'msg': "ERROR"})
+    celery_task_func = run
+
+    def task_model_update_func(self, task_model, **kwargs):
+        """
+        Basic funct that updates a task model with kwargs. In this case only the date
+        needs to be changed, and results reset.
+        """
+        date = kwargs.get('date')[0]
+        task_model.time_start = datetime.strptime(date, '%m/%d/%Y')
+        task_model.time_end = task_model.time_start + timedelta(days=1)
+        task_model.complete = False
+        task_model.scenes_processed = 0
+        task_model.total_scenes = 0
+        task_model.title = "Single acquisition for " + date
+        return task_model
 
 
-@login_required
-def get_result(request):
+class CancelRequest(CancelRequest):
     """
-    Gets a result by its query id. If the result does not yet exist in the db or there are no errors
-    or "ok" signals, wait. If the result has errored in some way, all offending models are removed.
-    If the result returns ok, then post a result. Response is a json obj containing a msg and result.    the result can either be the data or an obj containing the total scenes/progress.
-
-    **Context**
-
-    **Template**
+    Cancel request REST API endpoint
+    Extends the CancelRequest abstract class, required attributes are the tool
+    name and task model name. This will not kill running queries, but will
+    disassociate it from the user's history.
     """
-
-    if request.method == 'POST':
-        response = {}
-        try:
-            result = Result.objects.get(query_id=request.POST['query_id'])
-        except Result.DoesNotExist:
-            result = None
-            response['msg'] = "WAIT"
-        except:
-            result = None
-            response['msg'] = "ERROR"
-        if result:
-            if result.status == "ERROR":
-                response['msg'] = "ERROR"
-                response['error_msg'] = result.result_path
-                # get rid of the offending results, queries, metadatas.
-                Query.objects.filter(query_id=result.query_id).delete()
-                Metadata.objects.filter(query_id=result.query_id).delete()
-                result.delete()
-            elif result.status == "OK":
-                response['msg'] = "OK"
-                response.update(model_to_dict(result))
-                # since there is a result, update all the currently running identical queries with complete=true;
-                Query.objects.filter(query_id=result.query_id).update(complete=True)
-            else:
-                response['msg'] = "WAIT"
-                response['result'] = {'total_scenes': result.total_scenes, 'scenes_processed': result.scenes_processed}
-        return JsonResponse(response)
-    return JsonResponse({'msg': "ERROR"})
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicToolTask'
 
 
-@login_required
-def get_query_history(request, area_id):
+class UserHistory(UserHistory):
     """
-    Gets a formatted view displaying a user's task history. Used in the custom mosaic tool view.
-    No post data required. The user's authentication provides username, returns a view w/
-    context including the last n query objects.
-
-    **Context**
-
-    ``query_history``
-        List of queries ran ordered by query_start ascending.  Currently only first 10 rows returned
-
-    **Template**
-
-    :template:`custom_mosaic_tool/query_history`
+    Generate a template used to display the user's history
+    Extends the QueryHistory abstract class, required attributes are the tool
+    name and task model name. This will list all queries that are complete, have a
+    OK status, and are registered to the user.
     """
-    user_id = 0
-    if request.user.is_authenticated():
-        user_id = request.user.username
-    history = Query.objects.filter(user_id=user_id, area_id=area_id, complete=True).order_by('-query_start')[:10]
-    context = {
-        'query_history': history,
-    }
-    return render(request, 'map_tool/custom_mosaic_tool/query_history.html', context)
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicToolTask'
 
 
-@login_required
-def get_results_list(request, area_id):
+class ResultList(ResultList):
     """
-    Loads the results list from a list of query ids. Error handling: N/a. getlist always returns a
-    list, so even if its a bad request it'll return an empty list of queries and metadatas.
-
-    **Context**
-
-    ``queries``
-        The queries found given the query_ids[] list passed in through the POST
-    ``metadata_entries``
-        The metadata objects found for each query
-
-    **Template**
-
-    :template:`custom_mosaic_tool/results_list.html`
-
+    Generate a template used to display any number of existing queries and metadatas
+    Extends the ResultList abstract class, required attributes are the tool
+    name and task model name. This will list all queries that are complete, have a
+    OK status, and are registered to the user.
     """
-
-    if request.method == 'POST':
-        query_ids = request.POST.getlist('query_ids[]')
-        queries = []
-        metadata_entries = []
-        for query_id in query_ids:
-            queries.append(Query.objects.filter(query_id=query_id).order_by('-query_start')[0])
-            metadata_entries.append(Metadata.objects.filter(query_id=query_id)[0])
-
-        context = {'queries': queries, 'metadata_entries': metadata_entries}
-        return render(request, 'map_tool/custom_mosaic_tool/results_list.html', context)
-    return HttpResponse("Invalid Request.")
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicToolTask'
 
 
-@login_required
-def get_output_list(request, area_id):
+class OutputList(OutputList):
     """
-    Loads the output of the given query for a requested ID.
-
-    **Context**
-
-    ``data``
-        The information to be returned to the user.
-
-    **Template**
-
-    :template: `custom_mosaic_tool/output_list.html`
+    Generate a template used to display any number of existing queries and metadatas
+    Extends the OutputList abstract class, required attributes are the tool
+    name and task model name. This will list all queries that are complete, have a
+    OK status, and are registered to the user.
     """
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicToolTask'
 
-    if request.method == 'POST':
-        query_ids = request.POST.getlist('query_ids[]')
-        #queries = []
-        #metadata_entries = []
-        data = {}
-        for query_id in query_ids:
-            # queries.append(Query.objects.filter(query_id=query_id)[0])
-            # metadata_entries.append(Metadata.objects.filter(query_id=query_id)[0])
-            data[Query.objects.filter(query_id=query_id).order_by('-query_start')[0]] = Metadata.objects.filter(
-                query_id=query_id)[0]
 
-        context = {
-            #'queries': queries,
-            #'metadata_entries': metadata_entries
-            'data': data
-        }
-        return render(request, 'map_tool/custom_mosaic_tool/output_list.html', context)
-    return HttpResponse("Invalid Request.")
+class TaskDetails(TaskDetails):
+    """
+    Generate a template used to display the full task details for any
+    given task.
+    Extends the TaskDetails abstract class, required attributes are the tool
+    name and task model name.
+    """
+    tool_name = 'custom_mosaic_tool'
+    task_model_name = 'CustomMosaicToolTask'

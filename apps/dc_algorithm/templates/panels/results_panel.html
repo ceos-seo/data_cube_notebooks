@@ -1,0 +1,63 @@
+<div id="results_panel" class="tab-pane fade">
+    <h2>Completed Tasks</h2>
+    <hr>
+    <div id="results_list">
+        <!-- will be populated from a django template.  -->
+    </div>
+</div>
+<script>
+    jQuery(function() {
+        loadResultsPanel();
+    });
+
+    //the obj.map funct. doesn't work for older versions of ie... not sure if that matters.
+    //handles the results panel: task list, scenes list, meta.
+    //.hasOwnProperty('result_path')
+    function loadResultsPanel() {
+        var ids = Object.keys(tasks);
+        var valid_ids = [];
+        for (var index = 0; index < ids.length; index++) {
+            if (tasks[ids[index]].hasOwnProperty('result_path')) {
+                valid_ids.push(ids[index]);
+            }
+        }
+        $.get('results_list', {
+            'task_ids': valid_ids
+        }, function(result) {
+            $('#results_list').html(result);
+            $('.scenes_list').hide();
+            $('.scene_meta').hide();
+        })
+    }
+
+    function resultClicked(id) {
+        //$("#task_list .selectTask").removeClass('sel_high');
+        //$("#result_" + id).addClass('sel_high');
+        set_selected_result(id);
+        $('.scenes_list').hide();
+        $('.scene_meta').hide();
+        $('#' + sanitize_id('scenes_' + id)).show();
+        $('#' + sanitize_id('meta_' + id)).show();
+    }
+
+    function load_scene_from_task(id, date) {
+        //hide the current task, add the new single scene task.
+        toggle_visibility(id, false);
+        if (typeof(Worker) !== undefined) {
+            var w = new Worker("/static/assets/js/dcw.js");
+            w.postMessage({
+                'tool_name': window.tool_name,
+                'status': "SINGLE",
+                'result_type': "Single Scene task",
+                'id': id,
+                'date': date,
+                'csrf': csrftoken
+            });
+            w.addEventListener("message", task_event_listener);
+            $('#tabs_main li:eq(0) a').tab('show')
+        } else {
+            set_dialog_modal_content("Alert", "This browser does not support webworkers.");
+        }
+        //console.log(id, date);
+    }
+</script>

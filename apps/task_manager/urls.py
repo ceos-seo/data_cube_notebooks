@@ -29,6 +29,5 @@ from . import views
 # Last modified date:
 
 urlpatterns = [
-    url(r'^(\w+)/details/(\d+)', views.get_query_details, name='get_query_details'),
     url(r'^(?P<app_id>[\w\-]+)', views.get_task_manager, name='get_task_manager'),
 ]

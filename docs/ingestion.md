@@ -54,11 +54,11 @@ Product definitions define the attributes for entire datasets. These attributes 
 
 **Read the official ODC documentation on product definitions on [their readthedocs.io page](http://datacube-core.readthedocs.io/en/stable/ops/config.html)**
 
-We will be using our Landsat 7 SR product definition as an example - open the file located at '~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml' or view the full file [here](https://github.com/ceos-seo/agdc-v2/blob/develop/ingest/dataset_types/ls7_sr_scenes_agdc.yaml). We will go through this file and describe each attribute. The schema for the dataset type .yaml files can be found [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml). This outlines the required fields as well as the datatypes and what fields are allowed. This schema is used to validate any new product definitions that are added.
+We will be using our Landsat 7 SR product definition as an example - open the file located at '~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml' or view the full file [here](https://github.com/ceos-seo/agdc-v2/blob/develop/ingest/dataset_types/landsat_collection/ls7_collections_sr_scene.yaml). We will go through this file and describe each attribute. The schema for the dataset type .yaml files can be found [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml). This outlines the required fields as well as the datatypes and what fields are allowed. This schema is used to validate any new product definitions that are added.
 
 ```
-name: ls7_ledaps_scene
-description: Landsat 7 LEDAPS 30 metre. Will be used for all ls7 scenes, which are then split into utms on the ingestion config level.
+name: ls7_collections_sr_scene
+description: Landsat 7 USGS Collection 1 Higher Level SR scene processed using LEDAPS. 30m UTM based projection.
 metadata_type: eo
 ```
 
@@ -76,13 +76,13 @@ Next in the file is the metadata field:
 
 ```
 metadata:
-  	platform:
-  	    code: LANDSAT_7
-  	instrument:
-  	    name: ETM
-  	product_type: ledaps
-  	format:
-  	    name: GeoTiff
+    platform:
+        code: LANDSAT_7
+    instrument:
+        name: ETM
+    product_type: LEDAPS
+    format:
+        name: GeoTiff
 ```
 
 The metadata as defined by the product definition schema [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml) is an object - any number of fields and any schemas can be put here, as long as they are defined in the metadata type definition. If you open the [default metadata type file](https://github.com/opendatacube/datacube-core/blob/develop/datacube/index/default-metadata-types.yaml), you'll see that the format is expected to be nested in format -> name, the product type is just in product type, etc. This is described using an 'offset' from the document root. This metadata is used to 'match' datasets to their appropriate product type, so the script in the next section that generates the metadata files must produce the same platform and product type as what is listed above.
@@ -91,13 +91,10 @@ The last element (or list of elements) in the product definition is the measurem
 
 ```
 - name: 'sr_band7'
-  aliases: [band_7, swir2]
-  dtype: int16
-  nodata: -9999
-  units: '1'
-  spectral_definition:
-      wavelength: [2000, 2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015, 2017, 2018, 2020, 2022, 2024, 2026, 2028, 2030, 2032, 2034, 2035, 2037, 2039, 2041, 2043, 2045, 2047, 2049, 2051, 2052, 2054, 2056, 2058, 2060, 2062, 2064, 2066, 2067, 2069, 2071, 2073, 2075, 2077, 2079, 2081, 2083, 2085, 2086, 2088, 2090, 2092, 2094, 2096, 2099, 2100, 2102, 2104, 2106, 2108, 2110, 2112, 2114, 2116, 2117, 2119, 2121, 2123, 2125, 2127, 2129, 2131, 2133, 2135, 2136, 2138, 2140, 2142, 2144, 2146, 2148, 2150, 2151, 2153, 2155, 2157, 2159, 2161, 2163, 2165, 2166, 2168, 2170, 2172, 2174, 2176, 2178, 2180, 2182, 2183, 2185, 2187, 2189, 2191, 2193, 2195, 2197, 2199, 2201, 2203, 2205, 2207, 2209, 2210, 2212, 2214, 2216, 2218, 2220, 2222, 2223, 2226, 2227, 2229, 2231, 2233, 2235, 2237, 2239, 2241, 2242, 2244, 2246, 2248, 2250, 2252, 2254, 2256, 2258, 2259, 2261, 2263, 2265, 2267, 2269, 2271, 2273, 2274, 2276, 2278, 2280, 2282, 2284, 2286, 2288, 2290, 2292, 2293, 2295, 2297, 2299, 2301, 2303, 2305, 2307, 2309, 2310, 2312, 2314, 2316, 2318, 2320, 2322, 2323, 2325, 2327, 2329, 2331, 2333, 2335, 2337, 2339, 2340, 2342, 2344, 2346, 2348, 2350, 2352, 2354, 2355, 2357, 2359, 2361, 2363, 2365, 2367, 2369, 2371, 2373, 2374, 2376, 2378, 2380, 2382, 2384, 2386, 2390, 2395, 2400]
-      response: [0.0, 0.003, -0.002, 0.003, -0.001, 0.0, 0.004, -0.004, 0.002, 0.002, 0.002, 0.012, 0.009, 0.007, 0.011, 0.02, 0.017, 0.03, 0.035, 0.037, 0.044, 0.051, 0.065, 0.08, 0.088, 0.102, 0.133, 0.165, 0.188, 0.22, 0.264, 0.316, 0.367, 0.421, 0.484, 0.554, 0.59, 0.67, 0.683, 0.73, 0.756, 0.767, 0.794, 0.774, 0.776, 0.789, 0.775, 0.784, 0.778, 0.768, 0.762, 0.761, 0.775, 0.775, 0.764, 0.784, 0.792, 0.814, 0.794, 0.825, 0.817, 0.806, 0.819, 0.821, 0.852, 0.832, 0.836, 0.85, 0.855, 0.862, 0.853, 0.871, 0.848, 0.882, 0.875, 0.86, 0.856, 0.887, 0.85, 0.872, 0.879, 0.857, 0.865, 0.867, 0.871, 0.882, 0.87, 0.869, 0.873, 0.877, 0.868, 0.88, 0.877, 0.87, 0.878, 0.88, 0.868, 0.881, 0.87, 0.856, 0.863, 0.863, 0.857, 0.844, 0.859, 0.857, 0.852, 0.866, 0.868, 0.856, 0.856, 0.847, 0.861, 0.862, 0.84, 0.856, 0.838, 0.856, 0.837, 0.842, 0.826, 0.844, 0.827, 0.842, 0.822, 0.843, 0.823, 0.854, 0.839, 0.853, 0.854, 0.865, 0.873, 0.869, 0.865, 0.893, 0.89, 0.89, 0.906, 0.924, 0.92, 0.922, 0.939, 0.916, 0.94, 0.93, 0.942, 0.957, 0.954, 0.951, 0.954, 0.966, 0.975, 0.985, 0.971, 0.973, 0.97, 0.993, 0.996, 0.983, 0.972, 1.0, 0.998, 0.971, 0.968, 0.967, 0.962, 0.949, 0.923, 0.929, 0.917, 0.934, 0.903, 0.926, 0.916, 0.942, 0.924, 0.92, 0.863, 0.824, 0.775, 0.684, 0.583, 0.48, 0.378, 0.275, 0.233, 0.171, 0.131, 0.111, 0.081, 0.069, 0.046, 0.029, 0.038, -0.002, 0.029, 0.016, 0.009, 0.017, 0.003, 0.015, 0.0, -0.009, 0.007, 0.0, 0.0, 0.0]
+      aliases: [band_7, swir2]
+      dtype: int16
+      nodata: -9999
+      units: 'reflectance'
 ```
 
 The full measurement schema with all possible formats can be found in the [dataset type schema](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml). The example above includes the optional spectral definition, but flag definitions are also allowed. The only properties that are required are **name, dtype, nodata, and units**. If you were to create a product definition for Sentinel 1 data, you would use the data guide to find out what bands are available, the datatype of those bands, what the no data value is, and the units and enumerate them here.
@@ -114,9 +111,9 @@ This command should be run from within the virtual environment. This will valida
 
 ```
 2017-04-19 11:23:39,861 21121 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml
-2017-04-19 11:23:40,184 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_scene_lat_lon_time
-2017-04-19 11:23:40,194 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_scene_time_lat_lon
-Added "ls7_ledaps_scene"
+2017-04-19 11:23:40,184 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_collections_sr_scene_lat_lon_time
+2017-04-19 11:23:40,194 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_collections_sr_scene_time_lat_lon
+Added "ls7_collections_sr_scene"
 ```
 
 The 'Added \*' statement should read that it has added the name defined within the product definition.
@@ -157,17 +154,18 @@ Since we are processing a Landsat scene, we'll use the script titled 'usgslsprep
 
 ```
 #if you are not already in the virtual environment, please activate that now with 'source ~/Datacube/datacube_env/bin/activate'
-python usgslsprepare.py /datacube/original_data/L*/
+#This is dependent on what data you have - Collection 1 Higher level data uses usgs_ls_ard_prepare, while older datasets use usgslsprepare.py
+python usgs_ls_ard_prepare.py /datacube/original_data/L*/
 ```
 
 These scripts can run on a single directory of a list of directories specified with a wildcard (\*). The output should resemble what is shown below:
 
 ```
 2017-04-19 12:30:25,134 INFO Processing /datacube/original_data/LE71240522000128-SC20170217181717
-2017-04-19 12:30:25,141 INFO Writing /datacube/original_data/LE71240522000128-SC20170217181717/agdc-metadata.yaml
+2017-04-19 12:30:25,141 INFO Writing /datacube/original_data/LE71240522000128-SC20170217181717/datacube-metadata.yaml
 ```
 
-You'll see that the script has created a .yaml file titled agdc-metadata.yaml in the same directory as your GeoTiff data files.
+You'll see that the script has created a .yaml file titled datacube-metadata.yaml in the same directory as your GeoTiff data files.
 
 Opening this metadata .yaml file, you'll see that is contains all of the fields listed in the 'eo' metadata definition. The nested fields will also correspond to the 'offset' or listed fields in the metadata definition.
 
@@ -242,7 +240,7 @@ If you are looking to create a new script to process a dataset that we don't hav
 Indexing Datasets in the Database
 --------
 
-Now that you have a product definition added and a agdc-metadata.yaml file generated for your scene, it is now time to index the dataset and associate it with the product definition. This is done with a datacube command from the CLI. Please note that indexing the dataset in the database creates an absolute reference to the path on disk - you cannot move the dataset on disk after indexing or it won't be found and will create problems.
+Now that you have a product definition added and a datacube-metadata.yaml file generated for your scene, it is now time to index the dataset and associate it with the product definition. This is done with a datacube command from the CLI. Please note that indexing the dataset in the database creates an absolute reference to the path on disk - you cannot move the dataset on disk after indexing or it won't be found and will create problems.
 
 Run the `datacube dataset add` command on the directory or metadata .yaml file generated for the dataset. This command will load the .yaml metadata file and create a Dataset class object from the contents. It will then try to match the dataset to a product definition using the provided metadata.
 
@@ -250,13 +248,13 @@ Run the `datacube dataset add` command on the directory or metadata .yaml file g
 #ensure that you are doing this from within the virtual environment. If not, activate it with 'source ~/Datacube/datacube_env/bin/activate'
 datacube -v dataset add /datacube/original_data/LE71240522000128-SC20170217181717
 #or
-#datacube -v dataset add /datacube/original_data/LE71240522000128-SC20170217181717/agdc-metadata.yaml
+#datacube -v dataset add /datacube/original_data/LE71240522000128-SC20170217181717/datacube-metadata.yaml
 ```
 
 The resulting console output will resemble the output below:
 
 ```
-Indexing datasets  [####################################]  100%2017-04-19 13:45:16,405 22577 datacube-dataset INFO Matched Dataset <id=708d0d1b-8832-460b-b79e-67694875e101 type=ls7_ledaps_scene location=/datacube/original_data/LE71240522000128-SC20170217181717/agdc-metadata.yaml>
+Indexing datasets  [####################################]  100%2017-04-19 13:45:16,405 22577 datacube-dataset INFO Matched Dataset <id=708d0d1b-8832-460b-b79e-67694875e101 type=ls7_collections_sr_scene location=/datacube/original_data/LE71240522000128-SC20170217181717/datacube-metadata.yaml>
 2017-04-19 13:45:16,406 22577 datacube.index._datasets INFO Indexing 708d0d1b-8832-460b-b79e-67694875e101
 ```
 
@@ -287,12 +285,12 @@ print(dc)
 
 #now, query the data cube for some data using the name of the product type
 #if you added a different dataset type, use that here.
-data_full = dc.load(product='ls7_ledaps_scene')
+data_full = dc.load(product='ls7_collections_sr_scene')
 
 #this should produce an error! since we didn't specify a crs or resolution in the product definition, we need to enter one now. The Data Cube will load the data in the entered projection and resolution - we can reproject any dataset to any resolution or projection when it is loaded, not only during ingestion.
 
 #resolution is in the format of y, x - y is negative.
-data_full = dc.load(product='ls7_ledaps_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027))
+data_full = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027))
 
 #since our Landsat scene is in a UTM based projection at 30m resolution, it will need to be converted to EPSG:4326 with a fractional degree resolution. Here, we use .00027 as a rough estimation of 30m at a latitude of 0.
 
@@ -306,7 +304,7 @@ print(data_full)
 
 #replace latitude and longitude ranges with whatever you want - we're now loading in a single 0.5 degree square. Note that all lat/lon query parameters are in latitude/longitude WGS84 coordinates.
 #using the printed data_full, look at the listing for latitude and longitude. The first values there is the upper left corner. in our case, the upper left corner is at 12.52 lat, 106.8 lon.
-data_partial = dc.load(product='ls7_ledaps_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5))
+data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5))
 
 print(data_partial)
 
@@ -314,7 +312,7 @@ print(data_partial)
 
 #we can also load a small subset of data at once by measurement to have a smaller memory footprint.
 
-data_partial = dc.load(product='ls7_ledaps_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5), measurements=['sr_band1', 'cfmask'])
+data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5), measurements=['sr_band1', 'cfmask'])
 
 print(data_partial)
 ```
@@ -340,7 +338,7 @@ Datacube<index=Index<db=PostgresDb<engine=Engine(postgresql://dc_user:***@:5432/
 >>>
 >>> #now, query the data cube for some data using the name of the product type
 ... #if you added a different dataset type, use that here.
-... data_full = dc.load(product='ls7_ledaps_scene')
+... data_full = dc.load(product='ls7_collections_sr_scene')
 Traceback (most recent call last):
   File "<stdin>", line 3, in <module>
   File "/home/localuser/Datacube/agdc-v2/datacube/api/core.py", line 305, in load
@@ -350,7 +348,7 @@ RuntimeError: Product has no default CRS. Must specify 'output_crs' and 'resolut
 >>> #this should produce an error! since we didn't specify a crs or resolution in the product definition, we need to enter one now. The Data Cube will load the data in the entered projection and resolution - we can reproject any dataset to any resolution or projection when it is loaded, not only during ingestion.
 ...
 >>> #resolution is in the format of y, x - y is negative.
-... data_full = dc.load(product='ls7_ledaps_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027))
+... data_full = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027))
 >>>
 >>> #since our Landsat scene is in a UTM based projection at 30m resolution, it will need to be converted to EPSG:4326 with a fractional degree resolution. Here, we use .00027 as a rough estimation of 30m at a latitude of 0.
 ...
@@ -389,7 +387,7 @@ Attributes:
 ...
 >>> #replace latitude and longitude ranges with whatever you want - we're now loading in a single 0.5 degree square. Note that all lat/lon query parameters are in latitude/longitude WGS84 coordinates.
 ... #using the printed data_full, look at the listing for latitude and longitude. The first values there is the upper left corner. in our case, the upper left corner is at 12.52 lat, 106.8 lon.
-... data_partial = dc.load(product='ls7_ledaps_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5))
+... data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5))
 >>>
 >>> print(data_partial)
 <xarray.Dataset>
@@ -422,7 +420,7 @@ Attributes:
 ...
 >>> #we can also load a small subset of data at once by measurement to have a smaller memory footprint.
 ...
->>> data_partial = dc.load(product='ls7_ledaps_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5), measurements=['sr_band1', 'cfmask'])
+>>> data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5), measurements=['sr_band1', 'cfmask'])
 >>>
 >>> print(data_partial)
 <xarray.Dataset>
@@ -454,55 +452,55 @@ The ingestion configuration file is essentially defining a transformation betwee
 
 **Read the official ODC documentation on ingestion configuration files on [their readthedocs.io page](http://datacube-core.readthedocs.io/en/stable/ops/config.html)**
 
-**Please note that you will need to create a new ingestion configuration file to match the scene bounds that you have downloaded. If you do not want to do that, delete the ingestion bounds section from the configuration file we are using as an example - your product will be 'ls7_ledaps_vietnam'**
+**Please note that you will need to create a new ingestion configuration file to match the scene bounds that you have downloaded. If you do not want to do that, delete the ingestion bounds section from the configuration file we are using as an example - your product will be 'ls7_ledaps_general'**
 
 In this section we will go through an example Landsat 7 ingestion configuration and then ingest our sample dataset.
 
-Open the ingestion configuration file located in `~/Datacube/agdc-v2/ingest/ingestion_configs/ls7_sr_scenes_wgs84_vietnam.yaml`, or view [the page on GitHub](https://github.com/ceos-seo/agdc-v2/blob/develop/ingest/ingestion_configs/ls7_sr_scenes_wgs84_vietnam.yaml)
+Open the ingestion configuration file located in `~/Datacube/agdc-v2/ingest/ingestion_configs/landsat_collection/ls7_collections_sr_general.yaml`, or view [the page on GitHub](https://github.com/ceos-seo/agdc-v2/blob/develop/ingest/ingestion_configs/landsat_collection/ls7_collections_sr_general.yaml)
 
 The first two lines in the file are:
 
 ```
-source_type: ls7_ledaps_scene
-output_type: ls7_ledaps_vietnam
+source_type: ls7_collections_sr_scene
+output_type: ls7_ledaps_general
 ```
 
-This tells the ingestion process to match the input parameters to datasets that are associated with the 'ls7_ledaps_scene' product definition and to create a new product definition named 'ls7_ledaps_vietnam'.
+This tells the ingestion process to match the input parameters to datasets that are associated with the 'ls7_collections_sr_scene' product definition and to create a new product definition named 'ls7_ledaps_general'.
 
 Next, there are two parameters that specify the location and file path templates for the newly created storage units:
 
 ```
 location: '/datacube/ingested_data'
-file_path_template: 'LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_{tile_index[0]}_{tile_index[1]}_{start_time}.nc'
+file_path_template: 'LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_{tile_index[0]}_{tile_index[1]}_{tile_index[2]}.nc'
 ```
 
 This specifies that the base path for the ingested data is `/datacube/ingested_data` - this was created previously and should have 777 permissions.
-> 'file_path_template' describes the rest of the storage unit path - the directory structure 'LS7_ETM_LEDAPS/Vietnam' will be created and populated with storage units.
+> 'file_path_template' describes the rest of the storage unit path - the directory structure 'LS7_ETM_LEDAPS/General' will be created and populated with storage units.
 
-> Files named 'LS7_ETM_LEDAPS_4326_{tile_index[0]}_{tile_index[1]}_{start_time}.nc' will be created in the above directory. The bracketed parameters are filled in by the ingestion process.
+> Files named 'LS7_ETM_LEDAPS_4326_{tile_index[0]}_{tile_index[1]}_{tile_index[2]}.nc' will be created in the above directory. The bracketed parameters are filled in by the ingestion process.
 
 The next elements are global metadata elements, as seen below.
 
 ```
 global_attributes:
   title: CEOS Data Cube Landsat Surface Reflectance
-  summary: Landsat 7 Enhanced Thematic Mapper Plus Analysis Ready data prepared by NASA on behalf of CEOS.
-  source: Surface reflectance from LEDAPS
+  summary: Landsat 7 Enhanced Thematic Mapper Plus ARD prepared by NASA on behalf of CEOS.
+  source: LEDAPS surface reflectance product prepared using USGS Collection 1 data.
   institution: CEOS
   instrument: ETM
   cdm_data_type: Grid
   keywords: AU/GA,NASA/GSFC/SED/ESD/LANDSAT,REFLECTANCE,ETM+,TM,OLI,EARTH SCIENCE
   keywords_vocabulary: GCMD
-  platform: LANDSAT-7
+  platform: LANDSAT_7
   processing_level: L2
   product_version: '2.0.0'
-  product_suite: USGS Landsat
+  product_suite: USGS Landsat Collection 1
   project: CEOS
   coverage_content_type: physicalMeasurement
   references: http://dx.doi.org/10.3334/ORNLDAAC/1146
   license: https://creativecommons.org/licenses/by/4.0/
   naming_authority: gov.usgs
-acknowledgment: Landsat data is provided by the United States Geological Survey (USGS).
+  acknowledgment: Landsat data is provided by the United States Geological Survey (USGS).
 ```
 
 The next field group defines what subset (if any) of the source dataset that should be used for the ingestion process. If the entire source dataset should be ingested, then this can be left out. In the example below, we are restricting the ingestion process to datasets that match the input dataset type that fall between those bounds. These numbers should be in latitude and longitude WGS84 coordinates.
@@ -561,21 +559,21 @@ The last part of the configuration file is the measurement information. These lo
 
 The important points to note here are that it contains the same information (or can contain) all of the same attributes from the product definition, as well as information required to map the source measurements to the ingested measurements.
 
-The 'src_varname' field maps the ingested dataset measurements to source variables - in the above case, we are mapping 'sr_band1' to blue. If you open the agdc-metadata.yaml file, you'll see that one of the listed bands is 'sr_band1' and has a path to a .tif file. Additionally, the resampling method is listed along with the dtype and nodata if you desire a data type conversion or a change in nodata value.
+The 'src_varname' field maps the ingested dataset measurements to source variables - in the above case, we are mapping 'sr_band1' to blue. If you open the datacube-metadata.yaml file, you'll see that one of the listed bands is 'sr_band1' and has a path to a .tif file. Additionally, the resampling method is listed along with the dtype and nodata if you desire a data type conversion or a change in nodata value.
 
 Now that we have a complete ingestion configuration file, we are able to start the ingestion process. Use the following code snippet:
 
 ```
-datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/ls7_sr_scenes_wgs84_vietnam.yaml --executor multiproc 2
+datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/landsat_collection/ls7_collections_sr_general.yaml --executor multiproc 2
 ```
 
 You'll notice a few things in the command above: -c is the option for the configuration file, and --executor multiproc enables multiprocessing. In our case, we're using two cores. You should see a significant amount of console output as well as a constantly updating status until ingestion is finished. With our ~1 degree tiles, you can also see that we are producing 9 tiles for the single acquisition due to our tiling settings. The console output can be seen below:
 
 ```
-2017-04-20 10:00:11,758 27010 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v ingest -c /home/localuser/Datacube/agdc-v2/ingest/ingestion_configs/ls7_sr_scenes_wgs84_vietnam.yaml
-2017-04-20 10:00:11,822 27010 agdc-ingest INFO Created DatasetType ls7_ledaps_vietnam
-2017-04-20 10:00:11,916 27010 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_vietnam_lat_lon_time
-2017-04-20 10:00:11,960 27010 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_vietnam_time_lat_lon
+2017-04-20 10:00:11,758 27010 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v ingest -c /home/localuser/Datacube/agdc-v2/ingest/ingestion_configs/landsat_collection/ls7_collections_sr_general.yaml
+2017-04-20 10:00:11,822 27010 agdc-ingest INFO Created DatasetType ls7_ledaps_general
+2017-04-20 10:00:11,916 27010 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_general_lat_lon_time
+2017-04-20 10:00:11,960 27010 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_general_time_lat_lon
 (106, 5)
 ...
 (121, 21)
@@ -590,47 +588,47 @@ You'll notice a few things in the command above: -c is the option for the config
 2017-04-20 10:00:12,487 27010 agdc-ingest INFO Submitting task: (114, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:00:12,487 27010 agdc-ingest INFO Submitting task: (115, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:00:12,488 27010 agdc-ingest INFO Starting task (114, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:19,265 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_114_13_20000507025950000000.nc
+2017-04-20 10:00:19,265 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_114_13_20000507025950000000.nc
 2017-04-20 10:00:22,625 27010 agdc-ingest INFO Finished task (114, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:00:22,626 27010 agdc-ingest INFO completed 1, failed 0, pending 8
 2017-04-20 10:00:22,626 27010 datacube.index._datasets INFO Indexing 82b339a4-a12d-45c0-a851-f7a203b9a670
 2017-04-20 10:00:22,898 27010 agdc-ingest INFO Starting task (115, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:35,432 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_115_11_20000507025950000000.nc
+2017-04-20 10:00:35,432 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_115_11_20000507025950000000.nc
 2017-04-20 10:00:38,110 27010 agdc-ingest INFO Finished task (115, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:00:38,110 27010 agdc-ingest INFO completed 1, failed 0, pending 7
 2017-04-20 10:00:38,111 27010 datacube.index._datasets INFO Indexing 490d81eb-a22f-4411-9598-07f964fefb77
 2017-04-20 10:00:38,156 27010 agdc-ingest INFO Starting task (113, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:41,747 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_113_13_20000507025950000000.nc
+2017-04-20 10:00:41,747 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_113_13_20000507025950000000.nc
 2017-04-20 10:00:44,523 27010 agdc-ingest INFO Finished task (113, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:00:44,524 27010 agdc-ingest INFO completed 1, failed 0, pending 6
 2017-04-20 10:00:44,524 27010 datacube.index._datasets INFO Indexing e0e3b1c4-3d59-4255-aa31-20a2aa1b569b
 2017-04-20 10:00:44,556 27010 agdc-ingest INFO Starting task (115, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:59,737 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_115_12_20000507025950000000.nc
+2017-04-20 10:00:59,737 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_115_12_20000507025950000000.nc
 2017-04-20 10:01:03,200 27010 agdc-ingest INFO Finished task (115, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:01:03,201 27010 agdc-ingest INFO completed 1, failed 0, pending 5
 2017-04-20 10:01:03,201 27010 datacube.index._datasets INFO Indexing 04f5ccc5-c2a0-4824-8be1-2887a2721499
 2017-04-20 10:01:03,278 27010 agdc-ingest INFO Starting task (114, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:08,624 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_114_12_20000507025950000000.nc
+2017-04-20 10:01:08,624 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_114_12_20000507025950000000.nc
 2017-04-20 10:01:14,500 27010 agdc-ingest INFO Finished task (114, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:01:14,501 27010 agdc-ingest INFO completed 1, failed 0, pending 4
 2017-04-20 10:01:14,501 27010 datacube.index._datasets INFO Indexing 0921386d-333b-46c5-8398-40080fcf25f8
 2017-04-20 10:01:14,567 27010 agdc-ingest INFO Starting task (113, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:18,858 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_113_11_20000507025950000000.nc
+2017-04-20 10:01:18,858 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_113_11_20000507025950000000.nc
 2017-04-20 10:01:22,925 27010 agdc-ingest INFO Finished task (113, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:01:22,925 27010 agdc-ingest INFO completed 1, failed 0, pending 3
 2017-04-20 10:01:22,926 27010 datacube.index._datasets INFO Indexing 3ab3673a-e7bd-4fc7-a8aa-e3ff05042c3a
 2017-04-20 10:01:23,000 27010 agdc-ingest INFO Starting task (113, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:27,720 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_113_12_20000507025950000000.nc
+2017-04-20 10:01:27,720 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_113_12_20000507025950000000.nc
 2017-04-20 10:01:32,007 27010 agdc-ingest INFO Finished task (113, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:01:32,008 27010 agdc-ingest INFO completed 1, failed 0, pending 2
 2017-04-20 10:01:32,008 27010 datacube.index._datasets INFO Indexing 45582c02-22f2-4efc-a81d-ee566f990c8a
 2017-04-20 10:01:32,111 27010 agdc-ingest INFO Starting task (114, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:36,723 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_114_11_20000507025950000000.nc
+2017-04-20 10:01:36,723 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_114_11_20000507025950000000.nc
 2017-04-20 10:01:41,250 27010 agdc-ingest INFO Finished task (114, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:01:41,250 27010 agdc-ingest INFO completed 1, failed 0, pending 1
 2017-04-20 10:01:41,251 27010 datacube.index._datasets INFO Indexing 3a83cd2a-ca8f-419e-b937-8ea88b136b12
 2017-04-20 10:01:42,293 27010 agdc-ingest INFO Starting task (115, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:45,774 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/Vietnam/LS7_ETM_LEDAPS_4326_115_13_20000507025950000000.nc
+2017-04-20 10:01:45,774 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_115_13_20000507025950000000.nc
 2017-04-20 10:01:48,268 27010 agdc-ingest INFO Finished task (115, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
 2017-04-20 10:01:48,268 27010 agdc-ingest INFO completed 1, failed 0, pending 0
 2017-04-20 10:01:48,269 27010 datacube.index._datasets INFO Indexing 2e0d1a7b-078d-4173-a636-f73ee9f920bd
@@ -662,9 +660,9 @@ Now, for each dataset that is collected you will need to run a preparation scrip
 ```
 #ensure that you're in the virtual environment. If not, activate with 'source ~/Datacube/datacube_env/bin/activate'
 #python ~/Datacube/agdc-v2/ingest/prepare_scripts/{script for dataset you want to add} {path to dataset(s)}
-python ~/Datacube/agdc-v2/ingest/prepare_scripts/usgslsprepare.py /datacube/original_data/vietnam/LC8*/
+python ~/Datacube/agdc-v2/ingest/prepare_scripts/usgslsprepare.py /datacube/original_data/General/LC8*/
 
-datacube -v dataset add /datacube/original_data/vietnam/LC8*/
+datacube -v dataset add /datacube/original_data/General/LC8*/
 ```
 
 Now that the datasets have the correct metadata generated and have been indexed, we can run the ingestion process. Ingestion skips all datasets that have already been ingested, so this is a single command.
@@ -672,7 +670,7 @@ Now that the datasets have the correct metadata generated and have been indexed,
 ```
 #ensure that you're in the virtual environment. If not, activate with 'source ~/Datacube/datacube_env/bin/activate'
 #datacube -v ingest -c {path to config} --executor multiproc {number of available cores}
-datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/ls8_sr_scenes_wgs84_vietnam.yaml --executor multiproc 8
+datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/ls8_sr_scenes_wgs84_General.yaml --executor multiproc 8
 ```
 
 After an initial ingestion, when you download new acquisitions all you need to do is generate the metadata, index the dataset, and run the ingestion process.

@@ -1,0 +1,71 @@
+{% extends "default.html" %}
+<!--
+Copyright 2016 United States Government as represented by the Administrator
+of the National Aeronautics and Space Administration. All Rights Reserved.
+
+Portion of this code is Copyright Geoscience Australia, Licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License
+at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+-->
+{% block javascript %}
+<script type="text/javascript" charset="utf8" src="/static/assets/js/DataTables/media/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/static/assets/js/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+{% endblock %}
+{% block css %}
+<link href="/static/assets/css/task_manager.css" rel="stylesheet" type="text/css" media="screen, projection" />
+<link rel="stylesheet" type="text/css" href="/static/assets/js/DataTables/media/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% block content %}
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-12 seamless-col col-centered fullscreen-col table-container">
+      <table id="data_table" class="table hover row-border">
+        <thead>
+          <tr>
+            {% for header_field in header_fields %}
+            <th>
+              {{ header_field }}
+            </th>
+            {% endfor %}
+            <th>
+              More Info
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in tasks %}
+          	<tr>
+          	  {% for field in task.get_unique_fields_as_list %}
+            	  <td>{{ field }}</td>
+          	  {% endfor %}
+              <td><a {% if not task.complete %}disabled="disabled"{% endif %} href="/{{application_id}}/task_details/{{task.pk}}" class="btn btn-primary">Details</a></td>
+          	</tr>
+        	{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready( function () {
+    $('#data_table').DataTable({
+      "lengthMenu": [[15, 25, 50, -1], [15, 25, 50, "All"]]
+    });
+  } );
+</script>
+{% endblock %}

@@ -1,16 +1,6 @@
 .table-container {
   padding: 15px;
 }
-tbody{
-  overflow-y: scroll;
-  height: calc(100% - 90px);
-  /* 2x padding from .table-container */
-  width: calc(100% - 30px);
-  position: absolute;
-  border-left: 1px solid #d4d4d4;
-  border-right: 1px solid #d4d4d4;
-  border-bottom: 1px solid #d4d4d4;
-}
 
 .form-inline {
   padding-top: 5px;
@@ -25,28 +15,7 @@ thead {
   background-color: #d4d4d4;
 }
 
-tbody tr:nth-child(even){
-  background:#ECF0F1;
-}
-
-tbody tr:hover, tbody tr:nth-child(even):hover {
-  background:#BDC3C7;
-  color:#FFFFFF;
-}
-
-tr {
-width: 100%;
-display: inline-table;
-height:60px;
-table-layout: fixed;
-}
-
 tr td, .table > thead > tr > th{
   text-align: center;
   vertical-align: middle;
-}
-
-table{
- height:100%;
- display: -moz-groupbox;
 }

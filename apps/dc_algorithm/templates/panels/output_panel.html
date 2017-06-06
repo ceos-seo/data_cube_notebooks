@@ -1,0 +1,55 @@
+<div id="output_panel" class="tab-pane fade">
+    <h2>Output</h2>
+    <hr>
+    <!-- Populated by django template.   -->
+    <div id='output_list_container'>
+
+    </div>
+</div>
+<script>
+    jQuery(function() {
+        loadOutputPanel();
+        $(".tooltipped").tooltip();
+    })
+
+    //loads the output panel by posting a list of tasks and inserting
+    //the rendered response in its div.
+    function loadOutputPanel() {
+        var ids = Object.keys(tasks);
+        var valid_ids = [];
+        for (var index = 0; index < ids.length; index++) {
+            if (tasks[ids[index]].hasOwnProperty('result_path')) {
+                valid_ids.push(ids[index]);
+            }
+        }
+        $.get('output_list', {
+            'task_ids': valid_ids
+        }, function(result) {
+            $('#output_list_container').html(result);
+        })
+    }
+
+    var selected_output = "";
+    $("#output_list_download_button").hide();
+
+    function outputClicked(id) {
+        $("#output_list_download_button").show();
+        //$("#output_list .selectTask").removeClass('sel_high');
+        //$("#output_" + id).addClass('sel_high')
+        selected_output = id;
+        set_dl_url();
+        set_selected_result(id);
+    }
+
+    function set_dl_url() {
+        dl_link = "";
+        if (tasks[selected_output]) {
+            dl_link += tasks[selected_output][$('#download_sel').val()];
+            if ($('#download_sel').val() == "animation_path" && tasks[selected_output].animation_path == "None")
+                return;
+            //window.open(dl_link, '_blank');
+            $("#output_list_download_button").attr("href", dl_link);
+            $("#output_list_download_button").attr("download", $("#download_sel option:selected").text().replace(/ /g, "_") + "." + dl_link.split('.').pop());
+        }
+    }
+</script>
