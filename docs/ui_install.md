@@ -73,7 +73,7 @@ Next, you'll need various Python packages responsible for the entire application
 ```
 pip install django
 pip install redis
-pip install celery==3.1.23
+pip install celery
 pip install imageio
 pip install django-bootstrap3
 ```
@@ -81,7 +81,8 @@ pip install django-bootstrap3
 You will also need to create a base directory structure for results:
 
 ```
-mkdir /datacube/{ui_results,ui_results_temp}
+mkdir /datacube/ui_results
+chmod 777 /datacube/ui_results
 ```
 
 The Data Cube UI also sends admin mail, so a mail server is required:
@@ -221,7 +222,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'datacube',
-      	'USER': 'dc_user',
+      	'USER': 'localuser',
       	'PASSWORD': 'localuser1234',
       	'HOST': MASTER_NODE
     }
@@ -275,7 +276,7 @@ cd ~/Datacube/data_cube_ui
 bash scripts/ui_setup.sh
 ```
 
-This will move the configuration files, do the migrations, and restart everything.
+This will move the configuration files, do the migrations, and restart everything. This will also daemonize the celery workers.
 
 <a name="starting_workers"></a> Starting Workers
 =================
