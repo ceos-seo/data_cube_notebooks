@@ -81,6 +81,9 @@ class Query(models.Model):
         unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
                             'longitude_max', 'longitude_min', 'title', 'description'))
 
+    def __str__(self):
+        return str(self.pk)
+
     def get_unique_fields_as_list(self):
         return [getattr(self, field) for field in self._meta.unique_together[0]]
 

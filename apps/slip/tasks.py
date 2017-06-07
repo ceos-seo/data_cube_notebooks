@@ -268,25 +268,22 @@ def processing_task(task_id=None,
         return None
 
     #target data is most recent, with the baseline being everything else.
-    target_data = data.isel(time=-1, drop=True)
+    target_data = xr.concat([data.isel(time=-1)], 'time')
     baseline_data = data.isel(time=slice(None, -1))
 
-    clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa, [1, 2])
-    combined_baseline = task.get_processing_method()(baseline_data, clean_mask=clear_mask[:-1, :, :])
+    target_clear_mask = create_cfmask_clean_mask(target_data.cf_mask) if 'cf_mask' in target_data else create_bit_mask(
+        target_data.pixel_qa, [1, 2])
+    baseline_clear_mask = create_cfmask_clean_mask(
+        baseline_data.cf_mask) if 'cf_mask' in baseline_data else create_bit_mask(baseline_data.pixel_qa, [1, 2])
+    combined_baseline = task.get_processing_method()(baseline_data, clean_mask=baseline_clear_mask)
 
-    target_data = xr.concat([target_data], 'time')
-    target_data['time'] = [0]
-    target_data = create_mosaic(target_data, clean_mask=clear_mask[-1, :, :])
+    target_data = create_mosaic(target_data, clean_mask=target_clear_mask)
 
     slip_data = compute_slip(combined_baseline, target_data, dem_data)
     target_data['slip'] = slip_data
 
     metadata = task.metadata_from_dataset(
-        metadata,
-        target_data,
-        clear_mask[-1, :, :],
-        updated_params,
-        time=data.time.values.astype('M8[ms]').tolist()[-1])
+        metadata, target_data, target_clear_mask, updated_params, time=data.time.values.astype('M8[ms]').tolist()[-1])
 
     task.scenes_processed = F('scenes_processed') + 1
     task.save()
@@ -334,7 +331,8 @@ def recombine_time_chunks(chunks, task_id=None):
         data = xr.open_dataset(chunk[0], autoclose=True)
         if combined_data is None:
             combined_data = data.drop('slip')
-            combined_slip = data.slip.copy(deep=True)
+            # since this is going to interact with data/mosaicking, it needs a time dim
+            combined_slip = xr.concat([data.slip.copy(deep=True)], 'time')
             continue
         #give time an indice to keep mosaicking from breaking.
         data = xr.concat([data], 'time')
@@ -342,11 +340,12 @@ def recombine_time_chunks(chunks, task_id=None):
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
         # modify clean mask so that only slip pixels that are still zero will be used. This will show all the pixels that caused the flag.
-        clear_mask[combined_slip.values == 1] = False
+        clear_mask[xr.concat([combined_slip], 'time').values == 1] = False
         combined_data = create_mosaic(data.drop('slip'), clean_mask=clear_mask, intermediate_product=combined_data)
         combined_slip.values[combined_slip.values == 0] = data.slip.values[combined_slip.values == 0]
 
-    combined_data['slip'] = combined_slip
+    # Since we added a time dim to combined_slip, we need to remove it here. 
+    combined_data['slip'] = combined_slip.isel(time=0, drop=True)
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
     combined_data.to_netcdf(path)
     logger.info("Done combining time chunks for geo: " + str(geo_chunk_id))
