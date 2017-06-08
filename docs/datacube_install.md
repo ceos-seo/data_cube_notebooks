@@ -27,7 +27,7 @@ This document will outline the steps required to have a functional Data Cube ins
 
 <a name="system_requirements"></a> System Requirements
 =================
-This document is targetting a Ubuntu based development environment - either on a local server or in a virtual machine. The base requirements can be found below:
+This document is targeting an Ubuntu based development environment - either on a local server or in a virtual machine. The base requirements can be found below:
 
 * **OS**: Ubuntu 16.04 LTS - [Download here](https://www.ubuntu.com/download/desktop)
 * **Memory**: 8GB+ of memory is preferred
@@ -36,9 +36,10 @@ This document is targetting a Ubuntu based development environment - either on a
 
 We recommend downloading all updates during installation. To match our system setup, you should also do the following:
 
-* **Create a local user that will be used to run all of the processes**: we use 'localuser', but this can be anything you want. You can even set up the OS with a single user and just use that as your local user. Do not use special characters in this username as it can potentially cause issues in the future. We recommend an all lowercase underscore separated string.
+* **Create a local user that will be used to run all of the processes**: We use 'localuser', but this can be anything you want. You can even set up the OS with a single user and just use that as your local user. Do not use special characters in this username as it can potentially cause issues in the future. We recommend an all lowercase underscore separated string.
 * **Create your base directory structure to hold all of the relevant codebases**: We create everything in a directory 'Datacube' in the local user's directory. We also create a base directory structure for raw data and the ingested data in the root directory '/datacube/\*'
 * **Create a virtual environment named 'datacube_env' in the ~/Datacube directory**: We use a single virtual environment for all of our Data Cube related packages/modules. To set this up, you must install virtualenv for Python3 and initialize the environment.
+
 
 ```
 mkdir ~/Datacube
@@ -106,6 +107,7 @@ pip install numpy
 pip install --global-option=build_ext --global-option="-I/usr/include/gdal" gdal==1.11.2
 pip install shapely
 pip install scipy
+pip install cloudpickle
 ```
 
 Please note that the installed gdal version should be as close to your system gdal version as possible, printed with:
@@ -121,9 +123,8 @@ Now that all requirements have been satisfied, run the setup.py script in the ag
 
 ```
 cd ~/Datacube/agdc-v2
+pip install Cython==0.19
 python setup.py develop
-# Cython may be required, depending on your system. If there is an issue, run:
-# pip install Cython
 ```
 
 This should produce a considerable amount of console output, but will ultimately end with a line resembling:
@@ -138,7 +139,7 @@ There are a few minor changes required to prevent any potential errors that can 
 
 PostgreSQL Configuration
 ---------------
-The first step is modifying some PostgreSQL settings to ensure that everything goes smoothly for the next few steps. Open the postgresql.conf file found at `/etc/postgresql/9.5/main/postgresql.conf`
+The first step is modifying some PostgreSQL settings to ensure that everything goes smoothly for the next few steps. Open the postgresql.conf fipiple found at `/etc/postgresql/9.5/main/postgresql.conf`
 
 Open this file in your editor of choice and find the line that starts with 'timezone'. This setting may default to 'localtime'; change this to 'UTC'. The resulting line should look like:
 
@@ -203,12 +204,12 @@ This will move the required .datacube.conf file to the home directory. The user'
 To create the database use the following:
 
 ```
-sudo -u postgres createuser --superuser dc_user
-sudo -u postgres psql -c "ALTER USER dc_user WITH PASSWORD 'dcuser1';"
+sudo -u postgres createuser --superuser localuser
+sudo -u postgres psql -c "ALTER USER dc_user WITH PASSWORD 'localuser1234';"
 createdb -U dc_user datacube
 ```
 
-This command block creates a superuser with the username 'dc_user', sets the password, and creates a database as 'dcuser'. If the username, password, or database name was changed in the configuration file change them in the commands listed above as well.
+This command block creates a superuser with the username 'localuser', sets the password, and creates a database as 'localuser'. If the username, password, or database name was changed in the configuration file change them in the commands listed above as well.
 
 To finish the system initialization process, run the following Data Cube command to initialize the database with the default schemas and metadata types.
 
