@@ -54,7 +54,7 @@ Product definitions define the attributes for entire datasets. These attributes 
 
 **Read the official ODC documentation on product definitions on [their readthedocs.io page](http://datacube-core.readthedocs.io/en/stable/ops/config.html)**
 
-We will be using our Landsat 7 SR product definition as an example - open the file located at '~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml' or view the full file [here](https://github.com/ceos-seo/agdc-v2/blob/develop/ingest/dataset_types/landsat_collection/ls7_collections_sr_scene.yaml). We will go through this file and describe each attribute. The schema for the dataset type .yaml files can be found [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml). This outlines the required fields as well as the datatypes and what fields are allowed. This schema is used to validate any new product definitions that are added.
+We will be using our Landsat 7 SR product definition as an example - open the file located at '~/Datacube/agdc-v2/ingest/dataset_types/landsat_collection/ls7_collections_sr_scene.yaml' or view the full file [here](https://github.com/ceos-seo/agdc-v2/blob/develop/ingest/dataset_types/landsat_collection/ls7_collections_sr_scene.yaml). We will go through this file and describe each attribute. The schema for the dataset type .yaml files can be found [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml). This outlines the required fields as well as the datatypes and what fields are allowed. This schema is used to validate any new product definitions that are added.
 
 ```
 name: ls7_collections_sr_scene
@@ -104,13 +104,13 @@ There should be one measurement entry for each expected band in the dataset.
 Once your product definition has all required information, you add it to the Data Cube. For our Landsat 7 example, this is done with the following command:
 
 ```
-datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml
+datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/landsat_collection/ls7_collections_sr_scene.yaml
 ```
 
 This command should be run from within the virtual environment. This will validate your product definition and, if valid, will index it in the Data Cube. The expected output should look like below:
 
 ```
-2017-04-19 11:23:39,861 21121 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/ls7_sr_scenes_agdc.yaml
+2017-04-19 11:23:39,861 21121 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/landsat_collection/ls7_sr_scenes_agdc.yaml
 2017-04-19 11:23:40,184 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_collections_sr_scene_lat_lon_time
 2017-04-19 11:23:40,194 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_collections_sr_scene_time_lat_lon
 Added "ls7_collections_sr_scene"

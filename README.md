@@ -33,10 +33,9 @@ Requirements
 * redis-server
 * libfreeimage3
 * tmux
-
 * django
 * redis
-* celery==3.1.23
+* celery
 * imageio
 * django-bootstrap3
 
