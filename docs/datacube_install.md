@@ -185,7 +185,7 @@ db_database: datacube
 
 # db_hostname
 
-db_username: localuser
+db_username: dc_user
 db_password: localuser1234
 ```
 
