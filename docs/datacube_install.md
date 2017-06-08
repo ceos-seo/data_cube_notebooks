@@ -108,6 +108,8 @@ pip install --global-option=build_ext --global-option="-I/usr/include/gdal" gdal
 pip install shapely
 pip install scipy
 pip install cloudpickle
+pip install Cython
+pip install netcdf4
 ```
 
 Please note that the installed gdal version should be as close to your system gdal version as possible, printed with:
@@ -121,9 +123,9 @@ At the time this is being written, the above command outputs 1.11.3, which means
 
 Now that all requirements have been satisfied, run the setup.py script in the agdc-v2 directory:
 
+**It has come to our attention that the setup.py script fails the first time it is run due to some NetCDF/Cython issues. Run the script a second time to install if this occurs.**
 ```
 cd ~/Datacube/agdc-v2
-pip install Cython==0.19
 python setup.py develop
 ```
 
