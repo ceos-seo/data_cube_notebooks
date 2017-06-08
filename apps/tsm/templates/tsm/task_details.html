@@ -1,0 +1,174 @@
+{% extends "task_details_template.html" %}
+<!--
+Copyright 2016 United States Government as represented by the Administrator
+of the National Aeronautics and Space Administration. All Rights Reserved.
+
+Portion of this code is Copyright Geoscience Australia, Licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License
+at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+-->
+{% block task_details %}
+<div class="row">
+  <div class="col-lg-6">
+    <h2 class="page-header">Task Details</h2>
+    <dl class="dl-horizontal">
+      <dt>Title</dt>
+      <dd>{{task.title}}</dd>
+      <dt>Description</dt>
+      <dd>{{task.description}}</dd>
+      <dt>Status</dt>
+      <dd>{% if task.complete %} Complete {% else %} Running... {% endif %}</dd>
+      <dt>Start Time</dt>
+      <dd>{{ task.execution_start|date:"m/d/Y H:i" }}</dd>
+      <dt>End Time</dt>
+      <dd>{{ task.execution_end|date:"m/d/Y H:i" }}</dd>
+    </dl>
+  </div>
+  <div class="col-lg-6">
+    <h2 class="page-header">Task Metadata</h2>
+    <dl class="dl-horizontal">
+      <dt>Platform</dt>
+      <dd>{{task.platform}}</dd>
+      <dt>Scene Count</dt>
+      <dd>{{task.total_scenes}}</dd>
+      <dt>Pixel Count</dt>
+      <dd>{{task.pixel_count}}</dd>
+    </dl>
+  </div>
+</div>
+<div class="row">
+  <div class="col-lg-6">
+    <h2 class="page-header">Task Parameters</h2>
+    <dl class="dl-horizontal">
+      <dt>(Lat, Lon) Min</dt>
+      <dd>({{task.latitude_min|floatformat:6}} , {{task.longitude_min|floatformat:6}})</dd>
+      <dt>(Lat, Lon) Max</dt>
+      <dd>({{task.latitude_max|floatformat:6}} , {{task.longitude_max|floatformat:6}})</dd>
+      <dt>Task Type</dt>
+      <dd>{{task.query_type}}</dd>
+      <dt>Animation Type</dt>
+      <dd>{{task.animated_product}}</dd>
+    </dl>
+  </div>
+  <div class="col-lg-6">
+    <h2 class="page-header">Task Outputs</h2>
+    {% if user.is_authenticated %}
+    <dl class="dl-horizontal">
+      <dt>Average TSM Path</dt>
+      <dd><a href={{task.result_path}} target="_blank">View image</a></dd>
+      <dt>Clear Observation Path</dt>
+      <dd><a href={{task.clear_observations_path}} target="_blank">View image</a></dd>
+      <dt>Water Percentage Path</dt>
+      <dd><a href={{task.water_percentage_path}} target="_blank">View image</a></dd>
+      <dt>NetCDF Path</dt>
+      <dd><a href={{task.data_netcdf_path}}>Download nc</a></dd>
+      <dt>GeoTIFF Path</dt>
+      <dd><a href={{task.data_path}}>Download tif</a></dd>
+      {% if task.animated_product.animation_id != "none" %}
+      <dt>Animation Path</dt>
+      <dd><a href="{{task.animation_path}}">Download .gif</a></dd>
+      {% endif %}
+    </dl>
+    {% else %}
+      <p>Please log in to download data products.</p>
+    {% endif %}
+  </div>
+</div>
+<div class="row">
+  <div class="col-lg-12" style="height: 500px;">
+    <h2 class="page-header">Scene Metadata</h2>
+    <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_list">
+      {% for acquisition, clean_pixels, clean_pixel_percentage in task.get_zipped_fields_as_list %}
+        <li>
+          <dl class="dl-horizontal">
+            <dt class="section_header">{{ acquisition }}</dt>
+            <dd></dd>
+            <dt>Clean pixels</dt>
+            <dd>{{ clean_pixels }}</dd>
+            <dt>Total Pixels</dt>
+            <dd>{{ task.pixel_count }}</dd>
+            <dt>Clean Pixel Percentage</dt>
+            <dd>{{ clean_pixel_percentage|floatformat:2 }}%</dd>
+          </dl>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
+{% block image_display %}
+<div class="row" style="height: calc(100% - 100px); padding-top: 15px;">
+    <div class="col-md-12" id="slider" style="height: 100%;">
+        <div class="col-md-12" id="carousel-bounding-box" style="height: 100%;">
+            <div id="carousel" class="carousel slide">
+                <!-- main slider carousel items -->
+                <div class="carousel-inner">
+                    <div class="active item" data-slide-number="0">
+                        <img src="{{ task.result_path }}" class="img-responsive">
+                    </div>
+                    <div class="item" data-slide-number="1">
+                        <img src="{{ task.clear_observations_path }}" class="img-responsive">
+                    </div>
+                    <div class="item" data-slide-number="2">
+                        <img src="{{ task.water_percentage_path }}" class="img-responsive">
+                    </div>
+                </div>
+                <a class="left carousel-control" href="#carousel" role="button" data-slide="prev">
+                  <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                  <span class="sr-only">Previous</span>
+                </a>
+                <a class="right carousel-control" href="#carousel" role="button" data-slide="next">
+                  <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                  <span class="sr-only">Next</span>
+                </a>
+                <div id="carousel-caption-0" class="carousel-caption selected" data-slide-number="0">
+                  <h3>Average TSM Image</h3>
+                  <p>Output average TSM image for the task with the id {{task.id}}</p>
+                </div>
+                <div id="carousel-caption-1" class="carousel-caption" data-slide-number="1">
+                  <h3>Clear Observations Image</h3>
+                  <p>Output clear observations image for the task with the id {{task.id}}</p>
+                </div>
+                <div id="carousel-caption-2" class="carousel-caption" data-slide-number="1">
+                  <h3>Water Percentage Image</h3>
+                  <p>Water Percentage image for the task with the id {{task.id}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- thumb navigation carousel -->
+<div class="col-md-12 hidden-sm hidden-xs" id="slider-thumbs">
+    <ul class="list-inline">
+        <li>
+            <a id="carousel-selector-0" class="selected">
+                <img src="{{ task.result_path }}" class="img-responsive thumbnail" style="max-width:75px; max-height:75px;">
+            </a>
+        </li>
+        <li>
+            <a id="carousel-selector-1">
+                <img src="{{ task.clear_observations_path }}" class="img-responsive thumbnail" style="max-width:75px; max-height:75px;">
+            </a>
+        </li>
+        <li>
+            <a id="carousel-selector-2">
+                <img src="{{ task.water_percentage_path }}" class="img-responsive thumbnail" style="max-width:75px; max-height:75px;">
+            </a>
+        </li>
+    </ul>
+</div>
+{% endblock %}

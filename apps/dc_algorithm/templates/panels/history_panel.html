@@ -1,0 +1,35 @@
+<div id="history_panel" class="tab-pane fade">
+    <h2>Task History</h2>
+    <hr>
+    <div id='task_history' class="boxed_list">
+
+    </div>
+</div>
+<script>
+    jQuery(function() {
+        loadHistoryPanel();
+    });
+
+    function loadHistoryPanel() {
+        $.get('task_history', function(result) {
+            $('#task_history').html(result);
+        })
+    }
+
+    function add_result_from_history(id, task_title) {
+        if (typeof(Worker) !== undefined) {
+            var w = new Worker("/static/assets/js/dcw.js");
+            w.postMessage({
+                'tool_name': window.tool_name,
+                'status': "HISTORY",
+                'title': "Task from history",
+                'id': id,
+                'csrf': csrftoken
+            });
+            w.addEventListener("message", task_event_listener);
+            $('#tabs_main li:eq(0) a').tab('show')
+        } else {
+            set_dialog_modal_content("Alert", "This browser does not support webworkers.");
+        }
+    }
+</script>
