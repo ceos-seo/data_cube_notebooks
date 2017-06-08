@@ -65,6 +65,7 @@ sudo apt-get install -y libapache2-mod-wsgi-py3
 sudo apt-get install -y redis-server
 sudo apt-get install -y libfreeimage3
 sudo apt-get install -y tmux
+sudo apt-get install -y imagemagick
 ```
 
 Next, you'll need various Python packages responsible for the entire application:
@@ -72,7 +73,7 @@ Next, you'll need various Python packages responsible for the entire application
 ```
 pip install django
 pip install redis
-pip install celery==3.1.23
+pip install celery
 pip install imageio
 pip install django-bootstrap3
 ```
@@ -80,8 +81,27 @@ pip install django-bootstrap3
 You will also need to create a base directory structure for results:
 
 ```
-mkdir /datacube/{ui_results,ui_results_temp}
+mkdir /datacube/ui_results
+chmod 777 /datacube/ui_results
 ```
+
+The Data Cube UI also sends admin mail, so a mail server is required:
+
+```
+# https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-as-a-send-only-smtp-server-on-ubuntu-14-04
+sudo apt-get install mailutils
+# configure as an internet site.
+```
+
+In /etc/postfix/main.cf:
+```
+myhostname = {your site name here}
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = localhost
+```
+
+and run `sudo service postfix restart`, then `echo "This is the body of the email" | mail -s "This is the subject line" {your_email@mail.com}` to verify the installation.
 
 With all of the packages above installed, you can now move on to the configuration step.
 
@@ -202,7 +222,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'datacube',
-      	'USER': 'dc_user',
+      	'USER': 'localuser',
       	'PASSWORD': 'localuser1234',
       	'HOST': MASTER_NODE
     }
@@ -256,35 +276,52 @@ cd ~/Datacube/data_cube_ui
 bash scripts/ui_setup.sh
 ```
 
-This will move the configuration files, do the migrations, and restart everything.
+This will move the configuration files, do the migrations, and restart everything. This will also daemonize the celery workers.
 
 <a name="starting_workers"></a> Starting Workers
 =================
 
 We use Celery workers in our application to handle the asynchronous task processing. We use tmux to handle multiple detached windows to run things in the background. In the future, we will be moving to daemon processes, but for now we like to be able to see the debugging output.
 
-Open two new terminal sessions and activate the virtual environment in both:
+Open a new terminal sessions and activate the virtual environment in both:
 
 ```
 source ~/Datacube/datacube_env/bin/activate
 cd ~/Datacube/data_cube_ui
 ```
 
-In the first terminal, run the master process with:
+In the first terminal, run the celery process with:
 
 ```
-celery -A data_cube_ui worker -l info -c 1
+celery -A data_cube_ui worker -l info -c 4
 ```
 
-In the second terminal, run the slave process with:
+To start the task scheduler, run the folliwng command:
+```
+celery -A data_cube_ui beat
+```
+
+To test the workers we will need to add an area and dataset that you have ingested to the UI's database. This will happen in a separate section.
+
+This process can be automated and daemonized with the following snippet:
 
 ```
-celery -A data_cube_ui worker -l info -c 3 -Q chunk_processing
+sudo cp config/celeryd_conf /etc/default/data_cube_ui && sudo cp config/celeryd /etc/init.d/data_cube_ui
+sudo chmod 777 /etc/init.d/data_cube_ui
+sudo chmod 644 /etc/default/data_cube_ui
+sudo /etc/init.d/data_cube_ui start
+
+sudo cp config/celerybeat_conf /etc/default/celerybeat && sudo cp config/celerybeat /etc/init.d/celerybeat
+sudo chmod 777 /etc/init.d/celerybeat
+sudo chmod 644 /etc/default/celerybeat
+sudo /etc/init.d/celerybeat start
+
 ```
 
-The first terminal acts as task chunking and flow management process - when tasks are received, they are received there, split into parts, and sent to the slave workers. The slaves process the chunks, saving the results to disk and returning the resulting paths for the master process to combine and generate products.
+This is done in the initial setup script.
 
-To test the workers we will need to add an area and dataset that you have ingested to the UI's database. This will happen in a seperate section.
+You can alias the /etc/init.d/* script as whatever you like - you can start, stop, kill, restart, etc. the workers using this script.
+
 
 <a name="system_overview"></a> Task System Overview
 =================

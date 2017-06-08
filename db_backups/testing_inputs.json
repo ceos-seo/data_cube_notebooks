@@ -1,0 +1,2419 @@
+[{
+    "model": "dc_algorithm.satellite",
+    "pk": 1,
+    "fields": {
+        "datacube_platform": "LANDSAT_7",
+        "name": "Landsat 7",
+        "product_prefix": "ls7_ledaps_",
+        "date_min": "1999-04-15",
+        "date_max": "2016-12-26"
+    }
+}, {
+    "model": "dc_algorithm.satellite",
+    "pk": 2,
+    "fields": {
+        "datacube_platform": "LANDSAT_8",
+        "name": "Landsat 8",
+        "product_prefix": "ls8_ledaps_",
+        "date_min": "2013-02-11",
+        "date_max": "2016-12-26"
+    }
+}, {
+    "model": "dc_algorithm.satellite",
+    "pk": 3,
+    "fields": {
+        "datacube_platform": "LANDSAT_5",
+        "name": "Landsat 5",
+        "product_prefix": "ls5_ledaps_",
+        "date_min": "1984-03-01",
+        "date_max": "1999-02-08"
+    }
+}, {
+    "model": "dc_algorithm.satellite",
+    "pk": 4,
+    "fields": {
+        "datacube_platform": "LANDSAT_5,LANDSAT_7,LANDSAT_8",
+        "name": "Landsat 5/7/8",
+        "product_prefix": "all",
+        "date_min": "1984-03-01",
+        "date_max": "2016-12-26"
+    }
+}, {
+    "model": "dc_algorithm.satellite",
+    "pk": 5,
+    "fields": {
+        "datacube_platform": "SENTINEL_1A",
+        "name": "Sentinel-1A",
+        "product_prefix": "s1a_gamma0_",
+        "date_min": "2015-01-01",
+        "date_max": "2017-03-16"
+    }
+}, {
+    "model": "dc_algorithm.satellite",
+    "pk": 6,
+    "fields": {
+        "datacube_platform": "LANDSAT_7,LANDSAT_8",
+        "name": "Landsat 7/8",
+        "product_prefix": "all",
+        "date_min": "1999-04-15",
+        "date_max": "2016-12-26"
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "amazon_river",
+    "fields": {
+        "name": "Amazon River",
+        "latitude_min": -4.5,
+        "latitude_max": -2.0,
+        "longitude_min": -71.5,
+        "longitude_max": -69.0,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/amazon_river_thumbnail_74W_66W_7S_1N.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "bangladesh",
+    "fields": {
+        "name": "Bangladesh",
+        "latitude_min": 23.5,
+        "latitude_max": 25.6,
+        "longitude_min": 89.25,
+        "longitude_max": 92.0,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/bangladesh_thumbnail_88E_93E_22N27N.png",
+        "satellites": [1, 3]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "colombia",
+    "fields": {
+        "name": "Colombia Micro Cube",
+        "latitude_min": -1.0,
+        "latitude_max": 2.5,
+        "longitude_min": -77.2,
+        "longitude_max": -73.7,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/colombia_thumbnail_78W_71W_2S_4N.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "ghana",
+    "fields": {
+        "name": "Ghana",
+        "latitude_min": 7.7,
+        "latitude_max": 9.7,
+        "longitude_min": -3.6,
+        "longitude_max": -1.4,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/ghana_thumbnail_-5_6_0_11.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "kenya",
+    "fields": {
+        "name": "Kenya Micro Cube",
+        "latitude_min": -1.0,
+        "latitude_max": 1.0,
+        "longitude_min": 34.0,
+        "longitude_max": 37.0,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/kenya_micro_cube_32E_39E_3_5S_3_5N.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "lake_baringo",
+    "fields": {
+        "name": "Lake Baringo",
+        "latitude_min": 0.5,
+        "latitude_max": 0.75,
+        "longitude_min": 36.0,
+        "longitude_max": 36.25,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/lake_baringo_thumbnail_34E_37E_1S_1N.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "lake_chad",
+    "fields": {
+        "name": "Lake Chad",
+        "latitude_min": 12.75,
+        "latitude_max": 13.0,
+        "longitude_min": 14.25,
+        "longitude_max": 14.5,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/lake_chad_thumbail_14E_15E_12N_13N.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "lake_chad_full",
+    "fields": {
+        "name": "Full Lake Chad",
+        "latitude_min": 12.125,
+        "latitude_max": 13.975,
+        "longitude_min": 13.65,
+        "longitude_max": 15.5,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/lake_chad_full_thumbnail_0_1E_35N_37N.png",
+        "satellites": [1, 2, 3, 4]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "lake_cortijo",
+    "fields": {
+        "name": "Lake Cortijo",
+        "latitude_min": 3.3,
+        "latitude_max": 5.3,
+        "longitude_min": -75.75,
+        "longitude_max": -73.3,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/cortijo_thumbnail_-77W_-72W_1.5N_6.5N.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "menindee_lakes",
+    "fields": {
+        "name": "Menindee Lakes",
+        "latitude_min": -33.25,
+        "latitude_max": -31.24,
+        "longitude_min": 141.8,
+        "longitude_max": 143.1,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/meninee_lakes_thumbnail_140.25E_144.25E_33.5S_30S.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "meta_river",
+    "fields": {
+        "name": "Meta River",
+        "latitude_min": 4.0,
+        "latitude_max": 5.0,
+        "longitude_min": -72.0,
+        "longitude_max": -71.0,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/meta_river_thumbnail_75W_67W_0_5N_8_5N.png",
+        "satellites": [1, 2, 6]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "salgar_colombia",
+    "fields": {
+        "name": "Salgar, Colombia",
+        "latitude_min": 5.9,
+        "latitude_max": 6.0,
+        "longitude_min": -75.925,
+        "longitude_max": -75.825,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/colombia_thumbnail_78W_71W_2S_4N.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "togo",
+    "fields": {
+        "name": "Togo",
+        "latitude_min": 4.25,
+        "latitude_max": 7.25,
+        "longitude_min": 0.0,
+        "longitude_max": 3.0,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/togo_thumbnail_1W_4E_3N_8N.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "tonga",
+    "fields": {
+        "name": "Tonga",
+        "latitude_min": -23.0,
+        "latitude_max": -20.0,
+        "longitude_min": -177.375,
+        "longitude_max": -174.375,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/tonga_thumbnail_177W_174W_23S_20S.png",
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.area",
+    "pk": "vietnam",
+    "fields": {
+        "name": "Vietnam",
+        "latitude_min": 10.6,
+        "latitude_max": 12.62,
+        "longitude_min": 106.75,
+        "longitude_max": 109.0,
+        "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/vietnam_thumbnail_105E_110E_9N_14N.png",
+        "satellites": [1, 2, 6]
+    }
+}, {
+    "model": "dc_algorithm.application",
+    "pk": "coastal_change",
+    "fields": {
+        "name": "Coastal Change",
+        "color_scale": "/static/assets/images/color_scales/coastal_change_color_scale.png",
+        "areas": ["vietnam", "togo", "tonga"],
+        "satellites": [1, 2, 3]
+    }
+}, {
+    "model": "dc_algorithm.application",
+    "pk": "custom_mosaic_tool",
+    "fields": {
+        "name": "Custom Mosaic",
+        "color_scale": null,
+        "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+        "satellites": [1, 2, 3, 4, 6]
+    }
+}, {
+    "model": "dc_algorithm.application",
+    "pk": "fractional_cover",
+    "fields": {
+        "name": "Fractional Cover",
+        "color_scale": "/static/assets/images/color_scales/fractional_cover_color_scale.png",
+        "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+        "satellites": [1, 2, 3, 4, 6]
+    }
+}, {
+    "model": "dc_algorithm.application",
+    "pk": "ndvi_anomaly",
+    "fields": {
+        "name": "NDVI Anomaly",
+        "color_scale": "/static/assets/images/color_scales/ndvi_color_scale.png",
+        "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+        "satellites": [1, 2, 3]
+    }
+}, {
+    "model": "dc_algorithm.application",
+    "pk": "slip",
+    "fields": {
+        "name": "Slip",
+        "color_scale": null,
+        "areas": ["salgar_colombia"],
+        "satellites": [1]
+    }
+}, {
+    "model": "dc_algorithm.application",
+    "pk": "tsm",
+    "fields": {
+        "name": "Water Quality TSM",
+        "color_scale": "/static/assets/images/color_scales/tsm_color_scale.png",
+        "areas": ["lake_baringo", "vietnam", "meta_river", "lake_chad_full", "menindee_lakes", "lake_chad"],
+        "satellites": [1, 2, 3, 4, 6]
+    }
+}, {
+    "model": "dc_algorithm.application",
+    "pk": "water_detection",
+    "fields": {
+        "name": "Water Detection",
+        "color_scale": "/static/assets/images/color_scales/water_detection_color_scale.png",
+        "areas": ["lake_baringo", "vietnam", "meta_river", "lake_chad_full", "menindee_lakes", "lake_chad"],
+        "satellites": [1, 2, 3, 4, 6]
+    }
+}, {
+    "model": "dc_algorithm.compositor",
+    "pk": "least_recent",
+    "fields": {
+        "name": "Least Recent Pixel"
+    }
+}, {
+    "model": "dc_algorithm.compositor",
+    "pk": "max_ndvi",
+    "fields": {
+        "name": "Max NDVI Pixel"
+    }
+}, {
+    "model": "dc_algorithm.compositor",
+    "pk": "median_pixel",
+    "fields": {
+        "name": "Median Pixel"
+    }
+}, {
+    "model": "dc_algorithm.compositor",
+    "pk": "min_ndvi",
+    "fields": {
+        "name": "Min NDVI Pixel"
+    }
+}, {
+    "model": "dc_algorithm.compositor",
+    "pk": "most_recent",
+    "fields": {
+        "name": "Most Recent Pixel"
+    }
+}, {
+    "model": "custom_mosaic_tool.userhistory",
+    "pk": 1,
+    "fields": {
+        "user_id": 1,
+        "task_id": "14db1970-c467-4fab-a928-0eed02251443"
+    }
+}, {
+    "model": "custom_mosaic_tool.userhistory",
+    "pk": 2,
+    "fields": {
+        "user_id": 1,
+        "task_id": "58d53ead-7968-47c7-a536-ebe157cf11f8"
+    }
+}, {
+    "model": "custom_mosaic_tool.userhistory",
+    "pk": 3,
+    "fields": {
+        "user_id": 1,
+        "task_id": "5b9fa31f-99d9-475f-8257-ae64c2d94517"
+    }
+}, {
+    "model": "custom_mosaic_tool.userhistory",
+    "pk": 4,
+    "fields": {
+        "user_id": 1,
+        "task_id": "b7d51fe6-4dd0-42d4-9b0b-435e646fa70f"
+    }
+}, {
+    "model": "custom_mosaic_tool.userhistory",
+    "pk": 5,
+    "fields": {
+        "user_id": 1,
+        "task_id": "44d52dc2-eae3-4b27-a8aa-68b194399bf0"
+    }
+}, {
+    "model": "custom_mosaic_tool.userhistory",
+    "pk": 6,
+    "fields": {
+        "user_id": 1,
+        "task_id": "01d6dcdc-9662-498a-9c09-730a78384242"
+    }
+}, {
+    "model": "custom_mosaic_tool.userhistory",
+    "pk": 7,
+    "fields": {
+        "user_id": 1,
+        "task_id": "148d5d18-b56c-4a8f-90dc-64b0684bfca7"
+    }
+}, {
+    "model": "custom_mosaic_tool.userhistory",
+    "pk": 8,
+    "fields": {
+        "user_id": 1,
+        "task_id": "647cf670-7d1a-4b78-a3b0-406bf43047a1"
+    }
+}, {
+    "model": "custom_mosaic_tool.toolinfo",
+    "pk": 1,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_1.png",
+        "image_title": "True Color Mosaics",
+        "image_description": "The Custom Mosaic Tool allows users to create detailed true or false color images of given areas using optical data from various Landsat satellites."
+    }
+}, {
+    "model": "custom_mosaic_tool.toolinfo",
+    "pk": 2,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_2.png",
+        "image_title": "Pixel Preference",
+        "image_description": "Choose how the 'best' pixel will be chosen: Most recent, least recent, median, or min/max NDVI value pixel."
+    }
+}, {
+    "model": "custom_mosaic_tool.toolinfo",
+    "pk": 3,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_3.png",
+        "image_title": "Time Series",
+        "image_description": "Run powerful time series analyses that composites a series of acquisitions to produce a single image."
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 1,
+    "fields": {
+        "result_id": "true_color",
+        "name": "True color",
+        "red": "red",
+        "green": "green",
+        "blue": "blue",
+        "fill": "red"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 2,
+    "fields": {
+        "result_id": "nir_swir_swir",
+        "name": "NIR, SWIR1, SWIR2",
+        "red": "nir",
+        "green": "swir1",
+        "blue": "swir2",
+        "fill": "red"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 3,
+    "fields": {
+        "result_id": "nir_swir_red",
+        "name": "NIR, SWIR1, RED",
+        "red": "nir",
+        "green": "swir1",
+        "blue": "red",
+        "fill": "red"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 4,
+    "fields": {
+        "result_id": "swir_nir_red",
+        "name": "SWIR1, NIR, RED",
+        "red": "swir1",
+        "green": "nir",
+        "blue": "red",
+        "fill": "blue"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 5,
+    "fields": {
+        "result_id": "swir_nir_green",
+        "name": "SWIR2, NIR, GREEN",
+        "red": "swir2",
+        "green": "nir",
+        "blue": "green",
+        "fill": "red"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 6,
+    "fields": {
+        "result_id": "swir_nir_blue",
+        "name": "SWIR1, NIR, BLUE",
+        "red": "swir1",
+        "green": "nir",
+        "blue": "blue",
+        "fill": "blue"
+    }
+}, {
+    "model": "custom_mosaic_tool.resulttype",
+    "pk": 7,
+    "fields": {
+        "result_id": "nir_red_green",
+        "name": "NIR, RED, GREEN",
+        "red": "nir",
+        "green": "red",
+        "blue": "green",
+        "fill": "blue"
+    }
+}, {
+    "model": "custom_mosaic_tool.animationtype",
+    "pk": 0,
+    "fields": {
+        "animation_id": "none",
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "custom_mosaic_tool.animationtype",
+    "pk": 1,
+    "fields": {
+        "animation_id": "cumulative",
+        "name": "Cumulative",
+        "data_variable": "None"
+    }
+}, {
+    "model": "custom_mosaic_tool.animationtype",
+    "pk": 2,
+    "fields": {
+        "animation_id": "scene",
+        "name": "Scene",
+        "data_variable": "None"
+    }
+}, {
+    "model": "custom_mosaic_tool.custommosaictooltask",
+    "pk": "01d6dcdc-9662-498a-9c09-730a78384242",
+    "fields": {
+        "title": "Custom Mosaic Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:16:19.991Z",
+        "execution_end": "2017-06-07T21:16:40.192Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 4.411692750585,
+        "latitude_max": 4.823521277805,
+        "longitude_min": -71.78077396893,
+        "longitude_max": -71.24182755183,
+        "complete": false,
+        "pixel_count": 3031924,
+        "clean_pixel_count": 3031196,
+        "percentage_clean_pixels": 99.9759888440475,
+        "acquisition_list": "04/03/2009,03/02/2009,02/14/2009,12/28/2008,12/12/2008,11/10/2008,10/25/2008,09/23/2008,09/07/2008,04/16/2008",
+        "clean_pixels_per_acquisition": "301169,482232,2486596,2190518,2269999,2298894,1036618,1630993,1329920,1304463",
+        "clean_pixel_percentages_per_acquisition": "9.93326349869,15.9051480182,82.0137971796,72.2484468608,74.8699175837,75.8229427914,34.190105029,53.793993517,43.8638963246,43.0242644605",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 10,
+        "total_scenes": 10,
+        "result_path": "/datacube/ui_results/custom_mosaic_tool/01d6dcdc-9662-498a-9c09-730a78384242/png_mosaic.png",
+        "query_type": 1,
+        "animated_product": 0,
+        "compositor": "least_recent",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "result_filled_path": "/datacube/ui_results/custom_mosaic_tool/01d6dcdc-9662-498a-9c09-730a78384242/filled_png_mosaic.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/custom_mosaic_tool/01d6dcdc-9662-498a-9c09-730a78384242/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/custom_mosaic_tool/01d6dcdc-9662-498a-9c09-730a78384242/data_netcdf.nc"
+    }
+}, {
+    "model": "custom_mosaic_tool.custommosaictooltask",
+    "pk": "148d5d18-b56c-4a8f-90dc-64b0684bfca7",
+    "fields": {
+        "title": "Custom Mosaic Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:16:22.934Z",
+        "execution_end": "2017-06-07T21:17:05.402Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 4.411692750585,
+        "latitude_max": 4.823521277805,
+        "longitude_min": -71.78077396893,
+        "longitude_max": -71.24182755183,
+        "complete": false,
+        "pixel_count": 3031924,
+        "clean_pixel_count": 3031196,
+        "percentage_clean_pixels": 99.9759888440475,
+        "acquisition_list": "04/03/2009,03/02/2009,02/14/2009,12/28/2008,12/12/2008,11/10/2008,10/25/2008,09/23/2008,09/07/2008,04/16/2008",
+        "clean_pixels_per_acquisition": "301169,482232,2486596,2190518,2269999,2298894,1036618,1630993,1329920,1304463",
+        "clean_pixel_percentages_per_acquisition": "9.93326349869,15.9051480182,82.0137971796,72.2484468608,74.8699175837,75.8229427914,34.190105029,53.793993517,43.8638963246,43.0242644605",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 10,
+        "total_scenes": 10,
+        "result_path": "/datacube/ui_results/custom_mosaic_tool/148d5d18-b56c-4a8f-90dc-64b0684bfca7/png_mosaic.png",
+        "query_type": 1,
+        "animated_product": 1,
+        "compositor": "least_recent",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "result_filled_path": "/datacube/ui_results/custom_mosaic_tool/148d5d18-b56c-4a8f-90dc-64b0684bfca7/filled_png_mosaic.png",
+        "animation_path": "/datacube/ui_results/custom_mosaic_tool/148d5d18-b56c-4a8f-90dc-64b0684bfca7/animation.gif",
+        "data_path": "/datacube/ui_results/custom_mosaic_tool/148d5d18-b56c-4a8f-90dc-64b0684bfca7/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/custom_mosaic_tool/148d5d18-b56c-4a8f-90dc-64b0684bfca7/data_netcdf.nc"
+    }
+}, {
+    "model": "custom_mosaic_tool.custommosaictooltask",
+    "pk": "14db1970-c467-4fab-a928-0eed02251443",
+    "fields": {
+        "title": "Custom Mosaic Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:14:39.578Z",
+        "execution_end": "2017-06-07T21:15:40.324Z",
+        "area_id": "vietnam",
+        "platform": "LANDSAT_7,LANDSAT_8",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 12.2518975812917,
+        "latitude_max": 12.620027184724,
+        "longitude_min": 106.74990439971,
+        "longitude_max": 108.999914691845,
+        "complete": false,
+        "pixel_count": 11414450,
+        "clean_pixel_count": 2317092,
+        "percentage_clean_pixels": 20.2996377398823,
+        "acquisition_list": "03/29/2009,10/20/2008,10/04/2008,05/29/2008",
+        "clean_pixels_per_acquisition": "981929,1065931,841553,1104736",
+        "clean_pixel_percentages_per_acquisition": "8.60250822422,9.33843505381,7.37269864076,9.67839887161",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 4,
+        "total_scenes": 4,
+        "result_path": "/datacube/ui_results/custom_mosaic_tool/14db1970-c467-4fab-a928-0eed02251443/png_mosaic.png",
+        "query_type": 1,
+        "animated_product": 0,
+        "compositor": "least_recent",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "result_filled_path": "/datacube/ui_results/custom_mosaic_tool/14db1970-c467-4fab-a928-0eed02251443/filled_png_mosaic.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/custom_mosaic_tool/14db1970-c467-4fab-a928-0eed02251443/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/custom_mosaic_tool/14db1970-c467-4fab-a928-0eed02251443/data_netcdf.nc"
+    }
+}, {
+    "model": "custom_mosaic_tool.custommosaictooltask",
+    "pk": "44d52dc2-eae3-4b27-a8aa-68b194399bf0",
+    "fields": {
+        "title": "Custom Mosaic Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:16:17.618Z",
+        "execution_end": "2017-06-07T21:16:42.197Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 4.411692750585,
+        "latitude_max": 4.823521277805,
+        "longitude_min": -71.78077396893,
+        "longitude_max": -71.24182755183,
+        "complete": false,
+        "pixel_count": 3031924,
+        "clean_pixel_count": 3031196,
+        "percentage_clean_pixels": 99.9759888440475,
+        "acquisition_list": "04/03/2009,03/02/2009,02/14/2009,12/28/2008,12/12/2008,11/10/2008,10/25/2008,09/23/2008,09/07/2008,04/16/2008",
+        "clean_pixels_per_acquisition": "301169,482232,2486596,2190518,2269999,2298894,1036618,1630993,1329920,1304463",
+        "clean_pixel_percentages_per_acquisition": "9.93326349869,15.9051480182,82.0137971796,72.2484468608,74.8699175837,75.8229427914,34.190105029,53.793993517,43.8638963246,43.0242644605",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 10,
+        "total_scenes": 10,
+        "result_path": "/datacube/ui_results/custom_mosaic_tool/44d52dc2-eae3-4b27-a8aa-68b194399bf0/png_mosaic.png",
+        "query_type": 1,
+        "animated_product": 0,
+        "compositor": "most_recent",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "result_filled_path": "/datacube/ui_results/custom_mosaic_tool/44d52dc2-eae3-4b27-a8aa-68b194399bf0/filled_png_mosaic.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/custom_mosaic_tool/44d52dc2-eae3-4b27-a8aa-68b194399bf0/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/custom_mosaic_tool/44d52dc2-eae3-4b27-a8aa-68b194399bf0/data_netcdf.nc"
+    }
+}, {
+    "model": "custom_mosaic_tool.custommosaictooltask",
+    "pk": "58d53ead-7968-47c7-a536-ebe157cf11f8",
+    "fields": {
+        "title": "Custom Mosaic Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:14:41.712Z",
+        "execution_end": "2017-06-07T21:15:44.257Z",
+        "area_id": "vietnam",
+        "platform": "LANDSAT_7,LANDSAT_8",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 12.2518975812917,
+        "latitude_max": 12.5224701448686,
+        "longitude_min": 106.74990439971,
+        "longitude_max": 108.999914691845,
+        "complete": false,
+        "pixel_count": 8567100,
+        "clean_pixel_count": 2363902,
+        "percentage_clean_pixels": 27.5927910261349,
+        "acquisition_list": "03/29/2009,10/20/2008,10/04/2008,05/29/2008",
+        "clean_pixels_per_acquisition": "1031632,1122071,884804,1161366",
+        "clean_pixel_percentages_per_acquisition": "12.0417877695,13.0974425418,10.3279289374,13.5561158385",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 4,
+        "total_scenes": 4,
+        "result_path": "/datacube/ui_results/custom_mosaic_tool/58d53ead-7968-47c7-a536-ebe157cf11f8/png_mosaic.png",
+        "query_type": 1,
+        "animated_product": 0,
+        "compositor": "median_pixel",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "result_filled_path": "/datacube/ui_results/custom_mosaic_tool/58d53ead-7968-47c7-a536-ebe157cf11f8/filled_png_mosaic.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/custom_mosaic_tool/58d53ead-7968-47c7-a536-ebe157cf11f8/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/custom_mosaic_tool/58d53ead-7968-47c7-a536-ebe157cf11f8/data_netcdf.nc"
+    }
+}, {
+    "model": "custom_mosaic_tool.custommosaictooltask",
+    "pk": "5b9fa31f-99d9-475f-8257-ae64c2d94517",
+    "fields": {
+        "title": "Custom Mosaic Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:16:13.341Z",
+        "execution_end": "2017-06-07T21:16:40.728Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 4.411692750585,
+        "latitude_max": 4.823521277805,
+        "longitude_min": -71.78077396893,
+        "longitude_max": -71.24182755183,
+        "complete": false,
+        "pixel_count": 3031924,
+        "clean_pixel_count": 3031196,
+        "percentage_clean_pixels": 99.9759888440475,
+        "acquisition_list": "04/03/2009,03/02/2009,02/14/2009,12/28/2008,12/12/2008,11/10/2008,10/25/2008,09/23/2008,09/07/2008,04/16/2008",
+        "clean_pixels_per_acquisition": "301169,482232,2486596,2190518,2269999,2298894,1036618,1630993,1329920,1304463",
+        "clean_pixel_percentages_per_acquisition": "9.93326349869,15.9051480182,82.0137971796,72.2484468608,74.8699175837,75.8229427914,34.190105029,53.793993517,43.8638963246,43.0242644605",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 10,
+        "total_scenes": 10,
+        "result_path": "/datacube/ui_results/custom_mosaic_tool/5b9fa31f-99d9-475f-8257-ae64c2d94517/png_mosaic.png",
+        "query_type": 1,
+        "animated_product": 0,
+        "compositor": "max_ndvi",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "result_filled_path": "/datacube/ui_results/custom_mosaic_tool/5b9fa31f-99d9-475f-8257-ae64c2d94517/filled_png_mosaic.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/custom_mosaic_tool/5b9fa31f-99d9-475f-8257-ae64c2d94517/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/custom_mosaic_tool/5b9fa31f-99d9-475f-8257-ae64c2d94517/data_netcdf.nc"
+    }
+}, {
+    "model": "custom_mosaic_tool.custommosaictooltask",
+    "pk": "647cf670-7d1a-4b78-a3b0-406bf43047a1",
+    "fields": {
+        "title": "Custom Mosaic Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:16:24.897Z",
+        "execution_end": "2017-06-07T21:17:02.769Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 4.411692750585,
+        "latitude_max": 4.823521277805,
+        "longitude_min": -71.78077396893,
+        "longitude_max": -71.24182755183,
+        "complete": false,
+        "pixel_count": 3031924,
+        "clean_pixel_count": 3031196,
+        "percentage_clean_pixels": 99.9759888440475,
+        "acquisition_list": "04/03/2009,03/02/2009,02/14/2009,12/28/2008,12/12/2008,11/10/2008,10/25/2008,09/23/2008,09/07/2008,04/16/2008",
+        "clean_pixels_per_acquisition": "301169,482232,2486596,2190518,2269999,2298894,1036618,1630993,1329920,1304463",
+        "clean_pixel_percentages_per_acquisition": "9.93326349869,15.9051480182,82.0137971796,72.2484468608,74.8699175837,75.8229427914,34.190105029,53.793993517,43.8638963246,43.0242644605",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 10,
+        "total_scenes": 10,
+        "result_path": "/datacube/ui_results/custom_mosaic_tool/647cf670-7d1a-4b78-a3b0-406bf43047a1/png_mosaic.png",
+        "query_type": 1,
+        "animated_product": 2,
+        "compositor": "least_recent",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "result_filled_path": "/datacube/ui_results/custom_mosaic_tool/647cf670-7d1a-4b78-a3b0-406bf43047a1/filled_png_mosaic.png",
+        "animation_path": "/datacube/ui_results/custom_mosaic_tool/647cf670-7d1a-4b78-a3b0-406bf43047a1/animation.gif",
+        "data_path": "/datacube/ui_results/custom_mosaic_tool/647cf670-7d1a-4b78-a3b0-406bf43047a1/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/custom_mosaic_tool/647cf670-7d1a-4b78-a3b0-406bf43047a1/data_netcdf.nc"
+    }
+}, {
+    "model": "custom_mosaic_tool.custommosaictooltask",
+    "pk": "b7d51fe6-4dd0-42d4-9b0b-435e646fa70f",
+    "fields": {
+        "title": "Custom Mosaic Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:16:15.625Z",
+        "execution_end": "2017-06-07T21:16:41.379Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 4.411692750585,
+        "latitude_max": 4.823521277805,
+        "longitude_min": -71.78077396893,
+        "longitude_max": -71.24182755183,
+        "complete": false,
+        "pixel_count": 3031924,
+        "clean_pixel_count": 3031196,
+        "percentage_clean_pixels": 99.9759888440475,
+        "acquisition_list": "04/03/2009,03/02/2009,02/14/2009,12/28/2008,12/12/2008,11/10/2008,10/25/2008,09/23/2008,09/07/2008,04/16/2008",
+        "clean_pixels_per_acquisition": "301169,482232,2486596,2190518,2269999,2298894,1036618,1630993,1329920,1304463",
+        "clean_pixel_percentages_per_acquisition": "9.93326349869,15.9051480182,82.0137971796,72.2484468608,74.8699175837,75.8229427914,34.190105029,53.793993517,43.8638963246,43.0242644605",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 10,
+        "total_scenes": 10,
+        "result_path": "/datacube/ui_results/custom_mosaic_tool/b7d51fe6-4dd0-42d4-9b0b-435e646fa70f/png_mosaic.png",
+        "query_type": 1,
+        "animated_product": 0,
+        "compositor": "min_ndvi",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "result_filled_path": "/datacube/ui_results/custom_mosaic_tool/b7d51fe6-4dd0-42d4-9b0b-435e646fa70f/filled_png_mosaic.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/custom_mosaic_tool/b7d51fe6-4dd0-42d4-9b0b-435e646fa70f/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/custom_mosaic_tool/b7d51fe6-4dd0-42d4-9b0b-435e646fa70f/data_netcdf.nc"
+    }
+}, {
+    "model": "coastal_change.userhistory",
+    "pk": 1,
+    "fields": {
+        "user_id": 1,
+        "task_id": "a01a782f-c00a-4910-8d21-497b03ea5066"
+    }
+}, {
+    "model": "coastal_change.userhistory",
+    "pk": 2,
+    "fields": {
+        "user_id": 1,
+        "task_id": "4e6c653d-82b0-4c32-9a22-7cd497a058fd"
+    }
+}, {
+    "model": "coastal_change.userhistory",
+    "pk": 3,
+    "fields": {
+        "user_id": 1,
+        "task_id": "e62b8b4d-1f9a-4723-b2ec-130b0c6cfbdc"
+    }
+}, {
+    "model": "coastal_change.userhistory",
+    "pk": 4,
+    "fields": {
+        "user_id": 1,
+        "task_id": "bbeae03e-5fec-43c8-a0aa-ca313ee15175"
+    }
+}, {
+    "model": "coastal_change.userhistory",
+    "pk": 5,
+    "fields": {
+        "user_id": 1,
+        "task_id": "c54933c3-987d-4514-ada3-22739d118f04"
+    }
+}, {
+    "model": "coastal_change.toolinfo",
+    "pk": 18,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/coastal_change_1.png",
+        "image_title": "Coastline Identification",
+        "image_description": "Identify the coastline of a yearly mosaic and compare it to a baseline year."
+    }
+}, {
+    "model": "coastal_change.toolinfo",
+    "pk": 19,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/coastal_change_2.png",
+        "image_title": "Coastal Change",
+        "image_description": "Compute the area covered by receding coastline over a user defined period."
+    }
+}, {
+    "model": "coastal_change.animationtype",
+    "pk": 0,
+    "fields": {
+        "animation_id": "none",
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "coastal_change.animationtype",
+    "pk": 1,
+    "fields": {
+        "animation_id": "coastline_change",
+        "name": "Coastline Change",
+        "data_variable": "None"
+    }
+}, {
+    "model": "coastal_change.animationtype",
+    "pk": 2,
+    "fields": {
+        "animation_id": "coastal_change",
+        "name": "Coastal Change",
+        "data_variable": "None"
+    }
+}, {
+    "model": "coastal_change.coastalchangetask",
+    "pk": "4e6c653d-82b0-4c32-9a22-7cd497a058fd",
+    "fields": {
+        "title": "Coastal Change Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:09:45.873Z",
+        "execution_end": "2017-06-07T21:10:03.833Z",
+        "area_id": "togo",
+        "platform": "LANDSAT_7",
+        "latitude_min": 6.1214103825,
+        "latitude_max": 6.1623744175,
+        "longitude_min": 1.2512085925,
+        "longitude_max": 1.3140738645,
+        "complete": false,
+        "pixel_count": 35416,
+        "clean_pixel_count": 35416,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "12/23/2015,12/07/2015,11/21/2015,11/05/2015,08/01/2015,05/13/2015,02/06/2015,01/21/2015,01/05/2015,12/20/2014,12/04/2014,11/18/2014,11/02/2014,10/17/2014,03/23/2014,03/07/2014,02/19/2014,02/03/2014,01/18/2014,01/02/2014,12/17/2013,12/01/2013,08/27/2013,08/11/2013,07/10/2013,06/08/2013,05/07/2013,04/21/2013,04/05/2013,01/31/2013,01/15/2013,12/30/2012,12/14/2012,11/28/2012,10/27/2012,10/11/2012,09/25/2012,09/09/2012,01/29/2012,01/13/2012,12/28/2011,12/12/2011,11/26/2011,11/10/2011,09/23/2011,01/10/2011,12/25/2010,12/09/2010,03/12/2010,02/24/2010,02/08/2010,01/23/2010,01/07/2010,12/22/2009,12/06/2009,11/20/2009,11/04/2009,10/19/2009,10/03/2009,05/28/2009,05/12/2009,03/25/2009,03/09/2009,02/05/2009,01/04/2009,12/19/2008,12/03/2008,11/17/2008,10/16/2008,07/12/2008,03/06/2008,02/19/2008,02/03/2008,01/18/2008,01/02/2008,12/17/2007,12/01/2007,10/30/2007,09/28/2007,09/12/2007,03/20/2007,03/04/2007,01/31/2007,01/15/2007,12/30/2006,12/14/2006,11/28/2006,11/12/2006,10/27/2006,05/04/2006,04/18/2006,04/02/2006,03/01/2006,12/27/2005,12/11/2005,11/25/2005,11/09/2005,10/24/2005,05/17/2005,03/30/2005,02/10/2005,01/09/2005,12/24/2004,12/08/2004,11/22/2004,09/03/2004,08/02/2004,05/30/2004,04/12/2004,03/27/2004,02/24/2004,01/07/2004,12/22/2003,12/06/2003,11/20/2003,11/04/2003,10/19/2003,09/17/2003,07/31/2003,04/26/2003,03/09/2003,02/05/2003,01/04/2003,12/03/2002,11/17/2002,10/16/2002,09/14/2002,08/29/2002,06/26/2002,05/09/2002,04/23/2002,02/18/2002,01/17/2002,12/16/2001,11/14/2001,10/29/2001,10/13/2001,09/11/2001,05/06/2001,04/04/2001,03/03/2001,01/30/2001",
+        "clean_pixels_per_acquisition": "26059,0,27474,28115,27582,24140,10518,24631,23950,23455,28407,0,28300,28301,0,0,6274,0,23464,12889,24534,0,9420,28085,7503,28566,2627,28361,28308,28294,15026,27395,27940,22157,0,13294,28325,28367,19284,25334,24915,10280,28288,28555,12300,16040,22153,17865,29608,10592,10350,26252,28964,28543,24421,19903,28645,11589,28834,13848,29501,16223,28545,25909,28623,25988,27738,9148,20486,24719,0,2347,0,7921,29401,574,29494,4738,0,24879,27674,12508,27721,9051,26796,28096,10553,24158,28814,27347,28098,21506,28638,28185,0,28532,28723,13385,10102,28224,16423,0,28117,28217,24691,6719,12357,23320,20527,28802,26759,17283,8228,27909,16283,0,0,13251,8450,27424,22690,34302,32995,35416,35189,35416,35416,0,22923,4048,0,25268,0,34883,35416,31605,34565,503,0,35416,34766,29807",
+        "clean_pixel_percentages_per_acquisition": "73.5797379715,0.0,77.5751072961,79.3850237181,77.8800542128,68.1612830359,29.6984413824,69.5476620736,67.6248023492,66.2271289813,80.2095098261,0.0,79.907386492,79.9102100745,0.0,0.0,17.7151569912,0.0,66.2525412243,36.3931556359,69.2737745652,0.0,26.5981477298,79.3003162412,21.1853399593,80.6584594534,7.4175513892,80.0796250282,79.9299751525,79.8904449966,42.4271515699,77.3520442738,78.8908967698,62.5621188164,0.0,37.5367065733,79.977976056,80.0965665236,54.449966117,71.5326406144,70.3495595211,29.0264287328,79.8735035012,80.6274000452,34.7300655071,45.2902642873,62.5508244861,50.4433024622,83.6006324825,29.907386492,29.2240795121,74.1246894059,81.7822453129,80.5935170544,68.9547097357,56.1977637226,80.8815224757,32.7224983059,81.4151795799,39.1009713124,83.2985091484,45.8069798961,80.5991642196,73.1562005873,80.8194036594,73.3792636097,78.3205330924,25.8301332731,57.843912356,69.7961373391,0.0,6.62694827197,0.0,22.3655974701,83.0161508923,1.62073639033,83.2787440705,13.3781341766,0.0,70.2479105489,78.1398238084,35.3173706799,78.2725321888,25.5562457646,75.6607183194,79.3313756494,29.7972667721,68.212107522,81.3587079286,77.2165123108,79.3370228145,60.7239665688,80.8617573978,79.5826744974,0.0,80.5624576463,81.1017619155,37.7936525864,28.5238310368,79.6927942173,46.3716964084,0.0,79.3906708832,79.6730291394,69.7170770273,18.9716512311,34.8910097131,65.8459453354,57.959679241,81.3248249379,75.5562457646,48.7999774113,23.2324373165,78.8033657104,45.9763948498,0.0,0.0,37.4152925232,23.8592726451,77.4339281681,64.0670883217,96.8545290264,93.1641066185,100.0,99.3590467585,100.0,100.0,0.0,64.7249830585,11.4298622092,0.0,71.3462841653,0.0,98.4950304947,100.0,89.2393268579,97.5971312401,1.42026202846,0.0,100.0,98.164671335,84.1625254122",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 142,
+        "total_scenes": 142,
+        "result_path": "/datacube/ui_results/coastal_change/4e6c653d-82b0-4c32-9a22-7cd497a058fd/coastline_change.png",
+        "time_end": 2015,
+        "time_start": 2001,
+        "animated_product": 1,
+        "land_converted": "118",
+        "sea_converted": "312",
+        "result_coastal_change_path": "/datacube/ui_results/coastal_change/4e6c653d-82b0-4c32-9a22-7cd497a058fd/coastal_change.png",
+        "result_mosaic_path": "/datacube/ui_results/coastal_change/4e6c653d-82b0-4c32-9a22-7cd497a058fd/mosaic.png",
+        "animation_path": "/datacube/ui_results/coastal_change/4e6c653d-82b0-4c32-9a22-7cd497a058fd/animation.gif",
+        "data_path": "/datacube/ui_results/coastal_change/4e6c653d-82b0-4c32-9a22-7cd497a058fd/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/coastal_change/4e6c653d-82b0-4c32-9a22-7cd497a058fd/data_netcdf.nc"
+    }
+}, {
+    "model": "coastal_change.coastalchangetask",
+    "pk": "a01a782f-c00a-4910-8d21-497b03ea5066",
+    "fields": {
+        "title": "Coastal Change Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:09:23.019Z",
+        "execution_end": "2017-06-07T21:09:39.706Z",
+        "area_id": "togo",
+        "platform": "LANDSAT_7",
+        "latitude_min": 6.0587435475,
+        "latitude_max": 6.2022533125,
+        "longitude_min": 1.1514912645,
+        "longitude_max": 1.4482045095,
+        "complete": false,
+        "pixel_count": 580880,
+        "clean_pixel_count": 580880,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "12/23/2015,12/07/2015,11/21/2015,11/05/2015,08/01/2015,05/13/2015,02/06/2015,01/21/2015,01/05/2015,12/16/2001,11/14/2001,10/29/2001,10/13/2001,09/11/2001,05/06/2001,04/04/2001,03/03/2001,01/30/2001",
+        "clean_pixels_per_acquisition": "457151,0,352068,428722,372380,289544,285611,406153,425504,461492,562286,444250,459826,67927,0,573639,373630,426620",
+        "clean_pixel_percentages_per_acquisition": "78.699731442,0.0,60.6094201901,73.8056052885,64.1061837213,49.8457512739,49.1686751136,69.920293348,73.2516182344,79.4470458615,96.7989946288,76.4787908002,79.1602396364,11.6938093926,0.0,98.7534430519,64.3213744663,73.4437405316",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 18,
+        "total_scenes": 18,
+        "result_path": "/datacube/ui_results/coastal_change/a01a782f-c00a-4910-8d21-497b03ea5066/coastline_change.png",
+        "time_end": 2015,
+        "time_start": 2001,
+        "animated_product": 0,
+        "land_converted": "1370",
+        "sea_converted": "1903",
+        "result_coastal_change_path": "/datacube/ui_results/coastal_change/a01a782f-c00a-4910-8d21-497b03ea5066/coastal_change.png",
+        "result_mosaic_path": "/datacube/ui_results/coastal_change/a01a782f-c00a-4910-8d21-497b03ea5066/mosaic.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/coastal_change/a01a782f-c00a-4910-8d21-497b03ea5066/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/coastal_change/a01a782f-c00a-4910-8d21-497b03ea5066/data_netcdf.nc"
+    }
+}, {
+    "model": "coastal_change.coastalchangetask",
+    "pk": "bbeae03e-5fec-43c8-a0aa-ca313ee15175",
+    "fields": {
+        "title": "Coastal Change Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:10:06.054Z",
+        "execution_end": "2017-06-07T21:10:57.804Z",
+        "area_id": "togo",
+        "platform": "LANDSAT_7",
+        "latitude_min": 5.4920291825,
+        "latitude_max": 5.8786103075,
+        "longitude_min": 0.0001354855,
+        "longitude_max": 0.8360810205,
+        "complete": false,
+        "pixel_count": 4406808,
+        "clean_pixel_count": 1111004,
+        "percentage_clean_pixels": 25.2110824887311,
+        "acquisition_list": "12/23/2015,12/07/2015,11/21/2015,11/05/2015,08/01/2015,05/13/2015,02/06/2015,01/21/2015,01/05/2015,12/16/2001,11/14/2001,10/29/2001,10/13/2001,09/11/2001,05/06/2001,04/04/2001,03/03/2001,01/30/2001",
+        "clean_pixels_per_acquisition": "645733,0,272734,474983,595343,522498,490631,540523,513580,759484,750926,832603,211899,638325,483981,817648,809593,884585",
+        "clean_pixel_percentages_per_acquisition": "14.6530776925,0.0,6.18892404661,10.7783910713,13.5096196612,11.8566091375,11.1334780186,12.2656353533,11.6542404389,17.2343337854,17.040134265,18.8935619614,4.80844638568,14.4849741582,10.9825751428,18.5542006822,18.3714153192,20.0731459142",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 18,
+        "total_scenes": 18,
+        "result_path": "/datacube/ui_results/coastal_change/bbeae03e-5fec-43c8-a0aa-ca313ee15175/coastline_change.png",
+        "time_end": 2015,
+        "time_start": 2001,
+        "animated_product": 0,
+        "land_converted": "7065",
+        "sea_converted": "10147",
+        "result_coastal_change_path": "/datacube/ui_results/coastal_change/bbeae03e-5fec-43c8-a0aa-ca313ee15175/coastal_change.png",
+        "result_mosaic_path": "/datacube/ui_results/coastal_change/bbeae03e-5fec-43c8-a0aa-ca313ee15175/mosaic.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/coastal_change/bbeae03e-5fec-43c8-a0aa-ca313ee15175/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/coastal_change/bbeae03e-5fec-43c8-a0aa-ca313ee15175/data_netcdf.nc"
+    }
+}, {
+    "model": "coastal_change.coastalchangetask",
+    "pk": "c54933c3-987d-4514-ada3-22739d118f04",
+    "fields": {
+        "title": "Coastal Change Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:10:24.822Z",
+        "execution_end": "2017-06-07T21:10:24.724Z",
+        "area_id": "togo",
+        "platform": "LANDSAT_7",
+        "latitude_min": 5.4919,
+        "latitude_max": 5.8787,
+        "longitude_min": 0.0,
+        "longitude_max": 0.8362,
+        "complete": false,
+        "pixel_count": 0,
+        "clean_pixel_count": 0,
+        "percentage_clean_pixels": 0.0,
+        "acquisition_list": "",
+        "clean_pixels_per_acquisition": "",
+        "clean_pixel_percentages_per_acquisition": "",
+        "status": "ERROR",
+        "message": "There must be at least one acquisition in both the start and ending year.",
+        "scenes_processed": 0,
+        "total_scenes": 0,
+        "result_path": "",
+        "time_end": 2000,
+        "time_start": 1999,
+        "animated_product": 0,
+        "land_converted": "",
+        "sea_converted": "",
+        "result_coastal_change_path": "",
+        "result_mosaic_path": "",
+        "animation_path": "None",
+        "data_path": "",
+        "data_netcdf_path": ""
+    }
+}, {
+    "model": "coastal_change.coastalchangetask",
+    "pk": "e62b8b4d-1f9a-4723-b2ec-130b0c6cfbdc",
+    "fields": {
+        "title": "Coastal Change Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:09:53.131Z",
+        "execution_end": "2017-06-07T21:10:04.865Z",
+        "area_id": "togo",
+        "platform": "LANDSAT_7",
+        "latitude_min": 6.1214103825,
+        "latitude_max": 6.1623744175,
+        "longitude_min": 1.2512085925,
+        "longitude_max": 1.3140738645,
+        "complete": false,
+        "pixel_count": 35416,
+        "clean_pixel_count": 35416,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "12/23/2015,12/07/2015,11/21/2015,11/05/2015,08/01/2015,05/13/2015,02/06/2015,01/21/2015,01/05/2015,12/20/2014,12/04/2014,11/18/2014,11/02/2014,10/17/2014,03/23/2014,03/07/2014,02/19/2014,02/03/2014,01/18/2014,01/02/2014,12/17/2013,12/01/2013,08/27/2013,08/11/2013,07/10/2013,06/08/2013,05/07/2013,04/21/2013,04/05/2013,01/31/2013,01/15/2013,12/30/2012,12/14/2012,11/28/2012,10/27/2012,10/11/2012,09/25/2012,09/09/2012,01/29/2012,01/13/2012,12/28/2011,12/12/2011,11/26/2011,11/10/2011,09/23/2011,01/10/2011,12/25/2010,12/09/2010,03/12/2010,02/24/2010,02/08/2010,01/23/2010,01/07/2010,12/22/2009,12/06/2009,11/20/2009,11/04/2009,10/19/2009,10/03/2009,05/28/2009,05/12/2009,03/25/2009,03/09/2009,02/05/2009,01/04/2009,12/19/2008,12/03/2008,11/17/2008,10/16/2008,07/12/2008,03/06/2008,02/19/2008,02/03/2008,01/18/2008,01/02/2008,12/17/2007,12/01/2007,10/30/2007,09/28/2007,09/12/2007,03/20/2007,03/04/2007,01/31/2007,01/15/2007,12/30/2006,12/14/2006,11/28/2006,11/12/2006,10/27/2006,05/04/2006,04/18/2006,04/02/2006,03/01/2006,12/27/2005,12/11/2005,11/25/2005,11/09/2005,10/24/2005,05/17/2005,03/30/2005,02/10/2005,01/09/2005,12/24/2004,12/08/2004,11/22/2004,09/03/2004,08/02/2004,05/30/2004,04/12/2004,03/27/2004,02/24/2004,01/07/2004,12/22/2003,12/06/2003,11/20/2003,11/04/2003,10/19/2003,09/17/2003,07/31/2003,04/26/2003,03/09/2003,02/05/2003,01/04/2003,12/03/2002,11/17/2002,10/16/2002,09/14/2002,08/29/2002,06/26/2002,05/09/2002,04/23/2002,02/18/2002,01/17/2002,12/16/2001,11/14/2001,10/29/2001,10/13/2001,09/11/2001,05/06/2001,04/04/2001,03/03/2001,01/30/2001",
+        "clean_pixels_per_acquisition": "26059,0,27474,28115,27582,24140,10518,24631,23950,23455,28407,0,28300,28301,0,0,6274,0,23464,12889,24534,0,9420,28085,7503,28566,2627,28361,28308,28294,15026,27395,27940,22157,0,13294,28325,28367,19284,25334,24915,10280,28288,28555,12300,16040,22153,17865,29608,10592,10350,26252,28964,28543,24421,19903,28645,11589,28834,13848,29501,16223,28545,25909,28623,25988,27738,9148,20486,24719,0,2347,0,7921,29401,574,29494,4738,0,24879,27674,12508,27721,9051,26796,28096,10553,24158,28814,27347,28098,21506,28638,28185,0,28532,28723,13385,10102,28224,16423,0,28117,28217,24691,6719,12357,23320,20527,28802,26759,17283,8228,27909,16283,0,0,13251,8450,27424,22690,34302,32995,35416,35189,35416,35416,0,22923,4048,0,25268,0,34883,35416,31605,34565,503,0,35416,34766,29807",
+        "clean_pixel_percentages_per_acquisition": "73.5797379715,0.0,77.5751072961,79.3850237181,77.8800542128,68.1612830359,29.6984413824,69.5476620736,67.6248023492,66.2271289813,80.2095098261,0.0,79.907386492,79.9102100745,0.0,0.0,17.7151569912,0.0,66.2525412243,36.3931556359,69.2737745652,0.0,26.5981477298,79.3003162412,21.1853399593,80.6584594534,7.4175513892,80.0796250282,79.9299751525,79.8904449966,42.4271515699,77.3520442738,78.8908967698,62.5621188164,0.0,37.5367065733,79.977976056,80.0965665236,54.449966117,71.5326406144,70.3495595211,29.0264287328,79.8735035012,80.6274000452,34.7300655071,45.2902642873,62.5508244861,50.4433024622,83.6006324825,29.907386492,29.2240795121,74.1246894059,81.7822453129,80.5935170544,68.9547097357,56.1977637226,80.8815224757,32.7224983059,81.4151795799,39.1009713124,83.2985091484,45.8069798961,80.5991642196,73.1562005873,80.8194036594,73.3792636097,78.3205330924,25.8301332731,57.843912356,69.7961373391,0.0,6.62694827197,0.0,22.3655974701,83.0161508923,1.62073639033,83.2787440705,13.3781341766,0.0,70.2479105489,78.1398238084,35.3173706799,78.2725321888,25.5562457646,75.6607183194,79.3313756494,29.7972667721,68.212107522,81.3587079286,77.2165123108,79.3370228145,60.7239665688,80.8617573978,79.5826744974,0.0,80.5624576463,81.1017619155,37.7936525864,28.5238310368,79.6927942173,46.3716964084,0.0,79.3906708832,79.6730291394,69.7170770273,18.9716512311,34.8910097131,65.8459453354,57.959679241,81.3248249379,75.5562457646,48.7999774113,23.2324373165,78.8033657104,45.9763948498,0.0,0.0,37.4152925232,23.8592726451,77.4339281681,64.0670883217,96.8545290264,93.1641066185,100.0,99.3590467585,100.0,100.0,0.0,64.7249830585,11.4298622092,0.0,71.3462841653,0.0,98.4950304947,100.0,89.2393268579,97.5971312401,1.42026202846,0.0,100.0,98.164671335,84.1625254122",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 142,
+        "total_scenes": 142,
+        "result_path": "/datacube/ui_results/coastal_change/e62b8b4d-1f9a-4723-b2ec-130b0c6cfbdc/coastline_change.png",
+        "time_end": 2015,
+        "time_start": 2001,
+        "animated_product": 2,
+        "land_converted": "118",
+        "sea_converted": "312",
+        "result_coastal_change_path": "/datacube/ui_results/coastal_change/e62b8b4d-1f9a-4723-b2ec-130b0c6cfbdc/coastal_change.png",
+        "result_mosaic_path": "/datacube/ui_results/coastal_change/e62b8b4d-1f9a-4723-b2ec-130b0c6cfbdc/mosaic.png",
+        "animation_path": "/datacube/ui_results/coastal_change/e62b8b4d-1f9a-4723-b2ec-130b0c6cfbdc/animation.gif",
+        "data_path": "/datacube/ui_results/coastal_change/e62b8b4d-1f9a-4723-b2ec-130b0c6cfbdc/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/coastal_change/e62b8b4d-1f9a-4723-b2ec-130b0c6cfbdc/data_netcdf.nc"
+    }
+}, {
+    "model": "fractional_cover.userhistory",
+    "pk": 1,
+    "fields": {
+        "user_id": 1,
+        "task_id": "dff41061-e531-4ef4-bcea-dc0d1e816349"
+    }
+}, {
+    "model": "fractional_cover.userhistory",
+    "pk": 2,
+    "fields": {
+        "user_id": 1,
+        "task_id": "2bcf6be2-bc84-4581-b2e2-697037390a9a"
+    }
+}, {
+    "model": "fractional_cover.userhistory",
+    "pk": 3,
+    "fields": {
+        "user_id": 1,
+        "task_id": "4db1bf01-851b-4826-9c8b-eff4edea44a9"
+    }
+}, {
+    "model": "fractional_cover.userhistory",
+    "pk": 4,
+    "fields": {
+        "user_id": 1,
+        "task_id": "eb1ae1ce-b213-4c89-aa4d-248a2ea81c96"
+    }
+}, {
+    "model": "fractional_cover.userhistory",
+    "pk": 5,
+    "fields": {
+        "user_id": 1,
+        "task_id": "5ed2d88f-c845-4cbf-a430-5a8ecfb6ec41"
+    }
+}, {
+    "model": "fractional_cover.toolinfo",
+    "pk": 4,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/fractional_cover_1.png",
+        "image_title": "Fractional Coverage",
+        "image_description": "The Fractional Coverage tool allows users to create a three band output product used to visualize the sub pixel composition of selected areas. Pixels are classified as a percentage of photosynthetic vegetation, non-photosynthetic vegetation, and bare soil."
+    }
+}, {
+    "model": "fractional_cover.toolinfo",
+    "pk": 5,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/fractional_cover_2.png",
+        "image_title": "Pixel Preference",
+        "image_description": "Pick a compositing algorithm (most recent, least recent, median, min/max NDVI pixel) that will produce the desired mosaic for the fractional cover application."
+    }
+}, {
+    "model": "fractional_cover.toolinfo",
+    "pk": 6,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/fractional_cover_3.png",
+        "image_title": "Downloads",
+        "image_description": "All products (both data and images) are available for download in various formats, including GeoTIFF, NetCDF, and PNG."
+    }
+}, {
+    "model": "fractional_cover.fractionalcovertask",
+    "pk": "2bcf6be2-bc84-4581-b2e2-697037390a9a",
+    "fields": {
+        "title": "Fractional Cover Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:17:49.866Z",
+        "execution_end": "2017-06-07T21:20:01.405Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7,LANDSAT_8",
+        "time_start": "2007-04-15",
+        "time_end": "2008-04-15",
+        "latitude_min": 4.524009621645,
+        "latitude_max": 4.808871251145,
+        "longitude_min": -71.90180053277,
+        "longitude_max": -71.48198963945,
+        "complete": false,
+        "pixel_count": 1634305,
+        "clean_pixel_count": 1634079,
+        "percentage_clean_pixels": 99.9861714918574,
+        "acquisition_list": "03/15/2008,02/28/2008,01/27/2008,01/11/2008,12/10/2007,09/21/2007,09/05/2007,07/19/2007",
+        "clean_pixels_per_acquisition": "1173232,768775,1315322,1148419,1090588,16386,439546,612410",
+        "clean_pixel_percentages_per_acquisition": "71.7878241821,47.0398732183,80.4820397661,70.2695641266,66.7309957444,1.00262802843,26.8949798232,37.472197662",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 8,
+        "total_scenes": 8,
+        "result_path": "/datacube/ui_results/fractional_cover/2bcf6be2-bc84-4581-b2e2-697037390a9a/band_math.png",
+        "compositor": "max_ndvi",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "mosaic_path": "/datacube/ui_results/fractional_cover/2bcf6be2-bc84-4581-b2e2-697037390a9a/png_mosaic.png",
+        "data_path": "/datacube/ui_results/fractional_cover/2bcf6be2-bc84-4581-b2e2-697037390a9a/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/fractional_cover/2bcf6be2-bc84-4581-b2e2-697037390a9a/data_netcdf.nc"
+    }
+}, {
+    "model": "fractional_cover.fractionalcovertask",
+    "pk": "4db1bf01-851b-4826-9c8b-eff4edea44a9",
+    "fields": {
+        "title": "Fractional Cover Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:17:53.307Z",
+        "execution_end": "2017-06-07T21:18:51.037Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7,LANDSAT_8",
+        "time_start": "2007-04-15",
+        "time_end": "2008-04-15",
+        "latitude_min": 4.524009621645,
+        "latitude_max": 4.808871251145,
+        "longitude_min": -71.90180053277,
+        "longitude_max": -71.48198963945,
+        "complete": false,
+        "pixel_count": 1634305,
+        "clean_pixel_count": 1634079,
+        "percentage_clean_pixels": 99.9861714918574,
+        "acquisition_list": "03/15/2008,02/28/2008,01/27/2008,01/11/2008,12/10/2007,09/21/2007,09/05/2007,07/19/2007",
+        "clean_pixels_per_acquisition": "1184462,776014,1327808,1159270,1101126,16501,443818,618078",
+        "clean_pixel_percentages_per_acquisition": "72.474966423,47.4828137955,81.246034247,70.9335160818,67.3757958276,1.00966465868,27.15637534,37.8190117512",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 8,
+        "total_scenes": 8,
+        "result_path": "/datacube/ui_results/fractional_cover/4db1bf01-851b-4826-9c8b-eff4edea44a9/band_math.png",
+        "compositor": "median_pixel",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "mosaic_path": "/datacube/ui_results/fractional_cover/4db1bf01-851b-4826-9c8b-eff4edea44a9/png_mosaic.png",
+        "data_path": "/datacube/ui_results/fractional_cover/4db1bf01-851b-4826-9c8b-eff4edea44a9/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/fractional_cover/4db1bf01-851b-4826-9c8b-eff4edea44a9/data_netcdf.nc"
+    }
+}, {
+    "model": "fractional_cover.fractionalcovertask",
+    "pk": "5ed2d88f-c845-4cbf-a430-5a8ecfb6ec41",
+    "fields": {
+        "title": "Fractional Cover Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:17:57.111Z",
+        "execution_end": "2017-06-07T21:20:09.967Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7,LANDSAT_8",
+        "time_start": "2007-04-15",
+        "time_end": "2008-04-15",
+        "latitude_min": 4.524009621645,
+        "latitude_max": 4.808871251145,
+        "longitude_min": -71.90180053277,
+        "longitude_max": -71.48198963945,
+        "complete": false,
+        "pixel_count": 1634305,
+        "clean_pixel_count": 1634079,
+        "percentage_clean_pixels": 99.9861714918574,
+        "acquisition_list": "03/15/2008,02/28/2008,01/27/2008,01/11/2008,12/10/2007,09/21/2007,09/05/2007,07/19/2007",
+        "clean_pixels_per_acquisition": "1173232,768775,1315322,1148419,1090588,16386,439546,612410",
+        "clean_pixel_percentages_per_acquisition": "71.7878241821,47.0398732183,80.4820397661,70.2695641266,66.7309957444,1.00262802843,26.8949798232,37.472197662",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 8,
+        "total_scenes": 8,
+        "result_path": "/datacube/ui_results/fractional_cover/5ed2d88f-c845-4cbf-a430-5a8ecfb6ec41/band_math.png",
+        "compositor": "most_recent",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "mosaic_path": "/datacube/ui_results/fractional_cover/5ed2d88f-c845-4cbf-a430-5a8ecfb6ec41/png_mosaic.png",
+        "data_path": "/datacube/ui_results/fractional_cover/5ed2d88f-c845-4cbf-a430-5a8ecfb6ec41/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/fractional_cover/5ed2d88f-c845-4cbf-a430-5a8ecfb6ec41/data_netcdf.nc"
+    }
+}, {
+    "model": "fractional_cover.fractionalcovertask",
+    "pk": "dff41061-e531-4ef4-bcea-dc0d1e816349",
+    "fields": {
+        "title": "Fractional Cover Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:17:48.417Z",
+        "execution_end": "2017-06-07T21:19:56.862Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7,LANDSAT_8",
+        "time_start": "2007-04-15",
+        "time_end": "2008-04-15",
+        "latitude_min": 4.524009621645,
+        "latitude_max": 4.808871251145,
+        "longitude_min": -71.90180053277,
+        "longitude_max": -71.48198963945,
+        "complete": false,
+        "pixel_count": 1634305,
+        "clean_pixel_count": 1634079,
+        "percentage_clean_pixels": 99.9861714918574,
+        "acquisition_list": "03/15/2008,02/28/2008,01/27/2008,01/11/2008,12/10/2007,09/21/2007,09/05/2007,07/19/2007",
+        "clean_pixels_per_acquisition": "1173232,768775,1315322,1148419,1090588,16386,439546,612410",
+        "clean_pixel_percentages_per_acquisition": "71.7878241821,47.0398732183,80.4820397661,70.2695641266,66.7309957444,1.00262802843,26.8949798232,37.472197662",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 8,
+        "total_scenes": 8,
+        "result_path": "/datacube/ui_results/fractional_cover/dff41061-e531-4ef4-bcea-dc0d1e816349/band_math.png",
+        "compositor": "least_recent",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "mosaic_path": "/datacube/ui_results/fractional_cover/dff41061-e531-4ef4-bcea-dc0d1e816349/png_mosaic.png",
+        "data_path": "/datacube/ui_results/fractional_cover/dff41061-e531-4ef4-bcea-dc0d1e816349/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/fractional_cover/dff41061-e531-4ef4-bcea-dc0d1e816349/data_netcdf.nc"
+    }
+}, {
+    "model": "fractional_cover.fractionalcovertask",
+    "pk": "eb1ae1ce-b213-4c89-aa4d-248a2ea81c96",
+    "fields": {
+        "title": "Fractional Cover Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:17:55.272Z",
+        "execution_end": "2017-06-07T21:20:10.114Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7,LANDSAT_8",
+        "time_start": "2007-04-15",
+        "time_end": "2008-04-15",
+        "latitude_min": 4.524009621645,
+        "latitude_max": 4.808871251145,
+        "longitude_min": -71.90180053277,
+        "longitude_max": -71.48198963945,
+        "complete": false,
+        "pixel_count": 1634305,
+        "clean_pixel_count": 1634079,
+        "percentage_clean_pixels": 99.9861714918574,
+        "acquisition_list": "03/15/2008,02/28/2008,01/27/2008,01/11/2008,12/10/2007,09/21/2007,09/05/2007,07/19/2007",
+        "clean_pixels_per_acquisition": "1173232,768775,1315322,1148419,1090588,16386,439546,612410",
+        "clean_pixel_percentages_per_acquisition": "71.7878241821,47.0398732183,80.4820397661,70.2695641266,66.7309957444,1.00262802843,26.8949798232,37.472197662",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 8,
+        "total_scenes": 8,
+        "result_path": "/datacube/ui_results/fractional_cover/eb1ae1ce-b213-4c89-aa4d-248a2ea81c96/band_math.png",
+        "compositor": "min_ndvi",
+        "satellite_list": "LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7,LANDSAT_7",
+        "mosaic_path": "/datacube/ui_results/fractional_cover/eb1ae1ce-b213-4c89-aa4d-248a2ea81c96/png_mosaic.png",
+        "data_path": "/datacube/ui_results/fractional_cover/eb1ae1ce-b213-4c89-aa4d-248a2ea81c96/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/fractional_cover/eb1ae1ce-b213-4c89-aa4d-248a2ea81c96/data_netcdf.nc"
+    }
+}, {
+    "model": "ndvi_anomaly.userhistory",
+    "pk": 1,
+    "fields": {
+        "user_id": 1,
+        "task_id": "8aca1053-8e73-4ae7-b5f8-185808bcb97d"
+    }
+}, {
+    "model": "ndvi_anomaly.userhistory",
+    "pk": 2,
+    "fields": {
+        "user_id": 1,
+        "task_id": "097929d1-e03c-4236-8ee1-ca4e19f1aaea"
+    }
+}, {
+    "model": "ndvi_anomaly.userhistory",
+    "pk": 3,
+    "fields": {
+        "user_id": 1,
+        "task_id": "8c8b4806-c514-4fcc-ab39-f1249e1ed6cd"
+    }
+}, {
+    "model": "ndvi_anomaly.toolinfo",
+    "pk": 9,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/ndvi_anomaly_1.png",
+        "image_title": "NDVI Anomaly",
+        "image_description": "The NDVI Anomaly tool allows users to calculate and visualize the NDVI change between a single scene and a user defined baseline composite of scenes preceding it."
+    }
+}, {
+    "model": "ndvi_anomaly.toolinfo",
+    "pk": 10,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/ndvi_anomaly_2.png",
+        "image_title": "Baselines for Seasons",
+        "image_description": "Define a custom baseline of specific months to create seasonal baselines unique to your region."
+    }
+}, {
+    "model": "ndvi_anomaly.toolinfo",
+    "pk": 11,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/ndvi_anomaly_3.png",
+        "image_title": "Specific Scene Selection",
+        "image_description": "Pick a specific acquisition date for analysis and calculate the difference and percentage change from a composite of all acquisitions prior to that date."
+    }
+}, {
+    "model": "ndvi_anomaly.ndvianomalytask",
+    "pk": "097929d1-e03c-4236-8ee1-ca4e19f1aaea",
+    "fields": {
+        "title": "NDVI Anomaly Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:21:53.219Z",
+        "execution_end": "2017-06-07T21:22:26.124Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2015-01-01",
+        "time_end": "2015-04-01",
+        "latitude_min": 4.654232080845,
+        "latitude_max": 4.781198978565,
+        "longitude_min": -71.43957631239,
+        "longitude_max": -71.31530796559,
+        "complete": false,
+        "pixel_count": 216670,
+        "clean_pixel_count": 210128,
+        "percentage_clean_pixels": 96.9806618359718,
+        "acquisition_list": "03/03/2015,02/15/2015,01/14/2015,12/29/2014,12/13/2014,11/27/2014,10/26/2014,10/10/2014,09/24/2014,07/22/2014,03/16/2014,12/26/2013,12/10/2013,11/24/2013,10/07/2013,09/21/2013,07/03/2013,06/17/2013,04/30/2013,03/13/2013,12/07/2012,11/21/2012,10/20/2012,09/18/2012,09/02/2012,05/13/2012,04/27/2012,12/21/2011,12/05/2011,11/03/2011,10/02/2011,08/31/2011,06/28/2011,10/31/2010,09/13/2010,08/28/2010,05/24/2010,04/22/2010,03/21/2010,12/31/2009,12/15/2009,11/29/2009,11/13/2009,10/28/2009,09/10/2009,07/24/2009,05/05/2009,04/03/2009,03/02/2009,12/28/2008,12/12/2008,11/10/2008,10/25/2008,09/23/2008,09/07/2008,04/16/2008,03/15/2008,12/10/2007,09/21/2007,09/05/2007,07/19/2007,11/21/2006,09/02/2006,06/30/2006,04/11/2006,07/13/2005,11/15/2004,10/30/2004,10/14/2004,03/20/2004,12/15/2003,09/26/2003,04/19/2003,12/28/2002,11/10/2002,09/07/2002,08/06/2002,11/23/2001,11/07/2001,06/16/2001,04/29/2001,11/20/2000,10/19/2000,06/13/2000,04/26/2000,04/10/2000",
+        "clean_pixels_per_acquisition": "208943,98811,208102,206790,43508,112384,150334,0,96393,179959,203481,115675,93749,65712,109607,58882,111745,55979,28583,120553,102535,67471,90226,123103,3397,7449,207720,152565,53267,130437,151015,201531,103212,189256,211305,31852,32321,212334,129507,213425,206244,57799,0,0,210082,201538,31133,264,16691,205853,164601,211860,16059,60879,154491,2529,210126,135185,27202,37685,160534,215429,105661,136591,206605,200740,69412,38413,4933,210260,10726,189242,134471,216367,19316,1947,132614,194574,214206,147048,202495,122298,6979,159147,31910,0",
+        "clean_pixel_percentages_per_acquisition": "96.4337471731,45.6043753173,96.0455992985,95.4400701528,20.0803064568,51.8687404809,69.383855633,0.0,44.4883924863,83.0567222043,93.912862879,53.3876401902,43.2681035676,30.3281487977,50.5870678913,27.1758896017,51.5738219412,25.8360640606,13.1919508931,55.6389901694,47.3231181059,31.1399824618,41.6421285826,56.8158951401,1.56782203351,3.43794710851,95.8692943185,70.4135320995,24.5843910094,60.2007661421,69.6981584899,93.012876725,47.6355748373,87.347579268,97.5238842479,14.7006969124,14.9171551207,97.9988000185,59.7715419763,98.5023307334,95.1880740296,26.6760511377,0.0,0.0,96.9594313934,93.0161074445,14.3688558638,0.121844279319,7.70341994739,95.0076152675,75.9685235612,97.7800341533,7.4117321272,28.0975677297,71.3024415009,1.16721281211,96.9797387732,62.3921170444,12.5545760834,17.3928093414,74.0914755158,99.4272395809,48.7658651405,63.041030138,95.354686851,92.6478054184,32.0358148336,17.7288041722,2.27673420409,97.0415839756,4.95038537869,87.341117829,62.0625836526,99.8601559976,8.91493977016,0.898601559976,61.2055199151,89.8020030461,98.8627867264,67.8672635806,93.457792957,56.4443623944,3.22102736881,73.451331518,14.7274657313,0.0",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 86,
+        "total_scenes": 86,
+        "result_path": "/datacube/ui_results/ndvi_anomaly/097929d1-e03c-4236-8ee1-ca4e19f1aaea/ndvi_difference.png",
+        "baseline_selection": "3,4,5,6,7,8,9,10,11,12",
+        "scene_ndvi_path": "/datacube/ui_results/ndvi_anomaly/097929d1-e03c-4236-8ee1-ca4e19f1aaea/scene_ndvi.png",
+        "baseline_ndvi_path": "/datacube/ui_results/ndvi_anomaly/097929d1-e03c-4236-8ee1-ca4e19f1aaea/baseline_ndvi.png",
+        "ndvi_percentage_change_path": "/datacube/ui_results/ndvi_anomaly/097929d1-e03c-4236-8ee1-ca4e19f1aaea/ndvi_percentage_change.png",
+        "result_mosaic_path": "/datacube/ui_results/ndvi_anomaly/097929d1-e03c-4236-8ee1-ca4e19f1aaea/result_mosaic.png",
+        "data_path": "/datacube/ui_results/ndvi_anomaly/097929d1-e03c-4236-8ee1-ca4e19f1aaea/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/ndvi_anomaly/097929d1-e03c-4236-8ee1-ca4e19f1aaea/data_netcdf.nc"
+    }
+}, {
+    "model": "ndvi_anomaly.ndvianomalytask",
+    "pk": "8aca1053-8e73-4ae7-b5f8-185808bcb97d",
+    "fields": {
+        "title": "NDVI Anomaly Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:21:49.168Z",
+        "execution_end": "2017-06-07T21:22:09.506Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "2015-01-01",
+        "time_end": "2015-04-01",
+        "latitude_min": 4.558193017185,
+        "latitude_max": 4.790965663005,
+        "longitude_min": -71.79563214083,
+        "longitude_max": -71.53412831539,
+        "complete": false,
+        "pixel_count": 835278,
+        "clean_pixel_count": 814823,
+        "percentage_clean_pixels": 97.5511147186925,
+        "acquisition_list": "03/03/2015,02/15/2015,01/14/2015,03/16/2014,02/12/2014,01/27/2014,01/11/2014,03/13/2013,02/25/2013,02/09/2013,01/24/2013,01/08/2013,02/23/2012,01/22/2012,01/06/2012,02/04/2011,01/19/2011,01/03/2011,03/21/2010,02/17/2010,02/01/2010,01/16/2010,03/02/2009,02/14/2009,03/15/2008,02/28/2008,01/27/2008,01/11/2008,02/22/2006,02/06/2006,03/20/2004,02/01/2004,02/14/2003,01/13/2003,02/24/2001,01/23/2001,01/05/2000",
+        "clean_pixels_per_acquisition": "665786,366377,662639,625554,603861,699657,638442,526418,301107,276073,659974,19366,672468,667305,596350,665058,665847,457277,606140,258322,107917,599626,261940,642638,656383,257649,683033,670988,647724,437172,666183,670736,836201,784497,813365,776414,748831",
+        "clean_pixel_percentages_per_acquisition": "79.7083126815,43.8628815795,79.3315518905,74.8917126992,72.2946132904,83.7633698002,76.4346720493,63.0230893188,36.0487167147,33.0516307146,79.0124964383,2.31850952617,80.5082858641,79.8901683032,71.3953917139,79.6211560702,79.7156156393,54.745485934,72.5674565833,30.9264699896,12.9198901444,71.7875964649,31.3596191927,76.9370197707,78.582579692,30.8458980124,81.773134214,80.3310993466,77.5459188438,52.3385028697,79.7558417677,80.3009297503,100.110502132,93.9204671977,97.3765620548,92.9527654266,89.6505115662",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 37,
+        "total_scenes": 37,
+        "result_path": "/datacube/ui_results/ndvi_anomaly/8aca1053-8e73-4ae7-b5f8-185808bcb97d/ndvi_difference.png",
+        "baseline_selection": "1,2,3",
+        "scene_ndvi_path": "/datacube/ui_results/ndvi_anomaly/8aca1053-8e73-4ae7-b5f8-185808bcb97d/scene_ndvi.png",
+        "baseline_ndvi_path": "/datacube/ui_results/ndvi_anomaly/8aca1053-8e73-4ae7-b5f8-185808bcb97d/baseline_ndvi.png",
+        "ndvi_percentage_change_path": "/datacube/ui_results/ndvi_anomaly/8aca1053-8e73-4ae7-b5f8-185808bcb97d/ndvi_percentage_change.png",
+        "result_mosaic_path": "/datacube/ui_results/ndvi_anomaly/8aca1053-8e73-4ae7-b5f8-185808bcb97d/result_mosaic.png",
+        "data_path": "/datacube/ui_results/ndvi_anomaly/8aca1053-8e73-4ae7-b5f8-185808bcb97d/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/ndvi_anomaly/8aca1053-8e73-4ae7-b5f8-185808bcb97d/data_netcdf.nc"
+    }
+}, {
+    "model": "ndvi_anomaly.ndvianomalytask",
+    "pk": "8c8b4806-c514-4fcc-ab39-f1249e1ed6cd",
+    "fields": {
+        "title": "NDVI Anomaly Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:22:03.304Z",
+        "execution_end": "2017-06-07T21:22:03.169Z",
+        "area_id": "meta_river",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-01-01",
+        "time_end": "2000-01-01",
+        "latitude_min": 4.6541,
+        "latitude_max": 4.7811,
+        "longitude_min": -71.4395,
+        "longitude_max": -71.3154,
+        "complete": false,
+        "pixel_count": 0,
+        "clean_pixel_count": 0,
+        "percentage_clean_pixels": 0.0,
+        "acquisition_list": "",
+        "clean_pixels_per_acquisition": "",
+        "clean_pixel_percentages_per_acquisition": "",
+        "status": "ERROR",
+        "message": "There are no acquistions for this parameter set.",
+        "scenes_processed": 0,
+        "total_scenes": 0,
+        "result_path": "",
+        "baseline_selection": "3,4,5,6,7,8,9,10,11,12",
+        "scene_ndvi_path": "",
+        "baseline_ndvi_path": "",
+        "ndvi_percentage_change_path": "",
+        "result_mosaic_path": "",
+        "data_path": "",
+        "data_netcdf_path": ""
+    }
+}, {
+    "model": "slip.userhistory",
+    "pk": 1,
+    "fields": {
+        "user_id": 1,
+        "task_id": "dee7a6b3-ea68-4432-be3b-d50af19d0892"
+    }
+}, {
+    "model": "slip.userhistory",
+    "pk": 2,
+    "fields": {
+        "user_id": 1,
+        "task_id": "caf11acf-4d65-45fe-ba35-3b36045e2ff2"
+    }
+}, {
+    "model": "slip.userhistory",
+    "pk": 3,
+    "fields": {
+        "user_id": 1,
+        "task_id": "7965b928-f2c7-4b6e-b72e-cdc68dabf508"
+    }
+}, {
+    "model": "slip.userhistory",
+    "pk": 4,
+    "fields": {
+        "user_id": 1,
+        "task_id": "d9f913d4-72d0-43fc-b3df-eb3f9496dafd"
+    }
+}, {
+    "model": "slip.toolinfo",
+    "pk": 7,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/slip_1.png",
+        "image_title": "Landslide Detection",
+        "image_description": "The SLIP tools uses algorithms to combine optical and elevation data to determine possible locations for recent landslides"
+    }
+}, {
+    "model": "slip.toolinfo",
+    "pk": 8,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/slip_2.png",
+        "image_title": "Threshold Control",
+        "image_description": "Set the baseline thresholds to expand or narrow results of possible landslide data."
+    }
+}, {
+    "model": "slip.baselinemethod",
+    "pk": "average",
+    "fields": {
+        "name": "Average"
+    }
+}, {
+    "model": "slip.baselinemethod",
+    "pk": "composite",
+    "fields": {
+        "name": "Composite"
+    }
+}, {
+    "model": "slip.sliptask",
+    "pk": "7965b928-f2c7-4b6e-b72e-cdc68dabf508",
+    "fields": {
+        "title": "SLIP Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:24:45.825Z",
+        "execution_end": "2017-06-07T21:24:50.541Z",
+        "area_id": "salgar_colombia",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-04-15",
+        "time_end": "2016-12-26",
+        "latitude_min": 5.9724749175,
+        "latitude_max": 5.9963479975,
+        "longitude_min": -75.9210060675,
+        "longitude_max": -75.8941920165,
+        "complete": false,
+        "pixel_count": 8900,
+        "clean_pixel_count": 8845,
+        "percentage_clean_pixels": 99.3820224719101,
+        "acquisition_list": "12/05/2015,09/16/2015,08/31/2015,07/14/2015,06/28/2015",
+        "clean_pixels_per_acquisition": "5329,4585,6692,6532,7390",
+        "clean_pixel_percentages_per_acquisition": "59.8764044944,51.5168539326,75.191011236,73.393258427,83.0337078652",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 5,
+        "total_scenes": 5,
+        "result_path": "/datacube/ui_results/slip/7965b928-f2c7-4b6e-b72e-cdc68dabf508/slip_result.png",
+        "baseline_method": "composite",
+        "baseline_length": 10,
+        "slip_pixels_per_acquisition": "32,49,116,94,51",
+        "result_mosaic_path": "/datacube/ui_results/slip/7965b928-f2c7-4b6e-b72e-cdc68dabf508/mosaic.png",
+        "data_path": "/datacube/ui_results/slip/7965b928-f2c7-4b6e-b72e-cdc68dabf508/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/slip/7965b928-f2c7-4b6e-b72e-cdc68dabf508/data_netcdf.nc"
+    }
+}, {
+    "model": "slip.sliptask",
+    "pk": "caf11acf-4d65-45fe-ba35-3b36045e2ff2",
+    "fields": {
+        "title": "SLIP Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:24:41.766Z",
+        "execution_end": "2017-06-07T21:24:51.474Z",
+        "area_id": "salgar_colombia",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-04-15",
+        "time_end": "2016-12-26",
+        "latitude_min": 5.9000418225,
+        "latitude_max": 5.9998747025,
+        "longitude_min": -75.9250688025,
+        "longitude_max": -75.8251255215,
+        "complete": false,
+        "pixel_count": 136900,
+        "clean_pixel_count": 136639,
+        "percentage_clean_pixels": 99.809349890431,
+        "acquisition_list": "12/05/2015,09/16/2015,08/31/2015,07/14/2015,06/28/2015",
+        "clean_pixels_per_acquisition": "108370,65128,107803,114588,117959",
+        "clean_pixel_percentages_per_acquisition": "79.1599707816,47.5734112491,78.7457998539,83.7019722425,86.1643535427",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 5,
+        "total_scenes": 5,
+        "result_path": "/datacube/ui_results/slip/caf11acf-4d65-45fe-ba35-3b36045e2ff2/slip_result.png",
+        "baseline_method": "composite",
+        "baseline_length": 10,
+        "slip_pixels_per_acquisition": "803,402,1028,2054,1038",
+        "result_mosaic_path": "/datacube/ui_results/slip/caf11acf-4d65-45fe-ba35-3b36045e2ff2/mosaic.png",
+        "data_path": "/datacube/ui_results/slip/caf11acf-4d65-45fe-ba35-3b36045e2ff2/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/slip/caf11acf-4d65-45fe-ba35-3b36045e2ff2/data_netcdf.nc"
+    }
+}, {
+    "model": "slip.sliptask",
+    "pk": "d9f913d4-72d0-43fc-b3df-eb3f9496dafd",
+    "fields": {
+        "title": "SLIP Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:24:48.226Z",
+        "execution_end": "2017-06-07T21:24:51.677Z",
+        "area_id": "salgar_colombia",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-04-15",
+        "time_end": "2016-12-26",
+        "latitude_min": 5.9152337825,
+        "latitude_max": 5.9380217225,
+        "longitude_min": -75.8871499425,
+        "longitude_max": -75.8527521195,
+        "complete": false,
+        "pixel_count": 10880,
+        "clean_pixel_count": 10880,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "12/05/2015,09/16/2015,08/31/2015,07/14/2015,06/28/2015",
+        "clean_pixels_per_acquisition": "9455,2040,9205,9639,9224",
+        "clean_pixel_percentages_per_acquisition": "86.9025735294,18.75,84.6047794118,88.59375,84.7794117647",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 5,
+        "total_scenes": 5,
+        "result_path": "/datacube/ui_results/slip/d9f913d4-72d0-43fc-b3df-eb3f9496dafd/slip_result.png",
+        "baseline_method": "average",
+        "baseline_length": 10,
+        "slip_pixels_per_acquisition": "12,0,6,26,19",
+        "result_mosaic_path": "/datacube/ui_results/slip/d9f913d4-72d0-43fc-b3df-eb3f9496dafd/mosaic.png",
+        "data_path": "/datacube/ui_results/slip/d9f913d4-72d0-43fc-b3df-eb3f9496dafd/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/slip/d9f913d4-72d0-43fc-b3df-eb3f9496dafd/data_netcdf.nc"
+    }
+}, {
+    "model": "slip.sliptask",
+    "pk": "dee7a6b3-ea68-4432-be3b-d50af19d0892",
+    "fields": {
+        "title": "SLIP Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:24:40.005Z",
+        "execution_end": "2017-06-07T21:24:49.943Z",
+        "area_id": "salgar_colombia",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-04-15",
+        "time_end": "2016-12-26",
+        "latitude_min": 5.9000418225,
+        "latitude_max": 5.9998747025,
+        "longitude_min": -75.9250688025,
+        "longitude_max": -75.8251255215,
+        "complete": false,
+        "pixel_count": 136900,
+        "clean_pixel_count": 136639,
+        "percentage_clean_pixels": 99.809349890431,
+        "acquisition_list": "12/05/2015,09/16/2015,08/31/2015,07/14/2015,06/28/2015",
+        "clean_pixels_per_acquisition": "108370,65128,107803,114588,117959",
+        "clean_pixel_percentages_per_acquisition": "79.1599707816,47.5734112491,78.7457998539,83.7019722425,86.1643535427",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 5,
+        "total_scenes": 5,
+        "result_path": "/datacube/ui_results/slip/dee7a6b3-ea68-4432-be3b-d50af19d0892/slip_result.png",
+        "baseline_method": "average",
+        "baseline_length": 10,
+        "slip_pixels_per_acquisition": "183,20,303,268,165",
+        "result_mosaic_path": "/datacube/ui_results/slip/dee7a6b3-ea68-4432-be3b-d50af19d0892/mosaic.png",
+        "data_path": "/datacube/ui_results/slip/dee7a6b3-ea68-4432-be3b-d50af19d0892/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/slip/dee7a6b3-ea68-4432-be3b-d50af19d0892/data_netcdf.nc"
+    }
+}, {
+    "model": "tsm.userhistory",
+    "pk": 1,
+    "fields": {
+        "user_id": 1,
+        "task_id": "0d56cb6b-89bb-4bb7-ae9f-e556ee7ba986"
+    }
+}, {
+    "model": "tsm.userhistory",
+    "pk": 2,
+    "fields": {
+        "user_id": 1,
+        "task_id": "f90bf44e-9f59-40ba-9338-ed52f9381488"
+    }
+}, {
+    "model": "tsm.userhistory",
+    "pk": 3,
+    "fields": {
+        "user_id": 1,
+        "task_id": "bb634371-b910-4798-9d75-183542d3e2b7"
+    }
+}, {
+    "model": "tsm.userhistory",
+    "pk": 4,
+    "fields": {
+        "user_id": 1,
+        "task_id": "98ccbceb-b573-4922-b10b-16cbbe3ace81"
+    }
+}, {
+    "model": "tsm.userhistory",
+    "pk": 5,
+    "fields": {
+        "user_id": 1,
+        "task_id": "f02da24c-6844-45a3-91f5-e4865532691c"
+    }
+}, {
+    "model": "tsm.userhistory",
+    "pk": 6,
+    "fields": {
+        "user_id": 1,
+        "task_id": "584acf2d-3b4d-400e-95da-81aebe4f8186"
+    }
+}, {
+    "model": "tsm.toolinfo",
+    "pk": 15,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/tsm_1.png",
+        "image_title": "Total Suspended Matter",
+        "image_description": "The TSM tool allows users to run an algorithm to determine the average amount of suspended matter in a given area."
+    }
+}, {
+    "model": "tsm.toolinfo",
+    "pk": 16,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/tsm_2.png",
+        "image_title": "Time Series Analysis",
+        "image_description": "Run analyses over a given time period and geographic area to produce a single cumulative product from multiple time slices."
+    }
+}, {
+    "model": "tsm.toolinfo",
+    "pk": 17,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/tsm_3.png",
+        "image_title": "Animated Images",
+        "image_description": "Create animated GIFs of TSM values over time to show trends of increasing or decreasing suspended matter."
+    }
+}, {
+    "model": "tsm.resulttype",
+    "pk": 1,
+    "fields": {
+        "result_id": "black_background",
+        "name": "Black",
+        "fill": "black"
+    }
+}, {
+    "model": "tsm.resulttype",
+    "pk": 2,
+    "fields": {
+        "result_id": "white_background",
+        "name": "White",
+        "fill": "white"
+    }
+}, {
+    "model": "tsm.resulttype",
+    "pk": 3,
+    "fields": {
+        "result_id": "transparent_background",
+        "name": "Transparent",
+        "fill": "transparent"
+    }
+}, {
+    "model": "tsm.resulttype",
+    "pk": 4,
+    "fields": {
+        "result_id": "gray_background",
+        "name": "Gray",
+        "fill": "gray"
+    }
+}, {
+    "model": "tsm.animationtype",
+    "pk": 0,
+    "fields": {
+        "animation_id": "none",
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "tsm.animationtype",
+    "pk": 1,
+    "fields": {
+        "animation_id": "scene",
+        "name": "Scene",
+        "data_variable": "tsm"
+    }
+}, {
+    "model": "tsm.animationtype",
+    "pk": 2,
+    "fields": {
+        "animation_id": "cumulative_average",
+        "name": "Cumulative Average",
+        "data_variable": "normalized_data"
+    }
+}, {
+    "model": "tsm.tsmtask",
+    "pk": "0d56cb6b-89bb-4bb7-ae9f-e556ee7ba986",
+    "fields": {
+        "title": "TSM Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:28:57.357Z",
+        "execution_end": "2017-06-07T21:30:25.652Z",
+        "area_id": "lake_baringo",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-04-15",
+        "time_end": "2016-12-26",
+        "latitude_min": 0.5000442615,
+        "latitude_max": 0.7501337655,
+        "longitude_min": 36.0000876585,
+        "longitude_max": 36.2499076695,
+        "complete": false,
+        "pixel_count": 862112,
+        "clean_pixel_count": 862112,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "04/12/2016,03/27/2016,03/11/2016,02/24/2016,02/08/2016,01/23/2016,01/07/2016,12/22/2015,12/06/2015,11/20/2015,10/19/2015,10/03/2015,09/17/2015,09/01/2015,08/16/2015,07/31/2015,07/15/2015,06/29/2015,06/13/2015,05/12/2015,04/26/2015,04/10/2015,03/25/2015,03/09/2015,02/21/2015,02/05/2015,01/20/2015,01/04/2015,12/19/2014,11/17/2014,11/01/2014,10/16/2014,09/30/2014,09/14/2014,08/29/2014,08/13/2014,07/28/2014,07/12/2014,06/26/2014,06/10/2014,05/25/2014,05/09/2014,04/23/2014,03/22/2014,03/06/2014,02/18/2014,02/02/2014,01/17/2014,01/01/2014,12/16/2013,11/14/2013,10/29/2013,09/27/2013,09/11/2013,08/26/2013,08/10/2013,07/25/2013,07/09/2013,06/23/2013,06/07/2013,05/22/2013,05/06/2013,04/20/2013,04/04/2013,03/19/2013,03/03/2013,02/15/2013,01/14/2013,12/13/2012,11/27/2012,11/11/2012,10/26/2012,10/10/2012,09/24/2012,09/08/2012,07/22/2012,06/20/2012,06/04/2012,05/19/2012,02/13/2012,01/28/2012,01/12/2012,12/11/2011,10/08/2011,09/22/2011,08/21/2011,04/15/2011,03/30/2011,02/26/2011,02/10/2011,10/05/2010,09/19/2010,09/03/2010,08/18/2010,08/02/2010,07/17/2010,05/30/2010,04/28/2010,04/12/2010,01/22/2010,01/06/2010,12/21/2009,12/05/2009,10/02/2009,09/16/2009,08/31/2009,07/30/2009,07/14/2009,06/28/2009,06/12/2009,04/25/2009,04/09/2009,03/24/2009,03/08/2009,02/20/2009,02/04/2009,01/19/2009,01/03/2009,12/18/2008,11/16/2008,10/31/2008,10/15/2008,09/29/2008,08/28/2008,05/08/2008,04/06/2008,03/05/2008,01/01/2008,12/16/2007,11/30/2007,11/14/2007,10/29/2007,10/13/2007,09/27/2007,09/11/2007,08/26/2007,08/10/2007,07/25/2007,07/09/2007,06/07/2007,05/22/2007,05/06/2007,04/20/2007,04/04/2007,03/19/2007,03/03/2007,02/15/2007,10/10/2006,06/04/2006,05/19/2006,04/01/2006,02/28/2006,02/12/2006,01/27/2006,01/11/2006,10/07/2005,09/21/2005,09/05/2005,08/04/2005,07/03/2005,06/17/2005,06/01/2005,05/16/2005,04/14/2005,03/29/2005,03/13/2005,02/25/2005,01/24/2005,01/08/2005",
+        "clean_pixels_per_acquisition": "0,83,167048,29588,17,169738,227,164712,187400,103926,10306,16697,120236,43825,92293,167325,118137,0,5371,150790,55585,73776,41299,27648,11,100165,29,180219,117408,110433,173464,111245,117772,136361,222,109805,88268,115678,445,1830,80942,47,1731,93434,82228,22391,125787,167714,53,84054,179510,0,21096,2704,147324,185980,88647,33573,93779,11012,0,102541,0,57,326,87534,164886,162493,117641,161621,47330,112674,75,27053,280,150272,0,6125,130559,113946,147595,147047,151175,27432,115124,128683,88,111262,124249,128009,116586,97538,0,142374,0,139718,131575,67766,4409,130470,123195,131543,56813,67882,24410,60582,77277,86476,29,121518,43313,92437,110168,0,0,43139,134791,134767,9971,108731,132180,110537,100731,102327,125489,26604,36804,104822,125927,78,68809,127727,96309,26,113513,122127,20788,114126,1,22,118763,75330,93,75730,0,59416,125597,116470,4764,120630,97777,4656,88606,111519,0,115081,0,22101,40520,13864,43642,123862,113482,0,120963,100249,54395,2,100033",
+        "clean_pixel_percentages_per_acquisition": "0.0,0.00962751939423,19.3766007201,3.43203667273,0.00197190156267,19.6886251438,0.0263306855722,19.1056382465,21.7373148732,12.0548142237,1.19543632382,1.93675531717,13.9466797817,5.08344623436,10.7054535838,19.4087311161,13.7032079359,0.0,0.623004899595,17.4907668609,6.4475381389,8.55758880517,4.79044486099,3.20700790617,0.00127593630526,11.6185600015,0.0033638320775,20.9043604543,13.6186481571,12.8095885453,20.1208195687,12.9037758435,13.6608700494,15.817086411,0.0257507145243,12.7367441817,10.2385768902,13.4179781745,0.0516174232582,0.212269403511,9.38880331094,0.00545172784975,0.200785976764,10.8378029769,9.53797186444,2.59722634646,14.5905636391,19.4538528637,0.00614769310716,9.74977729112,20.8221205597,0.0,2.44701384507,0.313648342675,17.0887309306,21.5726030957,10.2825386957,3.89427359786,10.8778209792,1.27732823577,0.0,11.8941622434,0.0,0.00661166994544,0.0378141123195,10.1534371404,19.125821239,18.8482470955,13.6456748079,18.7471001448,5.4900059389,13.069531569,0.00869956571768,3.13799135147,0.0324783786793,17.4306818604,0.0,0.71046453361,15.1440880071,13.2170762036,17.1201653613,17.0566005345,17.5354246316,3.1819531569,13.3537173824,14.92648287,0.0102074904421,12.9057477451,14.4121645447,14.8483027727,13.5233009168,11.3138432129,0.0,16.5145595932,0.0,16.2064789726,15.261938124,7.86046360566,0.51141846999,15.1337645225,14.2899066479,15.2582263093,6.58997902825,7.87391893397,2.83141865558,7.02716120411,8.96368453287,10.0307152667,0.0033638320775,14.0953843584,5.02405719906,10.7221567499,12.7788500798,0.0,0.0,5.0038742066,15.634975502,15.632191641,1.15657826361,12.6121664007,15.3321146208,12.8216519431,11.6842127241,11.8693394826,14.5559973646,3.08590995138,4.26905088898,12.1587450354,14.6068028284,0.00904754834639,7.98144556624,14.8155924056,11.1712863294,0.0030158494488,13.1668507108,14.166024832,2.41128762852,13.2379551613,0.000115994209569,0.00255187261052,13.7758203111,8.73784380684,0.0107874614899,8.78424149066,0.0,6.89191195576,14.5685247392,13.5098455885,0.552596414387,13.9923815003,11.341565829,0.540069039754,10.2777829331,12.9355582569,0.0,13.3487296314,0.0,2.56358802569,4.70008537174,1.60814372147,5.06221929401,14.3672747856,13.1632548903,0.0,14.0310075721,11.6283035151,6.30950502951,0.000231988419138,11.6032487658",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 169,
+        "total_scenes": 169,
+        "result_path": "/datacube/ui_results/tsm/0d56cb6b-89bb-4bb7-ae9f-e556ee7ba986/average_tsm.png",
+        "query_type": 1,
+        "animated_product": 0,
+        "clear_observations_path": "/datacube/ui_results/tsm/0d56cb6b-89bb-4bb7-ae9f-e556ee7ba986/clear_observations.png",
+        "water_percentage_path": "/datacube/ui_results/tsm/0d56cb6b-89bb-4bb7-ae9f-e556ee7ba986/water_percentage.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/tsm/0d56cb6b-89bb-4bb7-ae9f-e556ee7ba986/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/tsm/0d56cb6b-89bb-4bb7-ae9f-e556ee7ba986/data_netcdf.nc"
+    }
+}, {
+    "model": "tsm.tsmtask",
+    "pk": "584acf2d-3b4d-400e-95da-81aebe4f8186",
+    "fields": {
+        "title": "TSM Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:29:57.272Z",
+        "execution_end": "2017-06-07T21:34:08.474Z",
+        "area_id": "lake_baringo",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-04-15",
+        "time_end": "2016-12-26",
+        "latitude_min": 0.5000442615,
+        "latitude_max": 0.7501337655,
+        "longitude_min": 36.0000876585,
+        "longitude_max": 36.2499076695,
+        "complete": false,
+        "pixel_count": 862112,
+        "clean_pixel_count": 862112,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "04/12/2016,03/27/2016,03/11/2016,02/24/2016,02/08/2016,01/23/2016,01/07/2016,12/22/2015,12/06/2015,11/20/2015,10/19/2015,10/03/2015,09/17/2015,09/01/2015,08/16/2015,07/31/2015,07/15/2015,06/29/2015,06/13/2015,05/12/2015,04/26/2015,04/10/2015,03/25/2015,03/09/2015,02/21/2015,02/05/2015,01/20/2015,01/04/2015,12/19/2014,11/17/2014,11/01/2014,10/16/2014,09/30/2014,09/14/2014,08/29/2014,08/13/2014,07/28/2014,07/12/2014,06/26/2014,06/10/2014,05/25/2014,05/09/2014,04/23/2014,03/22/2014,03/06/2014,02/18/2014,02/02/2014,01/17/2014,01/01/2014,12/16/2013,11/14/2013,10/29/2013,09/27/2013,09/11/2013,08/26/2013,08/10/2013,07/25/2013,07/09/2013,06/23/2013,06/07/2013,05/22/2013,05/06/2013,04/20/2013,04/04/2013,03/19/2013,03/03/2013,02/15/2013,01/14/2013,12/13/2012,11/27/2012,11/11/2012,10/26/2012,10/10/2012,09/24/2012,09/08/2012,07/22/2012,06/20/2012,06/04/2012,05/19/2012,02/13/2012,01/28/2012,01/12/2012,12/11/2011,10/08/2011,09/22/2011,08/21/2011,04/15/2011,03/30/2011,02/26/2011,02/10/2011,10/05/2010,09/19/2010,09/03/2010,08/18/2010,08/02/2010,07/17/2010,05/30/2010,04/28/2010,04/12/2010,01/22/2010,01/06/2010,12/21/2009,12/05/2009,10/02/2009,09/16/2009,08/31/2009,07/30/2009,07/14/2009,06/28/2009,06/12/2009,04/25/2009,04/09/2009,03/24/2009,03/08/2009,02/20/2009,02/04/2009,01/19/2009,01/03/2009,12/18/2008,11/16/2008,10/31/2008,10/15/2008,09/29/2008,08/28/2008,05/08/2008,04/06/2008,03/05/2008,01/01/2008,12/16/2007,11/30/2007,11/14/2007,10/29/2007,10/13/2007,09/27/2007,09/11/2007,08/26/2007,08/10/2007,07/25/2007,07/09/2007,06/07/2007,05/22/2007,05/06/2007,04/20/2007,04/04/2007,03/19/2007,03/03/2007,02/15/2007,10/10/2006,06/04/2006,05/19/2006,04/01/2006,02/28/2006,02/12/2006,01/27/2006,01/11/2006,10/07/2005,09/21/2005,09/05/2005,08/04/2005,07/03/2005,06/17/2005,06/01/2005,05/16/2005,04/14/2005,03/29/2005,03/13/2005,02/25/2005,01/24/2005,01/08/2005",
+        "clean_pixels_per_acquisition": "0,83,167048,29588,17,169738,227,164712,187400,103926,10306,16697,120236,43825,92293,167325,118137,0,5371,150790,55585,73776,41299,27648,11,100165,29,180219,117408,110433,173464,111245,117772,136361,222,109805,88268,115678,445,1830,80942,47,1731,93434,82228,22391,125787,167714,53,84054,179510,0,21096,2704,147324,185980,88647,33573,93779,11012,0,102541,0,57,326,87534,164886,162493,117641,161621,47330,112674,75,27053,280,150272,0,6125,130559,113946,147595,147047,151175,27432,115124,128683,88,111262,124249,128009,116586,97538,0,142374,0,139718,131575,67766,4409,130470,123195,131543,56813,67882,24410,60582,77277,86476,29,121518,43313,92437,110168,0,0,43139,134791,134767,9971,108731,132180,110537,100731,102327,125489,26604,36804,104822,125927,78,68809,127727,96309,26,113513,122127,20788,114126,1,22,118763,75330,93,75730,0,59416,125597,116470,4764,120630,97777,4656,88606,111519,0,115081,0,22101,40520,13864,43642,123862,113482,0,120963,100249,54395,2,100033",
+        "clean_pixel_percentages_per_acquisition": "0.0,0.00962751939423,19.3766007201,3.43203667273,0.00197190156267,19.6886251438,0.0263306855722,19.1056382465,21.7373148732,12.0548142237,1.19543632382,1.93675531717,13.9466797817,5.08344623436,10.7054535838,19.4087311161,13.7032079359,0.0,0.623004899595,17.4907668609,6.4475381389,8.55758880517,4.79044486099,3.20700790617,0.00127593630526,11.6185600015,0.0033638320775,20.9043604543,13.6186481571,12.8095885453,20.1208195687,12.9037758435,13.6608700494,15.817086411,0.0257507145243,12.7367441817,10.2385768902,13.4179781745,0.0516174232582,0.212269403511,9.38880331094,0.00545172784975,0.200785976764,10.8378029769,9.53797186444,2.59722634646,14.5905636391,19.4538528637,0.00614769310716,9.74977729112,20.8221205597,0.0,2.44701384507,0.313648342675,17.0887309306,21.5726030957,10.2825386957,3.89427359786,10.8778209792,1.27732823577,0.0,11.8941622434,0.0,0.00661166994544,0.0378141123195,10.1534371404,19.125821239,18.8482470955,13.6456748079,18.7471001448,5.4900059389,13.069531569,0.00869956571768,3.13799135147,0.0324783786793,17.4306818604,0.0,0.71046453361,15.1440880071,13.2170762036,17.1201653613,17.0566005345,17.5354246316,3.1819531569,13.3537173824,14.92648287,0.0102074904421,12.9057477451,14.4121645447,14.8483027727,13.5233009168,11.3138432129,0.0,16.5145595932,0.0,16.2064789726,15.261938124,7.86046360566,0.51141846999,15.1337645225,14.2899066479,15.2582263093,6.58997902825,7.87391893397,2.83141865558,7.02716120411,8.96368453287,10.0307152667,0.0033638320775,14.0953843584,5.02405719906,10.7221567499,12.7788500798,0.0,0.0,5.0038742066,15.634975502,15.632191641,1.15657826361,12.6121664007,15.3321146208,12.8216519431,11.6842127241,11.8693394826,14.5559973646,3.08590995138,4.26905088898,12.1587450354,14.6068028284,0.00904754834639,7.98144556624,14.8155924056,11.1712863294,0.0030158494488,13.1668507108,14.166024832,2.41128762852,13.2379551613,0.000115994209569,0.00255187261052,13.7758203111,8.73784380684,0.0107874614899,8.78424149066,0.0,6.89191195576,14.5685247392,13.5098455885,0.552596414387,13.9923815003,11.341565829,0.540069039754,10.2777829331,12.9355582569,0.0,13.3487296314,0.0,2.56358802569,4.70008537174,1.60814372147,5.06221929401,14.3672747856,13.1632548903,0.0,14.0310075721,11.6283035151,6.30950502951,0.000231988419138,11.6032487658",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 169,
+        "total_scenes": 169,
+        "result_path": "/datacube/ui_results/tsm/584acf2d-3b4d-400e-95da-81aebe4f8186/average_tsm.png",
+        "query_type": 4,
+        "animated_product": 2,
+        "clear_observations_path": "/datacube/ui_results/tsm/584acf2d-3b4d-400e-95da-81aebe4f8186/clear_observations.png",
+        "water_percentage_path": "/datacube/ui_results/tsm/584acf2d-3b4d-400e-95da-81aebe4f8186/water_percentage.png",
+        "animation_path": "/datacube/ui_results/tsm/584acf2d-3b4d-400e-95da-81aebe4f8186/animation.gif",
+        "data_path": "/datacube/ui_results/tsm/584acf2d-3b4d-400e-95da-81aebe4f8186/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/tsm/584acf2d-3b4d-400e-95da-81aebe4f8186/data_netcdf.nc"
+    }
+}, {
+    "model": "tsm.tsmtask",
+    "pk": "98ccbceb-b573-4922-b10b-16cbbe3ace81",
+    "fields": {
+        "title": "TSM Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:29:02.724Z",
+        "execution_end": "2017-06-07T21:31:21.881Z",
+        "area_id": "lake_baringo",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-04-15",
+        "time_end": "2016-12-26",
+        "latitude_min": 0.5000442615,
+        "latitude_max": 0.7501337655,
+        "longitude_min": 36.0000876585,
+        "longitude_max": 36.2499076695,
+        "complete": false,
+        "pixel_count": 862112,
+        "clean_pixel_count": 862112,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "04/12/2016,03/27/2016,03/11/2016,02/24/2016,02/08/2016,01/23/2016,01/07/2016,12/22/2015,12/06/2015,11/20/2015,10/19/2015,10/03/2015,09/17/2015,09/01/2015,08/16/2015,07/31/2015,07/15/2015,06/29/2015,06/13/2015,05/12/2015,04/26/2015,04/10/2015,03/25/2015,03/09/2015,02/21/2015,02/05/2015,01/20/2015,01/04/2015,12/19/2014,11/17/2014,11/01/2014,10/16/2014,09/30/2014,09/14/2014,08/29/2014,08/13/2014,07/28/2014,07/12/2014,06/26/2014,06/10/2014,05/25/2014,05/09/2014,04/23/2014,03/22/2014,03/06/2014,02/18/2014,02/02/2014,01/17/2014,01/01/2014,12/16/2013,11/14/2013,10/29/2013,09/27/2013,09/11/2013,08/26/2013,08/10/2013,07/25/2013,07/09/2013,06/23/2013,06/07/2013,05/22/2013,05/06/2013,04/20/2013,04/04/2013,03/19/2013,03/03/2013,02/15/2013,01/14/2013,12/13/2012,11/27/2012,11/11/2012,10/26/2012,10/10/2012,09/24/2012,09/08/2012,07/22/2012,06/20/2012,06/04/2012,05/19/2012,02/13/2012,01/28/2012,01/12/2012,12/11/2011,10/08/2011,09/22/2011,08/21/2011,04/15/2011,03/30/2011,02/26/2011,02/10/2011,10/05/2010,09/19/2010,09/03/2010,08/18/2010,08/02/2010,07/17/2010,05/30/2010,04/28/2010,04/12/2010,01/22/2010,01/06/2010,12/21/2009,12/05/2009,10/02/2009,09/16/2009,08/31/2009,07/30/2009,07/14/2009,06/28/2009,06/12/2009,04/25/2009,04/09/2009,03/24/2009,03/08/2009,02/20/2009,02/04/2009,01/19/2009,01/03/2009,12/18/2008,11/16/2008,10/31/2008,10/15/2008,09/29/2008,08/28/2008,05/08/2008,04/06/2008,03/05/2008,01/01/2008,12/16/2007,11/30/2007,11/14/2007,10/29/2007,10/13/2007,09/27/2007,09/11/2007,08/26/2007,08/10/2007,07/25/2007,07/09/2007,06/07/2007,05/22/2007,05/06/2007,04/20/2007,04/04/2007,03/19/2007,03/03/2007,02/15/2007,10/10/2006,06/04/2006,05/19/2006,04/01/2006,02/28/2006,02/12/2006,01/27/2006,01/11/2006,10/07/2005,09/21/2005,09/05/2005,08/04/2005,07/03/2005,06/17/2005,06/01/2005,05/16/2005,04/14/2005,03/29/2005,03/13/2005,02/25/2005,01/24/2005,01/08/2005",
+        "clean_pixels_per_acquisition": "0,83,167048,29588,17,169738,227,164712,187400,103926,10306,16697,120236,43825,92293,167325,118137,0,5371,150790,55585,73776,41299,27648,11,100165,29,180219,117408,110433,173464,111245,117772,136361,222,109805,88268,115678,445,1830,80942,47,1731,93434,82228,22391,125787,167714,53,84054,179510,0,21096,2704,147324,185980,88647,33573,93779,11012,0,102541,0,57,326,87534,164886,162493,117641,161621,47330,112674,75,27053,280,150272,0,6125,130559,113946,147595,147047,151175,27432,115124,128683,88,111262,124249,128009,116586,97538,0,142374,0,139718,131575,67766,4409,130470,123195,131543,56813,67882,24410,60582,77277,86476,29,121518,43313,92437,110168,0,0,43139,134791,134767,9971,108731,132180,110537,100731,102327,125489,26604,36804,104822,125927,78,68809,127727,96309,26,113513,122127,20788,114126,1,22,118763,75330,93,75730,0,59416,125597,116470,4764,120630,97777,4656,88606,111519,0,115081,0,22101,40520,13864,43642,123862,113482,0,120963,100249,54395,2,100033",
+        "clean_pixel_percentages_per_acquisition": "0.0,0.00962751939423,19.3766007201,3.43203667273,0.00197190156267,19.6886251438,0.0263306855722,19.1056382465,21.7373148732,12.0548142237,1.19543632382,1.93675531717,13.9466797817,5.08344623436,10.7054535838,19.4087311161,13.7032079359,0.0,0.623004899595,17.4907668609,6.4475381389,8.55758880517,4.79044486099,3.20700790617,0.00127593630526,11.6185600015,0.0033638320775,20.9043604543,13.6186481571,12.8095885453,20.1208195687,12.9037758435,13.6608700494,15.817086411,0.0257507145243,12.7367441817,10.2385768902,13.4179781745,0.0516174232582,0.212269403511,9.38880331094,0.00545172784975,0.200785976764,10.8378029769,9.53797186444,2.59722634646,14.5905636391,19.4538528637,0.00614769310716,9.74977729112,20.8221205597,0.0,2.44701384507,0.313648342675,17.0887309306,21.5726030957,10.2825386957,3.89427359786,10.8778209792,1.27732823577,0.0,11.8941622434,0.0,0.00661166994544,0.0378141123195,10.1534371404,19.125821239,18.8482470955,13.6456748079,18.7471001448,5.4900059389,13.069531569,0.00869956571768,3.13799135147,0.0324783786793,17.4306818604,0.0,0.71046453361,15.1440880071,13.2170762036,17.1201653613,17.0566005345,17.5354246316,3.1819531569,13.3537173824,14.92648287,0.0102074904421,12.9057477451,14.4121645447,14.8483027727,13.5233009168,11.3138432129,0.0,16.5145595932,0.0,16.2064789726,15.261938124,7.86046360566,0.51141846999,15.1337645225,14.2899066479,15.2582263093,6.58997902825,7.87391893397,2.83141865558,7.02716120411,8.96368453287,10.0307152667,0.0033638320775,14.0953843584,5.02405719906,10.7221567499,12.7788500798,0.0,0.0,5.0038742066,15.634975502,15.632191641,1.15657826361,12.6121664007,15.3321146208,12.8216519431,11.6842127241,11.8693394826,14.5559973646,3.08590995138,4.26905088898,12.1587450354,14.6068028284,0.00904754834639,7.98144556624,14.8155924056,11.1712863294,0.0030158494488,13.1668507108,14.166024832,2.41128762852,13.2379551613,0.000115994209569,0.00255187261052,13.7758203111,8.73784380684,0.0107874614899,8.78424149066,0.0,6.89191195576,14.5685247392,13.5098455885,0.552596414387,13.9923815003,11.341565829,0.540069039754,10.2777829331,12.9355582569,0.0,13.3487296314,0.0,2.56358802569,4.70008537174,1.60814372147,5.06221929401,14.3672747856,13.1632548903,0.0,14.0310075721,11.6283035151,6.30950502951,0.000231988419138,11.6032487658",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 169,
+        "total_scenes": 169,
+        "result_path": "/datacube/ui_results/tsm/98ccbceb-b573-4922-b10b-16cbbe3ace81/average_tsm.png",
+        "query_type": 4,
+        "animated_product": 0,
+        "clear_observations_path": "/datacube/ui_results/tsm/98ccbceb-b573-4922-b10b-16cbbe3ace81/clear_observations.png",
+        "water_percentage_path": "/datacube/ui_results/tsm/98ccbceb-b573-4922-b10b-16cbbe3ace81/water_percentage.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/tsm/98ccbceb-b573-4922-b10b-16cbbe3ace81/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/tsm/98ccbceb-b573-4922-b10b-16cbbe3ace81/data_netcdf.nc"
+    }
+}, {
+    "model": "tsm.tsmtask",
+    "pk": "bb634371-b910-4798-9d75-183542d3e2b7",
+    "fields": {
+        "title": "TSM Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:29:00.686Z",
+        "execution_end": "2017-06-07T21:31:14.790Z",
+        "area_id": "lake_baringo",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-04-15",
+        "time_end": "2016-12-26",
+        "latitude_min": 0.5000442615,
+        "latitude_max": 0.7501337655,
+        "longitude_min": 36.0000876585,
+        "longitude_max": 36.2499076695,
+        "complete": false,
+        "pixel_count": 862112,
+        "clean_pixel_count": 862112,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "04/12/2016,03/27/2016,03/11/2016,02/24/2016,02/08/2016,01/23/2016,01/07/2016,12/22/2015,12/06/2015,11/20/2015,10/19/2015,10/03/2015,09/17/2015,09/01/2015,08/16/2015,07/31/2015,07/15/2015,06/29/2015,06/13/2015,05/12/2015,04/26/2015,04/10/2015,03/25/2015,03/09/2015,02/21/2015,02/05/2015,01/20/2015,01/04/2015,12/19/2014,11/17/2014,11/01/2014,10/16/2014,09/30/2014,09/14/2014,08/29/2014,08/13/2014,07/28/2014,07/12/2014,06/26/2014,06/10/2014,05/25/2014,05/09/2014,04/23/2014,03/22/2014,03/06/2014,02/18/2014,02/02/2014,01/17/2014,01/01/2014,12/16/2013,11/14/2013,10/29/2013,09/27/2013,09/11/2013,08/26/2013,08/10/2013,07/25/2013,07/09/2013,06/23/2013,06/07/2013,05/22/2013,05/06/2013,04/20/2013,04/04/2013,03/19/2013,03/03/2013,02/15/2013,01/14/2013,12/13/2012,11/27/2012,11/11/2012,10/26/2012,10/10/2012,09/24/2012,09/08/2012,07/22/2012,06/20/2012,06/04/2012,05/19/2012,02/13/2012,01/28/2012,01/12/2012,12/11/2011,10/08/2011,09/22/2011,08/21/2011,04/15/2011,03/30/2011,02/26/2011,02/10/2011,10/05/2010,09/19/2010,09/03/2010,08/18/2010,08/02/2010,07/17/2010,05/30/2010,04/28/2010,04/12/2010,01/22/2010,01/06/2010,12/21/2009,12/05/2009,10/02/2009,09/16/2009,08/31/2009,07/30/2009,07/14/2009,06/28/2009,06/12/2009,04/25/2009,04/09/2009,03/24/2009,03/08/2009,02/20/2009,02/04/2009,01/19/2009,01/03/2009,12/18/2008,11/16/2008,10/31/2008,10/15/2008,09/29/2008,08/28/2008,05/08/2008,04/06/2008,03/05/2008,01/01/2008,12/16/2007,11/30/2007,11/14/2007,10/29/2007,10/13/2007,09/27/2007,09/11/2007,08/26/2007,08/10/2007,07/25/2007,07/09/2007,06/07/2007,05/22/2007,05/06/2007,04/20/2007,04/04/2007,03/19/2007,03/03/2007,02/15/2007,10/10/2006,06/04/2006,05/19/2006,04/01/2006,02/28/2006,02/12/2006,01/27/2006,01/11/2006,10/07/2005,09/21/2005,09/05/2005,08/04/2005,07/03/2005,06/17/2005,06/01/2005,05/16/2005,04/14/2005,03/29/2005,03/13/2005,02/25/2005,01/24/2005,01/08/2005",
+        "clean_pixels_per_acquisition": "0,83,167048,29588,17,169738,227,164712,187400,103926,10306,16697,120236,43825,92293,167325,118137,0,5371,150790,55585,73776,41299,27648,11,100165,29,180219,117408,110433,173464,111245,117772,136361,222,109805,88268,115678,445,1830,80942,47,1731,93434,82228,22391,125787,167714,53,84054,179510,0,21096,2704,147324,185980,88647,33573,93779,11012,0,102541,0,57,326,87534,164886,162493,117641,161621,47330,112674,75,27053,280,150272,0,6125,130559,113946,147595,147047,151175,27432,115124,128683,88,111262,124249,128009,116586,97538,0,142374,0,139718,131575,67766,4409,130470,123195,131543,56813,67882,24410,60582,77277,86476,29,121518,43313,92437,110168,0,0,43139,134791,134767,9971,108731,132180,110537,100731,102327,125489,26604,36804,104822,125927,78,68809,127727,96309,26,113513,122127,20788,114126,1,22,118763,75330,93,75730,0,59416,125597,116470,4764,120630,97777,4656,88606,111519,0,115081,0,22101,40520,13864,43642,123862,113482,0,120963,100249,54395,2,100033",
+        "clean_pixel_percentages_per_acquisition": "0.0,0.00962751939423,19.3766007201,3.43203667273,0.00197190156267,19.6886251438,0.0263306855722,19.1056382465,21.7373148732,12.0548142237,1.19543632382,1.93675531717,13.9466797817,5.08344623436,10.7054535838,19.4087311161,13.7032079359,0.0,0.623004899595,17.4907668609,6.4475381389,8.55758880517,4.79044486099,3.20700790617,0.00127593630526,11.6185600015,0.0033638320775,20.9043604543,13.6186481571,12.8095885453,20.1208195687,12.9037758435,13.6608700494,15.817086411,0.0257507145243,12.7367441817,10.2385768902,13.4179781745,0.0516174232582,0.212269403511,9.38880331094,0.00545172784975,0.200785976764,10.8378029769,9.53797186444,2.59722634646,14.5905636391,19.4538528637,0.00614769310716,9.74977729112,20.8221205597,0.0,2.44701384507,0.313648342675,17.0887309306,21.5726030957,10.2825386957,3.89427359786,10.8778209792,1.27732823577,0.0,11.8941622434,0.0,0.00661166994544,0.0378141123195,10.1534371404,19.125821239,18.8482470955,13.6456748079,18.7471001448,5.4900059389,13.069531569,0.00869956571768,3.13799135147,0.0324783786793,17.4306818604,0.0,0.71046453361,15.1440880071,13.2170762036,17.1201653613,17.0566005345,17.5354246316,3.1819531569,13.3537173824,14.92648287,0.0102074904421,12.9057477451,14.4121645447,14.8483027727,13.5233009168,11.3138432129,0.0,16.5145595932,0.0,16.2064789726,15.261938124,7.86046360566,0.51141846999,15.1337645225,14.2899066479,15.2582263093,6.58997902825,7.87391893397,2.83141865558,7.02716120411,8.96368453287,10.0307152667,0.0033638320775,14.0953843584,5.02405719906,10.7221567499,12.7788500798,0.0,0.0,5.0038742066,15.634975502,15.632191641,1.15657826361,12.6121664007,15.3321146208,12.8216519431,11.6842127241,11.8693394826,14.5559973646,3.08590995138,4.26905088898,12.1587450354,14.6068028284,0.00904754834639,7.98144556624,14.8155924056,11.1712863294,0.0030158494488,13.1668507108,14.166024832,2.41128762852,13.2379551613,0.000115994209569,0.00255187261052,13.7758203111,8.73784380684,0.0107874614899,8.78424149066,0.0,6.89191195576,14.5685247392,13.5098455885,0.552596414387,13.9923815003,11.341565829,0.540069039754,10.2777829331,12.9355582569,0.0,13.3487296314,0.0,2.56358802569,4.70008537174,1.60814372147,5.06221929401,14.3672747856,13.1632548903,0.0,14.0310075721,11.6283035151,6.30950502951,0.000231988419138,11.6032487658",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 169,
+        "total_scenes": 169,
+        "result_path": "/datacube/ui_results/tsm/bb634371-b910-4798-9d75-183542d3e2b7/average_tsm.png",
+        "query_type": 3,
+        "animated_product": 0,
+        "clear_observations_path": "/datacube/ui_results/tsm/bb634371-b910-4798-9d75-183542d3e2b7/clear_observations.png",
+        "water_percentage_path": "/datacube/ui_results/tsm/bb634371-b910-4798-9d75-183542d3e2b7/water_percentage.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/tsm/bb634371-b910-4798-9d75-183542d3e2b7/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/tsm/bb634371-b910-4798-9d75-183542d3e2b7/data_netcdf.nc"
+    }
+}, {
+    "model": "tsm.tsmtask",
+    "pk": "f02da24c-6844-45a3-91f5-e4865532691c",
+    "fields": {
+        "title": "TSM Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:29:53.885Z",
+        "execution_end": "2017-06-07T21:33:39.483Z",
+        "area_id": "lake_baringo",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-04-15",
+        "time_end": "2016-12-26",
+        "latitude_min": 0.5000442615,
+        "latitude_max": 0.7501337655,
+        "longitude_min": 36.0000876585,
+        "longitude_max": 36.2499076695,
+        "complete": false,
+        "pixel_count": 862112,
+        "clean_pixel_count": 862112,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "04/12/2016,03/27/2016,03/11/2016,02/24/2016,02/08/2016,01/23/2016,01/07/2016,12/22/2015,12/06/2015,11/20/2015,10/19/2015,10/03/2015,09/17/2015,09/01/2015,08/16/2015,07/31/2015,07/15/2015,06/29/2015,06/13/2015,05/12/2015,04/26/2015,04/10/2015,03/25/2015,03/09/2015,02/21/2015,02/05/2015,01/20/2015,01/04/2015,12/19/2014,11/17/2014,11/01/2014,10/16/2014,09/30/2014,09/14/2014,08/29/2014,08/13/2014,07/28/2014,07/12/2014,06/26/2014,06/10/2014,05/25/2014,05/09/2014,04/23/2014,03/22/2014,03/06/2014,02/18/2014,02/02/2014,01/17/2014,01/01/2014,12/16/2013,11/14/2013,10/29/2013,09/27/2013,09/11/2013,08/26/2013,08/10/2013,07/25/2013,07/09/2013,06/23/2013,06/07/2013,05/22/2013,05/06/2013,04/20/2013,04/04/2013,03/19/2013,03/03/2013,02/15/2013,01/14/2013,12/13/2012,11/27/2012,11/11/2012,10/26/2012,10/10/2012,09/24/2012,09/08/2012,07/22/2012,06/20/2012,06/04/2012,05/19/2012,02/13/2012,01/28/2012,01/12/2012,12/11/2011,10/08/2011,09/22/2011,08/21/2011,04/15/2011,03/30/2011,02/26/2011,02/10/2011,10/05/2010,09/19/2010,09/03/2010,08/18/2010,08/02/2010,07/17/2010,05/30/2010,04/28/2010,04/12/2010,01/22/2010,01/06/2010,12/21/2009,12/05/2009,10/02/2009,09/16/2009,08/31/2009,07/30/2009,07/14/2009,06/28/2009,06/12/2009,04/25/2009,04/09/2009,03/24/2009,03/08/2009,02/20/2009,02/04/2009,01/19/2009,01/03/2009,12/18/2008,11/16/2008,10/31/2008,10/15/2008,09/29/2008,08/28/2008,05/08/2008,04/06/2008,03/05/2008,01/01/2008,12/16/2007,11/30/2007,11/14/2007,10/29/2007,10/13/2007,09/27/2007,09/11/2007,08/26/2007,08/10/2007,07/25/2007,07/09/2007,06/07/2007,05/22/2007,05/06/2007,04/20/2007,04/04/2007,03/19/2007,03/03/2007,02/15/2007,10/10/2006,06/04/2006,05/19/2006,04/01/2006,02/28/2006,02/12/2006,01/27/2006,01/11/2006,10/07/2005,09/21/2005,09/05/2005,08/04/2005,07/03/2005,06/17/2005,06/01/2005,05/16/2005,04/14/2005,03/29/2005,03/13/2005,02/25/2005,01/24/2005,01/08/2005",
+        "clean_pixels_per_acquisition": "0,83,167048,29588,17,169738,227,164712,187400,103926,10306,16697,120236,43825,92293,167325,118137,0,5371,150790,55585,73776,41299,27648,11,100165,29,180219,117408,110433,173464,111245,117772,136361,222,109805,88268,115678,445,1830,80942,47,1731,93434,82228,22391,125787,167714,53,84054,179510,0,21096,2704,147324,185980,88647,33573,93779,11012,0,102541,0,57,326,87534,164886,162493,117641,161621,47330,112674,75,27053,280,150272,0,6125,130559,113946,147595,147047,151175,27432,115124,128683,88,111262,124249,128009,116586,97538,0,142374,0,139718,131575,67766,4409,130470,123195,131543,56813,67882,24410,60582,77277,86476,29,121518,43313,92437,110168,0,0,43139,134791,134767,9971,108731,132180,110537,100731,102327,125489,26604,36804,104822,125927,78,68809,127727,96309,26,113513,122127,20788,114126,1,22,118763,75330,93,75730,0,59416,125597,116470,4764,120630,97777,4656,88606,111519,0,115081,0,22101,40520,13864,43642,123862,113482,0,120963,100249,54395,2,100033",
+        "clean_pixel_percentages_per_acquisition": "0.0,0.00962751939423,19.3766007201,3.43203667273,0.00197190156267,19.6886251438,0.0263306855722,19.1056382465,21.7373148732,12.0548142237,1.19543632382,1.93675531717,13.9466797817,5.08344623436,10.7054535838,19.4087311161,13.7032079359,0.0,0.623004899595,17.4907668609,6.4475381389,8.55758880517,4.79044486099,3.20700790617,0.00127593630526,11.6185600015,0.0033638320775,20.9043604543,13.6186481571,12.8095885453,20.1208195687,12.9037758435,13.6608700494,15.817086411,0.0257507145243,12.7367441817,10.2385768902,13.4179781745,0.0516174232582,0.212269403511,9.38880331094,0.00545172784975,0.200785976764,10.8378029769,9.53797186444,2.59722634646,14.5905636391,19.4538528637,0.00614769310716,9.74977729112,20.8221205597,0.0,2.44701384507,0.313648342675,17.0887309306,21.5726030957,10.2825386957,3.89427359786,10.8778209792,1.27732823577,0.0,11.8941622434,0.0,0.00661166994544,0.0378141123195,10.1534371404,19.125821239,18.8482470955,13.6456748079,18.7471001448,5.4900059389,13.069531569,0.00869956571768,3.13799135147,0.0324783786793,17.4306818604,0.0,0.71046453361,15.1440880071,13.2170762036,17.1201653613,17.0566005345,17.5354246316,3.1819531569,13.3537173824,14.92648287,0.0102074904421,12.9057477451,14.4121645447,14.8483027727,13.5233009168,11.3138432129,0.0,16.5145595932,0.0,16.2064789726,15.261938124,7.86046360566,0.51141846999,15.1337645225,14.2899066479,15.2582263093,6.58997902825,7.87391893397,2.83141865558,7.02716120411,8.96368453287,10.0307152667,0.0033638320775,14.0953843584,5.02405719906,10.7221567499,12.7788500798,0.0,0.0,5.0038742066,15.634975502,15.632191641,1.15657826361,12.6121664007,15.3321146208,12.8216519431,11.6842127241,11.8693394826,14.5559973646,3.08590995138,4.26905088898,12.1587450354,14.6068028284,0.00904754834639,7.98144556624,14.8155924056,11.1712863294,0.0030158494488,13.1668507108,14.166024832,2.41128762852,13.2379551613,0.000115994209569,0.00255187261052,13.7758203111,8.73784380684,0.0107874614899,8.78424149066,0.0,6.89191195576,14.5685247392,13.5098455885,0.552596414387,13.9923815003,11.341565829,0.540069039754,10.2777829331,12.9355582569,0.0,13.3487296314,0.0,2.56358802569,4.70008537174,1.60814372147,5.06221929401,14.3672747856,13.1632548903,0.0,14.0310075721,11.6283035151,6.30950502951,0.000231988419138,11.6032487658",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 169,
+        "total_scenes": 169,
+        "result_path": "/datacube/ui_results/tsm/f02da24c-6844-45a3-91f5-e4865532691c/average_tsm.png",
+        "query_type": 4,
+        "animated_product": 1,
+        "clear_observations_path": "/datacube/ui_results/tsm/f02da24c-6844-45a3-91f5-e4865532691c/clear_observations.png",
+        "water_percentage_path": "/datacube/ui_results/tsm/f02da24c-6844-45a3-91f5-e4865532691c/water_percentage.png",
+        "animation_path": "/datacube/ui_results/tsm/f02da24c-6844-45a3-91f5-e4865532691c/animation.gif",
+        "data_path": "/datacube/ui_results/tsm/f02da24c-6844-45a3-91f5-e4865532691c/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/tsm/f02da24c-6844-45a3-91f5-e4865532691c/data_netcdf.nc"
+    }
+}, {
+    "model": "tsm.tsmtask",
+    "pk": "f90bf44e-9f59-40ba-9338-ed52f9381488",
+    "fields": {
+        "title": "TSM Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:28:59.248Z",
+        "execution_end": "2017-06-07T21:30:26.142Z",
+        "area_id": "lake_baringo",
+        "platform": "LANDSAT_7",
+        "time_start": "1999-04-15",
+        "time_end": "2016-12-26",
+        "latitude_min": 0.5000442615,
+        "latitude_max": 0.7501337655,
+        "longitude_min": 36.0000876585,
+        "longitude_max": 36.2499076695,
+        "complete": false,
+        "pixel_count": 862112,
+        "clean_pixel_count": 862112,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "04/12/2016,03/27/2016,03/11/2016,02/24/2016,02/08/2016,01/23/2016,01/07/2016,12/22/2015,12/06/2015,11/20/2015,10/19/2015,10/03/2015,09/17/2015,09/01/2015,08/16/2015,07/31/2015,07/15/2015,06/29/2015,06/13/2015,05/12/2015,04/26/2015,04/10/2015,03/25/2015,03/09/2015,02/21/2015,02/05/2015,01/20/2015,01/04/2015,12/19/2014,11/17/2014,11/01/2014,10/16/2014,09/30/2014,09/14/2014,08/29/2014,08/13/2014,07/28/2014,07/12/2014,06/26/2014,06/10/2014,05/25/2014,05/09/2014,04/23/2014,03/22/2014,03/06/2014,02/18/2014,02/02/2014,01/17/2014,01/01/2014,12/16/2013,11/14/2013,10/29/2013,09/27/2013,09/11/2013,08/26/2013,08/10/2013,07/25/2013,07/09/2013,06/23/2013,06/07/2013,05/22/2013,05/06/2013,04/20/2013,04/04/2013,03/19/2013,03/03/2013,02/15/2013,01/14/2013,12/13/2012,11/27/2012,11/11/2012,10/26/2012,10/10/2012,09/24/2012,09/08/2012,07/22/2012,06/20/2012,06/04/2012,05/19/2012,02/13/2012,01/28/2012,01/12/2012,12/11/2011,10/08/2011,09/22/2011,08/21/2011,04/15/2011,03/30/2011,02/26/2011,02/10/2011,10/05/2010,09/19/2010,09/03/2010,08/18/2010,08/02/2010,07/17/2010,05/30/2010,04/28/2010,04/12/2010,01/22/2010,01/06/2010,12/21/2009,12/05/2009,10/02/2009,09/16/2009,08/31/2009,07/30/2009,07/14/2009,06/28/2009,06/12/2009,04/25/2009,04/09/2009,03/24/2009,03/08/2009,02/20/2009,02/04/2009,01/19/2009,01/03/2009,12/18/2008,11/16/2008,10/31/2008,10/15/2008,09/29/2008,08/28/2008,05/08/2008,04/06/2008,03/05/2008,01/01/2008,12/16/2007,11/30/2007,11/14/2007,10/29/2007,10/13/2007,09/27/2007,09/11/2007,08/26/2007,08/10/2007,07/25/2007,07/09/2007,06/07/2007,05/22/2007,05/06/2007,04/20/2007,04/04/2007,03/19/2007,03/03/2007,02/15/2007,10/10/2006,06/04/2006,05/19/2006,04/01/2006,02/28/2006,02/12/2006,01/27/2006,01/11/2006,10/07/2005,09/21/2005,09/05/2005,08/04/2005,07/03/2005,06/17/2005,06/01/2005,05/16/2005,04/14/2005,03/29/2005,03/13/2005,02/25/2005,01/24/2005,01/08/2005",
+        "clean_pixels_per_acquisition": "0,83,167048,29588,17,169738,227,164712,187400,103926,10306,16697,120236,43825,92293,167325,118137,0,5371,150790,55585,73776,41299,27648,11,100165,29,180219,117408,110433,173464,111245,117772,136361,222,109805,88268,115678,445,1830,80942,47,1731,93434,82228,22391,125787,167714,53,84054,179510,0,21096,2704,147324,185980,88647,33573,93779,11012,0,102541,0,57,326,87534,164886,162493,117641,161621,47330,112674,75,27053,280,150272,0,6125,130559,113946,147595,147047,151175,27432,115124,128683,88,111262,124249,128009,116586,97538,0,142374,0,139718,131575,67766,4409,130470,123195,131543,56813,67882,24410,60582,77277,86476,29,121518,43313,92437,110168,0,0,43139,134791,134767,9971,108731,132180,110537,100731,102327,125489,26604,36804,104822,125927,78,68809,127727,96309,26,113513,122127,20788,114126,1,22,118763,75330,93,75730,0,59416,125597,116470,4764,120630,97777,4656,88606,111519,0,115081,0,22101,40520,13864,43642,123862,113482,0,120963,100249,54395,2,100033",
+        "clean_pixel_percentages_per_acquisition": "0.0,0.00962751939423,19.3766007201,3.43203667273,0.00197190156267,19.6886251438,0.0263306855722,19.1056382465,21.7373148732,12.0548142237,1.19543632382,1.93675531717,13.9466797817,5.08344623436,10.7054535838,19.4087311161,13.7032079359,0.0,0.623004899595,17.4907668609,6.4475381389,8.55758880517,4.79044486099,3.20700790617,0.00127593630526,11.6185600015,0.0033638320775,20.9043604543,13.6186481571,12.8095885453,20.1208195687,12.9037758435,13.6608700494,15.817086411,0.0257507145243,12.7367441817,10.2385768902,13.4179781745,0.0516174232582,0.212269403511,9.38880331094,0.00545172784975,0.200785976764,10.8378029769,9.53797186444,2.59722634646,14.5905636391,19.4538528637,0.00614769310716,9.74977729112,20.8221205597,0.0,2.44701384507,0.313648342675,17.0887309306,21.5726030957,10.2825386957,3.89427359786,10.8778209792,1.27732823577,0.0,11.8941622434,0.0,0.00661166994544,0.0378141123195,10.1534371404,19.125821239,18.8482470955,13.6456748079,18.7471001448,5.4900059389,13.069531569,0.00869956571768,3.13799135147,0.0324783786793,17.4306818604,0.0,0.71046453361,15.1440880071,13.2170762036,17.1201653613,17.0566005345,17.5354246316,3.1819531569,13.3537173824,14.92648287,0.0102074904421,12.9057477451,14.4121645447,14.8483027727,13.5233009168,11.3138432129,0.0,16.5145595932,0.0,16.2064789726,15.261938124,7.86046360566,0.51141846999,15.1337645225,14.2899066479,15.2582263093,6.58997902825,7.87391893397,2.83141865558,7.02716120411,8.96368453287,10.0307152667,0.0033638320775,14.0953843584,5.02405719906,10.7221567499,12.7788500798,0.0,0.0,5.0038742066,15.634975502,15.632191641,1.15657826361,12.6121664007,15.3321146208,12.8216519431,11.6842127241,11.8693394826,14.5559973646,3.08590995138,4.26905088898,12.1587450354,14.6068028284,0.00904754834639,7.98144556624,14.8155924056,11.1712863294,0.0030158494488,13.1668507108,14.166024832,2.41128762852,13.2379551613,0.000115994209569,0.00255187261052,13.7758203111,8.73784380684,0.0107874614899,8.78424149066,0.0,6.89191195576,14.5685247392,13.5098455885,0.552596414387,13.9923815003,11.341565829,0.540069039754,10.2777829331,12.9355582569,0.0,13.3487296314,0.0,2.56358802569,4.70008537174,1.60814372147,5.06221929401,14.3672747856,13.1632548903,0.0,14.0310075721,11.6283035151,6.30950502951,0.000231988419138,11.6032487658",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 169,
+        "total_scenes": 169,
+        "result_path": "/datacube/ui_results/tsm/f90bf44e-9f59-40ba-9338-ed52f9381488/average_tsm.png",
+        "query_type": 2,
+        "animated_product": 0,
+        "clear_observations_path": "/datacube/ui_results/tsm/f90bf44e-9f59-40ba-9338-ed52f9381488/clear_observations.png",
+        "water_percentage_path": "/datacube/ui_results/tsm/f90bf44e-9f59-40ba-9338-ed52f9381488/water_percentage.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/tsm/f90bf44e-9f59-40ba-9338-ed52f9381488/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/tsm/f90bf44e-9f59-40ba-9338-ed52f9381488/data_netcdf.nc"
+    }
+}, {
+    "model": "water_detection.userhistory",
+    "pk": 1,
+    "fields": {
+        "user_id": 1,
+        "task_id": "4a69d66c-01b9-435f-9135-f5380a1d40e3"
+    }
+}, {
+    "model": "water_detection.userhistory",
+    "pk": 2,
+    "fields": {
+        "user_id": 1,
+        "task_id": "86819dd5-0097-459f-9072-f16355bc39e6"
+    }
+}, {
+    "model": "water_detection.userhistory",
+    "pk": 3,
+    "fields": {
+        "user_id": 1,
+        "task_id": "24333de6-a21d-47bd-8e6d-e2d7fddfa637"
+    }
+}, {
+    "model": "water_detection.userhistory",
+    "pk": 4,
+    "fields": {
+        "user_id": 1,
+        "task_id": "5086ffc0-8bd8-4020-9719-8e78512367fa"
+    }
+}, {
+    "model": "water_detection.userhistory",
+    "pk": 5,
+    "fields": {
+        "user_id": 1,
+        "task_id": "751fd14f-76b8-47c5-8645-9ad10dcc6815"
+    }
+}, {
+    "model": "water_detection.userhistory",
+    "pk": 6,
+    "fields": {
+        "user_id": 1,
+        "task_id": "82fd3dbe-de57-460c-a507-e94f0206ee97"
+    }
+}, {
+    "model": "water_detection.userhistory",
+    "pk": 7,
+    "fields": {
+        "user_id": 1,
+        "task_id": "a8f0761c-7f62-41bf-80e7-2ed85749b6cd"
+    }
+}, {
+    "model": "water_detection.userhistory",
+    "pk": 8,
+    "fields": {
+        "user_id": 1,
+        "task_id": "71b09340-484f-4ea5-af4f-be54c631693f"
+    }
+}, {
+    "model": "water_detection.toolinfo",
+    "pk": 12,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/water_detection_1.png",
+        "image_title": "Water Detection",
+        "image_description": "The Water Detection tool allows users to determine a per pixel analysis of water vs not-water for a given scene over many acquisitions."
+    }
+}, {
+    "model": "water_detection.toolinfo",
+    "pk": 13,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/water_detection_2.png",
+        "image_title": "Time Series Analysis",
+        "image_description": "Run analyses over time producing outputs visualizing cumulative acquisitions, water observations, and water percentages."
+    }
+}, {
+    "model": "water_detection.toolinfo",
+    "pk": 14,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/water_detection_3.png",
+        "image_title": "Animated Images",
+        "image_description": "Create animated GIFs of water levels over time to show trends of increasing or decreasing water levels."
+    }
+}, {
+    "model": "water_detection.resulttype",
+    "pk": 1,
+    "fields": {
+        "result_id": "black_background",
+        "name": "Black",
+        "fill": "black"
+    }
+}, {
+    "model": "water_detection.resulttype",
+    "pk": 2,
+    "fields": {
+        "result_id": "white_background",
+        "name": "White",
+        "fill": "white"
+    }
+}, {
+    "model": "water_detection.resulttype",
+    "pk": 3,
+    "fields": {
+        "result_id": "transparent_background",
+        "name": "Transparent",
+        "fill": "transparent"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 0,
+    "fields": {
+        "animation_id": "none",
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 1,
+    "fields": {
+        "animation_id": "scene",
+        "name": "Scene",
+        "data_variable": "wofs"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 2,
+    "fields": {
+        "animation_id": "cumulative_percentage",
+        "name": "Cumulative Percentages",
+        "data_variable": "normalized_data"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 3,
+    "fields": {
+        "animation_id": "cumulative_observations",
+        "name": "Cumulative Observations",
+        "data_variable": "total_data"
+    }
+}, {
+    "model": "water_detection.waterdetectiontask",
+    "pk": "24333de6-a21d-47bd-8e6d-e2d7fddfa637",
+    "fields": {
+        "title": "Water Detection Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:25:49.087Z",
+        "execution_end": "2017-06-07T21:25:59.816Z",
+        "area_id": "lake_chad_full",
+        "platform": "LANDSAT_7",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 12.870636408,
+        "latitude_max": 12.967437672,
+        "longitude_min": 14.382814705,
+        "longitude_max": 14.477506995,
+        "complete": false,
+        "pixel_count": 122436,
+        "clean_pixel_count": 122436,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "03/17/2009,03/01/2009,11/25/2008,10/24/2008,09/29/2008,06/18/2008",
+        "clean_pixels_per_acquisition": "0,0,0,0,0,0",
+        "clean_pixel_percentages_per_acquisition": "0.0,0.0,0.0,0.0,0.0,0.0",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 6,
+        "total_scenes": 6,
+        "result_path": "/datacube/ui_results/water_detection/24333de6-a21d-47bd-8e6d-e2d7fddfa637/water_percentage.png",
+        "query_type": 1,
+        "animated_product": 2,
+        "water_pixels_per_acquisition": "0,0,0,0,0,0",
+        "water_observations_path": "/datacube/ui_results/water_detection/24333de6-a21d-47bd-8e6d-e2d7fddfa637/water_observations.png",
+        "clear_observations_path": "/datacube/ui_results/water_detection/24333de6-a21d-47bd-8e6d-e2d7fddfa637/clear_observations.png",
+        "animation_path": "/datacube/ui_results/water_detection/24333de6-a21d-47bd-8e6d-e2d7fddfa637/animation.gif",
+        "data_path": "/datacube/ui_results/water_detection/24333de6-a21d-47bd-8e6d-e2d7fddfa637/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/water_detection/24333de6-a21d-47bd-8e6d-e2d7fddfa637/data_netcdf.nc"
+    }
+}, {
+    "model": "water_detection.waterdetectiontask",
+    "pk": "4a69d66c-01b9-435f-9135-f5380a1d40e3",
+    "fields": {
+        "title": "Water Detection Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:25:28.369Z",
+        "execution_end": "2017-06-07T21:27:07.930Z",
+        "area_id": "lake_chad_full",
+        "platform": "LANDSAT_5,LANDSAT_7,LANDSAT_8",
+        "time_start": "2015-03-01",
+        "time_end": "2016-03-01",
+        "latitude_min": 12.75024492,
+        "latitude_max": 13.2559434,
+        "longitude_min": 14.172325685,
+        "longitude_max": 14.853499255,
+        "complete": false,
+        "pixel_count": 4579164,
+        "clean_pixel_count": 4579164,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "02/24/2016,02/17/2016,02/16/2016,02/09/2016,02/08/2016,02/01/2016,01/31/2016,01/24/2016,01/23/2016,01/16/2016,01/15/2016,01/08/2016,01/07/2016,12/31/2015,12/30/2015,12/23/2015,12/15/2015,12/14/2015,12/07/2015,12/06/2015,11/29/2015,11/28/2015,11/21/2015,11/13/2015,11/12/2015,11/05/2015,10/28/2015,10/27/2015,10/20/2015,10/12/2015,10/11/2015,09/26/2015,09/25/2015,09/18/2015,09/10/2015,09/09/2015,09/02/2015,09/01/2015,08/25/2015,08/24/2015,08/17/2015,08/16/2015,08/09/2015,08/08/2015,08/01/2015,07/31/2015,07/24/2015,07/23/2015,07/16/2015,07/08/2015,07/07/2015,06/30/2015,06/22/2015,06/21/2015,06/14/2015,06/13/2015,06/06/2015,06/05/2015,05/29/2015,05/21/2015,05/20/2015,05/13/2015,05/12/2015,05/05/2015,05/04/2015,04/27/2015,04/19/2015,04/18/2015,04/11/2015,04/10/2015,04/03/2015,04/02/2015,03/26/2015,03/17/2015,03/10/2015,03/02/2015,03/01/2015",
+        "clean_pixels_per_acquisition": "3177493,1187923,4297272,1739214,3036962,1289434,4164939,763010,2969051,1306176,4221676,1697523,2919761,1226964,4195225,525580,1225824,4167237,1738898,0,1157071,4178825,1788157,1179761,4245230,1775369,751056,4086014,1767008,1160636,4084792,153895,4144838,1459413,1023558,4046635,115,650360,867264,0,191017,1417838,13567,402064,631353,2722972,104504,1316343,1212772,355396,3963247,1673393,1133217,3487910,1734084,2058316,908000,4023149,1737766,649516,3632729,435181,2377396,986673,2142879,2068147,1011907,2529848,0,369991,675030,2165948,585169,3169159,1541156,684070,4063491",
+        "clean_pixel_percentages_per_acquisition": "69.3902424111,25.9419186559,93.8440291721,37.9810375868,66.3213197868,28.1587206748,90.9541348596,16.662648466,64.838276157,28.5243332626,92.1931601489,37.070587557,63.7618788058,26.7944978603,91.6155219599,11.4776408969,26.7696024864,91.0043186922,37.9741367638,0.0,25.2681712208,91.2573779843,39.0498571355,25.7636765139,92.7075335149,38.7705921867,16.4015964486,89.2305669769,38.5880042733,25.3460238594,89.2038808831,3.36076628834,90.5151682709,31.8707301158,22.3525080124,88.3706065125,0.00251137543884,14.2025924383,18.9393522486,0.0,4.17143828,30.9628132995,0.296276787641,8.7802926473,13.7875166733,59.4643913168,2.28216329444,28.7463606894,26.4845722931,7.76115465618,86.5495754247,36.5436354758,24.7472464406,76.169143538,37.8690084042,44.9496021545,19.8289469432,87.8577181337,37.9494160943,14.1841611264,79.3317077091,9.50350325955,51.9176862851,21.5470116379,46.7962929478,45.1642919974,22.0980729234,55.2469402712,0.0,8.07988095644,14.741337065,47.3000748608,12.7789482971,69.2082441249,33.6558376158,14.9387530126,88.7387086376",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 77,
+        "total_scenes": 77,
+        "result_path": "/datacube/ui_results/water_detection/4a69d66c-01b9-435f-9135-f5380a1d40e3/water_percentage.png",
+        "query_type": 1,
+        "animated_product": 0,
+        "water_pixels_per_acquisition": "1156039,289690,1663766,414705,1146341,335934,1656175,12532,1117464,342849,1659991,391603,1126615,309687,1661953,6,305991,1642483,418388,0,276209,1634289,434192,280179,1635588,421394,22767,1549411,419269,276795,1518197,47323,1602697,278565,241372,1538798,0,64326,210014,0,19348,282526,13120,22138,19853,909977,1782,520959,369814,11531,1556051,370788,252568,1093792,369526,640232,20699,1360495,387988,204557,1150226,78798,916503,190795,534254,563597,200253,456925,0,70,30479,78237,56150,908395,327292,156450,1528986",
+        "water_observations_path": "/datacube/ui_results/water_detection/4a69d66c-01b9-435f-9135-f5380a1d40e3/water_observations.png",
+        "clear_observations_path": "/datacube/ui_results/water_detection/4a69d66c-01b9-435f-9135-f5380a1d40e3/clear_observations.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/water_detection/4a69d66c-01b9-435f-9135-f5380a1d40e3/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/water_detection/4a69d66c-01b9-435f-9135-f5380a1d40e3/data_netcdf.nc"
+    }
+}, {
+    "model": "water_detection.waterdetectiontask",
+    "pk": "5086ffc0-8bd8-4020-9719-8e78512367fa",
+    "fields": {
+        "title": "Water Detection Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:25:51.096Z",
+        "execution_end": "2017-06-07T21:25:59.884Z",
+        "area_id": "lake_chad_full",
+        "platform": "LANDSAT_7",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 12.8695518,
+        "latitude_max": 12.971776104,
+        "longitude_min": 14.340605825,
+        "longitude_max": 14.422524375,
+        "complete": false,
+        "pixel_count": 111888,
+        "clean_pixel_count": 111888,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "03/17/2009,03/01/2009,11/25/2008,10/24/2008,09/29/2008,06/18/2008",
+        "clean_pixels_per_acquisition": "0,0,0,0,0,0",
+        "clean_pixel_percentages_per_acquisition": "0.0,0.0,0.0,0.0,0.0,0.0",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 6,
+        "total_scenes": 6,
+        "result_path": "/datacube/ui_results/water_detection/5086ffc0-8bd8-4020-9719-8e78512367fa/water_percentage.png",
+        "query_type": 1,
+        "animated_product": 3,
+        "water_pixels_per_acquisition": "0,0,0,0,0,0",
+        "water_observations_path": "/datacube/ui_results/water_detection/5086ffc0-8bd8-4020-9719-8e78512367fa/water_observations.png",
+        "clear_observations_path": "/datacube/ui_results/water_detection/5086ffc0-8bd8-4020-9719-8e78512367fa/clear_observations.png",
+        "animation_path": "/datacube/ui_results/water_detection/5086ffc0-8bd8-4020-9719-8e78512367fa/animation.gif",
+        "data_path": "/datacube/ui_results/water_detection/5086ffc0-8bd8-4020-9719-8e78512367fa/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/water_detection/5086ffc0-8bd8-4020-9719-8e78512367fa/data_netcdf.nc"
+    }
+}, {
+    "model": "water_detection.waterdetectiontask",
+    "pk": "71b09340-484f-4ea5-af4f-be54c631693f",
+    "fields": {
+        "title": "Water Detection Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:26:55.623Z",
+        "execution_end": "2017-06-07T21:27:59.671Z",
+        "area_id": "lake_chad_full",
+        "platform": "LANDSAT_7",
+        "time_start": "2000-04-15",
+        "time_end": "2016-04-15",
+        "latitude_min": 12.816406008,
+        "latitude_max": 12.966081912,
+        "longitude_min": 14.345604245,
+        "longitude_max": 14.550261775,
+        "complete": false,
+        "pixel_count": 408114,
+        "clean_pixel_count": 408114,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "04/12/2016,04/05/2016,03/27/2016,03/20/2016,03/11/2016,03/04/2016,02/24/2016,02/17/2016,02/08/2016,02/01/2016,01/23/2016,01/16/2016,01/07/2016,12/31/2015,12/15/2015,12/06/2015,11/29/2015,11/13/2015,10/28/2015,10/12/2015,09/26/2015,09/10/2015,09/01/2015,08/25/2015,08/16/2015,08/09/2015,07/31/2015,07/24/2015,07/08/2015,06/22/2015,06/13/2015,06/06/2015,05/21/2015,05/12/2015,05/05/2015,04/19/2015,04/10/2015,04/03/2015,03/02/2015,01/29/2015,01/13/2015,12/28/2014,12/12/2014,11/26/2014,11/10/2014,10/25/2014,10/09/2014,09/23/2014,09/14/2014,09/07/2014,08/29/2014,08/22/2014,08/13/2014,07/28/2014,07/05/2014,06/19/2014,06/10/2014,06/03/2014,05/18/2014,05/02/2014,04/23/2014,04/16/2014,03/31/2014,03/15/2014,02/27/2014,02/11/2014,02/02/2014,01/26/2014,01/10/2014,12/25/2013,12/09/2013,11/23/2013,11/07/2013,10/22/2013,10/13/2013,07/02/2013,06/16/2013,04/13/2013,03/28/2013,03/12/2013,11/04/2012,10/19/2012,10/03/2012,08/16/2012,07/06/2012,06/20/2012,05/28/2012,05/19/2012,05/12/2012,04/26/2012,04/10/2012,01/12/2012,11/18/2011,11/02/2011,10/01/2011,08/21/2011,08/14/2011,07/20/2011,06/27/2011,04/24/2011,04/08/2011,12/01/2010,11/15/2010,10/30/2010,05/23/2010,05/07/2010,04/21/2010,04/05/2010,03/27/2010,03/20/2010,02/16/2010,01/31/2010,01/15/2010,12/30/2009,10/11/2009,09/25/2009,09/09/2009,08/24/2009,08/15/2009,08/08/2009,07/30/2009,07/23/2009,07/07/2009,05/20/2009,05/04/2009,03/17/2009,03/01/2009,11/25/2008,10/24/2008,09/29/2008,06/18/2008,03/30/2008,03/14/2008,02/27/2008,02/11/2008,01/26/2008,01/10/2008,12/09/2007,11/23/2007,09/11/2007,08/19/2007,07/25/2007,07/18/2007,05/31/2007,03/28/2007,03/12/2007,02/24/2007,02/08/2007,11/20/2006,11/04/2006,10/19/2006,10/03/2006,09/17/2006,09/01/2006,07/15/2006,06/29/2006,06/20/2006,06/13/2006,05/28/2006,05/19/2006,05/12/2006,05/03/2006,04/17/2006,03/25/2006,03/09/2006,02/21/2006,02/05/2006,01/04/2006,12/26/2005,12/10/2005,12/03/2005,11/24/2005,11/17/2005,11/08/2005,10/23/2005,10/16/2005,10/07/2005,09/14/2005,08/04/2005,05/09/2005,04/23/2005,04/14/2005,04/07/2005,03/29/2005,03/06/2005,02/25/2005,02/18/2005,02/02/2005,01/17/2005,01/01/2005,12/23/2004,12/07/2004,11/30/2004,11/21/2004,11/14/2004,11/05/2004,10/29/2004,10/20/2004,10/13/2004,09/27/2004,09/18/2004,09/11/2004,08/26/2004,08/01/2004,07/09/2004,06/14/2004,05/22/2004,05/13/2004,05/06/2004,04/27/2004,04/20/2004,04/11/2004,04/04/2004,03/26/2004,03/19/2004,02/07/2004,01/15/2004,01/06/2004,12/05/2003,11/28/2003,11/03/2003,10/18/2003,08/08/2003,07/30/2003,05/20/2003,05/11/2003,03/17/2003,03/08/2003,03/01/2003,02/20/2003,02/04/2003,01/28/2003,12/18/2002,11/25/2002,11/16/2002,10/15/2002,10/08/2002,09/22/2002,08/28/2002,07/04/2002,06/25/2002,05/17/2002,05/08/2002,03/14/2002,03/05/2002,02/17/2002,01/09/2002,12/31/2001,11/06/2001,10/28/2001,10/21/2001,09/26/2001,09/19/2001,09/03/2001,08/25/2001,08/02/2001,07/08/2001,05/30/2001,05/21/2001,03/27/2001,03/18/2001,02/14/2001,02/07/2001,01/13/2001,11/19/2000,11/10/2000,10/09/2000,10/02/2000,09/23/2000,08/22/2000,08/15/2000,06/03/2000,05/11/2000",
+        "clean_pixels_per_acquisition": "68171,1532,155447,0,169302,5468,296384,9070,291007,32762,288557,36805,288797,17509,16963,0,4685,8217,4773,5279,0,7210,110741,959,39596,0,249608,0,9237,3279,223385,9020,2254,283435,1530,1629,4618,1451,5646,8335,7086,7567,5270,2769,10590,4844,0,11,297294,0,205369,3754,73644,81465,10211,0,0,1200,19082,412,0,0,3909,6021,4940,81857,147,99581,13045,12974,18549,7737,12517,16905,289580,0,17708,0,4276,12873,4053,8741,3696,0,0,258685,36558,0,8251,72591,6178,284941,14201,160,35858,291837,5216,0,2913,6150,10113,6472,3987,1212,0,26958,53014,76029,214327,24414,76176,62515,45665,23817,8999,42075,27394,12010,249788,987,127488,0,31316,4943,0,22818,7248,27285,17795,0,36733,25199,6052,17646,34677,49175,6604,68442,61396,266261,308,129073,0,5381,19868,12762,2558,5993,39637,27958,596,25413,22200,14147,1334,0,1719,15966,6539,11968,8472,52713,0,2485,0,8238,497,535,287440,285612,2981,281972,10815,281191,282372,0,285960,0,281056,1243,0,239377,5,268974,0,281411,6103,159,498,6952,283161,283135,8786,283222,5298,280535,17524,80527,2590,7663,61522,6703,7549,86529,118,256220,0,273971,5961,174982,0,256849,0,275392,17466,282714,1014,277943,282430,18162,281766,281586,0,275743,1932,291642,2110,7275,2784,229122,377770,0,408114,40069,408114,206808,69317,14277,191174,31329,340404,33846,405738,16186,407606,408114,7250,408114,10618,408114,26958,347805,0,7144,117965,40801,340029,38891,273625,1113,120342,408114,4000,403073,26,408114,337550,16402,392369,41897,10491,144178,3722",
+        "clean_pixel_percentages_per_acquisition": "16.7039111621,0.375385309007,38.0891123559,0.0,41.4839971185,1.33982171648,72.6228455775,2.22241824588,71.3053215523,8.02765893843,70.7049990934,9.01831351044,70.7638061914,4.2902228299,4.15643668191,0.0,1.1479635592,2.01340801835,1.16952616181,1.29351112679,0.0,1.76666323625,27.1348201728,0.234983362492,9.70219105446,0.0,61.161342174,0.0,2.26333818492,0.803451976654,54.7359316269,2.21016676713,0.552296662207,69.4499576099,0.374895249857,0.399153177789,1.13154657767,0.355537913426,1.38343698084,2.04232150821,1.73627956894,1.85413879455,1.29130586062,0.678486893368,2.59486319999,1.18692326164,0.0,0.00269532532577,72.8458224908,0.0,50.3214788025,0.919841024812,18.0449580264,19.9613343331,2.50199699104,0.0,0.0,0.294035490084,4.67565435148,0.100952184929,0.0,0.0,0.957820608947,1.47532307149,1.21044610084,20.0573859265,0.0360193475352,24.400290115,3.19641080678,3.17901370695,4.54505358797,1.89579382231,3.06703519115,4.14222496655,70.9556643487,0.0,4.33898371533,0.0,1.047746463,3.15426571987,0.993104867758,2.14180351568,0.905629309458,0.0,0.0,63.3854756269,8.9577912054,0.0,2.0217390239,17.7869418839,1.51379271478,69.8189721499,3.47966499556,0.0392047320112,8.78627050285,71.5086960996,1.27807426356,0.0,0.713771152178,1.50693188668,2.47798409268,1.58583140985,0.976932915803,0.296975844984,0.0,6.60550728473,12.9899978927,18.629353563,52.516453736,5.98215204575,18.6653729105,15.3180238855,11.1892755456,5.83586938944,2.20502114605,10.3096193711,6.71234017946,2.94280519659,61.2054474975,0.241844190594,31.2383304665,0.0,7.67334617288,1.21118118957,0.0,5.59108484394,1.77597436011,6.68563195578,4.36030128837,0.0,9.00067138104,6.17450026218,1.48291898832,4.32379188168,8.49689057469,12.0493293541,1.61817531376,16.7703141769,15.043835791,65.2418196876,0.0754691091215,31.626702343,0.0,1.31850414345,4.86824759749,3.12706743704,0.626785653028,1.46846224339,9.71223726704,6.8505368598,0.146037626742,6.22693659125,5.43965656655,3.46643339851,0.326869453143,0.0,0.421205839545,3.91214219556,1.60224839138,2.93251395443,2.07589055999,12.9162439906,0.0,0.608898494048,0.0,2.01855363942,0.12177969881,0.131090822662,70.431301058,69.9833869948,0.730433163283,69.0914793416,2.64999485438,68.9001112434,69.1894911716,0.0,70.0686572869,0.0,68.8670322508,0.304571761812,0.0,58.6544445915,0.00122514787535,65.9065849248,0.0,68.9540177499,1.49541549665,0.0389597024361,0.122024728385,1.70344560588,69.3828195063,69.3764487374,2.15282984656,69.3977663104,1.29816668872,68.7393718422,4.29389827352,19.7314965916,0.634626599431,1.87766163376,15.0747095174,1.64243324169,1.8497282622,21.2021641012,0.0289134898582,62.7814777244,0.0,67.1309977114,1.46062129699,42.8757651048,0.0,62.9356013271,0.0,67.4791847376,4.27968655817,69.2732912863,0.248459989121,68.1042551836,69.2037028869,4.45022714242,69.0410032491,68.9968979256,0.0,67.5651901184,0.473397139035,71.4609153325,0.517012403397,1.78259015863,0.682162336994,56.1416662991,92.5648225741,0.0,100.0,9.81809004347,100.0,50.674076361,16.9847150551,3.49828724327,46.8432839844,7.67653155736,83.409047472,8.29327099781,99.4178097296,3.96604870208,99.8755249759,100.0,1.77646441926,100.0,2.60172402809,100.0,6.60550728473,85.2225113571,0.0,1.7504912843,28.9049138231,9.99745169242,83.3171613814,9.52944520404,67.0462174784,0.272717917053,29.487349123,100.0,0.980118300279,98.7648059121,0.00637076895181,100.0,82.7097330648,4.01897509029,96.1420093405,10.2660041067,2.57060527206,35.3278740744,0.912000078409",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 273,
+        "total_scenes": 273,
+        "result_path": "/datacube/ui_results/water_detection/71b09340-484f-4ea5-af4f-be54c631693f/water_percentage.png",
+        "query_type": 3,
+        "animated_product": 0,
+        "water_pixels_per_acquisition": "6633,30,43393,0,43891,0,126283,200,123128,885,122472,1159,123961,488,257,0,133,186,108,149,0,119,24074,0,827,0,97382,0,163,105,79114,0,0,111700,0,0,0,0,0,4,222,214,127,152,410,154,0,0,129323,0,69848,97,39570,14316,0,0,0,0,13,0,0,0,0,0,0,4813,0,11983,269,305,330,236,336,300,121382,0,281,0,0,210,267,219,145,0,0,98051,4724,0,8250,268,90,122963,424,0,662,124355,130,0,96,154,183,216,209,69,0,7,17,1927,82207,0,3153,1263,691,527,172,570,518,265,98596,1,54365,0,0,0,0,372,6,616,495,0,248,237,0,459,1005,785,24,2170,1437,121464,5,69976,0,138,301,0,0,122,878,606,0,523,421,236,54,0,2,0,0,74,0,6228,0,48,0,250,3,0,140567,137892,102,138419,364,136624,138205,0,136498,0,134259,0,0,101756,0,127672,0,137615,31,0,0,189,139543,136882,212,137396,150,138380,384,29941,96,1,20850,181,197,11015,0,121058,0,0,0,57787,0,116842,0,132726,9,137420,11,139760,141456,612,141949,140915,0,128749,0,101063,39,0,0,114886,190067,0,196320,1224,197396,58636,2091,0,104171,723,130543,352,171602,483,194220,195192,257,196877,499,198441,1772,148522,0,253,38934,1061,132141,7,83975,12,35144,192814,155,189272,0,191210,121981,0,153969,1548,43,1802,125",
+        "water_observations_path": "/datacube/ui_results/water_detection/71b09340-484f-4ea5-af4f-be54c631693f/water_observations.png",
+        "clear_observations_path": "/datacube/ui_results/water_detection/71b09340-484f-4ea5-af4f-be54c631693f/clear_observations.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/water_detection/71b09340-484f-4ea5-af4f-be54c631693f/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/water_detection/71b09340-484f-4ea5-af4f-be54c631693f/data_netcdf.nc"
+    }
+}, {
+    "model": "water_detection.waterdetectiontask",
+    "pk": "751fd14f-76b8-47c5-8645-9ad10dcc6815",
+    "fields": {
+        "title": "Water Detection Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:26:18.469Z",
+        "execution_end": "2017-06-07T21:26:25.909Z",
+        "area_id": "lake_chad_full",
+        "platform": "LANDSAT_7",
+        "time_start": "2008-04-15",
+        "time_end": "2009-04-15",
+        "latitude_min": 12.95632044,
+        "latitude_max": 12.998077848,
+        "longitude_min": 14.400586865,
+        "longitude_max": 14.543874905,
+        "complete": false,
+        "pixel_count": 80135,
+        "clean_pixel_count": 80135,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "03/17/2009,03/01/2009,11/25/2008,10/24/2008,09/29/2008,06/18/2008",
+        "clean_pixels_per_acquisition": "98,0,585,0,0,3617",
+        "clean_pixel_percentages_per_acquisition": "0.1222936295,0.0,0.730018094466,0.0,0.0,4.5136332439",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 6,
+        "total_scenes": 6,
+        "result_path": "/datacube/ui_results/water_detection/751fd14f-76b8-47c5-8645-9ad10dcc6815/water_percentage.png",
+        "query_type": 1,
+        "animated_product": 0,
+        "water_pixels_per_acquisition": "3,0,295,0,0,1978",
+        "water_observations_path": "/datacube/ui_results/water_detection/751fd14f-76b8-47c5-8645-9ad10dcc6815/water_observations.png",
+        "clear_observations_path": "/datacube/ui_results/water_detection/751fd14f-76b8-47c5-8645-9ad10dcc6815/clear_observations.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/water_detection/751fd14f-76b8-47c5-8645-9ad10dcc6815/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/water_detection/751fd14f-76b8-47c5-8645-9ad10dcc6815/data_netcdf.nc"
+    }
+}, {
+    "model": "water_detection.waterdetectiontask",
+    "pk": "82fd3dbe-de57-460c-a507-e94f0206ee97",
+    "fields": {
+        "title": "Water Detection Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:26:52.133Z",
+        "execution_end": "2017-06-07T21:27:45.504Z",
+        "area_id": "lake_chad_full",
+        "platform": "LANDSAT_7",
+        "time_start": "2000-04-15",
+        "time_end": "2016-04-15",
+        "latitude_min": 12.816406008,
+        "latitude_max": 12.966081912,
+        "longitude_min": 14.345604245,
+        "longitude_max": 14.550261775,
+        "complete": false,
+        "pixel_count": 408114,
+        "clean_pixel_count": 408114,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "04/12/2016,04/05/2016,03/27/2016,03/20/2016,03/11/2016,03/04/2016,02/24/2016,02/17/2016,02/08/2016,02/01/2016,01/23/2016,01/16/2016,01/07/2016,12/31/2015,12/15/2015,12/06/2015,11/29/2015,11/13/2015,10/28/2015,10/12/2015,09/26/2015,09/10/2015,09/01/2015,08/25/2015,08/16/2015,08/09/2015,07/31/2015,07/24/2015,07/08/2015,06/22/2015,06/13/2015,06/06/2015,05/21/2015,05/12/2015,05/05/2015,04/19/2015,04/10/2015,04/03/2015,03/02/2015,01/29/2015,01/13/2015,12/28/2014,12/12/2014,11/26/2014,11/10/2014,10/25/2014,10/09/2014,09/23/2014,09/14/2014,09/07/2014,08/29/2014,08/22/2014,08/13/2014,07/28/2014,07/05/2014,06/19/2014,06/10/2014,06/03/2014,05/18/2014,05/02/2014,04/23/2014,04/16/2014,03/31/2014,03/15/2014,02/27/2014,02/11/2014,02/02/2014,01/26/2014,01/10/2014,12/25/2013,12/09/2013,11/23/2013,11/07/2013,10/22/2013,10/13/2013,07/02/2013,06/16/2013,04/13/2013,03/28/2013,03/12/2013,11/04/2012,10/19/2012,10/03/2012,08/16/2012,07/06/2012,06/20/2012,05/28/2012,05/19/2012,05/12/2012,04/26/2012,04/10/2012,01/12/2012,11/18/2011,11/02/2011,10/01/2011,08/21/2011,08/14/2011,07/20/2011,06/27/2011,04/24/2011,04/08/2011,12/01/2010,11/15/2010,10/30/2010,05/23/2010,05/07/2010,04/21/2010,04/05/2010,03/27/2010,03/20/2010,02/16/2010,01/31/2010,01/15/2010,12/30/2009,10/11/2009,09/25/2009,09/09/2009,08/24/2009,08/15/2009,08/08/2009,07/30/2009,07/23/2009,07/07/2009,05/20/2009,05/04/2009,03/17/2009,03/01/2009,11/25/2008,10/24/2008,09/29/2008,06/18/2008,03/30/2008,03/14/2008,02/27/2008,02/11/2008,01/26/2008,01/10/2008,12/09/2007,11/23/2007,09/11/2007,08/19/2007,07/25/2007,07/18/2007,05/31/2007,03/28/2007,03/12/2007,02/24/2007,02/08/2007,11/20/2006,11/04/2006,10/19/2006,10/03/2006,09/17/2006,09/01/2006,07/15/2006,06/29/2006,06/20/2006,06/13/2006,05/28/2006,05/19/2006,05/12/2006,05/03/2006,04/17/2006,03/25/2006,03/09/2006,02/21/2006,02/05/2006,01/04/2006,12/26/2005,12/10/2005,12/03/2005,11/24/2005,11/17/2005,11/08/2005,10/23/2005,10/16/2005,10/07/2005,09/14/2005,08/04/2005,05/09/2005,04/23/2005,04/14/2005,04/07/2005,03/29/2005,03/06/2005,02/25/2005,02/18/2005,02/02/2005,01/17/2005,01/01/2005,12/23/2004,12/07/2004,11/30/2004,11/21/2004,11/14/2004,11/05/2004,10/29/2004,10/20/2004,10/13/2004,09/27/2004,09/18/2004,09/11/2004,08/26/2004,08/01/2004,07/09/2004,06/14/2004,05/22/2004,05/13/2004,05/06/2004,04/27/2004,04/20/2004,04/11/2004,04/04/2004,03/26/2004,03/19/2004,02/07/2004,01/15/2004,01/06/2004,12/05/2003,11/28/2003,11/03/2003,10/18/2003,08/08/2003,07/30/2003,05/20/2003,05/11/2003,03/17/2003,03/08/2003,03/01/2003,02/20/2003,02/04/2003,01/28/2003,12/18/2002,11/25/2002,11/16/2002,10/15/2002,10/08/2002,09/22/2002,08/28/2002,07/04/2002,06/25/2002,05/17/2002,05/08/2002,03/14/2002,03/05/2002,02/17/2002,01/09/2002,12/31/2001,11/06/2001,10/28/2001,10/21/2001,09/26/2001,09/19/2001,09/03/2001,08/25/2001,08/02/2001,07/08/2001,05/30/2001,05/21/2001,03/27/2001,03/18/2001,02/14/2001,02/07/2001,01/13/2001,11/19/2000,11/10/2000,10/09/2000,10/02/2000,09/23/2000,08/22/2000,08/15/2000,06/03/2000,05/11/2000",
+        "clean_pixels_per_acquisition": "68171,1532,155447,0,169302,5468,296384,9070,291007,32762,288557,36805,288797,17509,16963,0,4685,8217,4773,5279,0,7210,110741,959,39596,0,249608,0,9237,3279,223385,9020,2254,283435,1530,1629,4618,1451,5646,8335,7086,7567,5270,2769,10590,4844,0,11,297294,0,205369,3754,73644,81465,10211,0,0,1200,19082,412,0,0,3909,6021,4940,81857,147,99581,13045,12974,18549,7737,12517,16905,289580,0,17708,0,4276,12873,4053,8741,3696,0,0,258685,36558,0,8251,72591,6178,284941,14201,160,35858,291837,5216,0,2913,6150,10113,6472,3987,1212,0,26958,53014,76029,214327,24414,76176,62515,45665,23817,8999,42075,27394,12010,249788,987,127488,0,31316,4943,0,22818,7248,27285,17795,0,36733,25199,6052,17646,34677,49175,6604,68442,61396,266261,308,129073,0,5381,19868,12762,2558,5993,39637,27958,596,25413,22200,14147,1334,0,1719,15966,6539,11968,8472,52713,0,2485,0,8238,497,535,287440,285612,2981,281972,10815,281191,282372,0,285960,0,281056,1243,0,239377,5,268974,0,281411,6103,159,498,6952,283161,283135,8786,283222,5298,280535,17524,80527,2590,7663,61522,6703,7549,86529,118,256220,0,273971,5961,174982,0,256849,0,275392,17466,282714,1014,277943,282430,18162,281766,281586,0,275743,1932,291642,2110,7275,2784,229122,377770,0,408114,40069,408114,206808,69317,14277,191174,31329,340404,33846,405738,16186,407606,408114,7250,408114,10618,408114,26958,347805,0,7144,117965,40801,340029,38891,273625,1113,120342,408114,4000,403073,26,408114,337550,16402,392369,41897,10491,144178,3722",
+        "clean_pixel_percentages_per_acquisition": "16.7039111621,0.375385309007,38.0891123559,0.0,41.4839971185,1.33982171648,72.6228455775,2.22241824588,71.3053215523,8.02765893843,70.7049990934,9.01831351044,70.7638061914,4.2902228299,4.15643668191,0.0,1.1479635592,2.01340801835,1.16952616181,1.29351112679,0.0,1.76666323625,27.1348201728,0.234983362492,9.70219105446,0.0,61.161342174,0.0,2.26333818492,0.803451976654,54.7359316269,2.21016676713,0.552296662207,69.4499576099,0.374895249857,0.399153177789,1.13154657767,0.355537913426,1.38343698084,2.04232150821,1.73627956894,1.85413879455,1.29130586062,0.678486893368,2.59486319999,1.18692326164,0.0,0.00269532532577,72.8458224908,0.0,50.3214788025,0.919841024812,18.0449580264,19.9613343331,2.50199699104,0.0,0.0,0.294035490084,4.67565435148,0.100952184929,0.0,0.0,0.957820608947,1.47532307149,1.21044610084,20.0573859265,0.0360193475352,24.400290115,3.19641080678,3.17901370695,4.54505358797,1.89579382231,3.06703519115,4.14222496655,70.9556643487,0.0,4.33898371533,0.0,1.047746463,3.15426571987,0.993104867758,2.14180351568,0.905629309458,0.0,0.0,63.3854756269,8.9577912054,0.0,2.0217390239,17.7869418839,1.51379271478,69.8189721499,3.47966499556,0.0392047320112,8.78627050285,71.5086960996,1.27807426356,0.0,0.713771152178,1.50693188668,2.47798409268,1.58583140985,0.976932915803,0.296975844984,0.0,6.60550728473,12.9899978927,18.629353563,52.516453736,5.98215204575,18.6653729105,15.3180238855,11.1892755456,5.83586938944,2.20502114605,10.3096193711,6.71234017946,2.94280519659,61.2054474975,0.241844190594,31.2383304665,0.0,7.67334617288,1.21118118957,0.0,5.59108484394,1.77597436011,6.68563195578,4.36030128837,0.0,9.00067138104,6.17450026218,1.48291898832,4.32379188168,8.49689057469,12.0493293541,1.61817531376,16.7703141769,15.043835791,65.2418196876,0.0754691091215,31.626702343,0.0,1.31850414345,4.86824759749,3.12706743704,0.626785653028,1.46846224339,9.71223726704,6.8505368598,0.146037626742,6.22693659125,5.43965656655,3.46643339851,0.326869453143,0.0,0.421205839545,3.91214219556,1.60224839138,2.93251395443,2.07589055999,12.9162439906,0.0,0.608898494048,0.0,2.01855363942,0.12177969881,0.131090822662,70.431301058,69.9833869948,0.730433163283,69.0914793416,2.64999485438,68.9001112434,69.1894911716,0.0,70.0686572869,0.0,68.8670322508,0.304571761812,0.0,58.6544445915,0.00122514787535,65.9065849248,0.0,68.9540177499,1.49541549665,0.0389597024361,0.122024728385,1.70344560588,69.3828195063,69.3764487374,2.15282984656,69.3977663104,1.29816668872,68.7393718422,4.29389827352,19.7314965916,0.634626599431,1.87766163376,15.0747095174,1.64243324169,1.8497282622,21.2021641012,0.0289134898582,62.7814777244,0.0,67.1309977114,1.46062129699,42.8757651048,0.0,62.9356013271,0.0,67.4791847376,4.27968655817,69.2732912863,0.248459989121,68.1042551836,69.2037028869,4.45022714242,69.0410032491,68.9968979256,0.0,67.5651901184,0.473397139035,71.4609153325,0.517012403397,1.78259015863,0.682162336994,56.1416662991,92.5648225741,0.0,100.0,9.81809004347,100.0,50.674076361,16.9847150551,3.49828724327,46.8432839844,7.67653155736,83.409047472,8.29327099781,99.4178097296,3.96604870208,99.8755249759,100.0,1.77646441926,100.0,2.60172402809,100.0,6.60550728473,85.2225113571,0.0,1.7504912843,28.9049138231,9.99745169242,83.3171613814,9.52944520404,67.0462174784,0.272717917053,29.487349123,100.0,0.980118300279,98.7648059121,0.00637076895181,100.0,82.7097330648,4.01897509029,96.1420093405,10.2660041067,2.57060527206,35.3278740744,0.912000078409",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 273,
+        "total_scenes": 273,
+        "result_path": "/datacube/ui_results/water_detection/82fd3dbe-de57-460c-a507-e94f0206ee97/water_percentage.png",
+        "query_type": 1,
+        "animated_product": 0,
+        "water_pixels_per_acquisition": "6633,30,43393,0,43891,0,126283,200,123128,885,122472,1159,123961,488,257,0,133,186,108,149,0,119,24074,0,827,0,97382,0,163,105,79114,0,0,111700,0,0,0,0,0,4,222,214,127,152,410,154,0,0,129323,0,69848,97,39570,14316,0,0,0,0,13,0,0,0,0,0,0,4813,0,11983,269,305,330,236,336,300,121382,0,281,0,0,210,267,219,145,0,0,98051,4724,0,8250,268,90,122963,424,0,662,124355,130,0,96,154,183,216,209,69,0,7,17,1927,82207,0,3153,1263,691,527,172,570,518,265,98596,1,54365,0,0,0,0,372,6,616,495,0,248,237,0,459,1005,785,24,2170,1437,121464,5,69976,0,138,301,0,0,122,878,606,0,523,421,236,54,0,2,0,0,74,0,6228,0,48,0,250,3,0,140567,137892,102,138419,364,136624,138205,0,136498,0,134259,0,0,101756,0,127672,0,137615,31,0,0,189,139543,136882,212,137396,150,138380,384,29941,96,1,20850,181,197,11015,0,121058,0,0,0,57787,0,116842,0,132726,9,137420,11,139760,141456,612,141949,140915,0,128749,0,101063,39,0,0,114886,190067,0,196320,1224,197396,58636,2091,0,104171,723,130543,352,171602,483,194220,195192,257,196877,499,198441,1772,148522,0,253,38934,1061,132141,7,83975,12,35144,192814,155,189272,0,191210,121981,0,153969,1548,43,1802,125",
+        "water_observations_path": "/datacube/ui_results/water_detection/82fd3dbe-de57-460c-a507-e94f0206ee97/water_observations.png",
+        "clear_observations_path": "/datacube/ui_results/water_detection/82fd3dbe-de57-460c-a507-e94f0206ee97/clear_observations.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/water_detection/82fd3dbe-de57-460c-a507-e94f0206ee97/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/water_detection/82fd3dbe-de57-460c-a507-e94f0206ee97/data_netcdf.nc"
+    }
+}, {
+    "model": "water_detection.waterdetectiontask",
+    "pk": "86819dd5-0097-459f-9072-f16355bc39e6",
+    "fields": {
+        "title": "Water Detection Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:25:30.761Z",
+        "execution_end": "2017-06-07T21:27:08.585Z",
+        "area_id": "lake_chad_full",
+        "platform": "LANDSAT_5,LANDSAT_7,LANDSAT_8",
+        "time_start": "2015-03-01",
+        "time_end": "2016-03-01",
+        "latitude_min": 12.75024492,
+        "latitude_max": 13.2559434,
+        "longitude_min": 14.172325685,
+        "longitude_max": 14.853499255,
+        "complete": false,
+        "pixel_count": 4579164,
+        "clean_pixel_count": 4579164,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "02/24/2016,02/17/2016,02/16/2016,02/09/2016,02/08/2016,02/01/2016,01/31/2016,01/24/2016,01/23/2016,01/16/2016,01/15/2016,01/08/2016,01/07/2016,12/31/2015,12/30/2015,12/23/2015,12/15/2015,12/14/2015,12/07/2015,12/06/2015,11/29/2015,11/28/2015,11/21/2015,11/13/2015,11/12/2015,11/05/2015,10/28/2015,10/27/2015,10/20/2015,10/12/2015,10/11/2015,09/26/2015,09/25/2015,09/18/2015,09/10/2015,09/09/2015,09/02/2015,09/01/2015,08/25/2015,08/24/2015,08/17/2015,08/16/2015,08/09/2015,08/08/2015,08/01/2015,07/31/2015,07/24/2015,07/23/2015,07/16/2015,07/08/2015,07/07/2015,06/30/2015,06/22/2015,06/21/2015,06/14/2015,06/13/2015,06/06/2015,06/05/2015,05/29/2015,05/21/2015,05/20/2015,05/13/2015,05/12/2015,05/05/2015,05/04/2015,04/27/2015,04/19/2015,04/18/2015,04/11/2015,04/10/2015,04/03/2015,04/02/2015,03/26/2015,03/17/2015,03/10/2015,03/02/2015,03/01/2015",
+        "clean_pixels_per_acquisition": "3177493,1187923,4297272,1739214,3036962,1289434,4164939,763010,2969051,1306176,4221676,1697523,2919761,1226964,4195225,525580,1225824,4167237,1738898,0,1157071,4178825,1788157,1179761,4245230,1775369,751056,4086014,1767008,1160636,4084792,153895,4144838,1459413,1023558,4046635,115,650360,867264,0,191017,1417838,13567,402064,631353,2722972,104504,1316343,1212772,355396,3963247,1673393,1133217,3487910,1734084,2058316,908000,4023149,1737766,649516,3632729,435181,2377396,986673,2142879,2068147,1011907,2529848,0,369991,675030,2165948,585169,3169159,1541156,684070,4063491",
+        "clean_pixel_percentages_per_acquisition": "69.3902424111,25.9419186559,93.8440291721,37.9810375868,66.3213197868,28.1587206748,90.9541348596,16.662648466,64.838276157,28.5243332626,92.1931601489,37.070587557,63.7618788058,26.7944978603,91.6155219599,11.4776408969,26.7696024864,91.0043186922,37.9741367638,0.0,25.2681712208,91.2573779843,39.0498571355,25.7636765139,92.7075335149,38.7705921867,16.4015964486,89.2305669769,38.5880042733,25.3460238594,89.2038808831,3.36076628834,90.5151682709,31.8707301158,22.3525080124,88.3706065125,0.00251137543884,14.2025924383,18.9393522486,0.0,4.17143828,30.9628132995,0.296276787641,8.7802926473,13.7875166733,59.4643913168,2.28216329444,28.7463606894,26.4845722931,7.76115465618,86.5495754247,36.5436354758,24.7472464406,76.169143538,37.8690084042,44.9496021545,19.8289469432,87.8577181337,37.9494160943,14.1841611264,79.3317077091,9.50350325955,51.9176862851,21.5470116379,46.7962929478,45.1642919974,22.0980729234,55.2469402712,0.0,8.07988095644,14.741337065,47.3000748608,12.7789482971,69.2082441249,33.6558376158,14.9387530126,88.7387086376",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 77,
+        "total_scenes": 77,
+        "result_path": "/datacube/ui_results/water_detection/86819dd5-0097-459f-9072-f16355bc39e6/water_percentage.png",
+        "query_type": 2,
+        "animated_product": 0,
+        "water_pixels_per_acquisition": "1156039,289690,1663766,414705,1146341,335934,1656175,12532,1117464,342849,1659991,391603,1126615,309687,1661953,6,305991,1642483,418388,0,276209,1634289,434192,280179,1635588,421394,22767,1549411,419269,276795,1518197,47323,1602697,278565,241372,1538798,0,64326,210014,0,19348,282526,13120,22138,19853,909977,1782,520959,369814,11531,1556051,370788,252568,1093792,369526,640232,20699,1360495,387988,204557,1150226,78798,916503,190795,534254,563597,200253,456925,0,70,30479,78237,56150,908395,327292,156450,1528986",
+        "water_observations_path": "/datacube/ui_results/water_detection/86819dd5-0097-459f-9072-f16355bc39e6/water_observations.png",
+        "clear_observations_path": "/datacube/ui_results/water_detection/86819dd5-0097-459f-9072-f16355bc39e6/clear_observations.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/water_detection/86819dd5-0097-459f-9072-f16355bc39e6/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/water_detection/86819dd5-0097-459f-9072-f16355bc39e6/data_netcdf.nc"
+    }
+}, {
+    "model": "water_detection.waterdetectiontask",
+    "pk": "a8f0761c-7f62-41bf-80e7-2ed85749b6cd",
+    "fields": {
+        "title": "Water Detection Query",
+        "description": "None",
+        "execution_start": "2017-06-07T21:26:54.623Z",
+        "execution_end": "2017-06-07T21:27:55.631Z",
+        "area_id": "lake_chad_full",
+        "platform": "LANDSAT_7",
+        "time_start": "2000-04-15",
+        "time_end": "2016-04-15",
+        "latitude_min": 12.816406008,
+        "latitude_max": 12.966081912,
+        "longitude_min": 14.345604245,
+        "longitude_max": 14.550261775,
+        "complete": false,
+        "pixel_count": 408114,
+        "clean_pixel_count": 408114,
+        "percentage_clean_pixels": 100.0,
+        "acquisition_list": "04/12/2016,04/05/2016,03/27/2016,03/20/2016,03/11/2016,03/04/2016,02/24/2016,02/17/2016,02/08/2016,02/01/2016,01/23/2016,01/16/2016,01/07/2016,12/31/2015,12/15/2015,12/06/2015,11/29/2015,11/13/2015,10/28/2015,10/12/2015,09/26/2015,09/10/2015,09/01/2015,08/25/2015,08/16/2015,08/09/2015,07/31/2015,07/24/2015,07/08/2015,06/22/2015,06/13/2015,06/06/2015,05/21/2015,05/12/2015,05/05/2015,04/19/2015,04/10/2015,04/03/2015,03/02/2015,01/29/2015,01/13/2015,12/28/2014,12/12/2014,11/26/2014,11/10/2014,10/25/2014,10/09/2014,09/23/2014,09/14/2014,09/07/2014,08/29/2014,08/22/2014,08/13/2014,07/28/2014,07/05/2014,06/19/2014,06/10/2014,06/03/2014,05/18/2014,05/02/2014,04/23/2014,04/16/2014,03/31/2014,03/15/2014,02/27/2014,02/11/2014,02/02/2014,01/26/2014,01/10/2014,12/25/2013,12/09/2013,11/23/2013,11/07/2013,10/22/2013,10/13/2013,07/02/2013,06/16/2013,04/13/2013,03/28/2013,03/12/2013,11/04/2012,10/19/2012,10/03/2012,08/16/2012,07/06/2012,06/20/2012,05/28/2012,05/19/2012,05/12/2012,04/26/2012,04/10/2012,01/12/2012,11/18/2011,11/02/2011,10/01/2011,08/21/2011,08/14/2011,07/20/2011,06/27/2011,04/24/2011,04/08/2011,12/01/2010,11/15/2010,10/30/2010,05/23/2010,05/07/2010,04/21/2010,04/05/2010,03/27/2010,03/20/2010,02/16/2010,01/31/2010,01/15/2010,12/30/2009,10/11/2009,09/25/2009,09/09/2009,08/24/2009,08/15/2009,08/08/2009,07/30/2009,07/23/2009,07/07/2009,05/20/2009,05/04/2009,03/17/2009,03/01/2009,11/25/2008,10/24/2008,09/29/2008,06/18/2008,03/30/2008,03/14/2008,02/27/2008,02/11/2008,01/26/2008,01/10/2008,12/09/2007,11/23/2007,09/11/2007,08/19/2007,07/25/2007,07/18/2007,05/31/2007,03/28/2007,03/12/2007,02/24/2007,02/08/2007,11/20/2006,11/04/2006,10/19/2006,10/03/2006,09/17/2006,09/01/2006,07/15/2006,06/29/2006,06/20/2006,06/13/2006,05/28/2006,05/19/2006,05/12/2006,05/03/2006,04/17/2006,03/25/2006,03/09/2006,02/21/2006,02/05/2006,01/04/2006,12/26/2005,12/10/2005,12/03/2005,11/24/2005,11/17/2005,11/08/2005,10/23/2005,10/16/2005,10/07/2005,09/14/2005,08/04/2005,05/09/2005,04/23/2005,04/14/2005,04/07/2005,03/29/2005,03/06/2005,02/25/2005,02/18/2005,02/02/2005,01/17/2005,01/01/2005,12/23/2004,12/07/2004,11/30/2004,11/21/2004,11/14/2004,11/05/2004,10/29/2004,10/20/2004,10/13/2004,09/27/2004,09/18/2004,09/11/2004,08/26/2004,08/01/2004,07/09/2004,06/14/2004,05/22/2004,05/13/2004,05/06/2004,04/27/2004,04/20/2004,04/11/2004,04/04/2004,03/26/2004,03/19/2004,02/07/2004,01/15/2004,01/06/2004,12/05/2003,11/28/2003,11/03/2003,10/18/2003,08/08/2003,07/30/2003,05/20/2003,05/11/2003,03/17/2003,03/08/2003,03/01/2003,02/20/2003,02/04/2003,01/28/2003,12/18/2002,11/25/2002,11/16/2002,10/15/2002,10/08/2002,09/22/2002,08/28/2002,07/04/2002,06/25/2002,05/17/2002,05/08/2002,03/14/2002,03/05/2002,02/17/2002,01/09/2002,12/31/2001,11/06/2001,10/28/2001,10/21/2001,09/26/2001,09/19/2001,09/03/2001,08/25/2001,08/02/2001,07/08/2001,05/30/2001,05/21/2001,03/27/2001,03/18/2001,02/14/2001,02/07/2001,01/13/2001,11/19/2000,11/10/2000,10/09/2000,10/02/2000,09/23/2000,08/22/2000,08/15/2000,06/03/2000,05/11/2000",
+        "clean_pixels_per_acquisition": "68171,1532,155447,0,169302,5468,296384,9070,291007,32762,288557,36805,288797,17509,16963,0,4685,8217,4773,5279,0,7210,110741,959,39596,0,249608,0,9237,3279,223385,9020,2254,283435,1530,1629,4618,1451,5646,8335,7086,7567,5270,2769,10590,4844,0,11,297294,0,205369,3754,73644,81465,10211,0,0,1200,19082,412,0,0,3909,6021,4940,81857,147,99581,13045,12974,18549,7737,12517,16905,289580,0,17708,0,4276,12873,4053,8741,3696,0,0,258685,36558,0,8251,72591,6178,284941,14201,160,35858,291837,5216,0,2913,6150,10113,6472,3987,1212,0,26958,53014,76029,214327,24414,76176,62515,45665,23817,8999,42075,27394,12010,249788,987,127488,0,31316,4943,0,22818,7248,27285,17795,0,36733,25199,6052,17646,34677,49175,6604,68442,61396,266261,308,129073,0,5381,19868,12762,2558,5993,39637,27958,596,25413,22200,14147,1334,0,1719,15966,6539,11968,8472,52713,0,2485,0,8238,497,535,287440,285612,2981,281972,10815,281191,282372,0,285960,0,281056,1243,0,239377,5,268974,0,281411,6103,159,498,6952,283161,283135,8786,283222,5298,280535,17524,80527,2590,7663,61522,6703,7549,86529,118,256220,0,273971,5961,174982,0,256849,0,275392,17466,282714,1014,277943,282430,18162,281766,281586,0,275743,1932,291642,2110,7275,2784,229122,377770,0,408114,40069,408114,206808,69317,14277,191174,31329,340404,33846,405738,16186,407606,408114,7250,408114,10618,408114,26958,347805,0,7144,117965,40801,340029,38891,273625,1113,120342,408114,4000,403073,26,408114,337550,16402,392369,41897,10491,144178,3722",
+        "clean_pixel_percentages_per_acquisition": "16.7039111621,0.375385309007,38.0891123559,0.0,41.4839971185,1.33982171648,72.6228455775,2.22241824588,71.3053215523,8.02765893843,70.7049990934,9.01831351044,70.7638061914,4.2902228299,4.15643668191,0.0,1.1479635592,2.01340801835,1.16952616181,1.29351112679,0.0,1.76666323625,27.1348201728,0.234983362492,9.70219105446,0.0,61.161342174,0.0,2.26333818492,0.803451976654,54.7359316269,2.21016676713,0.552296662207,69.4499576099,0.374895249857,0.399153177789,1.13154657767,0.355537913426,1.38343698084,2.04232150821,1.73627956894,1.85413879455,1.29130586062,0.678486893368,2.59486319999,1.18692326164,0.0,0.00269532532577,72.8458224908,0.0,50.3214788025,0.919841024812,18.0449580264,19.9613343331,2.50199699104,0.0,0.0,0.294035490084,4.67565435148,0.100952184929,0.0,0.0,0.957820608947,1.47532307149,1.21044610084,20.0573859265,0.0360193475352,24.400290115,3.19641080678,3.17901370695,4.54505358797,1.89579382231,3.06703519115,4.14222496655,70.9556643487,0.0,4.33898371533,0.0,1.047746463,3.15426571987,0.993104867758,2.14180351568,0.905629309458,0.0,0.0,63.3854756269,8.9577912054,0.0,2.0217390239,17.7869418839,1.51379271478,69.8189721499,3.47966499556,0.0392047320112,8.78627050285,71.5086960996,1.27807426356,0.0,0.713771152178,1.50693188668,2.47798409268,1.58583140985,0.976932915803,0.296975844984,0.0,6.60550728473,12.9899978927,18.629353563,52.516453736,5.98215204575,18.6653729105,15.3180238855,11.1892755456,5.83586938944,2.20502114605,10.3096193711,6.71234017946,2.94280519659,61.2054474975,0.241844190594,31.2383304665,0.0,7.67334617288,1.21118118957,0.0,5.59108484394,1.77597436011,6.68563195578,4.36030128837,0.0,9.00067138104,6.17450026218,1.48291898832,4.32379188168,8.49689057469,12.0493293541,1.61817531376,16.7703141769,15.043835791,65.2418196876,0.0754691091215,31.626702343,0.0,1.31850414345,4.86824759749,3.12706743704,0.626785653028,1.46846224339,9.71223726704,6.8505368598,0.146037626742,6.22693659125,5.43965656655,3.46643339851,0.326869453143,0.0,0.421205839545,3.91214219556,1.60224839138,2.93251395443,2.07589055999,12.9162439906,0.0,0.608898494048,0.0,2.01855363942,0.12177969881,0.131090822662,70.431301058,69.9833869948,0.730433163283,69.0914793416,2.64999485438,68.9001112434,69.1894911716,0.0,70.0686572869,0.0,68.8670322508,0.304571761812,0.0,58.6544445915,0.00122514787535,65.9065849248,0.0,68.9540177499,1.49541549665,0.0389597024361,0.122024728385,1.70344560588,69.3828195063,69.3764487374,2.15282984656,69.3977663104,1.29816668872,68.7393718422,4.29389827352,19.7314965916,0.634626599431,1.87766163376,15.0747095174,1.64243324169,1.8497282622,21.2021641012,0.0289134898582,62.7814777244,0.0,67.1309977114,1.46062129699,42.8757651048,0.0,62.9356013271,0.0,67.4791847376,4.27968655817,69.2732912863,0.248459989121,68.1042551836,69.2037028869,4.45022714242,69.0410032491,68.9968979256,0.0,67.5651901184,0.473397139035,71.4609153325,0.517012403397,1.78259015863,0.682162336994,56.1416662991,92.5648225741,0.0,100.0,9.81809004347,100.0,50.674076361,16.9847150551,3.49828724327,46.8432839844,7.67653155736,83.409047472,8.29327099781,99.4178097296,3.96604870208,99.8755249759,100.0,1.77646441926,100.0,2.60172402809,100.0,6.60550728473,85.2225113571,0.0,1.7504912843,28.9049138231,9.99745169242,83.3171613814,9.52944520404,67.0462174784,0.272717917053,29.487349123,100.0,0.980118300279,98.7648059121,0.00637076895181,100.0,82.7097330648,4.01897509029,96.1420093405,10.2660041067,2.57060527206,35.3278740744,0.912000078409",
+        "status": "WAIT",
+        "message": "All products have been generated. Your result will be loaded on the map.",
+        "scenes_processed": 273,
+        "total_scenes": 273,
+        "result_path": "/datacube/ui_results/water_detection/a8f0761c-7f62-41bf-80e7-2ed85749b6cd/water_percentage.png",
+        "query_type": 2,
+        "animated_product": 0,
+        "water_pixels_per_acquisition": "6633,30,43393,0,43891,0,126283,200,123128,885,122472,1159,123961,488,257,0,133,186,108,149,0,119,24074,0,827,0,97382,0,163,105,79114,0,0,111700,0,0,0,0,0,4,222,214,127,152,410,154,0,0,129323,0,69848,97,39570,14316,0,0,0,0,13,0,0,0,0,0,0,4813,0,11983,269,305,330,236,336,300,121382,0,281,0,0,210,267,219,145,0,0,98051,4724,0,8250,268,90,122963,424,0,662,124355,130,0,96,154,183,216,209,69,0,7,17,1927,82207,0,3153,1263,691,527,172,570,518,265,98596,1,54365,0,0,0,0,372,6,616,495,0,248,237,0,459,1005,785,24,2170,1437,121464,5,69976,0,138,301,0,0,122,878,606,0,523,421,236,54,0,2,0,0,74,0,6228,0,48,0,250,3,0,140567,137892,102,138419,364,136624,138205,0,136498,0,134259,0,0,101756,0,127672,0,137615,31,0,0,189,139543,136882,212,137396,150,138380,384,29941,96,1,20850,181,197,11015,0,121058,0,0,0,57787,0,116842,0,132726,9,137420,11,139760,141456,612,141949,140915,0,128749,0,101063,39,0,0,114886,190067,0,196320,1224,197396,58636,2091,0,104171,723,130543,352,171602,483,194220,195192,257,196877,499,198441,1772,148522,0,253,38934,1061,132141,7,83975,12,35144,192814,155,189272,0,191210,121981,0,153969,1548,43,1802,125",
+        "water_observations_path": "/datacube/ui_results/water_detection/a8f0761c-7f62-41bf-80e7-2ed85749b6cd/water_observations.png",
+        "clear_observations_path": "/datacube/ui_results/water_detection/a8f0761c-7f62-41bf-80e7-2ed85749b6cd/clear_observations.png",
+        "animation_path": "",
+        "data_path": "/datacube/ui_results/water_detection/a8f0761c-7f62-41bf-80e7-2ed85749b6cd/data_tif.tif",
+        "data_netcdf_path": "/datacube/ui_results/water_detection/a8f0761c-7f62-41bf-80e7-2ed85749b6cd/data_netcdf.nc"
+    }
+}]

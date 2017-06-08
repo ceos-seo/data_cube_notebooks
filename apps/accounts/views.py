@@ -29,7 +29,6 @@ import pytz
 from .utils import isEmailAddressValid
 from .models import Activation, Reset
 from .forms import LoginForm, RegistrationForm, PasswordChangeForm, LostPasswordForm, PasswordResetForm
-from data_cube_ui.models import Area, Application
 
 # Create your views here.
 

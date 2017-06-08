@@ -1,0 +1,41 @@
+[{
+    "model": "coastal_change.toolinfo",
+    "pk": 18,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/coastal_change_1.png",
+        "image_title": "Coastline Identification",
+        "image_description": "Identify the coastline of a yearly mosaic and compare it to a baseline year."
+    }
+}, {
+    "model": "coastal_change.toolinfo",
+    "pk": 19,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/coastal_change_2.png",
+        "image_title": "Coastal Change",
+        "image_description": "Compute the area covered by receding coastline over a user defined period."
+    }
+}, {
+    "model": "coastal_change.animationtype",
+    "pk": 0,
+    "fields": {
+        "animation_id": "none",
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "coastal_change.animationtype",
+    "pk": 1,
+    "fields": {
+        "animation_id": "coastline_change",
+        "name": "Coastline Change",
+        "data_variable": "None"
+    }
+}, {
+    "model": "coastal_change.animationtype",
+    "pk": 2,
+    "fields": {
+        "animation_id": "coastal_change",
+        "name": "Coastal Change",
+        "data_variable": "None"
+    }
+}]

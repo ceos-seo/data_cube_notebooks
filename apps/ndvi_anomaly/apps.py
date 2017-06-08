@@ -22,5 +22,5 @@
 from django.apps import AppConfig
 
 
-class CustomMosaicToolConfig(AppConfig):
-    name = 'custom_mosaic_tool'
+class NdviAnomalyToolConfig(AppConfig):
+    name = 'ndvi_anomaly'

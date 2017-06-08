@@ -1,0 +1,81 @@
+[{
+    "model": "water_detection.toolinfo",
+    "pk": 12,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/water_detection_1.png",
+        "image_title": "Water Detection",
+        "image_description": "The Water Detection tool allows users to determine a per pixel analysis of water vs not-water for a given scene over many acquisitions."
+    }
+}, {
+    "model": "water_detection.toolinfo",
+    "pk": 13,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/water_detection_2.png",
+        "image_title": "Time Series Analysis",
+        "image_description": "Run analyses over time producing outputs visualizing cumulative acquisitions, water observations, and water percentages."
+    }
+}, {
+    "model": "water_detection.toolinfo",
+    "pk": 14,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/water_detection_3.png",
+        "image_title": "Animated Images",
+        "image_description": "Create animated GIFs of water levels over time to show trends of increasing or decreasing water levels."
+    }
+}, {
+    "model": "water_detection.resulttype",
+    "pk": 1,
+    "fields": {
+        "result_id": "black_background",
+        "name": "Black",
+        "fill": "black"
+    }
+}, {
+    "model": "water_detection.resulttype",
+    "pk": 2,
+    "fields": {
+        "result_id": "white_background",
+        "name": "White",
+        "fill": "white"
+    }
+}, {
+    "model": "water_detection.resulttype",
+    "pk": 3,
+    "fields": {
+        "result_id": "transparent_background",
+        "name": "Transparent",
+        "fill": "transparent"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 0,
+    "fields": {
+        "animation_id": "none",
+        "name": "None",
+        "data_variable": "None"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 1,
+    "fields": {
+        "animation_id": "scene",
+        "name": "Scene",
+        "data_variable": "wofs"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 2,
+    "fields": {
+        "animation_id": "cumulative_percentage",
+        "name": "Cumulative Percentages",
+        "data_variable": "normalized_data"
+    }
+}, {
+    "model": "water_detection.animationtype",
+    "pk": 3,
+    "fields": {
+        "animation_id": "cumulative_observations",
+        "name": "Cumulative Observations",
+        "data_variable": "total_data"
+    }
+}]

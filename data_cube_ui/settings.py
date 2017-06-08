@@ -18,7 +18,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
 """
 Django settings for data_cube_ui project.
 
@@ -32,6 +31,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
+from celery.schedules import crontab
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -66,6 +66,8 @@ INSTALLED_APPS = [
     'apps.slip',
     'apps.coastal_change',
     'apps.ndvi_anomaly',
+    'apps.dc_algorithm',
+    'apps.pages',
     'data_cube_ui',
     'apps.accounts',
     'django.contrib.admin',
@@ -74,7 +76,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'apps.custom_mosaic_tool.testsuite',
     'bootstrap3',
 ]
 
@@ -98,31 +99,32 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'BACKEND':
+        'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'templates').replace('\\','/'),
-            os.path.join(BASE_DIR, 'templates/custom_mosaic_tool').replace('\\','/'),
-            os.path.join(BASE_DIR, 'templates/water_detection').replace('\\','/'),
-            os.path.join(BASE_DIR, 'templates/tsm').replace('\\','/'),
-            os.path.join(BASE_DIR, 'templates/slip').replace('\\','/'),
-            os.path.join(BASE_DIR, 'templates/coastal_change').replace('\\','/'),
-            os.path.join(BASE_DIR, 'templates/ndvi_anomaly').replace('\\','/'),
+            os.path.join(BASE_DIR, 'templates').replace('\\', '/'),
+            os.path.join(BASE_DIR, 'templates/custom_mosaic_tool').replace('\\', '/'),
+            os.path.join(BASE_DIR, 'templates/water_detection').replace('\\', '/'),
+            os.path.join(BASE_DIR, 'templates/tsm').replace('\\', '/'),
+            os.path.join(BASE_DIR, 'templates/slip').replace('\\', '/'),
+            os.path.join(BASE_DIR, 'templates/coastal_change').replace('\\', '/'),
+            os.path.join(BASE_DIR, 'templates/ndvi_anomaly').replace('\\', '/'),
         ],
-        'APP_DIRS': True,
+        'APP_DIRS':
+        True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'data_cube_ui.context_processors.apps',
+                'apps.dc_algorithm.context_processors.apps',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'data_cube_ui.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
@@ -131,12 +133,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'datacube',
-	'USER': 'dc_user',
-	'PASSWORD': 'dcuser1',
-	'HOST': MASTER_NODE
+        'USER': 'dc_user',
+        'PASSWORD': 'dcuser1',
+        'HOST': MASTER_NODE
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
@@ -156,7 +157,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
@@ -170,7 +170,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
@@ -183,21 +182,11 @@ STATICFILES_DIRS = [
 
 # CELERY STUFF
 
-#master/slave machines.. master processes in the default queue, sends off tasks to workers.
-CELERY_ROUTES = {'generate_mosaic_chunk': {'queue': 'chunk_processing'},
-                 'generate_water_chunk': {'queue': 'chunk_processing'},
-                 'generate_tsm_chunk': {'queue': 'chunk_processing'},
-                 'generate_fractional_cover_chunk': {'queue': 'chunk_processing'},
-                 'generate_slip_chunk': {'queue': 'chunk_processing'},
-                 'generate_coastal_change_chunk': {'queue': 'chunk_processing'},
-                 'generate_ndvi_anomaly_chunk': {'queue': 'chunk_processing'},
-                 'generate_chunk': {'queue': 'chunk_processing'}}
-
 BROKER_URL = 'redis://' + MASTER_NODE + ':6379'
 CELERY_RESULT_BACKEND = 'redis://' + MASTER_NODE + ':6379'
-#CELERY_ACCEPT_CONTENT = ['application/json', 'yaml']
-#CELERY_TASK_SERIALIZER = 'yaml'
-#CELERY_RESULT_SERIALIZER = 'yaml'
+CELERY_ACCEPT_CONTENT = ['pickle']
+CELERY_TASK_SERIALIZER = 'pickle'
+CELERY_RESULT_SERIALIZER = 'pickle'
 CELERYD_PREFETCH_MULTIPLIER = 1
 CELERY_ACKS_LATE = True
 CELERY_TIMEZONE = 'UTC'
@@ -250,7 +239,7 @@ BOOTSTRAP3 = {
     'success_css_class': 'has-success',
 
     # Renderers (only set these if you have studied the source and understand the inner workings)
-    'formset_renderers':{
+    'formset_renderers': {
         'default': 'bootstrap3.renderers.FormsetRenderer',
     },
     'form_renderers': {

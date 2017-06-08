@@ -1,0 +1,25 @@
+[{
+    "model": "fractional_cover.toolinfo",
+    "pk": 4,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/fractional_cover_1.png",
+        "image_title": "Fractional Coverage",
+        "image_description": "The Fractional Coverage tool allows users to create a three band output product used to visualize the sub pixel composition of selected areas. Pixels are classified as a percentage of photosynthetic vegetation, non-photosynthetic vegetation, and bare soil."
+    }
+}, {
+    "model": "fractional_cover.toolinfo",
+    "pk": 5,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/fractional_cover_2.png",
+        "image_title": "Pixel Preference",
+        "image_description": "Pick a compositing algorithm (most recent, least recent, median, min/max NDVI pixel) that will produce the desired mosaic for the fractional cover application."
+    }
+}, {
+    "model": "fractional_cover.toolinfo",
+    "pk": 6,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/fractional_cover_3.png",
+        "image_title": "Downloads",
+        "image_description": "All products (both data and images) are available for download in various formats, including GeoTIFF, NetCDF, and PNG."
+    }
+}]

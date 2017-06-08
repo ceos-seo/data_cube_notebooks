@@ -18,7 +18,7 @@ Using these common technologies provides a good starting platform for users who 
 Installation
 =================
 ```
-git clone https://github.com/ceos-seo/data_cube_notebooks.git -b master
+git clone https://github.com/ceos-seo/data_cube_ui.git -b master
 cd ~/Datacube/data_cube_ui
 git submodule init && git submodule update
 ```
@@ -40,4 +40,4 @@ Requirements
 * imageio
 * django-bootstrap3
 
-For more detailed instructions, please read the [documentation](docs/ui_install).
+For more detailed instructions, please read the [documentation](docs/ui_install.md). If you want to add a new algorithm to the UI, you can follow our [adding a new algorithm](docs/adding_new_pages.md) documentation.

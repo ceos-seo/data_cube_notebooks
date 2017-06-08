@@ -95,7 +95,6 @@ There are a few system level dependencies that must be satisfied before the agdc
 sudo apt-get install -y postgresql-9.5 postgresql-client-9.5 postgresql-contrib-9.5
 sudo apt-get install -y libhdf5-serial-dev libnetcdf-dev
 sudo apt-get install -y libgdal1-dev
-#optional, but can be useful:
 sudo apt-get install -y postgresql-doc-9.5 libhdf5-doc netcdf-doc libgdal-doc
 sudo apt-get install -y hdf5-tools netcdf-bin gdal-bin pgadmin3
 ```
@@ -123,6 +122,8 @@ Now that all requirements have been satisfied, run the setup.py script in the ag
 ```
 cd ~/Datacube/agdc-v2
 python setup.py develop
+# Cython may be required, depending on your system. If there is an issue, run:
+# pip install Cython
 ```
 
 This should produce a considerable amount of console output, but will ultimately end with a line resembling:
@@ -181,8 +182,8 @@ db_database: datacube
 
 # db_hostname
 
-db_username: dc_user
-db_password: dcuser1
+db_username: localuser
+db_password: localuser1234
 ```
 
 The db_username and db_password fields represent the credentials to a PostgreSQL role that will need to be created. We use the credentials listed above, but they can be changed to any desired combination that contains only valid PostgreSQL characters. Using this user, a database named 'datacube' will be created. Again, this database name is fully configurable and can be set in the above configuration file.
