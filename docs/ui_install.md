@@ -222,7 +222,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'datacube',
-      	'USER': 'localuser',
+      	'USER': 'dc_user',
       	'PASSWORD': 'localuser1234',
       	'HOST': MASTER_NODE
     }
@@ -248,7 +248,7 @@ Run the following commands:
 
 ```
 cd ~/Datacube/data_cube_ui
-python manage.py makemigrations {data_cube_ui,accounts,coastal_change,custom_mosaic_tool,fractional_cover,ndvi_anomaly,slip,task_manager,tsm,water_detection}
+python manage.py makemigrations {data_cube_ui,accounts,coastal_change,custom_mosaic_tool,fractional_cover,ndvi_anomaly,slip,task_manager,tsm,water_detection, dc_algorithm}
 python manage.py migrate
 
 python manage.py loaddata db_backups/init_database.json
@@ -343,7 +343,7 @@ The worker system can seem complex at first, but the basic workflow is shown bel
 
 To finish the configuration, we will need to create an area and product that you have ingested. For this section, we have to have a few assumptions:
 
-* Your ingested product definition's name is ls7_ledaps_* - if you used our example it will be ls7_ledaps_vietnam, otherwise you will need to enter the name.
+* Your ingested product definition's name is ls7_ledaps_general
 * You have ingested a Landsat 7 scene
 
 First, we need to find the bounding box of your area. Open a Django Python shell and use the following commands:
@@ -357,14 +357,14 @@ from utils import data_access_api
 
 dc = data_access_api.DataAccessApi()
 
-dc.get_datacube_metadata('LANDSAT_7', 'ls7_ledaps_vietnam')
+dc.get_datacube_metadata('LANDSAT_7', 'ls7_ledaps_general')
 ```
 
 Record the latitude and longitude extents.
 
 Go back to the admin page, select Data_Cube_UI->Areas, delete all of the initial areas, then click the 'Add Area' button.
 
-For the Area Id, enter 'vietnam', or whatever area you've named that is prepended by the 'ls7_ledaps_'. Give the area a name as well.
+For the Area Id, enter 'general', or whatever area you've named that is prepended by the 'ls7_ledaps_'. Give the area a name as well.
 
 Enter the latitude and longitude bounds in all of the latitude/longitude min/max fields for both the top and the detail fields.
 
