@@ -37,7 +37,7 @@ To index and ingest data into the Data Cube, the following prerequisites must be
   * You have a database user that is used to connect to your 'datacube' database
   * The Data Cube is installed and you have successfully run 'datacube system init'
   * All code is checked out and you have a virtual environment in the correct directories: `~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}`
-* This guide will use a Landsat 7 SR product as an example. Please download a Landsat SR product from [Earth Explorer](https://earthexplorer.usgs.gov/). Please ensure that the dataset you download is an SR product - the L\*.tar.gz should contain .tif files with the file pattern L\*\*\_sr_band\*.tif This will correspond to datasets labeled "Collection 1 Higher-Level", or the pre-collection datasets if you have an older download. Move this dataset into the directory '/datacube/original_data/' so that the path looks like '/datacube/original_data/L*.tar.gz'
+* This guide will use a Landsat 7 SR product as an example. Please download a Landsat SR product from [our AWS site](http://ec2-52-201-154-0.compute-1.amazonaws.com/datacube/data/LE071950542015121201T1-SC20170427222707.tar.gz). We are providing a Landsat 7 Collection 1 scene over Ghana for our examples. This will ensure that the entire workflow can be completed by all users. Place the .tar.gz file in your `/datacube/original_data` directory.
 
 If you have not yet completed our Data Cube Installation Guide, please do so before continuing.
 
@@ -129,9 +129,9 @@ Before starting this step, you'll need to make sure that you have your Landsat 7
 Uncompress this scene into the default location with the following commands:
 
 ```
-	#Replace L* with your actual scene Id - if your scene id is LE71240522000128-SC20170217181717, your command will be tar -xzf LE71240522000128-SC20170217181717.tar.gz LE71240522000128-SC20170217181717
-	mkdir L*/
-	tar -xzf L*.tar.gz -C L*/
+cd /datacube/original_data
+mkdir LE071950542015121201T1-SC20170427222707
+tar -xzf LE071950542015121201T1-SC20170427222707.tar.gz -C LE071950542015121201T1-SC20170427222707
 ```
 
 This will result in a directory with the same name as your archive file with the contents of the archive extracted to the directory. There are scripted versions of this process in our checkout of the agdc-v2 codebase in `~/Datacube/agdc-v2/ingest`
@@ -150,19 +150,20 @@ These scripts are responsible for creating a .yaml metadata file that contains a
 
 Each of the fields defined in the metadata type reference should be filled in the dataset metadata .yaml file. Please note that only the 'search fields' are required, but there should be as much metadata collected as possible. We are also able to add metadata to the document that is not listed in the metadata type, everything will be stored in the database. We will verify that this is correct after generating the .yaml file for our Landsat 7 scene.
 
-Since we are processing a Landsat scene, we'll use the script titled 'usgslsprepare.py'. Run this script on your uncompressed scene with the following command (please note that you should run this command on the **directory**):
+Since we are processing a Landsat scene, we'll use the script titled 'usgs_ls_ard_prepare.py'. Run this script on your uncompressed scene with the following command (please note that you should run this command on the **directory**):
 
 ```
 #if you are not already in the virtual environment, please activate that now with 'source ~/Datacube/datacube_env/bin/activate'
-#This is dependent on what data you have - Collection 1 Higher level data uses usgs_ls_ard_prepare, while older datasets use usgslsprepare.py
-python usgs_ls_ard_prepare.py /datacube/original_data/L*/
+#This is dependent on what data you have - Collection 1 Higher level data uses usgs_ls_ard_prepare.py
+cd ~/Datacube/agdc-v2/ingest/prepare_scripts/landsat_collection
+python usgs_ls_ard_prepare.py /datacube/original_data/LE071950542015121201T1-SC20170427222707
 ```
 
 These scripts can run on a single directory of a list of directories specified with a wildcard (\*). The output should resemble what is shown below:
 
 ```
-2017-04-19 12:30:25,134 INFO Processing /datacube/original_data/LE71240522000128-SC20170217181717
-2017-04-19 12:30:25,141 INFO Writing /datacube/original_data/LE71240522000128-SC20170217181717/datacube-metadata.yaml
+2017-06-09 18:24:18,821 INFO Processing /datacube/original_data/LE071950542015121201T1-SC20170427222707
+2017-06-09 18:27:27,356 INFO Writing /datacube/original_data/LE071950542015121201T1-SC20170427222707/datacube-metadata.yaml
 ```
 
 You'll see that the script has created a .yaml file titled datacube-metadata.yaml in the same directory as your GeoTiff data files.
@@ -171,64 +172,75 @@ Opening this metadata .yaml file, you'll see that is contains all of the fields 
 
 ```
 acquisition:
-  aos: '2000-05-07 02:59:38'
-  groundstation: {code: SGS}
-  los: '2000-05-07 03:00:02'
-creation_dt: 2000-05-08 00:00:00
+  aos: '2015-12-12 10:28:11'
+  groundstation: {code: _20}
+  los: '2015-12-12 10:28:35'
+creation_dt: 2015-12-12 00:00:00
 extent:
-  center_dt: '2000-05-07 02:59:50'
+  center_dt: '2015-12-12 10:28:23'
   coord:
-    ll: {lat: 10.641493156929936, lon: 106.75870991242047}
-    lr: {lat: 10.622400004728664, lon: 108.88195125452104}
-    ul: {lat: 12.515617895333568, lon: 106.77046427359687}
-    ur: {lat: 12.493065194188315, lon: 108.90783262592694}
-  from_dt: '2000-05-07 02:59:38'
-  to_dt: '2000-05-07 03:00:02'
+    ll: {lat: 7.737183174881767, lon: -3.567831638761143}
+    lr: {lat: 7.734497457038338, lon: -1.38312183942985}
+    ul: {lat: 9.628719298511964, lon: -3.5706832614261326}
+    ur: {lat: 9.625366153010912, lon: -1.375005763660132}
+  from_dt: '2015-12-12 10:28:11'
+  to_dt: '2015-12-12 10:28:35'
 format: {name: GeoTiff}
 grid_spatial:
   projection:
     geo_ref_points:
-      ll: {x: 692385.0, y: 1176885.0}
-      lr: {x: 924915.0, y: 1176885.0}
-      ul: {x: 692385.0, y: 1384215.0}
-      ur: {x: 924915.0, y: 1384215.0}
-    spatial_reference: PROJCS["WGS 84 / UTM zone 48N",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
-      84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],PROJECTION["Transverse_Mercator"],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",105],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH],AUTHORITY["EPSG","32648"]]
-id: 708d0d1b-8832-460b-b79e-67694875e101
+      ll: {x: 437385.0, y: 855285.0}
+      lr: {x: 678315.0, y: 855285.0}
+      ul: {x: 437385.0, y: 1064415.0}
+      ur: {x: 678315.0, y: 1064415.0}
+    spatial_reference: PROJCS["WGS 84 / UTM zone 30N",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS
+      84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],PROJECTION["Transverse_Mercator"],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",-3],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH],AUTHORITY["EPSG","32630"]]
+    valid_data:
+      coordinates:
+      - - [482115.0, 1063065.0]
+        - [481425.73252794606, 1062321.589012033]
+        - [478455.66456685227, 1048971.279519252]
+        - [443955.6632301671, 887751.2732715366]
+        - [443415.5353442432, 884930.6421681236]
+        - [443448.16718427, 884821.583592135]
+        - [443881.583592135, 884448.16718427]
+        - [444340.6183618273, 884355.3217041101]
+        - [633340.6211738006, 856455.3212890928]
+        - [633970.7573593128, 856365.3015151902]
+        - [634182.3576451553, 856382.6890596801]
+        - [634724.3253649862, 857588.6736291265]
+        - [657884.333851242, 965438.7130952516]
+        - [672344.3555137333, 1033208.81503327]
+        - [672525.0, 1034175.0]
+        - [672404.7186338773, 1035079.0991219141]
+        - [482115.0, 1063065.0]
+      type: Polygon
+id: 18163152-7388-4607-a75b-1f20e7b70045
 image:
   bands:
-    '1': {path: LE71240522000128SGS00_b1.tif}
-    '2': {path: LE71240522000128SGS00_b2.tif}
-    '3': {path: LE71240522000128SGS00_b3.tif}
-    '4': {path: LE71240522000128SGS00_b4.tif}
-    '5': {path: LE71240522000128SGS00_b5.tif}
-    '61': {path: LE71240522000128SGS00_b61.tif}
-    '62': {path: LE71240522000128SGS00_b62.tif}
-    '7': {path: LE71240522000128SGS00_b7.tif}
-    '8': {path: LE71240522000128SGS00_b8.tif}
-    cfmask: {path: LE71240522000128SGS00_cfmask.tif}
-    cfmask_conf: {path: LE71240522000128SGS00_cfmask_conf.tif}
-    sr_adjacent_cloud_qa: {path: LE71240522000128SGS00_sr_adjacent_cloud_qa.tif}
-    sr_atmos_opacity: {path: LE71240522000128SGS00_sr_atmos_opacity.tif}
-    sr_band1: {path: LE71240522000128SGS00_sr_band1.tif}
-    sr_band2: {path: LE71240522000128SGS00_sr_band2.tif}
-    sr_band3: {path: LE71240522000128SGS00_sr_band3.tif}
-    sr_band4: {path: LE71240522000128SGS00_sr_band4.tif}
-    sr_band5: {path: LE71240522000128SGS00_sr_band5.tif}
-    sr_band7: {path: LE71240522000128SGS00_sr_band7.tif}
-    sr_cloud_qa: {path: LE71240522000128SGS00_sr_cloud_qa.tif}
-    sr_cloud_shadow_qa: {path: LE71240522000128SGS00_sr_cloud_shadow_qa.tif}
-    sr_ddv_qa: {path: LE71240522000128SGS00_sr_ddv_qa.tif}
-    sr_fill_qa: {path: LE71240522000128SGS00_sr_fill_qa.tif}
-    sr_land_water_qa: {path: LE71240522000128SGS00_sr_land_water_qa.tif}
-    sr_snow_qa: {path: LE71240522000128SGS00_sr_snow_qa.tif}
-  satellite_ref_point_end: {x: 124, y: 52}
-  satellite_ref_point_start: {x: 124, y: 52}
+    pixel_qa: {path: LE07_L1TP_195054_20151212_20161016_01_T1_pixel_qa.tif}
+    pixel_qa_conf: {path: LE07_L1TP_195054_20151212_20161016_01_T1_pixel_qa_conf.tif}
+    pixel_qa: {path: LE07_L1TP_195054_20151212_20161016_01_T1_pixel_qa.tif}
+    radsat_qa: {path: LE07_L1TP_195054_20151212_20161016_01_T1_radsat_qa.tif}
+    sensor_azimuth_band4: {path: LE07_L1TP_195054_20151212_20161016_01_T1_sensor_azimuth_band4.tif}
+    sensor_zenith_band4: {path: LE07_L1TP_195054_20151212_20161016_01_T1_sensor_zenith_band4.tif}
+    solar_azimuth_band4: {path: LE07_L1TP_195054_20151212_20161016_01_T1_solar_azimuth_band4.tif}
+    solar_zenith_band4: {path: LE07_L1TP_195054_20151212_20161016_01_T1_solar_zenith_band4.tif}
+    sr_atmos_opacity: {path: LE07_L1TP_195054_20151212_20161016_01_T1_sr_atmos_opacity.tif}
+    sr_band1: {path: LE07_L1TP_195054_20151212_20161016_01_T1_sr_band1.tif}
+    sr_band2: {path: LE07_L1TP_195054_20151212_20161016_01_T1_sr_band2.tif}
+    sr_band3: {path: LE07_L1TP_195054_20151212_20161016_01_T1_sr_band3.tif}
+    sr_band4: {path: LE07_L1TP_195054_20151212_20161016_01_T1_sr_band4.tif}
+    sr_band5: {path: LE07_L1TP_195054_20151212_20161016_01_T1_sr_band5.tif}
+    sr_band7: {path: LE07_L1TP_195054_20151212_20161016_01_T1_sr_band7.tif}
+    sr_cloud_qa: {path: LE07_L1TP_195054_20151212_20161016_01_T1_sr_cloud_qa.tif}
+  satellite_ref_point_end: {x: 195, y: 54}
+  satellite_ref_point_start: {x: 195, y: 54}
 instrument: {name: ETM}
 lineage:
   source_datasets: {}
 platform: {code: LANDSAT_7}
-processing_level: sr_refl
+processing_level: T1
 product_type: LEDAPS
 ```
 
@@ -246,16 +258,17 @@ Run the `datacube dataset add` command on the directory or metadata .yaml file g
 
 ```
 #ensure that you are doing this from within the virtual environment. If not, activate it with 'source ~/Datacube/datacube_env/bin/activate'
-datacube -v dataset add /datacube/original_data/LE71240522000128-SC20170217181717
+datacube -v dataset add /datacube/original_data/LE071950542015121201T1-SC20170427222707
 #or
-#datacube -v dataset add /datacube/original_data/LE71240522000128-SC20170217181717/datacube-metadata.yaml
+#datacube -v dataset add /datacube/original_data/LE071950542015121201T1-SC20170427222707/datacube-metadata.yaml
 ```
 
 The resulting console output will resemble the output below:
 
 ```
-Indexing datasets  [####################################]  100%2017-04-19 13:45:16,405 22577 datacube-dataset INFO Matched Dataset <id=708d0d1b-8832-460b-b79e-67694875e101 type=ls7_collections_sr_scene location=/datacube/original_data/LE71240522000128-SC20170217181717/datacube-metadata.yaml>
-2017-04-19 13:45:16,406 22577 datacube.index._datasets INFO Indexing 708d0d1b-8832-460b-b79e-67694875e101
+2017-06-09 18:32:32,075 5086 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v dataset add /datacube/original_data/LE071950542015121201T1-SC20170427222707/datacube-metadata.yaml
+Indexing datasets  [####################################]  100%2017-06-09 18:32:32,122 5086 datacube-dataset INFO Matched Dataset <id=18163152-7388-4607-a75b-1f20e7b70045 type=ls7_collections_sr_scene location=/datacube/original_data/LE071950542015121201T1-SC20170427222707/datacube-metadata.yaml>
+2017-06-09 18:32:32,123 5086 datacube.index._datasets INFO Indexing 18163152-7388-4607-a75b-1f20e7b70045
 ```
 
 Please note that you are able to run these 'datacube' command line tools on wildcard inputs, e.g. `datacube dataset add /datacube/original_data/LE*/*.yaml` to batch process directories.
@@ -304,7 +317,7 @@ print(data_full)
 
 #replace latitude and longitude ranges with whatever you want - we're now loading in a single 0.5 degree square. Note that all lat/lon query parameters are in latitude/longitude WGS84 coordinates.
 #using the printed data_full, look at the listing for latitude and longitude. The first values there is the upper left corner. in our case, the upper left corner is at 12.52 lat, 106.8 lon.
-data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5))
+data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(8.75, 9), longitude=(-2.75, -2.5))
 
 print(data_partial)
 
@@ -312,7 +325,7 @@ print(data_partial)
 
 #we can also load a small subset of data at once by measurement to have a smaller memory footprint.
 
-data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5), measurements=['sr_band1', 'cfmask'])
+data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(8.75, 9), longitude=(-2.75, -2.5), measurements=['sr_band1', 'pixel_qa'])
 
 print(data_partial)
 ```
@@ -320,11 +333,6 @@ print(data_partial)
 The output of our script can be seen below - feel free to copy and paste the commands one at a time and to take some time to familiarize yourself with the commands.
 
 ```
-python
-Python 3.5.2 (default, Nov 17 2016, 17:05:23)
-[GCC 5.4.0 20160609] on linux
-Type "help", "copyright", "credits" or "license" for more information.
->>>
 >>> #import the datacube
 ... import datacube
 >>>
@@ -354,11 +362,11 @@ RuntimeError: Product has no default CRS. Must specify 'output_crs' and 'resolut
 ...
 >>> print(data_full)
 <xarray.Dataset>
-Dimensions:               (latitude: 7013, longitude: 7961, time: 1)
+Dimensions:               (latitude: 6932, longitude: 7721, time: 1)
 Coordinates:
-  * time                  (time) datetime64[ns] 2000-05-07T02:59:50
-  * latitude              (latitude) float64 12.52 12.52 12.52 12.51 12.51 ...
-  * longitude             (longitude) float64 106.8 106.8 106.8 106.8 106.8 ...
+  * time                  (time) datetime64[ns] 2015-12-12T10:28:23
+  * latitude              (latitude) float64 9.617 9.617 9.616 9.616 9.616 ...
+  * longitude             (longitude) float64 -3.513 -3.513 -3.513 -3.513 ...
 Data variables:
     sr_band1              (time, latitude, longitude) int16 -9999 -9999 ...
     sr_band2              (time, latitude, longitude) int16 -9999 -9999 ...
@@ -366,16 +374,14 @@ Data variables:
     sr_band4              (time, latitude, longitude) int16 -9999 -9999 ...
     sr_band5              (time, latitude, longitude) int16 -9999 -9999 ...
     sr_band7              (time, latitude, longitude) int16 -9999 -9999 ...
-    cfmask                (time, latitude, longitude) uint8 255 255 255 255 ...
-    cfmask_conf           (time, latitude, longitude) uint8 255 255 255 255 ...
-    sr_adjacent_cloud_qa  (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_atmos_opacity      (time, latitude, longitude) int16 -9999 -9999 ...
+    sr_atmos_opacity      (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
+    pixel_qa              (time, latitude, longitude) uint16 1 1 1 1 1 1 1 1 ...
+    radsat_qa             (time, latitude, longitude) uint8 1 1 1 1 1 1 1 1 ...
     sr_cloud_qa           (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_cloud_shadow_qa    (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_ddv_qa             (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_fill_qa            (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_land_water_qa      (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_snow_qa            (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
+    solar_azimuth_band4   (time, latitude, longitude) int16 -32768 -32768 ...
+    solar_zenith_band4    (time, latitude, longitude) int16 -32768 -32768 ...
+    sensor_azimuth_band4  (time, latitude, longitude) int16 -32768 -32768 ...
+    sensor_zenith_band4   (time, latitude, longitude) int16 -32768 -32768 ...
 Attributes:
     crs:      EPSG:4326
 >>>
@@ -387,15 +393,15 @@ Attributes:
 ...
 >>> #replace latitude and longitude ranges with whatever you want - we're now loading in a single 0.5 degree square. Note that all lat/lon query parameters are in latitude/longitude WGS84 coordinates.
 ... #using the printed data_full, look at the listing for latitude and longitude. The first values there is the upper left corner. in our case, the upper left corner is at 12.52 lat, 106.8 lon.
-... data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5))
+... data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(8.75, 9), longitude=(-2.75, -2.5))
 >>>
 >>> print(data_partial)
 <xarray.Dataset>
-Dimensions:               (latitude: 1853, longitude: 1853, time: 1)
+Dimensions:               (latitude: 927, longitude: 927, time: 1)
 Coordinates:
-  * time                  (time) datetime64[ns] 2000-05-07T02:59:50
-  * latitude              (latitude) float64 12.5 12.5 12.5 12.5 12.5 12.5 ...
-  * longitude             (longitude) float64 107.0 107.0 107.0 107.0 107.0 ...
+  * time                  (time) datetime64[ns] 2015-12-12T10:28:23
+  * latitude              (latitude) float64 9.0 9.0 9.0 8.999 8.999 8.999 ...
+  * longitude             (longitude) float64 -2.75 -2.75 -2.75 -2.749 ...
 Data variables:
     sr_band1              (time, latitude, longitude) int16 -9999 -9999 ...
     sr_band2              (time, latitude, longitude) int16 -9999 -9999 ...
@@ -403,16 +409,14 @@ Data variables:
     sr_band4              (time, latitude, longitude) int16 -9999 -9999 ...
     sr_band5              (time, latitude, longitude) int16 -9999 -9999 ...
     sr_band7              (time, latitude, longitude) int16 -9999 -9999 ...
-    cfmask                (time, latitude, longitude) uint8 255 255 255 255 ...
-    cfmask_conf           (time, latitude, longitude) uint8 255 255 255 255 ...
-    sr_adjacent_cloud_qa  (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_atmos_opacity      (time, latitude, longitude) int16 -9999 -9999 ...
+    sr_atmos_opacity      (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
+    pixel_qa              (time, latitude, longitude) uint16 1 1 1 1 1 1 1 1 ...
+    radsat_qa             (time, latitude, longitude) uint8 1 1 1 1 1 1 1 1 ...
     sr_cloud_qa           (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_cloud_shadow_qa    (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_ddv_qa             (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_fill_qa            (time, latitude, longitude) uint8 255 255 255 255 ...
-    sr_land_water_qa      (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
-    sr_snow_qa            (time, latitude, longitude) uint8 0 0 0 0 0 0 0 0 ...
+    solar_azimuth_band4   (time, latitude, longitude) int16 -32768 -32768 ...
+    solar_zenith_band4    (time, latitude, longitude) int16 -32768 -32768 ...
+    sensor_azimuth_band4  (time, latitude, longitude) int16 -32768 -32768 ...
+    sensor_zenith_band4   (time, latitude, longitude) int16 -32768 -32768 ...
 Attributes:
     crs:      EPSG:4326
 >>>
@@ -420,21 +424,21 @@ Attributes:
 ...
 >>> #we can also load a small subset of data at once by measurement to have a smaller memory footprint.
 ...
->>> data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(12, 12.5), longitude=(107, 107.5), measurements=['sr_band1', 'cfmask'])
+>>> data_partial = dc.load(product='ls7_collections_sr_scene', output_crs='EPSG:4326', resolution=(-0.00027,0.00027), latitude=(8.75, 9), longitude=(-2.75, -2.5), measurements=['sr_band1', 'pixel_qa'])
 >>>
 >>> print(data_partial)
 <xarray.Dataset>
-Dimensions:    (latitude: 1853, longitude: 1853, time: 1)
+Dimensions:    (latitude: 927, longitude: 927, time: 1)
 Coordinates:
-  * time       (time) datetime64[ns] 2000-05-07T02:59:50
-  * latitude   (latitude) float64 12.5 12.5 12.5 12.5 12.5 12.5 12.5 12.5 ...
-  * longitude  (longitude) float64 107.0 107.0 107.0 107.0 107.0 107.0 107.0 ...
+  * time       (time) datetime64[ns] 2015-12-12T10:28:23
+  * latitude   (latitude) float64 9.0 9.0 9.0 8.999 8.999 8.999 8.998 8.998 ...
+  * longitude  (longitude) float64 -2.75 -2.75 -2.75 -2.749 -2.749 -2.749 ...
 Data variables:
     sr_band1   (time, latitude, longitude) int16 -9999 -9999 -9999 -9999 ...
-    cfmask     (time, latitude, longitude) uint8 255 255 255 255 255 255 255 ...
+    pixel_qa   (time, latitude, longitude) uint16 1 1 1 1 1 1 1 1 1 1 1 1 1 ...
 Attributes:
     crs:      EPSG:4326
-
+>>>
 ```
 
 The Data Cube loads data into xArray datasets - [documentation found here](http://xarray.pydata.org/en/stable/index.html). All normal numpy and xArray functions can be applied to Data Cube data.
@@ -471,7 +475,7 @@ Next, there are two parameters that specify the location and file path templates
 
 ```
 location: '/datacube/ingested_data'
-file_path_template: 'LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_{tile_index[0]}_{tile_index[1]}_{tile_index[2]}.nc'
+file_path_template: 'LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_{tile_index[0]}_{tile_index[1]}_{start_time}.nc'
 ```
 
 This specifies that the base path for the ingested data is `/datacube/ingested_data` - this was created previously and should have 777 permissions.
@@ -503,7 +507,7 @@ global_attributes:
   acknowledgment: Landsat data is provided by the United States Geological Survey (USGS).
 ```
 
-The next field group defines what subset (if any) of the source dataset that should be used for the ingestion process. If the entire source dataset should be ingested, then this can be left out. In the example below, we are restricting the ingestion process to datasets that match the input dataset type that fall between those bounds. These numbers should be in latitude and longitude WGS84 coordinates.
+The next field group defines what subset (if any) of the source dataset that should be used for the ingestion process. If the entire source dataset should be ingested, then this can be left out. In the example below, we are restricting the ingestion process to datasets that match the input dataset type that fall between those bounds. These numbers should be in latitude and longitude WGS84 coordinates. In the general ingestion configuration, ingestion bounds are left out.
 
 ```
 ingestion_bounds:
@@ -570,69 +574,88 @@ datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/landsat_collec
 You'll notice a few things in the command above: -c is the option for the configuration file, and --executor multiproc enables multiprocessing. In our case, we're using two cores. You should see a significant amount of console output as well as a constantly updating status until ingestion is finished. With our ~1 degree tiles, you can also see that we are producing 9 tiles for the single acquisition due to our tiling settings. The console output can be seen below:
 
 ```
-2017-04-20 10:00:11,758 27010 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v ingest -c /home/localuser/Datacube/agdc-v2/ingest/ingestion_configs/landsat_collection/ls7_collections_sr_general.yaml
-2017-04-20 10:00:11,822 27010 agdc-ingest INFO Created DatasetType ls7_ledaps_general
-2017-04-20 10:00:11,916 27010 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_general_lat_lon_time
-2017-04-20 10:00:11,960 27010 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_ledaps_general_time_lat_lon
-(106, 5)
-...
-(121, 21)
-2017-04-20 10:00:12,405 27010 agdc-ingest INFO 9 tasks discovered
-2017-04-20 10:00:12,485 27010 agdc-ingest INFO Submitting task: (114, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:12,486 27010 agdc-ingest INFO Submitting task: (115, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:12,486 27010 agdc-ingest INFO Submitting task: (113, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:12,486 27010 agdc-ingest INFO Submitting task: (115, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:12,486 27010 agdc-ingest INFO Submitting task: (114, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:12,487 27010 agdc-ingest INFO Submitting task: (113, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:12,487 27010 agdc-ingest INFO Submitting task: (113, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:12,487 27010 agdc-ingest INFO Submitting task: (114, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:12,487 27010 agdc-ingest INFO Submitting task: (115, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:12,488 27010 agdc-ingest INFO Starting task (114, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:19,265 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_114_13_20000507025950000000.nc
-2017-04-20 10:00:22,625 27010 agdc-ingest INFO Finished task (114, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:22,626 27010 agdc-ingest INFO completed 1, failed 0, pending 8
-2017-04-20 10:00:22,626 27010 datacube.index._datasets INFO Indexing 82b339a4-a12d-45c0-a851-f7a203b9a670
-2017-04-20 10:00:22,898 27010 agdc-ingest INFO Starting task (115, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:35,432 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_115_11_20000507025950000000.nc
-2017-04-20 10:00:38,110 27010 agdc-ingest INFO Finished task (115, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:38,110 27010 agdc-ingest INFO completed 1, failed 0, pending 7
-2017-04-20 10:00:38,111 27010 datacube.index._datasets INFO Indexing 490d81eb-a22f-4411-9598-07f964fefb77
-2017-04-20 10:00:38,156 27010 agdc-ingest INFO Starting task (113, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:41,747 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_113_13_20000507025950000000.nc
-2017-04-20 10:00:44,523 27010 agdc-ingest INFO Finished task (113, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:44,524 27010 agdc-ingest INFO completed 1, failed 0, pending 6
-2017-04-20 10:00:44,524 27010 datacube.index._datasets INFO Indexing e0e3b1c4-3d59-4255-aa31-20a2aa1b569b
-2017-04-20 10:00:44,556 27010 agdc-ingest INFO Starting task (115, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:00:59,737 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_115_12_20000507025950000000.nc
-2017-04-20 10:01:03,200 27010 agdc-ingest INFO Finished task (115, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:03,201 27010 agdc-ingest INFO completed 1, failed 0, pending 5
-2017-04-20 10:01:03,201 27010 datacube.index._datasets INFO Indexing 04f5ccc5-c2a0-4824-8be1-2887a2721499
-2017-04-20 10:01:03,278 27010 agdc-ingest INFO Starting task (114, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:08,624 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_114_12_20000507025950000000.nc
-2017-04-20 10:01:14,500 27010 agdc-ingest INFO Finished task (114, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:14,501 27010 agdc-ingest INFO completed 1, failed 0, pending 4
-2017-04-20 10:01:14,501 27010 datacube.index._datasets INFO Indexing 0921386d-333b-46c5-8398-40080fcf25f8
-2017-04-20 10:01:14,567 27010 agdc-ingest INFO Starting task (113, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:18,858 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_113_11_20000507025950000000.nc
-2017-04-20 10:01:22,925 27010 agdc-ingest INFO Finished task (113, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:22,925 27010 agdc-ingest INFO completed 1, failed 0, pending 3
-2017-04-20 10:01:22,926 27010 datacube.index._datasets INFO Indexing 3ab3673a-e7bd-4fc7-a8aa-e3ff05042c3a
-2017-04-20 10:01:23,000 27010 agdc-ingest INFO Starting task (113, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:27,720 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_113_12_20000507025950000000.nc
-2017-04-20 10:01:32,007 27010 agdc-ingest INFO Finished task (113, 12, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:32,008 27010 agdc-ingest INFO completed 1, failed 0, pending 2
-2017-04-20 10:01:32,008 27010 datacube.index._datasets INFO Indexing 45582c02-22f2-4efc-a81d-ee566f990c8a
-2017-04-20 10:01:32,111 27010 agdc-ingest INFO Starting task (114, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:36,723 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_114_11_20000507025950000000.nc
-2017-04-20 10:01:41,250 27010 agdc-ingest INFO Finished task (114, 11, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:41,250 27010 agdc-ingest INFO completed 1, failed 0, pending 1
-2017-04-20 10:01:41,251 27010 datacube.index._datasets INFO Indexing 3a83cd2a-ca8f-419e-b937-8ea88b136b12
-2017-04-20 10:01:42,293 27010 agdc-ingest INFO Starting task (115, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:45,774 27010 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_115_13_20000507025950000000.nc
-2017-04-20 10:01:48,268 27010 agdc-ingest INFO Finished task (115, 13, numpy.datetime64('2000-05-07T02:59:50.000000000'))
-2017-04-20 10:01:48,268 27010 agdc-ingest INFO completed 1, failed 0, pending 0
-2017-04-20 10:01:48,269 27010 datacube.index._datasets INFO Indexing 2e0d1a7b-078d-4173-a636-f73ee9f920bd
-9 successful, 0 failed
+2017-06-11 12:02:31,965 12986 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v ingest -c /home/localuser/Datacube/agdc-v2/ingest/ingestion_configs/landsat_collection/ls7_collections_sr_general.yaml --executor multiproc 2
+2017-06-11 12:02:32,022 12986 agdc-ingest INFO Created DatasetType ls7_ledaps_general
+2017-06-11 12:02:32,044 12986 datacube.index._datasets INFO No changes detected for product ls7_ledaps_general
+2017-06-11 12:02:32,075 12986 agdc-ingest INFO 8 tasks discovered
+2017-06-11 12:02:32,083 12986 agdc-ingest INFO Submitting task: (-2, 8, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:32,110 12986 agdc-ingest INFO Submitting task: (-4, 10, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:32,121 12986 agdc-ingest INFO Submitting task: (-4, 9, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:32,122 12986 agdc-ingest INFO Submitting task: (-4, 8, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:32,129 12986 agdc-ingest INFO Submitting task: (-2, 9, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:32,129 12986 agdc-ingest INFO Submitting task: (-3, 8, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:32,130 12986 agdc-ingest INFO Submitting task: (-3, 10, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:32,134 12986 agdc-ingest INFO Submitting task: (-3, 9, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:32,135 12986 agdc-ingest INFO completed 0, failed 0, pending 8
+2017-06-11 12:02:32,136 12997 agdc-ingest INFO Starting task (-2, 8, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:32,142 12998 agdc-ingest INFO Starting task (-4, 10, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:33,139 12986 agdc-ingest INFO completed 0, failed 0, pending 8
+2017-06-11 12:02:34,140 12986 agdc-ingest INFO completed 0, failed 0, pending 8
+2017-06-11 12:02:35,142 12986 agdc-ingest INFO completed 0, failed 0, pending 8
+2017-06-11 12:02:35,341 12998 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_-4_10_20151212102823000000.nc
+2017-06-11 12:02:36,076 12997 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_-2_8_20151212102823000000.nc
+2017-06-11 12:02:36,145 12986 agdc-ingest INFO completed 0, failed 0, pending 8
+2017-06-11 12:02:37,147 12986 agdc-ingest INFO completed 0, failed 0, pending 8
+2017-06-11 12:02:37,843 12998 agdc-ingest INFO Finished task (-4, 10, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:37,853 12998 agdc-ingest INFO Starting task (-4, 9, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:38,148 12986 agdc-ingest INFO completed 1, failed 0, pending 7
+2017-06-11 12:02:38,149 12986 datacube.index._datasets INFO Indexing e72bfba8-68e8-4305-a901-0cc4cdbb8114
+2017-06-11 12:02:38,199 12986 agdc-ingest INFO completed 0, failed 0, pending 7
+2017-06-11 12:02:38,556 12997 agdc-ingest INFO Finished task (-2, 8, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:38,563 12997 agdc-ingest INFO Starting task (-4, 8, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:39,200 12986 agdc-ingest INFO completed 1, failed 0, pending 6
+2017-06-11 12:02:39,201 12986 datacube.index._datasets INFO Indexing d5eb550b-faf7-4e47-9714-e50a5328c91e
+2017-06-11 12:02:39,251 12986 agdc-ingest INFO completed 0, failed 0, pending 6
+2017-06-11 12:02:40,252 12986 agdc-ingest INFO completed 0, failed 0, pending 6
+2017-06-11 12:02:41,254 12986 agdc-ingest INFO completed 0, failed 0, pending 6
+2017-06-11 12:02:42,228 12998 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_-4_9_20151212102823000000.nc
+2017-06-11 12:02:42,256 12986 agdc-ingest INFO completed 0, failed 0, pending 6
+2017-06-11 12:02:42,643 12997 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_-4_8_20151212102823000000.nc
+2017-06-11 12:02:43,257 12986 agdc-ingest INFO completed 0, failed 0, pending 6
+2017-06-11 12:02:44,259 12986 agdc-ingest INFO completed 0, failed 0, pending 6
+2017-06-11 12:02:45,261 12986 agdc-ingest INFO completed 0, failed 0, pending 6
+2017-06-11 12:02:45,728 12998 agdc-ingest INFO Finished task (-4, 9, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:45,736 12998 agdc-ingest INFO Starting task (-2, 9, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:45,840 12997 agdc-ingest INFO Finished task (-4, 8, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:45,847 12997 agdc-ingest INFO Starting task (-3, 8, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:46,262 12986 agdc-ingest INFO completed 2, failed 0, pending 4
+2017-06-11 12:02:46,263 12986 datacube.index._datasets INFO Indexing 6ab04a04-5d8f-4898-a7a8-debf170d4a1d
+2017-06-11 12:02:46,295 12986 datacube.index._datasets INFO Indexing 0890b27b-1444-4f7f-96ef-d83e05b31fe8
+2017-06-11 12:02:46,310 12986 agdc-ingest INFO completed 0, failed 0, pending 4
+2017-06-11 12:02:47,311 12986 agdc-ingest INFO completed 0, failed 0, pending 4
+2017-06-11 12:02:48,313 12986 agdc-ingest INFO completed 0, failed 0, pending 4
+2017-06-11 12:02:49,315 12986 agdc-ingest INFO completed 0, failed 0, pending 4
+2017-06-11 12:02:49,803 12998 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_-2_9_20151212102823000000.nc
+2017-06-11 12:02:50,316 12986 agdc-ingest INFO completed 0, failed 0, pending 4
+2017-06-11 12:02:50,557 12997 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_-3_8_20151212102823000000.nc
+2017-06-11 12:02:51,318 12986 agdc-ingest INFO completed 0, failed 0, pending 4
+2017-06-11 12:02:52,319 12986 agdc-ingest INFO completed 0, failed 0, pending 4
+2017-06-11 12:02:52,785 12998 agdc-ingest INFO Finished task (-2, 9, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:52,791 12998 agdc-ingest INFO Starting task (-3, 10, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:53,320 12986 agdc-ingest INFO completed 1, failed 0, pending 3
+2017-06-11 12:02:53,320 12986 datacube.index._datasets INFO Indexing 751aa80a-9039-4a69-8270-a93a8b1de886
+2017-06-11 12:02:55,762 12998 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_-3_10_20151212102823000000.nc
+2017-06-11 12:02:56,122 12986 agdc-ingest INFO completed 0, failed 0, pending 3
+2017-06-11 12:02:56,409 12997 agdc-ingest INFO Finished task (-3, 8, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:56,415 12997 agdc-ingest INFO Starting task (-3, 9, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:57,123 12986 agdc-ingest INFO completed 1, failed 0, pending 2
+2017-06-11 12:02:57,124 12986 datacube.index._datasets INFO Indexing c74f0f95-746d-44ef-825e-7bcfc0171ac1
+2017-06-11 12:02:57,154 12986 agdc-ingest INFO completed 0, failed 0, pending 2
+2017-06-11 12:02:58,156 12986 agdc-ingest INFO completed 0, failed 0, pending 2
+2017-06-11 12:02:58,520 12998 agdc-ingest INFO Finished task (-3, 10, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:02:59,157 12986 agdc-ingest INFO completed 1, failed 0, pending 1
+2017-06-11 12:02:59,158 12986 datacube.index._datasets INFO Indexing 445991e2-d90e-4825-a62b-bc051534a9e7
+2017-06-11 12:03:01,590 12997 datacube.storage.storage INFO Creating storage unit: /datacube/ingested_data/LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_-3_9_20151212102823000000.nc
+2017-06-11 12:03:08,043 12986 agdc-ingest INFO completed 0, failed 0, pending 1
+2017-06-11 12:03:09,044 12986 agdc-ingest INFO completed 0, failed 0, pending 1
+2017-06-11 12:03:10,045 12986 agdc-ingest INFO completed 0, failed 0, pending 1
+2017-06-11 12:03:11,046 12986 agdc-ingest INFO completed 0, failed 0, pending 1
+2017-06-11 12:03:12,049 12986 agdc-ingest INFO completed 0, failed 0, pending 1
+2017-06-11 12:03:13,051 12986 agdc-ingest INFO completed 0, failed 0, pending 1
+2017-06-11 12:03:13,244 12997 agdc-ingest INFO Finished task (-3, 9, numpy.datetime64('2015-12-12T10:28:23.000000000'))
+2017-06-11 12:03:14,053 12986 agdc-ingest INFO completed 1, failed 0, pending 0
+2017-06-11 12:03:14,053 12986 datacube.index._datasets INFO Indexing 39b9a5a5-840e-4bc2-ade7-d682ec8a4e56
+8 successful, 0 failed
 ```
 
 If you visit your `/datacube/ingested_data` directory, you'll see that a NetCDF file was created for each task. Using pgAdmin3 and viewing the data in the 'dataset' table, you can see that there are now 10 total datasets - one for your original scene and one for each ingested tile.
@@ -652,7 +675,7 @@ The first step is to add your product definition. This will be done *once* for e
 ```
 #ensure that you're in the virtual environment. If not, activate with 'source ~/Datacube/datacube_env/bin/activate'
 #datacube -v product add {path to configuration file}
-datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/ls8_sr_scenes.yaml
+datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/landsat_collection/ls8_collections_sr_scene.yaml
 ```
 
 Now, for each dataset that is collected you will need to run a preparation script that generates the correct metadata as well as the 'datacube' command that indexes the dataset in the database. This only needs to be done once *for each dataset* - if you collect a new scene, you'll need to do this process for only that scene. Please note that indexing the dataset in the database creates an absolute reference to the path on disk - you cannot move the dataset on disk after indexing or it won't be found and will create problems.
@@ -660,9 +683,9 @@ Now, for each dataset that is collected you will need to run a preparation scrip
 ```
 #ensure that you're in the virtual environment. If not, activate with 'source ~/Datacube/datacube_env/bin/activate'
 #python ~/Datacube/agdc-v2/ingest/prepare_scripts/{script for dataset you want to add} {path to dataset(s)}
-python ~/Datacube/agdc-v2/ingest/prepare_scripts/usgslsprepare.py /datacube/original_data/General/LC8*/
+python ~/Datacube/agdc-v2/ingest/prepare_scripts/landsat_collection/usgs_ls_ard_prepare.py /datacube/original_data/General/LC08*/
 
-datacube -v dataset add /datacube/original_data/General/LC8*/
+datacube -v dataset add /datacube/original_data/General/LC08*/
 ```
 
 Now that the datasets have the correct metadata generated and have been indexed, we can run the ingestion process. Ingestion skips all datasets that have already been ingested, so this is a single command.
@@ -670,7 +693,7 @@ Now that the datasets have the correct metadata generated and have been indexed,
 ```
 #ensure that you're in the virtual environment. If not, activate with 'source ~/Datacube/datacube_env/bin/activate'
 #datacube -v ingest -c {path to config} --executor multiproc {number of available cores}
-datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/ls8_sr_scenes_wgs84_General.yaml --executor multiproc 8
+datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/landsat_collection/ls8_collections_sr_general.yaml --executor multiproc 2
 ```
 
 After an initial ingestion, when you download new acquisitions all you need to do is generate the metadata, index the dataset, and run the ingestion process.

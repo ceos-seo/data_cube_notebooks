@@ -73,9 +73,18 @@ Next, you'll need various Python packages responsible for the entire application
 ```
 pip install django
 pip install redis
-pip install celery
 pip install imageio
 pip install django-bootstrap3
+```
+
+The UI relies on a slightly newer version of Celery that has not yet been pushed to Pypi - This is due to a bug that was fixed a few days after their latest release.
+
+```
+source ~/Datacube/datacube_env/bin/activate
+cd ~/Datacube
+git clone https://github.com/celery/celery.git
+cd celery
+python setup.py install
 ```
 
 You will also need to create a base directory structure for results:
