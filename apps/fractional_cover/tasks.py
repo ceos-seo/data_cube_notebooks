@@ -422,7 +422,7 @@ def create_output_products(data, task_id=None):
     write_png_from_xr(task.result_path, dataset, bands=['bs', 'pv', 'npv'])
 
     logger.info("All products created.")
-    task.update_bounds_from_dataset(dataset)
+    # task.update_bounds_from_dataset(dataset)
     task.complete = True
     task.execution_end = datetime.now()
     task.update_status("OK", "All products have been generated. Your result will be loaded on the map.")
