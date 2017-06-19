@@ -248,14 +248,6 @@ class DatasetTypeMeasurementsForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': "mask, CFmask"}),
         required=False)
 
-    #if spectral response is true, then wavelength+response must be provided
-    spectral_definition = forms.BooleanField(
-        label="Spectral Response",
-        help_text="Do you want to enter values for spectral response?",
-        initial=False,
-        widget=forms.CheckboxInput(attrs={'onchange': "toggle_spectral_definition(this)"}),
-        required=False)
-
     #if mask is true then bits, description, and values must be provided
     flags_definition = forms.BooleanField(
         label="Flags Definition",
@@ -270,56 +262,6 @@ class DatasetTypeMeasurementsForm(forms.Form):
         if existing_metadata:
             for field in self.fields:
                 self.fields[field].widget.attrs['readonly'] = True
-
-
-class DatasetTypeSpectralDefinitionForm(forms.Form):
-    """
-    measurements:
-        - name: 'blue'
-          aliases: [band_1, blue]
-          dtype: int16
-          nodata: -9999
-          units: '1'
-          spectral_definition:
-              wavelength: [410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,450,451,452,453,454,455,456,457,458,459,460,461,462,463,464,465,466,467,468,469,470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,495,496,497,498,499,500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,518,519,520,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538,539,540,541,542,543,544,545,546,547,548,549,550,551,552]
-              response: [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0007,0.0008,0.0008,0.0009,0.0009,0.001,0.0013,0.0016,0.002,0.0023,0.0027,0.0042,0.006,0.0086,0.0113,0.0141,0.017,0.0216,0.0268,0.0321,0.037,0.042,0.0471,0.0524,0.0577,0.0633,0.0746,0.1097,0.1564,0.2483,0.3391,0.4058,0.4741,0.5366,0.5856,0.6667,0.688,0.6993,0.7095,0.7165,0.72,0.7326,0.7475,0.7583,0.7714,0.7847,0.7924,0.8002,0.808,0.8156,0.8206,0.8257,0.8308,0.8359,0.8421,0.8526,0.8642,0.8724,0.8824,0.8925,0.9026,0.9069,0.9111,0.9154,0.9196,0.9238,0.9285,0.9332,0.9379,0.9425,0.9472,0.9548,0.9623,0.9698,0.9761,0.9775,0.9788,0.9802,0.9815,0.9837,0.9891,0.9935,0.9978,1.0,0.9952,0.9828,0.9524,0.9219,0.8914,0.8607,0.8293,0.8021,0.7877,0.7732,0.7565,0.7339,0.6859,0.5784,0.4813,0.4002,0.3187,0.2367,0.1324,0.1018,0.0911,0.0804,0.0696,0.0588,0.0532,0.0498,0.0465,0.0431,0.0397,0.0364,0.033,0.0296,0.0261,0.0227,0.0205,0.0184,0.0162,0.014,0.0119,0.0105,0.0093,0.0081,0.0069,0.0058,0.0056,0.0054,0.0052,0.0,0.0]
-    """
-    wavelength = forms.CharField(
-        label="Wavelength",
-        help_text="Please enter a list of comma seperated floating point values that define the wavelengths of the spectral response.",
-        widget=forms.TextInput(attrs={
-            'placeholder':
-            "410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,450,451,452,453,454,455,456,457,458,459,460,461,462,463,464,465,466,467,468,469,470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,495,496,497,498,499,500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,518,519,520,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538,539,540,541,542,543,544,545,546,547,548,549,550,551,552"
-        }),
-        required=False,
-        validators=[validate_comma_separated_float_list])
-    response = forms.CharField(
-        label="Response",
-        help_text="Please enter a list of comma seperated responses that correspond with the wavelength entries. There must be an equal number of wavelength and spectral response entries.",
-        widget=forms.TextInput(attrs={
-            'placeholder':
-            "0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0007,0.0008,0.0008,0.0009,0.0009,0.001,0.0013,0.0016,0.002,0.0023,0.0027,0.0042,0.006,0.0086,0.0113,0.0141,0.017,0.0216,0.0268,0.0321,0.037,0.042,0.0471,0.0524,0.0577,0.0633,0.0746,0.1097,0.1564,0.2483,0.3391,0.4058,0.4741,0.5366,0.5856,0.6667,0.688,0.6993,0.7095,0.7165,0.72,0.7326,0.7475,0.7583,0.7714,0.7847,0.7924,0.8002,0.808,0.8156,0.8206,0.8257,0.8308,0.8359,0.8421,0.8526,0.8642,0.8724,0.8824,0.8925,0.9026,0.9069,0.9111,0.9154,0.9196,0.9238,0.9285,0.9332,0.9379,0.9425,0.9472,0.9548,0.9623,0.9698,0.9761,0.9775,0.9788,0.9802,0.9815,0.9837,0.9891,0.9935,0.9978,1.0,0.9952,0.9828,0.9524,0.9219,0.8914,0.8607,0.8293,0.8021,0.7877,0.7732,0.7565,0.7339,0.6859,0.5784,0.4813,0.4002,0.3187,0.2367,0.1324,0.1018,0.0911,0.0804,0.0696,0.0588,0.0532,0.0498,0.0465,0.0431,0.0397,0.0364,0.033,0.0296,0.0261,0.0227,0.0205,0.0184,0.0162,0.014,0.0119,0.0105,0.0093,0.0081,0.0069,0.0058,0.0056,0.0054,0.0052,0.0,0.0"
-        }),
-        required=False,
-        validators=[validate_comma_separated_float_list])
-
-    def __init__(self, *args, **kwargs):
-        existing_metadata = kwargs.pop('existing_dataset_type', None)
-        super(DatasetTypeSpectralDefinitionForm, self).__init__(*args, **kwargs)
-        if existing_metadata:
-            for field in self.fields:
-                self.fields[field].widget.attrs['readonly'] = True
-
-    def clean(self):
-        cleaned_data = super(DatasetTypeSpectralDefinitionForm, self).clean()
-        response = cleaned_data.get('response')
-        wavelength = cleaned_data.get('wavelength')
-
-        if not response or not wavelength:
-            self.add_error('response', "All spectral response fields are required when spectral response is enabled.")
-            return
-        if len(response.split(",")) != len(wavelength.split(",")):
-            self.add_error('response', "Wavelength and response must have an equivalent number of entries.")
 
 
 class DatasetTypeFlagsDefinitionForm(forms.Form):

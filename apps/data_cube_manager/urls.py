@@ -31,9 +31,9 @@ urlpatterns = [
     url(r'^dataset_types/add/(?P<dataset_type_id>[\w\-]+)$', views.CreateDatasetType.as_view(), name=''),
     url(r'^dataset_types/delete/(?P<dataset_type_id>[\w\-]+)$', views.DeleteDatasetType.as_view(), name=''),
     # Dataset related functionality - list all for dataset type, view single, download, delete
-    url(r'^dataset_types/(?P<dataset_type_id>regex)/datasets$', views.DatasetListView.as_view(), name=''),
-    url(r'^dataset_types/(?P<dataset_type_id>regex)/datasets/download/(?P<dataset_id>regex)$',
+    url(r'^dataset_types/(?P<dataset_type_id>[\w\-]+)/datasets$', views.DatasetListView.as_view(), name=''),
+    url(r'^dataset_types/(?P<dataset_type_id>[\w\-]+)/datasets/download/(?P<dataset_id>regex)$',
         views.DatasetListView.as_view(),
         name=''),
-    url(r'^dataset_types/(?P<dataset_type_id>regex)/datasets/delete$', views.DeleteDataset.as_view(), name=''),
+    url(r'^dataset_types/(?P<dataset_type_id>[\w\-]+)/datasets/delete$', views.DeleteDataset.as_view(), name=''),
 ]

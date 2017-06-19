@@ -91,8 +91,6 @@
       {% bootstrap_field measurements_form.dtype %}
       {% bootstrap_field measurements_form.nodata %}
       {% bootstrap_field measurements_form.units %}
-      {% bootstrap_field measurements_form.spectral_definition %}
-      <div class="spectral_definition_form" style="display:none">{% bootstrap_form spectral_definition_form %}</div>
       {% bootstrap_field measurements_form.flags_definition %}
       <div class="flags_definition_form" style="display:none">{% bootstrap_form flags_definition_form %}</div>
     </form>
@@ -112,12 +110,6 @@
         {% bootstrap_field existing_measurement.measurement_form.dtype %}
         {% bootstrap_field existing_measurement.measurement_form.nodata %}
         {% bootstrap_field existing_measurement.measurement_form.units %}
-        {% bootstrap_field existing_measurement.measurement_form.spectral_definition %}
-        {% if existing_measurement.spectral_definition_form %}
-          <div class="spectral_definition_form" style="">{% bootstrap_form existing_measurement.spectral_definition_form %}</div>
-        {% else %}
-          <div class="spectral_definition_form" style="display:none">{% bootstrap_form spectral_definition_form %}</div>
-        {% endif %}
         {% bootstrap_field existing_measurement.measurement_form.flags_definition %}
         {% if existing_measurement.flags_definition_form %}
           <div class="flags_definition_form" style="">{% bootstrap_form existing_measurement.flags_definition_form %}</div>
@@ -158,15 +150,6 @@
       set_form_visible("{{ initial_measurement }}")
     {% endif %}
   });
-
-  //toggle the various optional forms.
-  function toggle_spectral_definition(checkbox) {
-    if(checkbox.checked) {
-      jQuery(checkbox.form).children(".spectral_definition_form").show();
-    } else {
-      jQuery(checkbox.form).children(".spectral_definition_form").hide();
-    }
-  }
 
   function toggle_flags_definition(checkbox) {
     if(checkbox.checked) {

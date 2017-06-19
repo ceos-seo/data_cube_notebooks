@@ -49,10 +49,8 @@ def forms_from_definition(product_def, display_only=True):
             'nodata': measurement.get('nodata'),
             'units': measurement.get('units'),
             'aliases': ",".join(measurement.get('aliases', [])),
-            'spectral_definition': measurement.get('spectral_definition', False),
             'flags_definition': measurement.get('flags_definition', False)
         }
-        measurement_data['spectral_definition'] = True if measurement_data['spectral_definition'] else False
         measurement_data['flags_definition'] = True if measurement_data['flags_definition'] else False
 
         if initial_measurement is None:
@@ -62,18 +60,6 @@ def forms_from_definition(product_def, display_only=True):
         measurements[measurement_data['name']] = {
             'measurement_form': forms.DatasetTypeMeasurementsForm(measurement_data, existing_dataset_type=display_only)
         }
-
-        #if spectral definitions exist,populate a form and attach to dict.
-        measurements[measurement_data['name']]['spectral_definition_form'] = forms.DatasetTypeSpectralDefinitionForm(
-            {
-                'wavelength':
-                ",".join(
-                    map(lambda x: ('%0.9f' % x).rstrip('0').rstrip('.'),
-                        measurement.get('spectral_definition').get('wavelength'))),
-                'response':
-                ",".join(map(lambda x: format(x, 'f'), measurement.get('spectral_definition').get('response')))
-            },
-            existing_dataset_type=display_only) if measurement_data['spectral_definition'] else None
 
         #if flag defs exist populate a form and attach to dict.
         flag_name = list(
@@ -171,14 +157,6 @@ def definition_from_forms(metadata, measurements):
             map(lambda x: re.sub('[^0-9a-zA-Z]+', '_', x.strip(" ")), measurement['measurement_form'].cleaned_data[
                 'aliases'].split(","))) if measurement['measurement_form'].cleaned_data['aliases'] else None
 
-        measurement_dict['spectral_definition'] = {
-            'wavelength':
-            list(
-                map(lambda x: float(x), measurement['spectral_definition_form'].cleaned_data['wavelength'].split(","))),
-            'response':
-            list(map(lambda x: float(x), measurement['spectral_definition_form'].cleaned_data['response'].split(",")))
-        } if measurement['measurement_form'].cleaned_data['spectral_definition'] else None
-
         measurement_dict['flags_definition'] = {
             measurement['flags_definition_form'].cleaned_data['flag_name']: {
                 'bits':
@@ -205,8 +183,6 @@ def create_measurement_form(post_data):
     if measurement_forms['measurement_form'].is_valid():
         if measurement_forms['measurement_form'].cleaned_data['flags_definition']:
             measurement_forms['flags_definition_form'] = forms.DatasetTypeFlagsDefinitionForm(post_data)
-        if measurement_forms['measurement_form'].cleaned_data['spectral_definition']:
-            measurement_forms['spectral_definition_form'] = forms.DatasetTypeSpectralDefinitionForm(post_data)
     return measurement_forms
 
 

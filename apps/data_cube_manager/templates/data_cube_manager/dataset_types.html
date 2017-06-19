@@ -51,7 +51,7 @@
       <td>{{ dataset_type.metadata.product_type }}</td>
       <td>{% for measurement in dataset_type.definition.measurements %}{{measurement.name}}, {% endfor %}</td>
       <td class="visible-lg">{{ dataset_type.definition.description }}</td>
-      <td class="visible-lg"><a href="/data_cube_manager/view_datasets/{{ dataset_type.id }}" class="btn btn-default">View datasets</a></td>
+      <td class="visible-lg"><a href="/data_cube_manager/dataset_types/{{ dataset_type.id }}/datasets" class="btn btn-default">View datasets</a></td>
       <td><a href="/data_cube_manager/dataset_types/{{ dataset_type.id }}" class="btn btn-default">View definition</a></td>
     </tr>
     {% endfor %}
@@ -108,5 +108,5 @@
 </script>
 {% endblock %}
 {% block bottom_button %}
-<a class="btn btn-default pull-right bottom-btn" href="/data_cube_manager/create_dataset_type">Add a new dataset type</a>
+<a class="btn btn-default pull-right bottom-btn" href="/data_cube_manager/create">Add a new dataset type</a>
 {% endblock %}

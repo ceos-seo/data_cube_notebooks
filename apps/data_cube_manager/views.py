@@ -39,13 +39,12 @@ class DatasetTypeView(View):
         context = {
             'measurements_form': forms.DatasetTypeMeasurementsForm(),
             'flags_definition_form': forms.DatasetTypeFlagsDefinitionForm(),
-            'spectral_definition_form': forms.DatasetTypeSpectralDefinitionForm(),
             'dataset_type_id': dataset_type_id
         }
         dataset_type = models.DatasetType.objects.using('agdc').get(id=dataset_type_id)
         context.update(utils.forms_from_definition(dataset_type.definition, display_only=True))
         #def includes metadata.
-        return render(request, 'data_cube_manager/add_dataset_type.html', context)
+        return render(request, 'data_cube_manager/dataset_type.html', context)
 
     def post(self, request, dataset_type_id=None):
         """
@@ -53,7 +52,6 @@ class DatasetTypeView(View):
         context = {
             'measurements_form': forms.DatasetTypeMeasurementsForm(),
             'flags_definition_form': forms.DatasetTypeFlagsDefinitionForm(),
-            'spectral_definition_form': forms.DatasetTypeSpectralDefinitionForm(),
         }
         if dataset_type_id:
             dataset_type = models.DatasetType.objects.using('agdc').get(id=dataset_type_id)
@@ -158,16 +156,16 @@ class DatasetListView(View):
     """
     """
 
-    def get(self, request):
+    def get(self, request, dataset_type_id=None):
         """
         """
         context = {}
-        context['datasets'] = models.Dataset.objects.using('agdc').filter(dataset_type_ref=dataset_type_ref)
+        context['datasets'] = models.Dataset.objects.using('agdc').filter(dataset_type_ref=dataset_type_id)
         context['downloadable'] = 'managed' in models.DatasetType.objects.using('agdc').get(
-            id=dataset_type_ref).definition
+            id=dataset_type_id).definition
         return render(request, 'data_cube_manager/view_datasets.html', context)
 
-    def post(self, request):
+    def post(self, request, dataset_type_id=None):
         """
         """
         location = models.DatasetLocation.objects.using('agdc').get(dataset_ref=dataset_ref)
@@ -178,11 +176,11 @@ class DeleteDataset(View):
     """
     """
 
-    def get(self, request):
+    def get(self, request, dataset_type_id=None):
         """
         """
 
-    def post(self, request):
+    def post(self, request, dataset_type_id=None):
         """
         """
 
