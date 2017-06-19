@@ -55,6 +55,7 @@ class DatasetTypeView(View):
     def post(self, request):
         """
         """
+        form_data = request.POST
         measurements = json.loads(form_data.get('measurements'))
         metadata = json.loads(form_data.get('metadata_form'))
         #each measurement_form contains a dict of other forms..
