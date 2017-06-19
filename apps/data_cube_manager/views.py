@@ -27,7 +27,7 @@ class DatasetTypeListView(View):
         """
         context = {}
         context['dataset_types'] = models.DatasetType.objects.using('agdc').all()
-        return render(request, 'data_cube_manager/view_dataset_types.html', context)
+        return render(request, 'data_cube_manager/dataset_types.html', context)
 
 
 class DatasetTypeView(View):

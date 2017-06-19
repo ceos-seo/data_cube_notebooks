@@ -26,26 +26,46 @@ under the License.
 <script type="text/javascript" charset="utf8" src="/static/assets/js/DataTables/media/js/dataTables.bootstrap.min.js"></script>
 {% endblock %}
 {% block css %}
-<link href="/static/assets/css/datacube_manager.css" rel="stylesheet" type="text/css" media="screen, projection" />
 <link href="/static/assets/css/task_manager.css" rel="stylesheet" type="text/css" media="screen, projection" />
 <link rel="stylesheet" type="text/css" href="/static/assets/js/DataTables/media/css/dataTables.bootstrap.min.css">
 {% endblock %}
-
 {% block content %}
-<div class="container-fluid no-footer">
-  <div class="row fullscreen-row">
+
+<div class="container-fluid">
+  <div class="row">
     <div class="col-lg-12 seamless-col col-centered fullscreen-col table-container">
-      <div class="page-header">
-        <h1>{% block header %}{% endblock %}</h1>
-        <div class="row">
-          <p class="col-lg-9 col-md-10 col-sm-11 col-xs-12">{% block description %}{% endblock %}</p>
-        </div>
-      </div>
-      {% block table %}
-      {% endblock %}
-      {% block bottom_button %}
-      {% endblock %}
+      <table id="data_table" class="table hover row-border">
+        <thead>
+          <tr>
+            {% for header_field in header_fields %}
+            <th>
+              {{ header_field }}
+            </th>
+            {% endfor %}
+            <th>
+              More Info
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in tasks %}
+          	<tr>
+          	  {% for field in task.get_unique_fields_as_list %}
+            	  <td>{{ field }}</td>
+          	  {% endfor %}
+              <td><a {% if not task.complete %}disabled="disabled"{% endif %} href="/{{application_id}}/task_details/{{task.pk}}" class="btn btn-primary">Details</a></td>
+          	</tr>
+        	{% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
+<script>
+  $(document).ready( function () {
+    $('#data_table').DataTable({
+      "lengthMenu": [[15, 25, 50, -1], [15, 25, 50, "All"]]
+    });
+  } );
+</script>
 {% endblock %}

@@ -55,6 +55,15 @@
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="/">Home</a></li>
+                {% if user.is_authenticated and user.is_superuser %}
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">Data Cube Manager
+                    <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a id="dataset_types" tabindex="-1" href="/data_cube_manager/dataset_types">Dataset Types</a></li>
+                    </ul>
+                </li>
+                {% endif %}
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">Tools
                     <span class="caret"></span></a>
@@ -71,7 +80,7 @@
                     <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         {% for app in apps %}
-                        <li><a id="{{ app.id }}" tabindex="-1" href="/task_manager/{{ app.id }}">{{ app.name }}</a></li>
+                        <li><a id="{{ app.id }}_task_mgr" tabindex="-1" href="/task_manager/{{ app.id }}">{{ app.name }}</a></li>
                         {% endfor %}
                     </ul>
                 </li>
