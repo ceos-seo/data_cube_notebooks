@@ -1,0 +1,32 @@
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Name</th>
+      <th>Platform</th>
+      <th>Instrument</th>
+      <th>Product Type</th>
+      <th>Format</th>
+      <th>Measurements</th>
+      <th class="visible-lg">Description</th>
+      <th class="visible-lg">View Datasets</th>
+      <th>Edit</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for dataset_type in dataset_types %}
+    <tr>
+      <td>{{ dataset_type.id }}</td>
+      <td>{{ dataset_type.name }}</td>
+      <td>{{ dataset_type.metadata.platform.code }}</td>
+      <td>{{ dataset_type.metadata.instrument.name }}</td>
+      <td>{{ dataset_type.metadata.product_type }}</td>
+      <td>{{ dataset_type.metadata.format.name }}</td>
+      <td>{% for measurement in dataset_type.definition.measurements %}{{measurement.name}}, {% endfor %}</td>
+      <td class="visible-lg">{{ dataset_type.definition.description }}</td>
+      <td class="visible-lg"><a href="/data_cube_manager/view_datasets/{{ dataset_type.id }}" class="btn btn-default">View datasets</a></td>
+      <td><a href="" class="btn btn-default">Edit definition</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
