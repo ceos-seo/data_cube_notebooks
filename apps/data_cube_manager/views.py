@@ -55,6 +55,58 @@ class DatasetTypeView(View):
     def post(self, request):
         """
         """
+        if not request.user.is_superuser:
+            return JsonResponse({'error': "ERROR", 'msg': "Only superusers can add or update datasets."})
+
+        form_data = request.POST
+        measurements = json.loads(form_data.get('measurements'))
+        metadata = json.loads(form_data.get('metadata_form'))
+        #each measurement_form contains a dict of other forms..
+        measurement_forms = [utils.create_measurement_form(measurements[measurement]) for measurement in measurements]
+        #just a single form
+        metadata_form = utils.create_metadata_form(metadata)
+
+        for measurement_form_group in measurement_forms:
+            for form in filter(lambda x: not measurement_form_group[x].is_valid(), measurement_form_group):
+                for error in measurement_form_group[form].errors:
+                    return JsonResponse({'error': "ERROR", 'msg': measurement_form_group[form].errors[error][0]})
+        if not metadata_form.is_valid():
+            for error in metadata_form.errors:
+                return JsonResponse({'error': "ERROR", 'msg': metadata_form.errors[error][0]})
+
+        if models.DatasetType.objects.using('agdc').filter(name=metadata_form.cleaned_data['name']).exists():
+            return JsonResponse({
+                'error':
+                "ERROR",
+                'msg':
+                'A dataset type already exists with the entered name. Please enter a new name for your dataset and ensure that the definition is different.'
+            })
+
+        #since everything is valid, now create yaml from defs..
+        product_def = utils.definition_from_forms(metadata_form, measurement_forms)
+
+        index = index_connect()
+        try:
+            type_ = index.products.from_doc(product_def)
+            index.products.add(type_)
+        except:
+            return JsonResponse({
+                'error':
+                "ERROR",
+                'msg':
+                'Invalid product definition. Please contact a system administrator if this problem persists.'
+            })
+
+        return JsonResponse({'error': 'ok', 'msg': 'Your dataset type has been added to the database.'})
+
+
+class DatasetYamlExport(View):
+    """
+    """
+
+    def post(self, request):
+        """
+        """
         form_data = request.POST
         measurements = json.loads(form_data.get('measurements'))
         metadata = json.loads(form_data.get('metadata_form'))
