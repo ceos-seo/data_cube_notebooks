@@ -33,7 +33,7 @@ class DatasetTypeListView(View):
 class DatasetTypeView(View):
     """Main end piont for viewing or adding a dataset type"""
 
-    def get(self, request):
+    def get(self, request, dataset_type_id=None):
         """
         """
         context = {
@@ -47,7 +47,7 @@ class DatasetTypeView(View):
         #def includes metadata.
         return render(request, 'data_cube_manager/add_dataset_type.html', context)
 
-    def post(self, request):
+    def post(self, request, dataset_type_id=None):
         """
         """
         context = {
@@ -66,7 +66,7 @@ class DatasetTypeView(View):
 class CreateDatasetType(View):
     """"""
 
-    def get(self, request):
+    def get(self, request, dataset_type_id=None):
         """
         """
         if not request.method == 'POST':
@@ -98,7 +98,7 @@ class CreateDatasetType(View):
             yaml.dump(dict(product_def), yaml_file, Dumper=SafeDumper)
         return JsonResponse({'error': 'OK', 'url': yaml_url})
 
-    def post(self, request):
+    def post(self, request, dataset_type_id=None):
         """"""
         if not request.user.is_superuser:
             return JsonResponse({'error': "ERROR", 'msg': "Only superusers can add or update datasets."})
@@ -147,10 +147,10 @@ class CreateDatasetType(View):
 
 class DeleteDatasetType(View):
 
-    def get(self, request):
+    def get(self, request, dataset_type_id=None):
         """Get the datasets that will be deleted/confgirmation?"""
 
-    def post(self, request):
+    def post(self, request, dataset_type_id=None):
         """Delete the type"""
 
 

@@ -52,7 +52,7 @@
       <td>{% for measurement in dataset_type.definition.measurements %}{{measurement.name}}, {% endfor %}</td>
       <td class="visible-lg">{{ dataset_type.definition.description }}</td>
       <td class="visible-lg"><a href="/data_cube_manager/view_datasets/{{ dataset_type.id }}" class="btn btn-default">View datasets</a></td>
-      <td><a href="/data_cube_manager/view_dataset_type/{{ dataset_type.id }}" class="btn btn-default">View definition</a></td>
+      <td><a href="/data_cube_manager/dataset_types/{{ dataset_type.id }}" class="btn btn-default">View definition</a></td>
     </tr>
     {% endfor %}
   </tbody>
@@ -69,6 +69,10 @@
         <tr>
           <td>Description</td>
           <td class="details_td">` + data[7] + `</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><a href="/data_cube_manager/dataset_types/delete/` + data[2] + `" class="btn btn-danger pull-right">Delete dataset</a></td>
         </tr>
       </table>
     `
