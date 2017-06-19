@@ -25,9 +25,10 @@
 {% block description %}Dataset type definitions are used to describe datasets contained in the Data Cube. Individual datasets are associated with a single dataset type. Each dataset type includes a variety of data and metadata including dataset measurement data, product types and platforms, and creation dates and users.{% endblock %}
 
 {% block table %}
-<table class="table table-hover full">
+<table id="data_table" class="table table-hover full">
   <thead>
     <tr>
+      <th> </th>
       <th>Id</th>
       <th>Name</th>
       <th>Platform</th>
@@ -41,7 +42,8 @@
   </thead>
   <tbody>
     {% for dataset_type in dataset_types %}
-    <tr>
+    <tr class="">
+      <td class="details-control"><span class="glyphicon glyphicon-plus"></span><span class="glyphicon glyphicon-minus"></span></td>
       <td>{{ dataset_type.id }}</td>
       <td>{{ dataset_type.name }}</td>
       <td>{{ dataset_type.metadata.platform.code }}</td>
@@ -55,6 +57,51 @@
     {% endfor %}
   </tbody>
 </table>
+<script>
+
+  function format(data) {
+    return `
+      <table class="table table-hover">
+        <tr>
+          <td>Measurements</td>
+          <td class="details_td">` + data[6] + `</td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td class="details_td">` + data[7] + `</td>
+        </tr>
+      </table>
+    `
+  }
+
+  $(document).ready( function () {
+    var table = $('#data_table').DataTable({
+      "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+      "columnDefs": [
+        { "orderable": false, "targets": [0, 7, 8, 9] }
+      ],
+      "order": [[ 1, "asc" ]]
+    });
+
+    // Add event listener for opening and closing details
+    $('#data_table tbody').on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr');
+        var row = table.row( tr );
+
+        if ( row.child.isShown() ) {
+            // This row is already open - close it
+            row.child.hide();
+            tr.removeClass('shown');
+        }
+        else {
+            // Open this row
+            row.child(format(row.data())).show();
+            tr.addClass('shown');
+        }
+    } );
+  });
+
+</script>
 {% endblock %}
 {% block bottom_button %}
 <a class="btn btn-default pull-right bottom-btn" href="/data_cube_manager/create_dataset_type">Add a new dataset type</a>
