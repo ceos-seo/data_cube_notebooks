@@ -46,7 +46,7 @@
     <div class="col-lg-3" style="overflow-y:auto; height: 100%;">
       <div class="page-header sub"><span class="form-section-header">Dataset Metadata:</span></div>
       <form id="metadata_form">
-        {% bootstrap_form metadata_form %}
+        {% bootstrap_form metadata_form bound_css_class="" %}
       </form>
     </div>
     <div class="col-lg-7" style="overflow-y:auto; height: 100%;">
@@ -73,10 +73,10 @@
     </div>
     <div class="col-lg-12" style="padding-top: 10px; padding-bottom: 5px;">
       {% if dataset_type_id %}
-        <a class="btn btn-default pull-right bottom-btn" href="/data_cube_manager/create_dataset_type/{{dataset_type_id}}">Create a derivative dataset</a>
+        <a class="btn btn-default pull-right bottom-btn" href="/data_cube_manager/dataset_types/create/{{dataset_type_id}}">Create a derivative dataset</a>
       {% endif %}
-      {% if request.user.is_superuser and not dataset_type_id%}
-        <button class="btn btn-default pull-right bottom-btn" onclick="add_dataset_type()">Add or update dataset</button>
+      {% if request.user.is_superuser and not dataset_type_id %}
+        <button class="btn btn-default pull-right bottom-btn" onclick="add_dataset_type()">Add dataset</button>
       {% endif %}
       <button class="btn btn-default pull-right bottom-btn" onclick="download_yaml()">Download .yaml file</button>
     </div>
@@ -86,13 +86,13 @@
   <div id="new_measurement" class="new_measurement" >
     <form class="measurement_form">
       {% csrf_token %}
-      {% bootstrap_field measurements_form.name %}
-      {% bootstrap_field measurements_form.aliases %}
-      {% bootstrap_field measurements_form.dtype %}
-      {% bootstrap_field measurements_form.nodata %}
-      {% bootstrap_field measurements_form.units %}
-      {% bootstrap_field measurements_form.flags_definition %}
-      <div class="flags_definition_form" style="display:none">{% bootstrap_form flags_definition_form %}</div>
+      {% bootstrap_field measurements_form.name bound_css_class="" %}
+      {% bootstrap_field measurements_form.aliases bound_css_class="" %}
+      {% bootstrap_field measurements_form.dtype bound_css_class="" %}
+      {% bootstrap_field measurements_form.nodata bound_css_class="" %}
+      {% bootstrap_field measurements_form.units bound_css_class="" %}
+      {% bootstrap_field measurements_form.flags_definition bound_css_class="" %}
+      <div class="flags_definition_form" style="display:none">{% bootstrap_form flags_definition_form bound_css_class="" %}</div>
     </form>
     {% if not dataset_type_id %}
       <button class="btn btn-danger pull-right" onclick="cancel_update(this)">Cancel change</button>
@@ -105,16 +105,19 @@
     <div id="{{measurement_name}}">
       <form class="measurement_form record">
         {% csrf_token %}
-        {% bootstrap_field existing_measurement.measurement_form.name %}
-        {% bootstrap_field existing_measurement.measurement_form.aliases %}
-        {% bootstrap_field existing_measurement.measurement_form.dtype %}
-        {% bootstrap_field existing_measurement.measurement_form.nodata %}
-        {% bootstrap_field existing_measurement.measurement_form.units %}
-        {% bootstrap_field existing_measurement.measurement_form.flags_definition %}
-        {% if existing_measurement.flags_definition_form %}
-          <div class="flags_definition_form" style="">{% bootstrap_form existing_measurement.flags_definition_form %}</div>
+        {% bootstrap_field existing_measurement.measurement_form.name bound_css_class="" %}
+        {% bootstrap_field existing_measurement.measurement_form.aliases bound_css_class="" %}
+        {% bootstrap_field existing_measurement.measurement_form.dtype bound_css_class="" %}
+        {% bootstrap_field existing_measurement.measurement_form.nodata bound_css_class="" %}
+        {% bootstrap_field existing_measurement.measurement_form.units bound_css_class="" %}
+        {% if existing_measurement.flags_definition_form and dataset_type_id%}
+          {% bootstrap_field existing_measurement.measurement_form.flags_definition bound_css_class="" %}
+          <div class="flags_definition_form" style="">{% bootstrap_form existing_measurement.flags_definition_form bound_css_class="" %}</div>
         {% else %}
-          <div class="flags_definition_form" style="display:none">{% bootstrap_form flags_definition_form %}</div>
+          {% if not dataset_type_id %}
+            {% bootstrap_field existing_measurement.measurement_form.flags_definition bound_css_class="" %}
+            <div class="flags_definition_form" style="display:none">{% bootstrap_form flags_definition_form bound_css_class="" %}</div>
+          {% endif %}
         {% endif %}
       </form>
       {% if not dataset_type_id %}
@@ -232,7 +235,9 @@
 
 
     values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
-    jQuery.post('/data_cube_manager/generate_yaml', values, function(result) {
+    values.yaml = true;
+    
+    jQuery.post('/data_cube_manager/dataset_types/add', values, function(result) {
         if(result.error == "ERROR") {
           set_modal_content("Error", result.msg);
           return;
@@ -258,7 +263,7 @@
     });
 
     values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
-    jQuery.post('/data_cube_manager/add_dataset_type', values, function(result) {
+    jQuery.post('/data_cube_manager/dataset_types/add', values, function(result) {
         if(result.error == "ERROR") {
           set_modal_content("Error", result.msg);
           return;
@@ -285,39 +290,5 @@
     jQuery("#dialog_modal .modal-body p").text(body);
     jQuery("#dialog_modal").modal();
   }
-
-  // Sets up django with csrf.
-  function getCookie(name) {
-      var cookieValue = null;
-      if (document.cookie && document.cookie != '') {
-          var cookies = document.cookie.split(';');
-          for (var i = 0; i < cookies.length; i++) {
-              var cookie = jQuery.trim(cookies[i]);
-              // Does this cookie string begin with the name we want?
-              if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                  break;
-              }
-          }
-      }
-      return cookieValue;
-  }
-
-  var csrftoken = getCookie('csrftoken');
-
-  function csrfSafeMethod(method) {
-      // these HTTP methods do not require CSRF protection
-      return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-  }
-  $.ajaxSetup({
-      beforeSend: function(xhr, settings) {
-          if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-              xhr.setRequestHeader("X-CSRFToken", csrftoken);
-          }
-      }
-  });
-  //end csrf setup.
-
-
 </script>
 {% endblock %}

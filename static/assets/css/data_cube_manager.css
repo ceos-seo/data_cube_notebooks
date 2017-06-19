@@ -34,7 +34,7 @@ tr.shown td span.glyphicon-minus {
   max-width: none;
   text-align: right;
 }
-.details-control {
+.details-control, .measurement-row {
   cursor: pointer;
 }
 .trash:hover {

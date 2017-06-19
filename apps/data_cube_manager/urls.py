@@ -26,9 +26,11 @@ from . import views
 urlpatterns = [
     # dataset type related functionality - view list, view single, create new, delete
     url(r'^dataset_types$', views.DatasetTypeListView.as_view(), name=''),
-    url(r'^dataset_types/(?P<dataset_type_id>[\w\-]+)$', views.DatasetTypeView.as_view(), name=''),
-    url(r'^view_dataset_types/create$', views.DatasetTypeView.as_view(), name=''),
-    url(r'^dataset_types/add/(?P<dataset_type_id>[\w\-]+)$', views.CreateDatasetType.as_view(), name=''),
+    url(r'^dataset_types/view/(?P<dataset_type_id>[\w\-]+)$', views.DatasetTypeView.as_view(), name=''),
+    url(r'^dataset_types/create$', views.CreateDatasetType.as_view(), name=''),
+    url(r'^dataset_types/create/(?P<dataset_type_id>[\w\-]+)$', views.CreateDatasetType.as_view(), name=''),
+    url(r'^validate_measurement$', views.ValidateMeasurement.as_view(), name=''),
+    url(r'^dataset_types/add$', views.DatasetTypeView.as_view(), name=''),
     url(r'^dataset_types/delete/(?P<dataset_type_id>[\w\-]+)$', views.DeleteDatasetType.as_view(), name=''),
     # Dataset related functionality - list all for dataset type, view single, download, delete
     url(r'^dataset_types/(?P<dataset_type_id>[\w\-]+)/datasets$', views.DatasetListView.as_view(), name=''),
