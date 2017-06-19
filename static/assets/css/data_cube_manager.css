@@ -1,0 +1,61 @@
+.table-container {
+  padding: 15px;
+}
+table.full{
+ height:77%;
+ display: -moz-groupbox;
+}
+table.full tbody{
+  overflow-y: scroll;
+  height: calc(79% - 90px);
+  /* 2x padding from .table-container */
+  width: calc(100% - 30px);
+  position: absolute;
+  border-left: 1px solid #d4d4d4;
+  border-right: 1px solid #d4d4d4;
+  border-bottom: 1px solid #d4d4d4;
+}
+table.full thead {
+  background-color: #d4d4d4;
+}
+table.full tr {
+width: 100%;
+display: inline-table;
+height:60px;
+table-layout: fixed;
+}
+table.full tr td, table.full.table > thead > tr > th{
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+tr.measurement-row {
+  cursor: pointer;
+}
+
+tr.measurement-row td.trash {
+  text-align: right;
+  cursor:pointer;
+}
+
+.trash:hover {
+  color: red;
+}
+
+.page-header {
+  margin: 30px 0 20px;
+}
+.page-header.sub {
+  margin-top: 0px;
+}
+.btn.bottom-btn {
+  margin-bottom: 6px;
+}
+
+.form-section-header {
+  font-size: 1.5em;
+  font-weight: bold;
+}
