@@ -190,7 +190,7 @@ class DeleteDatasetType(View):
             'datasets': models.Dataset.objects.using('agdc').filter(dataset_type_ref=dataset_type_id),
             'dataset_type_id': dataset_type_id
         }
-        return render(request, 'data_cube_manager/delete_dataset.html', context)
+        return render(request, 'data_cube_manager/delete_dataset_type.html', context)
 
     def post(self, request, dataset_type_id=None):
         """Delete the type by id
@@ -218,7 +218,7 @@ class DatasetListView(View):
         context['datasets'] = models.Dataset.objects.using('agdc').filter(dataset_type_ref=dataset_type_id)
         context['downloadable'] = 'managed' in models.DatasetType.objects.using('agdc').get(
             id=dataset_type_id).definition
-        return render(request, 'data_cube_manager/view_datasets.html', context)
+        return render(request, 'data_cube_manager/datasets.html', context)
 
     def post(self, request, dataset_type_id=None):
         """

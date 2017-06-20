@@ -21,9 +21,12 @@
 
 from django import forms
 from django.core.validators import RegexValidator, validate_comma_separated_integer_list, validate_slug
+from django.core import validators
+
 import re
 
 from .utils import logical_xor
+from .models import DatasetType
 
 ####
 #modeled after
@@ -341,3 +344,67 @@ class DatasetTypeFlagsDefinitionForm(forms.Form):
             self.add_error('description', "Please enter a description for this flag definition.")
         if len(values_for_bits.split(",")) != len(values.split(",")):
             self.add_error("values_for_bits", "Values (bits) and Values must have an equal number of entries.")
+
+
+class DatasetFilterForm(forms.Form):
+    products = forms.ModelMultipleChoiceField(
+        queryset=None, empty_label="Any", label=Product, widget=forms.Select(attrs={'class': ""}), required=False)
+
+    latitude_min = forms.FloatField(
+        label='Min Latitude',
+        widget=forms.NumberInput(
+            attrs={'class': 'field-divided',
+                   'step': "any",
+                   'required': 'required',
+                   'min': -90,
+                   'max': 90}),
+        validators=[validators.MaxValueValidator(90), validators.MinValueValidator(-90)],
+        required=False)
+    latitude_max = forms.FloatField(
+        label='Max Latitude',
+        widget=forms.NumberInput(
+            attrs={'class': 'field-divided',
+                   'step': "any",
+                   'required': 'required',
+                   'min': -90,
+                   'max': 90}),
+        validators=[validators.MaxValueValidator(90), validators.MinValueValidator(-90)],
+        required=False)
+    longitude_min = forms.FloatField(
+        label='Min Longitude',
+        widget=forms.NumberInput(
+            attrs={'class': 'field-divided',
+                   'step': "any",
+                   'required': 'required',
+                   'min': -180,
+                   'max': 180}),
+        validators=[validators.MaxValueValidator(180), validators.MinValueValidator(-180)],
+        required=False)
+    longitude_max = forms.FloatField(
+        label='Max Longitude',
+        widget=forms.NumberInput(
+            attrs={'class': 'field-divided',
+                   'step': "any",
+                   'required': 'required',
+                   'min': -180,
+                   'max': 180}),
+        validators=[validators.MaxValueValidator(180), validators.MinValueValidator(-180)],
+        required=False)
+    time_start = forms.DateField(
+        label='Start Date',
+        widget=forms.DateInput(
+            attrs={'class': 'datepicker field-divided',
+                   'placeholder': '01/01/2010',
+                   'required': 'required'}),
+        required=False)
+    time_end = forms.DateField(
+        label='End Date',
+        widget=forms.DateInput(
+            attrs={'class': 'datepicker field-divided',
+                   'placeholder': '01/02/2010',
+                   'required': 'required'}),
+        required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(DatasetFilterForm, self).__init__(*args, **kwargs)
+        self.fields['products'].queryset = DatasetType.objects.using('agdc').all()
