@@ -103,7 +103,16 @@ class DatasetTypeView(View):
 
 
 class DatasetYamlExport(View):
-    """
+    """Export a dataset type to yaml from forms
+
+    Using the metadata and measurement forms, create an ordered yaml file that can be used to add the dataset
+    to the database.
+
+    POST Data:
+        measurement form(s), metadata form
+
+    Returns:
+        Json response with a status and (if OK) a url to a yaml file
     """
 
     def post(self, request):
@@ -138,10 +147,20 @@ class DatasetYamlExport(View):
 
 
 class CreateDatasetType(View):
-    """"""
+    """Create a new dataset type using the measurements and metadata forms"""
 
     def get(self, request, dataset_type_id=None):
-        """
+        """Return a rendered html page that contains the metadata form and ability to
+        add or delete measurements.
+
+        This can be built upon an existing dataset type (dataset_type_id) or a blank form.
+
+        Args:
+            dataset_type_id: optional id to an existing dataset
+
+        Returns:
+            Rendered HTML for a page that will allow users to customize a dataset
+
         """
         context = {
             'measurements_form': forms.DatasetTypeMeasurementsForm(),
@@ -156,9 +175,17 @@ class CreateDatasetType(View):
 
 
 class DeleteDatasetType(View):
+    """Delete an existing dataset type including all the datasets associated with the type"""
 
     def get(self, request, dataset_type_id=None):
-        """Get the datasets that will be deleted/confgirmation?"""
+        """Get a confirmation page for the dataset type deletion
+
+        List out all the datasets that will be removed alongside the type and prompt for confirmation
+
+        Args:
+            dataset_type_id: required kwarg that specifies the pk of a dataset type to remove
+
+        """
         context = {
             'datasets': models.Dataset.objects.using('agdc').filter(dataset_type_ref=dataset_type_id),
             'dataset_type_id': dataset_type_id
@@ -166,7 +193,15 @@ class DeleteDatasetType(View):
         return render(request, 'data_cube_manager/delete_dataset.html', context)
 
     def post(self, request, dataset_type_id=None):
-        """Delete the type"""
+        """Delete the type by id
+
+        Remove the dataset type by id - due to the cascade settings, this will remove all the datasets/locs/etc
+        as well.
+
+        Args:
+            dataset_type_id: required kwarg that specifies the pk of a dataset type to remove
+
+        """
         #should cascade
         models.DatasetType.objects.using('agdc').get(id=dataset_type_id).delete()
         return JsonResponse({'status': 'OK'})
