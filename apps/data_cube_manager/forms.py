@@ -152,7 +152,6 @@ class DatasetTypeMetadataForm(forms.Form):
         widget=forms.TextInput({
             'placeholder': "EPSG:4326"
         }),
-        initial="EPSG:4326",
         required=False)
     tile_size_longitude = forms.FloatField(
         label="Tile Size (Longitude)",
@@ -207,8 +206,13 @@ class DatasetTypeMetadataForm(forms.Form):
                 'Please enter a value for both tile size attributes. If one latitude/longitude attribute is set, the other must be as well.'
             )
 
-        if cleaned_data['resolution_latitude'] and cleaned_data['resolution_longitude'] and not cleaned_data['crs']:
-            self.add_error('crs', 'If you specify the latitude and longitude resolution you must also supply a crs.')
+        if cleaned_data['resolution_latitude'] and cleaned_data['resolution_longitude'] and not cleaned_data[
+                'crs'] or cleaned_data['crs'] and not (cleaned_data['resolution_latitude'] and
+                                                       cleaned_data['resolution_longitude']):
+            self.add_error(
+                'crs',
+                'CRS, latitude resolution, and longitude resolution must all be provided if one of the fields is not null.'
+            )
 
 
 class DatasetTypeMeasurementsForm(forms.Form):

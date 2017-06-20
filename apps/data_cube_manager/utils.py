@@ -190,6 +190,18 @@ def definition_from_forms(metadata, measurements):
     return json_definition
 
 
+def validate_dataset_type_forms(metadata_form, measurement_forms):
+    for measurement_form_group in measurement_forms:
+        for form in filter(lambda x: not measurement_form_group[x].is_valid(), measurement_form_group):
+            for error in measurement_form_group[form].errors:
+                return False, measurement_form_group[form].errors[error][0]
+    if not metadata_form.is_valid():
+        for error in metadata_form.errors:
+            return False, metadata_form.errors[error][0]
+
+    return True, None
+
+
 def create_measurement_form(post_data):
     measurement_forms = {'measurement_form': forms.DatasetTypeMeasurementsForm(post_data)}
     if measurement_forms['measurement_form'].is_valid():

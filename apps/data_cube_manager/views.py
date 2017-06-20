@@ -67,13 +67,9 @@ class DatasetTypeView(View):
         #just a single form
         metadata_form = utils.create_metadata_form(metadata)
 
-        for measurement_form_group in measurement_forms:
-            for form in filter(lambda x: not measurement_form_group[x].is_valid(), measurement_form_group):
-                for error in measurement_form_group[form].errors:
-                    return JsonResponse({'error': "ERROR", 'msg': measurement_form_group[form].errors[error][0]})
-        if not metadata_form.is_valid():
-            for error in metadata_form.errors:
-                return JsonResponse({'error': "ERROR", 'msg': metadata_form.errors[error][0]})
+        valid, error = utils.validate_dataset_type_forms(metadata_form, measurement_forms)
+        if not valid:
+            return JsonResponse({'error': "ERROR", 'msg': error})
 
         if models.DatasetType.objects.using('agdc').filter(name=metadata_form.cleaned_data['name']).exists():
             return JsonResponse({
@@ -116,13 +112,9 @@ class DatasetYamlExport(View):
         #just a single form
         metadata_form = utils.create_metadata_form(metadata)
 
-        for measurement_form_group in measurement_forms:
-            for form in filter(lambda x: not measurement_form_group[x].is_valid(), measurement_form_group):
-                for error in measurement_form_group[form].errors:
-                    return JsonResponse({'error': "ERROR", 'msg': measurement_form_group[form].errors[error][0]})
-        if not metadata_form.is_valid():
-            for error in metadata_form.errors:
-                return JsonResponse({'error': "ERROR", 'msg': metadata_form.errors[error][0]})
+        valid, error = utils.validate_dataset_type_forms(metadata_form, measurement_forms)
+        if not valid:
+            return JsonResponse({'error': "ERROR", 'msg': error})
 
         #since everything is valid, now create yaml from defs..
         product_def = utils.definition_from_forms(metadata_form, measurement_forms)

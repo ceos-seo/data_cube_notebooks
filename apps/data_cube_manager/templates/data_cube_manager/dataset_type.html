@@ -110,13 +110,12 @@
         {% bootstrap_field existing_measurement.measurement_form.dtype bound_css_class="" %}
         {% bootstrap_field existing_measurement.measurement_form.nodata bound_css_class="" %}
         {% bootstrap_field existing_measurement.measurement_form.units bound_css_class="" %}
-        {% if existing_measurement.flags_definition_form and dataset_type_id%}
+        {% if existing_measurement.flags_definition_form %}
           {% bootstrap_field existing_measurement.measurement_form.flags_definition bound_css_class="" %}
           <div class="flags_definition_form" style="">{% bootstrap_form existing_measurement.flags_definition_form bound_css_class="" %}</div>
         {% else %}
           {% if not dataset_type_id %}
             {% bootstrap_field existing_measurement.measurement_form.flags_definition bound_css_class="" %}
-            <div class="flags_definition_form" style="display:none">{% bootstrap_form flags_definition_form bound_css_class="" %}</div>
           {% endif %}
         {% endif %}
       </form>
@@ -261,13 +260,18 @@
       measurement_data[measurement['name']] = measurement;
     });
 
+    set_modal_content("Alert", "Please wait while we validate your dataset type.");
+
     values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
     jQuery.post('/data_cube_manager/dataset_types/add', values, function(result) {
         if(result.error == "ERROR") {
           set_modal_content("Error", result.msg);
           return;
         } else {
-          window.location.href = '/data_cube_manager/view_dataset_types'
+          set_modal_content("Alert", "Your dataset type has been added, redirecting back to dataset type list...");
+          setTimeout(function() {
+            window.location.href = '/data_cube_manager/dataset_types';
+          }, 3000);
         }
     });
   }
