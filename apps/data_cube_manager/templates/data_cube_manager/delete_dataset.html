@@ -104,7 +104,7 @@ In the future this functionality may be added, but for now a system administrato
 
   function remove_dataset_type() {
     jQuery.post('/data_cube_manager/dataset_types/delete/{{ dataset_type_id }}', {}, function(result) {
-        if(result.error == "ERROR") {
+        if(result.status == "ERROR") {
           set_modal_content("Error", result.msg);
           return;
         } else {

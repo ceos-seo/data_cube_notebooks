@@ -57,7 +57,7 @@ class DatasetTypeView(View):
         """
         """
         if not request.user.is_superuser:
-            return JsonResponse({'error': "ERROR", 'msg': "Only superusers can add or update datasets."})
+            return JsonResponse({'status': "ERROR", 'message': "Only superusers can add or update datasets."})
 
         form_data = request.POST
         measurements = json.loads(form_data.get('measurements'))
@@ -69,13 +69,13 @@ class DatasetTypeView(View):
 
         valid, error = utils.validate_dataset_type_forms(metadata_form, measurement_forms)
         if not valid:
-            return JsonResponse({'error': "ERROR", 'msg': error})
+            return JsonResponse({'status': "ERROR", 'message': error})
 
         if models.DatasetType.objects.using('agdc').filter(name=metadata_form.cleaned_data['name']).exists():
             return JsonResponse({
-                'error':
+                'status':
                 "ERROR",
-                'msg':
+                'message':
                 'A dataset type already exists with the entered name. Please enter a new name for your dataset and ensure that the definition is different.'
             })
 
@@ -88,13 +88,13 @@ class DatasetTypeView(View):
             index.products.add(type_)
         except:
             return JsonResponse({
-                'error':
+                'status':
                 "ERROR",
-                'msg':
+                'message':
                 'Invalid product definition. Please contact a system administrator if this problem persists.'
             })
 
-        return JsonResponse({'error': 'ok', 'msg': 'Your dataset type has been added to the database.'})
+        return JsonResponse({'status': 'OK', 'message': 'Your dataset type has been added to the database.'})
 
 
 class DatasetYamlExport(View):
@@ -114,7 +114,7 @@ class DatasetYamlExport(View):
 
         valid, error = utils.validate_dataset_type_forms(metadata_form, measurement_forms)
         if not valid:
-            return JsonResponse({'error': "ERROR", 'msg': error})
+            return JsonResponse({'status': "ERROR", 'message': error})
 
         #since everything is valid, now create yaml from defs..
         product_def = utils.definition_from_forms(metadata_form, measurement_forms)
@@ -129,7 +129,7 @@ class DatasetYamlExport(View):
         yaml_url = '/datacube/ui_results/data_cube_manager/product_defs/' + str(uuid.uuid4()) + '.yaml'
         with open(yaml_url, 'w') as yaml_file:
             yaml.dump(product_def, yaml_file)
-        return JsonResponse({'error': 'OK', 'url': yaml_url})
+        return JsonResponse({'status': 'OK', 'url': yaml_url})
 
 
 class CreateDatasetType(View):
@@ -164,7 +164,7 @@ class DeleteDatasetType(View):
         """Delete the type"""
         #should cascade
         models.DatasetType.objects.using('agdc').get(id=dataset_type_id).delete()
-        return JsonResponse({'error': 'OK'})
+        return JsonResponse({'status': 'OK'})
 
 
 class DatasetListView(View):
@@ -211,5 +211,5 @@ class ValidateMeasurement(View):
         #filters out all valid forms.
         for form in filter(lambda x: not measurement_forms[x].is_valid(), measurement_forms):
             for error in measurement_forms[form].errors:
-                return JsonResponse({'error': "ERROR", 'msg': measurement_forms[form].errors[error][0]})
-        return JsonResponse({'error': "OK", 'msg': "OK"})
+                return JsonResponse({'status': "ERROR", 'message': measurement_forms[form].errors[error][0]})
+        return JsonResponse({'status': "OK", 'message': "OK"})
