@@ -55,7 +55,9 @@ To index and ingest data into the Data Cube, the following prerequisites must be
 
 If you have not yet completed our Data Cube Installation Guide, please do so before continuing.
 
-The only _required_ metadata for the default 'eo' metadata (found [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/index/default-metadata-types.yaml) in the search fields) are platform, insturment, product type, lat, lon, and time.
+The only _required_ metadata for the default 'eo' metadata (found [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/index/default-metadata-types.yaml) in the search fields) are platform, instrument, product type, lat, lon, and time.
+
+For this example, we will be using a GPM Monthly dataset, found [here](http://ec2-52-201-154-0.compute-1.amazonaws.com/datacube/original_data/gpm/3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A.zip). Accompanying this dataset is the associated product datasheet, found [here](http://ec2-52-201-154-0.compute-1.amazonaws.com/datacube/original_data/gpm/README.GIS.pdf). Please download these two files before continuing.
 
 # []() Creating and adding a product definition
 
@@ -74,8 +76,8 @@ A full template of the dataset type can be found at the bottom of this section.
 The first steps are giving your dataset a descriptive name, a description listing the type of data/preprocessing/projection, and a metadata type. The metadata type can be customized by advanced users, but for simplicity we will use the default EO metadata type.
 
 ```
-name: ls7_collections_sr_scene
-description: Landsat 7 USGS Collection 1 Higher Level SR scene processed using LEDAPS. 30m UTM based projection.
+name: gpm_imerg_gis_monthly
+description: GIS translation of the imerg data product. Multi satellite, global, precipitation estimate. Downloaded from ftp://arthurhou.pps.eosdis.nasa.gov/gpmdata/. Rate measured over one month.
 metadata_type: eo
 ```
 
@@ -91,21 +93,18 @@ An optional element, 'storage', can be included as well. This can be seen in the
 storage:
     crs: EPSG:4326
     resolution:
-        longitude: 0.05
-        latitude: -0.05
+        longitude: 0.10
+        latitude: -0.10
 ```
 
 Next in the file is the metadata field:
 
 ```
 metadata:
-    platform:
-        code: LANDSAT_7
-    instrument:
-        name: ETM
-    product_type: LEDAPS
-    format:
-        name: GeoTiff
+  format: {name: GeoTiff}
+  instrument: {name: GPM}
+  platform: {code: GPM}
+  product_type: monthly
 ```
 
 The metadata as defined by the product definition schema [here](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml) is an object - any number of fields and any schemas can be put here, as long as they are defined in the metadata type definition. If you open the [default metadata type file](https://github.com/opendatacube/datacube-core/blob/develop/datacube/index/default-metadata-types.yaml), you'll see that the format is expected to be nested in format -> name, the product type is just in product type, etc. This is described using an 'offset' from the document root. This metadata is used to 'match' datasets to their appropriate product type, so the script in the next section that generates the metadata files must produce the same platform and product type as what is listed above.
@@ -113,16 +112,42 @@ The metadata as defined by the product definition schema [here](https://github.c
 The last element (or list of elements) in the product definition is the measurement, seen below.
 
 ```
-- name: 'sr_band7'
-      aliases: [band_7, swir2]
-      dtype: int16
-      nodata: -9999
-      units: 'reflectance'
+measurements:
+- name: total_precipitation
+  units: '0.001 mm/h'
+  dtype: uint16
+  nodata: 9999
+
+- name: liquid_precipitation
+  units: '0.001 mm/h'
+  dtype: uint16
+  nodata: 9999
+
+- name: ice_precipitation
+  units: '0.001 mm/h'
+  dtype: uint16
+  nodata: 9999
+
+- name: percent_liquid
+  units: 'percent'
+  dtype: uint8
+  nodata: 255
 ```
 
-The full measurement schema with all possible formats can be found in the [dataset type schema](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml). The only properties that are required are **name, dtype, nodata, and units**. If you were to create a product definition for Sentinel 1 data, you would use the data guide to find out what bands are available, the datatype of those bands, what the no data value is, and the units and enumerate them here.
+The full measurement schema with all possible formats can be found in the [dataset type schema](https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml). The only properties that are required are **name, dtype, nodata, and units**. There should be one measurement entry for each expected band in the dataset.
 
-There should be one measurement entry for each expected band in the dataset.
+This information is found in the product datasheet, linked above. The list of measurements, units, and nodata values can all be found in the datasheet. Some snippets of this information can be found below.
+
+![GPM Measurements Documentation](media/gpm_measurements.png)
+
+![GPM Units Documentation](media/gpm_units.png)
+
+![GPM Nodata Documentation](media/gpm_nodata.png)
+
+Gdalinfo can be used to get dtype values.
+
+![GPM Data Type Documentation](media/gpm_dtype.png)
+
 
 A template for a dataset type can be found below:
 
@@ -178,19 +203,19 @@ measurements:
 Once your product definition has all required information, you add it to the Data Cube. For our Landsat 7 example, this is done with the following command:
 
 ```
-datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/landsat_collection/ls7_collections_sr_scene.yaml
+datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/gpm/gpm_imerge_gis.yaml
 ```
 
 This command should be run from within the virtual environment. This will validate your product definition and, if valid, will index it in the Data Cube. The expected output should look like below:
 
 ```
-2017-04-19 11:23:39,861 21121 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/landsat_collection/ls7_sr_scenes_agdc.yaml
-2017-04-19 11:23:40,184 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_collections_sr_scene_lat_lon_time
-2017-04-19 11:23:40,194 21121 datacube.index.postgres._dynamic INFO Creating index: dix_ls7_collections_sr_scene_time_lat_lon
-Added "ls7_collections_sr_scene"
+2017-04-19 11:23:39,861 21121 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/gpm/gpm_imerge_gis.yaml
+2017-04-19 11:23:40,184 21121 datacube.index.postgres._dynamic INFO Creating index: .....
+2017-04-19 11:23:40,194 21121 datacube.index.postgres._dynamic INFO Creating index: .....
+Added "gpm_imerge_gis_monthly"
 ```
 
-The 'Added *' statement should read that it has added the name defined within the product definition.
+The 'Added \*' statement should read that it has added the name defined within the product definition.
 
 If you open pgAdmin3 and examine the data in the dataset_type table, you'll see that there is now a row for the added product with all associated metadata. With the product definition added to the Data Cube, the next step is generating the required metadata to add a dataset.
 
@@ -199,6 +224,12 @@ If you open pgAdmin3 and examine the data in the dataset_type table, you'll see 
 Before starting this step, you'll need to make sure that you have your dataset downloaded and stored locally on disk.
 
 Decompress your dataset into its own directory. If the naming is important ensure that the decompressed data is placed in an aptly named directory. For Landsat, we get the path/row/date information from the file path, so we decompress the data into directories with the same name as the archive.
+
+You can extract the GPM dataset using the unzip command:
+
+```
+unzip -d 3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A 3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A.zip
+```
 
 Now that we have the data extracted into a named directory, we can generate the required metadata .yaml file. This is done with Python scripts found in `~/Datacube/agdc-v2/ingest/prepare_scripts/*`. There are a variety of scripts provided, including USGS Landsat, Sentinel 1, and ALOS.
 
@@ -251,94 +282,119 @@ processing_level: V04A
 product_type: monthly
 ```
 
-The easiest way to generate one of these scripts is to use an existing script as a base. Duplicate the `usgs_ls_ard_prepare.py` script and open it in a text editor. There are three main components in generating this metadata: Parsing attributes from file names, parsing data from included metadata (XML or otherwise, potentially not necessary), and getting CRS/projection attributes from one of the dataset files.
+The easiest way to generate one of these scripts is to use an existing script as a base. There are three main components in generating this metadata: Parsing attributes from file names, parsing data from included metadata (XML or otherwise, potentially not necessary), and getting CRS/projection attributes from one of the dataset files.
 
-The first step is parsing any useful data from the file name. Head to the function called `prepare_datasets` in your newly created preparation script.
-
-```
-def prepare_datasets(nbar_path):
-
-    fields = re.match((r"(?P<code>LC08|LE07|LT05|LT04)"
-                       r"(?P<path>[0-9]{3})"
-                       r"(?P<row>[0-9]{3})"
-                       r"(?P<productyear>[0-9]{4})"
-                       r"(?P<productmonth>[0-9]{2})"
-                       r"(?P<productday>[0-9]{2})"
-                       r"(?P<collection_number>[0-9]{2})"
-                       r"(?P<collection_category>RT|T1|T2)"), nbar_path.stem).groupdict()
-
-    fields.update({
-        'processing_level':
-        fields['collection_category'],
-        'product_type':
-        get_product_type_from_code(fields['code']),
-        'creation_dt':
-        datetime.datetime(int(fields['productyear']), int(fields['productmonth']), int(fields['productday']))
-    })
-    nbar = prep_dataset(fields, nbar_path)
-    return (nbar, nbar_path)
-```
-
-Here, `re` is used to parse fields from the file path. Modify the `re.match` call to match your file name's data attributes. Next up is parsing out any included metadata and generating the projection/CRS details. Find the function definition for `prep_dataset`:
+A script that will produce the metadata above is copied below:
 
 ```
+# coding=utf-8
+"""
+Ingest data from the command-line.
+"""
+from __future__ import absolute_import, division
+
+import logging
+import uuid
+from xml.etree import ElementTree
+import re
+from pathlib import Path
+import yaml
+from dateutil import parser
+from datetime import timedelta
+import datetime
+import rasterio.warp
+import click
+from osgeo import osr
+import os
+# image boundary imports
+import rasterio
+from rasterio.errors import RasterioIOError
+import rasterio.features
+import shapely.affinity
+import shapely.geometry
+import shapely.ops
+
+
+def band_name(path):
+    str_path = str(path)
+    if '.ice.tif' in str_path:
+        return 'ice_precipitation'
+    if '.liquid.tif' in str_path:
+        return 'liquid_precipitation'
+    if '.liquidPercent.tif' in str_path:
+        return 'percent_liquid'
+    return 'total_precipitation'
+
+
+def get_product_type_from_code(code):
+    product_type = {'DAY': 'daily', 'MO': 'monthly', 'HHR': 'hourly'}
+    return product_type[code]
+
+
+def get_projection(path):
+    with rasterio.open(str(path)) as img:
+        left, bottom, right, top = img.bounds
+        return {
+            'spatial_reference':
+            'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]',
+            'geo_ref_points': {
+                'ul': {
+                    'x': left,
+                    'y': top
+                },
+                'ur': {
+                    'x': right,
+                    'y': top
+                },
+                'll': {
+                    'x': left,
+                    'y': bottom
+                },
+                'lr': {
+                    'x': right,
+                    'y': bottom
+                },
+            }
+        }
+
+
+def get_coords(geo_ref_points, spatial_ref):
+    spatial_ref = osr.SpatialReference(spatial_ref)
+    t = osr.CoordinateTransformation(spatial_ref, spatial_ref.CloneGeogCS())
+
+    def transform(p):
+        lon, lat, z = t.TransformPoint(p['x'], p['y'])
+        return {'lon': lon, 'lat': lat}
+
+    return {key: transform(p) for key, p in geo_ref_points.items()}
+
+
+def populate_coord(doc):
+    proj = doc['grid_spatial']['projection']
+    doc['extent']['coord'] = get_coords(proj['geo_ref_points'], proj['spatial_reference'])
+
+
 def prep_dataset(fields, path):
-    # getting the list of all images
-    images_list = []
-    for file in os.listdir(str(path)):
-        if file.endswith(".xml") and (not file.endswith('aux.xml')):
-            metafile = file
-        if file.endswith(".tif") and ("band" in file):
-            images_list.append(os.path.join(str(path), file))
-
-    # parsing xml based metadata
-    with open(os.path.join(str(path), metafile)) as f:
-        xmlstring = f.read()
-    xmlstring = re.sub(r'\sxmlns="[^"]+"', '', xmlstring, count=1)
-    doc = ElementTree.fromstring(xmlstring)
-    satellite = doc.find('.//satellite').text
-    instrument = doc.find('.//instrument').text
-    acquisition_date = doc.find('.//acquisition_date').text.replace("-", "")
-    scene_center_time = doc.find('.//scene_center_time').text[:8]
-    center_dt = crazy_parse(acquisition_date + "T" + scene_center_time)
-    aos = crazy_parse(acquisition_date + "T" + scene_center_time) - timedelta(seconds=(24 / 2))
-    los = aos + timedelta(seconds=24)
-    lpgs_metadata_file = doc.find('.//lpgs_metadata_file').text
-    groundstation = lpgs_metadata_file[16:19]
-    fields.update({'instrument': instrument, 'satellite': satellite})
-    start_time = aos
-    end_time = los
-
-    # getting the paths to each of the band datasets
-    images = {band_name(satellite, im_path): {'path': str(im_path.relative_to(path))} for im_path in path.glob('*.tif')}
-
-    #getting the projection details
+    images = {band_name(im_path): {'path': str(im_path.relative_to(path))} for im_path in path.glob('*.tif')}
     projdict = get_projection(path / next(iter(images.values()))['path'])
-    projdict['valid_data'] = safe_valid_region(images_list)
-
-    # generating the .yaml document
     doc = {
         'id': str(uuid.uuid4()),
         'processing_level': fields["processing_level"],
         'product_type': fields["product_type"],
-        'creation_dt': fields["creation_dt"],
+        'creation_dt': fields["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
         'platform': {
-            'code': fields["satellite"]
+            'code': "GPM"
         },
         'instrument': {
-            'name': fields["instrument"]
-        },
-        'acquisition': {
-            'groundstation': {
-                'code': groundstation,
-            },
-            'aos': str(aos),
-            'los': str(los)
+            'name': "GPM"
         },
         'extent': {
-            'from_dt': str(start_time),
-            'to_dt': str(end_time),
-            'center_dt': str(center_dt)
+            'from_dt':
+            fields["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
+            'to_dt':
+            fields["end_time"].strftime("%Y-%m-%d %H:%M:%S"),
+            'center_dt':
+            (fields["start_time"] + (fields["end_time"] - fields["start_time"]) / 2).strftime("%Y-%m-%d %H:%M:%S")
         },
         'format': {
             'name': 'GeoTiff'
@@ -347,14 +403,6 @@ def prep_dataset(fields, path):
             'projection': projdict
         },
         'image': {
-            'satellite_ref_point_start': {
-                'x': int(fields["path"]),
-                'y': int(fields["row"])
-            },
-            'satellite_ref_point_end': {
-                'x': int(fields["path"]),
-                'y': int(fields["row"])
-            },
             'bands': images
         },
         'lineage': {
@@ -363,96 +411,80 @@ def prep_dataset(fields, path):
     }
     populate_coord(doc)
     return doc
-```
 
-The first action is to generate a list of the images and other files included in the archive. Next, the XML metadata is opened and parsed for any desired fields. If your dataset doesn't come with any additional metadata or you don't want to capture any unecessary information, you can skip this step.
 
-```
-    # getting the list of all images
-    images_list = []
-    for file in os.listdir(str(path)):
-        if file.endswith(".xml") and (not file.endswith('aux.xml')):
-            metafile = file
-        if file.endswith(".tif") and ("band" in file):
-            images_list.append(os.path.join(str(path), file))
+def prepare_datasets(gpm_path):
+    underscore_replacement = Path(str(gpm_path).replace('.', '_'))
+    fields = re.match(("3B-"
+                       r"(?P<duration>HHR|DAY|MO)"
+                       "-GIS_MS_MRG_3IMERG_"
+                       r"(?P<product_year>[0-9]{4})"
+                       r"(?P<product_month>[0-9]{2})"
+                       r"(?P<product_day>[0-9]{2})"
+                       "-S"
+                       r"(?P<start_hour>[0-9]{2})"
+                       r"(?P<start_minute>[0-9]{2})"
+                       r"(?P<start_second>[0-9]{2})"
+                       "-E"
+                       r"(?P<end_hour>[0-9]{2})"
+                       r"(?P<end_minute>[0-9]{2})"
+                       r"(?P<end_second>[0-9]{2})"
+                       "_"
+                       r"(?P<sequence_indicator>(?<=_).*?(?=_))"
+                       "_"
+                       r"(?P<version>\w{4})"), underscore_replacement.stem).groupdict()
+    fields.update({
+        'processing_level':
+        fields['version'],
+        'product_type':
+        get_product_type_from_code(fields['duration']),
+        'start_time':
+        datetime.datetime(
+            int(fields['product_year']),
+            int(fields['product_month']),
+            int(fields['product_day']),
+            int(fields['start_hour']), int(fields['start_minute']), int(fields['start_second'])),
+        'end_time':
+        datetime.datetime(
+            int(fields['product_year']),
+            int(fields['product_month']),
+            int(fields['product_day']), int(fields['end_hour']), int(fields['end_minute']), int(fields['end_second']))
+    })
+    gpm = prep_dataset(fields, gpm_path)
+    return (gpm, gpm_path)
 
-    # parsing xml based metadata
-    with open(os.path.join(str(path), metafile)) as f:
-        xmlstring = f.read()
-    xmlstring = re.sub(r'\sxmlns="[^"]+"', '', xmlstring, count=1)
-    doc = ElementTree.fromstring(xmlstring)
-    satellite = doc.find('.//satellite').text
-    instrument = doc.find('.//instrument').text
-    acquisition_date = doc.find('.//acquisition_date').text.replace("-", "")
-    scene_center_time = doc.find('.//scene_center_time').text[:8]
-    center_dt = crazy_parse(acquisition_date + "T" + scene_center_time)
-    aos = crazy_parse(acquisition_date + "T" + scene_center_time) - timedelta(seconds=(24 / 2))
-    los = aos + timedelta(seconds=24)
-    lpgs_metadata_file = doc.find('.//lpgs_metadata_file').text
-    groundstation = lpgs_metadata_file[16:19]
-    fields.update({'instrument': instrument, 'satellite': satellite})
-    start_time = aos
-    end_time = los
-```
 
-Next, a list of band names and paths to those bands are generated for the dataset. A helper function `band_name` is used to get the desired name based on a file path. In the below example, we're using `glob` to find all .tif files and generate a name: path dictionary for each one.
+@click.command(help="Prepare GPM IMERG GIS products for ingestion into the Data Cube.")
+@click.argument('datasets', type=click.Path(exists=True, readable=True, writable=True), nargs=-1)
+def main(datasets):
+    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
 
-```
-    # getting the paths to each of the band datasets
-    images = {band_name(satellite, im_path): {'path': str(im_path.relative_to(path))} for im_path in path.glob('*.tif')}
-```
+    for dataset in datasets:
 
-Please note that the bands dictionary **must** have an entry for every measurement that you've listed in the dataset type. If you have red, green, and blue in your dataset type, the bands dictionary must include red, green, and blue.
+        path = Path(dataset)
 
-The next step is getting the projection and geo reference points from one of the dataset files:
+        logging.info("Processing %s", path)
+        documents = prepare_datasets(path)
 
-```
-    #getting the projection details
-    projdict = get_projection(path / next(iter(images.values()))['path'])
-    projdict['valid_data'] = safe_valid_region(images_list)
-```
+        dataset, folder = documents
+        yaml_path = str(folder.joinpath('datacube-metadata.yaml'))
+        logging.info("Writing %s", yaml_path)
+        with open(yaml_path, 'w') as stream:
+            yaml.dump(dataset, stream)
 
-This is done using rasterio - any dataset that can be opened by rasterio should not require any modification. The last step is actually generating the dict that will be dumped to a .yaml file. Some unecessary fields have been stripped out below, including acquisition and satellite reference points.
 
-```
-    # generating the .yaml document
-    doc = {
-        'id': str(uuid.uuid4()),
-        'processing_level': fields["processing_level"],
-        'product_type': fields["product_type"],
-        'creation_dt': fields["creation_dt"],
-        'platform': {
-            'code': fields["satellite"]
-        },
-        'instrument': {
-            'name': fields["instrument"]
-        },
-        'extent': {
-            'from_dt': str(start_time),
-            'to_dt': str(end_time),
-            'center_dt': str(center_dt)
-        },
-        'format': {
-            'name': 'GeoTiff'
-        },
-        'grid_spatial': {
-            'projection': projdict
-        },
-        'image': {
-            'bands': images
-        },
-        'lineage': {
-            'source_datasets': {}
-        }
-    }
-    populate_coord(doc)
-```
-
-These scripts can run on a single directory of a list of directories specified with a wildcard (*). The output should resemble what is shown below:
+if __name__ == "__main__":
+    main()
 
 ```
-2017-06-09 18:24:18,821 INFO Processing /datacube/original_data/LE071950542015121201T1-SC20170427222707
-2017-06-09 18:27:27,356 INFO Writing /datacube/original_data/LE071950542015121201T1-SC20170427222707/datacube-metadata.yaml
+
+The function `prep_dataset` uses Regex to parse attributes from the file name. Here, we're pulling the duration (Month), year/month/date, start time, and end time. These fields are then passed into `prep_dataset` for further metadata additions.
+
+`prep_dataset` then generates the list of images using `band_name` and pairs it to a path relative to the root data directory. The projection details are generated using `get_projection`; this involves opening the .tif files using rasterio and getting bounding box data as well as geo reference points. The final document is the dumped to a yaml file.
+
+```
+2017-06-09 18:24:18,821 INFO Processing /datacube/original_data/gpm/3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A
+2017-06-09 18:27:27,356 INFO Writing /datacube/original_data/gpm/3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A/datacube-metadata.yaml
 ```
 
 You'll see that the script has created a .yaml file titled datacube-metadata.yaml in the same directory as your data files. Open this .yaml file and verify that all fields have been populated and there are no errors.
@@ -467,16 +499,16 @@ Run the `datacube dataset add` command on the directory or metadata .yaml file g
 
 ```
 #ensure that you are doing this from within the virtual environment. If not, activate it with 'source ~/Datacube/datacube_env/bin/activate'
-datacube -v dataset add /datacube/original_data/LE071950542015121201T1-SC20170427222707
+datacube -v dataset add /datacube/original_data/gpm/3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A
 #or
-#datacube -v dataset add /datacube/original_data/LE071950542015121201T1-SC20170427222707/datacube-metadata.yaml
+#datacube -v dataset add /datacube/original_data/gpm/3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A/datacube-metadata.yaml
 ```
 
 The resulting console output will resemble the output below:
 
 ```
-2017-06-09 18:32:32,075 5086 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v dataset add /datacube/original_data/LE071950542015121201T1-SC20170427222707/datacube-metadata.yaml
-Indexing datasets  [####################################]  100%2017-06-09 18:32:32,122 5086 datacube-dataset INFO Matched Dataset <id=18163152-7388-4607-a75b-1f20e7b70045 type=ls7_collections_sr_scene location=/datacube/original_data/LE071950542015121201T1-SC20170427222707/datacube-metadata.yaml>
+2017-06-09 18:32:32,075 5086 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v dataset add /datacube/original_data/gpm/3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A/datacube-metadata.yaml
+Indexing datasets  [####################################]  100%2017-06-09 18:32:32,122 5086 datacube-dataset INFO Matched Dataset <id=18163152-7388-4607-a75b-1f20e7b70045 type=gpm_imerg_gis_monthly location=/datacube/original_data/gpm/3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A/datacube-metadata.yaml>
 2017-06-09 18:32:32,123 5086 datacube.index._datasets INFO Indexing 18163152-7388-4607-a75b-1f20e7b70045
 ```
 
@@ -512,8 +544,8 @@ In this section we will go through an example Landsat 7 ingestion configuration.
 The first two lines in the file are:
 
 ```
-source_type: ls7_collections_sr_scene
-output_type: ls7_ledaps_general
+source_type: gpm_imerg_gis_monthly
+output_type: gpm_imerg_gis_monthly_global
 ```
 
 This tells the ingestion process to match the input parameters to datasets that are associated with the 'ls7_collections_sr_scene' product definition and to create a new product definition named 'ls7_ledaps_general'.
@@ -521,8 +553,8 @@ This tells the ingestion process to match the input parameters to datasets that 
 Next, there are two parameters that specify the location and file path templates for the newly created storage units:
 
 ```
-location: '/datacube/ingested_data'
-file_path_template: 'LS7_ETM_LEDAPS/General/LS7_ETM_LEDAPS_4326_{tile_index[0]}_{tile_index[1]}_{start_time}.nc'
+location: '/datacube/ingested_data/GPM_Monthly/'
+file_path_template: 'Global/GPM_GIS_IMERG_{tile_index[0]}_{tile_index[1]}_{start_time}.nc'
 ```
 
 This specifies that the base path for the ingested data is `/datacube/ingested_data` - this was created previously and should have 777 permissions.
@@ -535,34 +567,28 @@ The next elements are global metadata elements, as seen below. Please note that 
 
 ```
 global_attributes:
-  title: CEOS Data Cube Landsat Surface Reflectance
-  summary: Landsat 7 Enhanced Thematic Mapper Plus ARD prepared by NASA on behalf of CEOS.
-  source: LEDAPS surface reflectance product prepared using USGS Collection 1 data.
+  title: Monthly GPM IMERG product converted to the GIS format.
+  summary: Monthly GPM IMERG product converted to the GIS format.
   institution: CEOS
-  instrument: ETM
-  cdm_data_type: Grid
-  keywords: AU/GA,NASA/GSFC/SED/ESD/LANDSAT,REFLECTANCE,ETM+,TM,OLI,EARTH SCIENCE
-  keywords_vocabulary: GCMD
-  platform: LANDSAT_7
-  processing_level: L2
-  product_version: '2.0.0'
-  product_suite: USGS Landsat Collection 1
-  project: CEOS
+  instrument: GPM
+  keywords: GPM,Precipitation
+  platform: GPM
+  processing_level: L3
+  product_version: V04A
+  product_suite: IMERG
+  publisher_url: https://pmm.nasa.gov/data-access/downloads/gpm
   coverage_content_type: physicalMeasurement
-  references: http://dx.doi.org/10.3334/ORNLDAAC/1146
-  license: https://creativecommons.org/licenses/by/4.0/
-  naming_authority: gov.usgs
-  acknowledgment: Landsat data is provided by the United States Geological Survey (USGS).
+  acknowledgment: Data provided by https://pps.gsfc.nasa.gov/
 ```
 
 The next field group defines what subset (if any) of the source dataset that should be used for the ingestion process. If the entire source dataset should be ingested, then this can be left out. In the example below, we are restricting the ingestion process to datasets that match the input dataset type that fall between those bounds. These numbers should be in latitude and longitude WGS84 coordinates. In the general ingestion configuration, ingestion bounds are left out.
 
 ```
-ingestion_bounds:
-  left: 100.0
-  bottom: 5.0
-  right: 115.0
-  top: 20.0
+# ingestion_bounds:
+#   left: 100.0
+#   bottom: 5.0
+#   right: 115.0
+#   top: 20.0
 ```
 
 The storage fields specify a few things: Projection, resolution, tile size, chunk size, etc.
@@ -573,14 +599,14 @@ storage:
 
   crs: EPSG:4326
   tile_size:
-          longitude: 0.943231048326
-          latitude:  0.943231048326
+          longitude: 180
+          latitude: 90
   resolution:
-          longitude: 0.000269494585236
-          latitude: -0.000269494585236
+          longitude: 0.10
+          latitude: -0.10
   chunking:
-      longitude: 200
-      latitude: 200
+      longitude: 300
+      latitude: 300
       time: 1
   dimension_order: ['time', 'latitude', 'longitude']
 ```
@@ -600,15 +626,35 @@ Some notes on these inputs can be found below:
 The last part of the configuration file is the measurement information. These look like the snippet seen below:
 
 ```
-- name: blue
-  dtype: int16
-  nodata: -9999
-  resampling_method: nearest
-  src_varname: 'sr_band1'
-  zlib: True
-  attrs:
-      long_name: "Surface Reflectance 0.45-0.52 microns (Blue)"
-  alias: "band_1"
+measurements:
+    - name: total_precipitation
+      dtype: int32
+      nodata: 9999
+      units: '.001 mm/h'
+      resampling_method: nearest
+      src_varname: 'total_precipitation'
+      zlib: True
+    - name: liquid_precipitation
+      dtype: int32
+      nodata: 9999
+      units: '.001 mm/h'
+      resampling_method: nearest
+      src_varname: 'liquid_precipitation'
+      zlib: True
+    - name: ice_precipitation
+      dtype: int32
+      nodata: 9999
+      units: '.001 mm/h'
+      resampling_method: nearest
+      src_varname: 'ice_precipitation'
+      zlib: True
+    - name: percent_liquid
+      dtype: uint8
+      nodata: 9999
+      units: 'percent'
+      resampling_method: nearest
+      src_varname: 'percent_liquid'
+      zlib: True
 ```
 
 The important points to note here are that it contains the same information (or can contain) all of the same attributes from the product definition, as well as information required to map the source measurements to the ingested measurements.
