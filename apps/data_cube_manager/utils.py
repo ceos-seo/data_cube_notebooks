@@ -115,16 +115,18 @@ def definition_from_forms(metadata, measurements):
     ]
 
     # all of these are optional - if any of them exist, create the storage field.
-    if any(storage_attr in metadata.cleaned_data for storage_attr in storage_attrs):
-        storage = OrderedDict()
+    if any(storage_attr in metadata.cleaned_data and metadata.cleaned_data[storage_attr]
+           for storage_attr in storage_attrs):
+        storage = {}
 
-        storage['driver'] = metadata.cleaned_data['storage_driver'] if metadata.cleaned_data['storage_driver'] else None
+        storage['driver'] = metadata.cleaned_data.get('storage_driver', None)
 
-        storage['crs'] = metadata.cleaned_data['crs'] if 'crs' in metadata.cleaned_data else None
+        storage['crs'] = metadata.cleaned_data.get('crs', None)
+
         storage['resolution'] = {
             'latitude': metadata.cleaned_data['resolution_latitude'],
             'longitude': metadata.cleaned_data['resolution_longitude']
-        } if metadata.cleaned_data['crs'] else None
+        } if 'crs' in storage else None
 
         storage['tile_size'] = {
             'latitude': metadata.cleaned_data['tile_size_latitude'],
@@ -137,26 +139,31 @@ def definition_from_forms(metadata, measurements):
             'longitude': metadata.cleaned_data['chunking_longitude']
         } if metadata.cleaned_data['chunking_time'] else None
 
-        storage['dimension_order'] = ['time', 'latitude', 'longitude']
+        storage['dimension_order'] = ['time', 'latitude', 'longitude'] if 'crs' in storage else None
 
+        fields = ['driver', 'crs', 'resolution', 'tile_size', 'chunking', 'dimension_order']
+        ordered_storage = OrderedDict()
+        for field in fields:
+            if field in storage and storage[field]:
+                ordered_storage[field] = storage[field]
         #set storage, but only from dict values that actually exist.
-        json_definition['storage'] = {k: v for k, v in storage.items() if v is not None}
+        json_definition['storage'] = ordered_storage
 
     #measurements
     measurements_list = []
     for measurement in measurements:
         #static fields..
-        measurement_dict = OrderedDict()
-        measurement_dict['name'] = measurement['measurement_form'].cleaned_data['name']
-        measurement_dict['dtype'] = measurement['measurement_form'].cleaned_data['dtype']
-        measurement_dict['nodata'] = measurement['measurement_form'].cleaned_data['nodata']
-        measurement_dict['units'] = measurement['measurement_form'].cleaned_data['units']
+        unordered_measurements = {}
+        unordered_measurements['name'] = measurement['measurement_form'].cleaned_data['name']
+        unordered_measurements['dtype'] = measurement['measurement_form'].cleaned_data['dtype']
+        unordered_measurements['nodata'] = measurement['measurement_form'].cleaned_data['nodata']
+        unordered_measurements['units'] = measurement['measurement_form'].cleaned_data['units']
         #split aliases on comma, strip all spaces if they exist.
-        measurement_dict['aliases'] = list(
+        unordered_measurements['aliases'] = list(
             map(lambda x: re.sub('[^0-9a-zA-Z]+', '_', x.strip(" ")), measurement['measurement_form'].cleaned_data[
                 'aliases'].split(","))) if measurement['measurement_form'].cleaned_data['aliases'] else None
 
-        measurement_dict['flags_definition'] = {
+        unordered_measurements['flags_definition'] = {
             measurement['flags_definition_form'].cleaned_data['flag_name']: {
                 'bits':
                 list(map(lambda x: int(x), measurement['flags_definition_form'].cleaned_data['bits'].split(","))),
@@ -170,7 +177,13 @@ def definition_from_forms(metadata, measurements):
             }
         } if measurement['measurement_form'].cleaned_data['flags_definition'] else None
 
-        measurements_list.append({k: v for k, v in measurement_dict.items() if v is not None})
+        fields = ['name', 'dtype', 'nodata', 'units', 'aliases', 'flags_definition']
+        measurement_dict = OrderedDict()
+        for field in fields:
+            if unordered_measurements[field] is not None:
+                measurement_dict[field] = unordered_measurements[field]
+
+        measurements_list.append(measurement_dict)
 
     json_definition['measurements'] = measurements_list
 

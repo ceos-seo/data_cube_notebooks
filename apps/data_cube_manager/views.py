@@ -10,6 +10,7 @@ import os
 import yaml
 from yaml import SafeDumper
 import uuid
+from collections import OrderedDict
 from datacube.index import index_connect
 
 from . import models
@@ -130,11 +131,12 @@ class DatasetYamlExport(View):
         except:
             pass
 
-        print(product_def)
+        represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data.items())
+        yaml.add_representer(OrderedDict, represent_dict_order)
 
         yaml_url = '/datacube/ui_results/data_cube_manager/product_defs/' + str(uuid.uuid4()) + '.yaml'
         with open(yaml_url, 'w') as yaml_file:
-            yaml.dump(product_def, yaml_file, Dumper=SafeDumper)
+            yaml.dump(product_def, yaml_file)
         return JsonResponse({'error': 'OK', 'url': yaml_url})
 
 
