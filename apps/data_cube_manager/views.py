@@ -54,7 +54,12 @@ class DatasetTypeView(View):
         return render(request, 'data_cube_manager/dataset_type.html', context)
 
     def post(self, request):
-        """
+        """Add a dataset type to the database
+
+        Using forms, create a json representation of a dataset type and attempt to index it in the database.
+
+        POST Data:
+            Measurement forms, metadata forms
         """
         if not request.user.is_superuser:
             return JsonResponse({'status': "ERROR", 'message': "Only superusers can add or update datasets."})
