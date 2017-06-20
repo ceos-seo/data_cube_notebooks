@@ -200,7 +200,7 @@ measurements:
             128: { String description of bit }
 ```
 
-Once your product definition has all required information, you add it to the Data Cube. For our Landsat 7 example, this is done with the following command:
+Once your product definition has all required information, you add it to the Data Cube. For our GPM example, this is done with the following command:
 
 ```
 datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/gpm/gpm_imerge_gis.yaml
@@ -539,7 +539,7 @@ The ingestion configuration file is essentially defining a transformation betwee
 
 **Please note that you will need to create a new ingestion configuration file to match the scene bounds that you have downloaded. If you do not want to do that, delete the ingestion bounds section from the configuration file we are using as an example - your product will be 'ls7_ledaps_general'**
 
-In this section we will go through an example Landsat 7 ingestion configuration. A full template can be found at the bottom of this section.
+In this section we will go through an example GPM ingestion configuration. A full template can be found at the bottom of this section.
 
 The first two lines in the file are:
 
@@ -620,7 +620,7 @@ Some notes on these inputs can be found below:
 **Important notes**
 
 - Resolution specifies the x/y or latitude/longitude resolution in the **units of the crs setting** - if the units of the crs are degrees (e.g. EPSG:4326), then latitude/longitude should be used here. If x/y are used (e.g. Transverse mercator projections, UTM based etc.) then these should read x and y instead.
-- The tile size refers to the tiling of the source datasets - in the above example, ~0.94 degrees are used for both values. This means that given the ~6 square degree Landsat 7 scene, the ingestion process will produce ~6 separate tiles. This can be raised or lowered - we lower it for higher resolution data so that the file sizes are all roughly the same.
+- The tile size refers to the tiling of the source datasets - in our Landsat examples, ~0.94 degrees are used for both values. This means that given the ~6 square degree Landsat 7 scene, the ingestion process will produce ~6 separate tiles. This can be raised or lowered - we lower it for higher resolution data so that the file sizes are all roughly the same.
 - The tile size must be evenly divisible by the resolution for both latitude and longitude - this means that the latitude tile size % the latitude resolution must be **exactly** zero. Not doing this can result in a single pixel gap between tiles caused by some rounding errors. If we were ingesting into Albers 25m, a valid tile size would be 100000, but not 100321 as it does not evenly divide. For projections that require fractional degrees (like above), we calculate our desired resolution in both the x and y direction and then multiply by an arbitrary constant (generally 3000-4000) to ensure that there are no rounding errors.
 
 The last part of the configuration file is the measurement information. These look like the snippet seen below:
@@ -730,10 +730,10 @@ measurements:
 Now that we have a complete ingestion configuration file, we are able to start the ingestion process. Use the following code snippet:
 
 ```
-datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/landsat_collection/ls7_collections_sr_general.yaml --executor multiproc 2
+datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/gpm/gpm_monthly_global.yaml --executor multiproc 2
 ```
 
-You'll notice a few things in the command above: -c is the option for the configuration file, and --executor multiproc enables multiprocessing. In our case, we're using two cores. You should see a significant amount of console output as well as a constantly updating status until ingestion is finished. With our ~1 degree tiles, you can also see that we are producing 9 tiles for the single acquisition due to our tiling settings. The console output can be seen below:
+You'll notice a few things in the command above: -c is the option for the configuration file, and --executor multiproc enables multiprocessing. In our case, we're using two cores. You should see a significant amount of console output as well as a constantly updating status until ingestion is finished. The console output should resemble below:
 
 ```
 2017-06-11 12:02:31,965 12986 datacube INFO Running datacube command: /home/localuser/Datacube/datacube_env/bin/datacube -v ingest -c /home/localuser/Datacube/agdc-v2/ingest/ingestion_configs/landsat_collection/ls7_collections_sr_general.yaml --executor multiproc 2

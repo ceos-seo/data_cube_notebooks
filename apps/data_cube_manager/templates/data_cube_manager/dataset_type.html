@@ -75,10 +75,13 @@
       {% if dataset_type_id %}
         <a class="btn btn-default pull-right bottom-btn" href="/data_cube_manager/dataset_types/create/{{dataset_type_id}}">Create a derivative dataset</a>
       {% endif %}
+      <button class="btn btn-default pull-right bottom-btn" onclick="download_yaml()">Download .yaml file</button>
       {% if request.user.is_superuser and not dataset_type_id %}
         <button class="btn btn-default pull-right bottom-btn" onclick="add_dataset_type()">Add dataset</button>
       {% endif %}
-      <button class="btn btn-default pull-right bottom-btn" onclick="download_yaml()">Download .yaml file</button>
+      {% if request.user.is_superuser and dataset_type_id %}
+        <a class="btn btn-danger pull-right bottom-btn" href="/data_cube_manager/dataset_types/delete/{{dataset_type_id}}">Delete dataset</a>
+      {% endif %}
     </div>
   </div>
 </div>

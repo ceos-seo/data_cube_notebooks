@@ -154,9 +154,17 @@ class DeleteDatasetType(View):
 
     def get(self, request, dataset_type_id=None):
         """Get the datasets that will be deleted/confgirmation?"""
+        context = {
+            'datasets': models.Dataset.objects.using('agdc').filter(dataset_type_ref=dataset_type_id),
+            'dataset_type_id': dataset_type_id
+        }
+        return render(request, 'data_cube_manager/delete_dataset.html', context)
 
     def post(self, request, dataset_type_id=None):
         """Delete the type"""
+        #should cascade
+        models.DatasetType.objects.using('agdc').get(id=dataset_type_id).delete()
+        return JsonResponse({'error': 'OK'})
 
 
 class DatasetListView(View):
