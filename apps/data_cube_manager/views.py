@@ -129,9 +129,12 @@ class DatasetYamlExport(View):
             os.makedirs('/datacube/ui_results/data_cube_manager/product_defs/')
         except:
             pass
+
+        print(product_def)
+
         yaml_url = '/datacube/ui_results/data_cube_manager/product_defs/' + str(uuid.uuid4()) + '.yaml'
         with open(yaml_url, 'w') as yaml_file:
-            yaml.dump(dict(product_def), yaml_file, Dumper=SafeDumper)
+            yaml.dump(product_def, yaml_file, Dumper=SafeDumper)
         return JsonResponse({'error': 'OK', 'url': yaml_url})
 
 

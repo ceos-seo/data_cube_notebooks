@@ -10,7 +10,6 @@ import json
 #'metadata_form': forms.DatasetTypeMetadataForm(),
 #'measurements_form': forms.DatasetTypeMeasurementsForm(),
 #'mask_form': forms.DatasetTypeMaskForm(),
-#'spectral_form': forms.DatasetTypeSpectralForm(),
 #measurements: {'measurement_name': {'measurement_form': form(),optional -> 'mask_form': form(),'spectral_form': form()}}
 def forms_from_definition(product_def, display_only=True):
     #anything without a fallback for .get is required
