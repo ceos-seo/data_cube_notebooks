@@ -190,7 +190,7 @@ This command should be run from within the virtual environment. This will valida
 Added "ls7_collections_sr_scene"
 ```
 
-The 'Added *' statement should read that it has added the name defined within the product definition.
+The 'Added \*' statement should read that it has added the name defined within the product definition.
 
 If you open pgAdmin3 and examine the data in the dataset_type table, you'll see that there is now a row for the added product with all associated metadata. With the product definition added to the Data Cube, the next step is generating the required metadata to add a dataset.
 
@@ -448,7 +448,7 @@ This is done using rasterio - any dataset that can be opened by rasterio should 
     populate_coord(doc)
 ```
 
-These scripts can run on a single directory of a list of directories specified with a wildcard (*). The output should resemble what is shown below:
+These scripts can run on a single directory of a list of directories specified with a wildcard (\*). The output should resemble what is shown below:
 
 ```
 2017-06-09 18:24:18,821 INFO Processing /datacube/original_data/LE071950542015121201T1-SC20170427222707

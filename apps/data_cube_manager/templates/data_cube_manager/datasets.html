@@ -1,58 +1,121 @@
-{% extends "data_cube_manager/page_table_with_header.html" %}
+{% extends "default.html" %}
 <!--
-    Copyright 2016 United States Government as represented by the Administrator
-    of the National Aeronautics and Space Administration. All Rights Reserved.
+Copyright 2016 United States Government as represented by the Administrator
+of the National Aeronautics and Space Administration. All Rights Reserved.
 
-    Portion of this code is Copyright Geoscience Australia, Licensed under the
-    Apache License, Version 2.0 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a copy of the License
-    at
+Portion of this code is Copyright Geoscience Australia, Licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License
+at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+   http://www.apache.org/licenses/LICENSE-2.0
 
-    The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
-    "License"); you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0.
+The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0.
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-    License for the specific language governing permissions and limitations
-    under the License.
-  -->
-{% block header %}Datasets{% endblock %}
-{% block description %}Datasets are individual chunks of data - either full acquisitions (scenes) or chunks of acquisitions created during ingestion. Information found in the dataset is the id, added date, and acquisition/chunk data such as extents, date acquired, and path to dataset. Please note that the download feature is only available for ingested products.{% endblock %}
-
-{% block table %}
-<table class="table table-hover full">
-  <thead>
-    <tr>
-      <th>Id</th>
-      <th>Spatial Reference</th>
-      <th>Upper Left</th>
-      <th>Lower Right</th>
-      <th>Dataset Acq. Date</th>
-      <th>Format</th>
-      <th>Added Date</th>
-      <th>Download Data</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for dataset in datasets %}
-    <tr>
-      <td>{{ dataset.id }}</td>
-      <td>{{ dataset.metadata.grid_spatial.projection.spatial_reference }}</td>
-      <td>{{ dataset.metadata.extent.coord.ul.lon|floatformat:2 }}, {{dataset.metadata.extent.coord.ul.lat|floatformat:2 }}</td>
-      <td>{{ dataset.metadata.extent.coord.lr.lon|floatformat:2 }}, {{ dataset.metadata.extent.coord.lr.lat|floatformat:2 }}</td>
-      <td>{{ dataset.metadata.extent.center_dt }}</td>
-      <td>{{ dataset.metadata.format.name }}</td>
-      <td>{{ dataset.added }}</td>
-      <td>{% if downloadable %}<a class="btn btn-default" target="_blank" href="/data_cube_manager/download_dataset/{{ dataset.id }}">Download dataset</a>{% else %}<a class="btn btn-default" target="" disabled="disabled" href="#">Download not available</a>{% endif %}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+-->
+{% block javascript %}
+<script type="text/javascript" charset="utf8" src="/static/assets/js/DataTables/media/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/static/assets/js/DataTables/media/js/dataTables.bootstrap.min.js"></script>
 {% endblock %}
-{% block bottom_button %}
+{% block css %}
+<link href="/static/assets/css/data_cube_manager.css" rel="stylesheet" type="text/css" media="screen, projection" />
+<link rel="stylesheet" type="text/css" href="/static/assets/js/DataTables/media/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% load bootstrap3 %}
+{% block content %}
+<div class="container-fluid no_footer">
+  <div class="row fullscreen-row">
+    <div class="col-lg-12 seamless-col col-centered fullscreen-col table-container">
+      <div class="page-header">
+        <h1>Datasets</h1>
+        <div class="row">
+          <p class="col-lg-9 col-md-10 col-sm-11 col-xs-12">Datasets are individual chunks of data - either full acquisitions (scenes) or chunks of acquisitions created during ingestion. Information found in the dataset is the id, added date, and acquisition/chunk data such as extents, date acquired, and path to dataset. Please note that the download feature is only available for ingested products.</p>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <form id="filtering_form" action="">
+          {% bootstrap_form form bound_css_class="" %}
+        </form>
+        <button class="btn btn-danger">Delete filtered datasets</button>
+        <button class="btn btn-default">Download filtered datasets</button>
+      </div>
+      <div id="table_container" class="col-lg-8">
+        <table id="data_table" class="table table-hover full" style="min-height: 600px;">
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Platform</th>
+              <th>Instrument</th>
+              <th>Product Type</th>
+              <th>Upper Left</th>
+              <th>Lower Right</th>
+              <th>Dataset Acq. Date</th>
+              <th>Format</th>
+            </tr>
+          </thead>
+          <!--tbody>
+            {% for dataset in datasets %}
+            <tr>
+              <td>{{ dataset.id }}</td>
+              <td>{{ dataset.metadata.platform.code }}</td>
+              <td>{{ dataset.metadata.instrument.name }}</td>
+              <td>{{ dataset.metadata.product_type }}</td>
+              <td>{{ dataset.metadata.extent.coord.ul.lon|floatformat:2 }}, {{dataset.metadata.extent.coord.ul.lat|floatformat:2 }}</td>
+              <td>{{ dataset.metadata.extent.coord.lr.lon|floatformat:2 }}, {{ dataset.metadata.extent.coord.lr.lat|floatformat:2 }}</td>
+              <td>{{ dataset.metadata.extent.center_dt }}</td>
+              <td>{{ dataset.metadata.format.name }}</td>
+            </tr>
+            {% endfor %}
+          </tbody-->
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  var table;
+  $(document).ready( function () {
+    table = $('#data_table').DataTable({
+      "lengthMenu": [[15, 25, 50, -1], [15, 25, 50, "All"]],
+      "order": [[ 0, "asc" ]],
+      "processing": true,
+      "serverSide": true,
+      "searching": false,
+      "ajax": {
+        "url": "/data_cube_manager/datasets",
+        "type": "POST",
+        "data": function ( d ) {
+            d.form_data = $('#filtering_form').serialize();
+        }
+      },
+      "columns": [{"name": "id", "orderable": true},
+                  {"name": "metadata__platform__code", "orderable": false},
+                  {"name": "metadata__instrument__name", "orderable": false},
+                  {"name": "metadata__product_type", "orderable": false},
+                  {"name": "ul", "orderable": false},
+                  {"name": "lr", "orderable": false},
+                  {"name": "metadata__extent__center_dt", "orderable": false},
+                  {"name": "metadata__format__name", "orderable": false}]
+    });
+
+    $('.datepicker').datepicker({
+        changeMonth: true,
+        changeYear: true,
+        showButtonPanel: true,
+        yearRange: "-30:+0"
+    });
+
+    jQuery(".onchange_filter").change(function() {
+      table.draw();
+    })
+  });
+</script>
 {% endblock %}

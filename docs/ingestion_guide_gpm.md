@@ -27,6 +27,29 @@ The ingestion workflow consists of: Creating a product definition for your new d
 - **Indexing dataset metadata**: Indexing a dataset involves recording the content of the metadata file in the database. This allows access to the metadata via the Python API and for programmatic loading of data based on metadata.
 - **Ingesting indexed datasets**: The ingestion process defines a mapping between a source dataset and a dataset with more desirable properties. A new product definition will be added to the Data Cube with the properties defined in the ingestion configuration file and datasets that match the provided criteria will be modified according to the new product definition and written to disk in the new format. Each modified dataset (or dataset tile) is indexed in the Data Cube.
 
+# []() Ingestion Cheat Sheet
+
+The first step is to add your product definition. This will be done _once_ for each dataset type - e.g. If we are indexing all GPM data over our country and continue to collect data after the initial download, this is done a _single_ time. There is only one product definition for each dataset type.
+
+```
+datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/gpm/gpm_imgerg_gis.yaml
+```
+
+Now, for each dataset that is collected you will need to run a preparation script that generates the correct metadata as well as the 'datacube' command that indexes the dataset in the database. This only needs to be done once _for each dataset_ - if you collect a new scene, you'll need to do this process for only that scene. Please note that indexing the dataset in the database creates an absolute reference to the path on disk - you cannot move the dataset on disk after indexing or it won't be found and will create problems.
+
+```
+python ~/Datacube/agdc-v2/ingest/prepare_scripts/gpm/gpm_imgerg_gis_prepare.py /datacube/original_data/gpm/3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A
+datacube -v dataset add /datacube/original_data/gpm/3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A/*.yaml
+```
+
+Now that the datasets have the correct metadata generated and have been indexed, we can run the ingestion process. Ingestion skips all datasets that have already been ingested, so this is a single command.
+
+```
+datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/gpm/gpm_monthly_global.yaml --executor multiproc 2
+```
+
+After an initial ingestion, when you download new acquisitions all you need to do is generate the metadata, index the dataset, and run the ingestion process.
+
 # []() Prerequisites
 
 To index and ingest data into the Data Cube, the following prerequisites must be met:

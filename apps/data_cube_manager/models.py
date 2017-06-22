@@ -2,6 +2,9 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.postgres.fields import JSONField
+from django.db.models import Q
+
+from dateutil.parser import parse
 
 
 class Dataset(models.Model):
@@ -16,6 +19,45 @@ class Dataset(models.Model):
     class Meta:
         managed = False
         db_table = 'dataset'
+
+    @classmethod
+    def filter_datasets(cls, cleaned_form_data):
+        """Custom filtering based on form data found in forms.DatasetFilterForm"""
+        base_query = Q()
+        if 'dataset_type_ref' in cleaned_form_data:
+            base_query &= Q(dataset_type_ref__in=cleaned_form_data['dataset_type_ref'])
+        if 'managed' in cleaned_form_data:
+            base_query &= Q(dataset_type_ref__definition__managed=cleaned_form_data['managed'])
+        # range intersections done like:
+        #   if x1[0] > x2[0] and x1[0] < x2[1] or x1[1] > x2[0] and x1[1] < x2[1]: return True
+        latitude_query = Q(metadata__extent__coord__lr__lat__gte=cleaned_form_data['latitude_min'],
+                           metadata__extent__coord__lr__lat__lt=cleaned_form_data['latitude_max']) | Q(
+                               metadata__extent__coord__ul__lat__gt=cleaned_form_data['latitude_min'],
+                               metadata__extent__coord__ul__lat_lt=cleaned_form_data['latitude_max'])
+        longitude_query = Q(metadata__extent__coord__ul__lon__gt=cleaned_form_data['longitude_min'],
+                            metadata__extent__coord__ul__lon__lt=cleaned_form_data['longitude_max']) | Q(
+                                metadata__extent__coord__lr__lon__gt=cleaned_form_data['longitude_min'],
+                                metadata__extent__coord__lr__lon_lt=cleaned_form_data['longitude_max'])
+        time_query = Q(metadata__extent__center_dt__lte=cleaned_form_data['end_date'].isoformat(),
+                       metadata__extent__center_dt__gte=cleaned_form_data['start_date'].isoformat())
+        base_query &= latitude_query & longitude_query & time_query
+
+        return cls.objects.using('agdc').filter(base_query)
+
+    def get_dataset_table_columns(self):
+        """Returns the metadata columns specified in the datasets.html template
+
+        id, platform, instrument, product type, upper left/lower right, center dt, format
+
+        """
+        return [
+            self.id, self.metadata['platform']['code'], self.metadata['instrument']['name'],
+            self.metadata['product_type'], "{:.2f}, {:.2f}".format(self.metadata['extent']['coord']['ul']['lon'],
+                                                                   self.metadata['extent']['coord']['ul']['lat']),
+            "{:.2f}, {:.2f}".format(self.metadata['extent']['coord']['lr']['lon'],
+                                    self.metadata['extent']['coord']['lr']['lat']),
+            self.metadata['extent']['center_dt'], self.metadata['format']['name']
+        ]
 
 
 class DatasetLocation(models.Model):
@@ -55,6 +97,9 @@ class DatasetType(models.Model):
     class Meta:
         managed = False
         db_table = 'dataset_type'
+
+    def __str__(self):
+        return self.name + (" - Ingested only" if 'managed' in self.definition else " - Source only")
 
 
 class MetadataType(models.Model):

@@ -24,6 +24,7 @@ from django.core.validators import RegexValidator, validate_comma_separated_inte
 from django.core import validators
 
 import re
+import datetime
 
 from .utils import logical_xor
 from .models import DatasetType
@@ -347,64 +348,106 @@ class DatasetTypeFlagsDefinitionForm(forms.Form):
 
 
 class DatasetFilterForm(forms.Form):
-    products = forms.ModelMultipleChoiceField(
-        queryset=None, empty_label="Any", label=Product, widget=forms.Select(attrs={'class': ""}), required=False)
+    dataset_type_ref = forms.ModelMultipleChoiceField(
+        queryset=None,
+        label="Products",
+        widget=forms.SelectMultiple(attrs={'class': "onchange_filter"}),
+        required=False)
+
+    managed_choices = ((None, 'Any'), (False, 'Source only'), (True, 'Ingested only'))
+    managed = forms.ChoiceField(
+        label="Managed",
+        required=False,
+        choices=managed_choices,
+        widget=forms.Select(attrs={'class': "onchange_filter"}))
 
     latitude_min = forms.FloatField(
         label='Min Latitude',
-        widget=forms.NumberInput(
-            attrs={'class': 'field-divided',
-                   'step': "any",
-                   'required': 'required',
-                   'min': -90,
-                   'max': 90}),
         validators=[validators.MaxValueValidator(90), validators.MinValueValidator(-90)],
-        required=False)
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'field-divided onchange_filter',
+                                        'step': "any",
+                                        'min': -90,
+                                        'max': 90}))
     latitude_max = forms.FloatField(
         label='Max Latitude',
-        widget=forms.NumberInput(
-            attrs={'class': 'field-divided',
-                   'step': "any",
-                   'required': 'required',
-                   'min': -90,
-                   'max': 90}),
         validators=[validators.MaxValueValidator(90), validators.MinValueValidator(-90)],
-        required=False)
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'field-divided onchange_filter',
+                                        'step': "any",
+                                        'min': -90,
+                                        'max': 90}))
     longitude_min = forms.FloatField(
         label='Min Longitude',
-        widget=forms.NumberInput(
-            attrs={'class': 'field-divided',
-                   'step': "any",
-                   'required': 'required',
-                   'min': -180,
-                   'max': 180}),
         validators=[validators.MaxValueValidator(180), validators.MinValueValidator(-180)],
-        required=False)
+        required=False,
+        widget=forms.NumberInput(
+            attrs={'class': 'field-divided onchange_filter',
+                   'step': "any",
+                   'min': -180,
+                   'max': 180}))
     longitude_max = forms.FloatField(
         label='Max Longitude',
-        widget=forms.NumberInput(
-            attrs={'class': 'field-divided',
-                   'step': "any",
-                   'required': 'required',
-                   'min': -180,
-                   'max': 180}),
         validators=[validators.MaxValueValidator(180), validators.MinValueValidator(-180)],
-        required=False)
-    time_start = forms.DateField(
+        required=False,
+        widget=forms.NumberInput(
+            attrs={'class': 'field-divided onchange_filter',
+                   'step': "any",
+                   'min': -180,
+                   'max': 180}))
+    start_date = forms.DateField(
         label='Start Date',
-        widget=forms.DateInput(
-            attrs={'class': 'datepicker field-divided',
-                   'placeholder': '01/01/2010',
-                   'required': 'required'}),
-        required=False)
-    time_end = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'datepicker field-divided onchange_filter',
+                                      'placeholder': '01/01/2010'}))
+    end_date = forms.DateField(
         label='End Date',
-        widget=forms.DateInput(
-            attrs={'class': 'datepicker field-divided',
-                   'placeholder': '01/02/2010',
-                   'required': 'required'}),
-        required=False)
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'datepicker field-divided onchange_filter',
+                                      'placeholder': '01/02/2010'}))
 
     def __init__(self, *args, **kwargs):
+        dataset_type_ref = kwargs.pop('dataset_type_id', None)
         super(DatasetFilterForm, self).__init__(*args, **kwargs)
-        self.fields['products'].queryset = DatasetType.objects.using('agdc').all()
+        self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').all()
+        if dataset_type_ref is not None:
+            self.fields['dataset_type_ref'].initial = [dataset_type_ref]
+
+    def clean(self):
+        cleaned_data = {
+            'latitude_min': -90,
+            'latitude_max': 90,
+            'longitude_min': -180,
+            'longitude_max': 180,
+            'start_date': datetime.date(1900, 1, 1),
+            'end_date': datetime.date.today()
+        }
+        cleaned_data.update({key: val for key, val in super(DatasetFilterForm, self).clean().items() if val})
+
+        # this is godawful - This needs to be a three state input (Any, True, False) but it won't pass types.. String only,
+        # so I can't even use 0/1/None to signify true / false without a compariason.
+        if 'managed' in cleaned_data:
+            cleaned_data['managed'] = True if cleaned_data['managed'] == 'True' else False
+
+        if cleaned_data.get('latitude_min') > cleaned_data.get('latitude_max'):
+            self.add_error(
+                'latitude_min',
+                "Please enter a valid pair of latitude values where the lower bound is less than the upper bound.")
+
+        if cleaned_data.get('longitude_min') > cleaned_data.get('longitude_max'):
+            self.add_error(
+                'longitude_min',
+                "Please enter a valid pair of longitude values where the lower bound is less than the upper bound.")
+
+        if cleaned_data.get('start_date') >= cleaned_data.get('end_date'):
+            self.add_error('start_date',
+                           "Please enter a valid start and end time range where the start is before the end.")
+
+        # this id done to get rid of some weird rounding issues - a lot of the solid BBs end up being 3.999999999123412 rather than
+        # the expected 4
+        cleaned_data['latitude_min'] -= 0.01
+        cleaned_data['longitude_min'] -= 0.01
+        cleaned_data['latitude_max'] += 0.01
+        cleaned_data['longitude_max'] += 0.01
+
+        self.cleaned_data = cleaned_data

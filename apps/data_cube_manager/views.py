@@ -8,8 +8,8 @@ from django.views import View
 
 import os
 import yaml
-from yaml import SafeDumper
 import uuid
+from urllib import parse
 from collections import OrderedDict
 from datacube.index import index_connect
 
@@ -214,17 +214,46 @@ class DatasetListView(View):
     def get(self, request, dataset_type_id=None):
         """
         """
-        context = {}
-        context['datasets'] = models.Dataset.objects.using('agdc').filter(dataset_type_ref=dataset_type_id)
-        context['downloadable'] = 'managed' in models.DatasetType.objects.using('agdc').get(
-            id=dataset_type_id).definition
+        context = {'form': forms.DatasetFilterForm({'dataset_type_ref': [dataset_type_id]})}
         return render(request, 'data_cube_manager/datasets.html', context)
 
     def post(self, request, dataset_type_id=None):
         """
         """
-        location = models.DatasetLocation.objects.using('agdc').get(dataset_ref=dataset_ref)
-        return redirect(settings.BASE_HOST + location.uri_body.strip("/"))
+        form_data = parse.parse_qs(request.POST['form_data'])
+        # unlist the post data - data tables uses lists for everything for w/e reason.
+        for key in form_data:
+            if "dataset_type_ref" == key:
+                continue
+            form_data[key] = form_data[key][0]
+
+        dataset_filters = forms.DatasetFilterForm(form_data)
+        if dataset_filters.is_valid():
+            ending_slice = int(request.POST.get('start')) + int(
+                request.POST.get('length')) if request.POST.get('length') != "-1" else -1
+            datasets = models.Dataset.filter_datasets(dataset_filters.cleaned_data)
+            total_records = datasets.count()
+
+            order_dir = "-" if request.POST.get("order[0][dir]") == "desc" else ""
+            order_col = request.POST.get("columns[{}][name]".format(request.POST.get("order[0][column]")[0]))
+
+            sliced_datasets = datasets.order_by(
+                "{}{}".format(order_dir, order_col))[int(request.POST.get('start')):ending_slice]
+
+            data = [dataset.get_dataset_table_columns() for dataset in sliced_datasets]
+            context = {
+                'draw': int(request.POST.get('draw')),
+                'recordsTotal': total_records,
+                'recordsFiltered': total_records,
+                'data': data,
+            }
+            return JsonResponse(context)
+        else:
+            print("ERR")
+            for error in dataset_filters.errors:
+                print(error, dataset_filters.errors[error])
+                context = {'draw': int(request.POST.get('draw')), 'data': [], 'error': dataset_filters.errors[error]}
+                return JsonResponse(context)
 
 
 class DeleteDataset(View):
