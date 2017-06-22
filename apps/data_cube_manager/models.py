@@ -22,7 +22,19 @@ class Dataset(models.Model):
 
     @classmethod
     def filter_datasets(cls, cleaned_form_data):
-        """Custom filtering based on form data found in forms.DatasetFilterForm"""
+        """Custom filtering based on form data found in forms.DatasetFilterForm
+
+        dataset_type_ref and managed are optional and can be null, so those need to be checked.
+        Uses Django Q objects to combine and/or operations on queries. Does a BB intersection
+        and time query to filter datasets.
+
+        Args:
+            dict representing cleaned form data from forms.DatasetFilterForm
+
+        Returns:
+            Queryset of Datasets
+
+        """
         base_query = Q()
         if 'dataset_type_ref' in cleaned_form_data:
             base_query &= Q(dataset_type_ref__in=cleaned_form_data['dataset_type_ref'])

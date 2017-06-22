@@ -208,17 +208,29 @@ class DeleteDatasetType(View):
 
 
 class DatasetListView(View):
-    """
+    """View datasets with a filtering form
+
+    Enumerate all datasets that fit the entered criteria using Data Tables server side processing
+
     """
 
     def get(self, request, dataset_type_id=None):
-        """
+        """Display the rendered HTML datatables instance and form.
+
+        If dataset_type_id is not none, use it to initialize the form.
+
+        Context:
+            form: DatasetFilerForm instance, bound to dataset_type_id if available
         """
         context = {'form': forms.DatasetFilterForm({'dataset_type_ref': [dataset_type_id]})}
         return render(request, 'data_cube_manager/datasets.html', context)
 
     def post(self, request, dataset_type_id=None):
-        """
+        """Acts as the server process for DataTables.
+
+        Uses the DataTables request details to return the required DT response.
+        See https://datatables.net/manual/server-side for more details.
+
         """
         form_data = parse.parse_qs(request.POST['form_data'])
         # unlist the post data - data tables uses lists for everything for w/e reason.
@@ -249,7 +261,6 @@ class DatasetListView(View):
             }
             return JsonResponse(context)
         else:
-            print("ERR")
             for error in dataset_filters.errors:
                 print(error, dataset_filters.errors[error])
                 context = {'draw': int(request.POST.get('draw')), 'data': [], 'error': dataset_filters.errors[error]}

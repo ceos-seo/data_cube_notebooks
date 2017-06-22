@@ -28,13 +28,11 @@ import datetime
 
 from .utils import logical_xor
 from .models import DatasetType
-
-####
+"""
 #modeled after
 #https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml
 #TODO: replace help text with descriptions from above. Potentially figure out how to make this more dynamic
-####
-
+"""
 comma_separated_float_list_re = re.compile('^([-+]?\d*\.?\d+[,\s]*)+$')
 validate_comma_separated_float_list = RegexValidator(
     comma_separated_float_list_re,
@@ -42,7 +40,8 @@ validate_comma_separated_float_list = RegexValidator(
 
 
 class DatasetTypeMetadataForm(forms.Form):
-    """
+    """Dataset type metadata form, meant to validate and clean the metadata section of dataset types
+
     name: ls5_ledaps_scene
     description: Landsat 5 LEDAPS 25 metre
     metadata_type: eo
@@ -220,6 +219,8 @@ class DatasetTypeMetadataForm(forms.Form):
 
 
 class DatasetTypeMeasurementsForm(forms.Form):
+    """Dataset measurement form, meant to validate measurements for dataset types
+    """
     name = forms.CharField(
         label="Measurement Name",
         help_text="Please enter the name of the measurement. Spaces and special characters are not allowed.",
@@ -273,7 +274,8 @@ class DatasetTypeMeasurementsForm(forms.Form):
 
 
 class DatasetTypeFlagsDefinitionForm(forms.Form):
-    """
+    """Dataset flags defintiion form, meant to validate any instances of flags definitions in measurements.
+
     - name: 'cfmask'
       aliases: [mask, CFmask]
       dtype: uint8
@@ -325,6 +327,8 @@ class DatasetTypeFlagsDefinitionForm(forms.Form):
         return self.cleaned_data['values'].strip(",")
 
     def clean(self):
+        """Clean the flags definition form - ensure that there are bits, values, and descriptions"""
+
         cleaned_data = super(DatasetTypeFlagsDefinitionForm, self).clean()
         if not cleaned_data.get('flag_name'):
             self.add_error("flag_name", "Mask name is required when flag definitions are enabled.")
@@ -348,6 +352,8 @@ class DatasetTypeFlagsDefinitionForm(forms.Form):
 
 
 class DatasetFilterForm(forms.Form):
+    """Filter datasets based on the dataset type and metadata attributes on the eo metadata type"""
+
     dataset_type_ref = forms.ModelMultipleChoiceField(
         queryset=None,
         label="Products",
@@ -414,6 +420,13 @@ class DatasetFilterForm(forms.Form):
             self.fields['dataset_type_ref'].initial = [dataset_type_ref]
 
     def clean(self):
+        """Clean the dataset filter form
+
+        This uses manually set defaults to allow for 'blank' inputs while still having values.
+        Does some weird boolean conversion since there's no way to do a drop down boolean field.
+
+        Adds a small padding to the lat/lon bounds to ensure that there are no silly rounding issues 
+        """
         cleaned_data = {
             'latitude_min': -90,
             'latitude_max': 90,
