@@ -29,7 +29,7 @@ urlpatterns = [
     url(r'^dataset_types/view/(?P<dataset_type_id>[\w\-]+)$', views.DatasetTypeView.as_view(), name=''),
     url(r'^dataset_types/create$', views.CreateDatasetType.as_view(), name=''),
     url(r'^dataset_types/create/(?P<dataset_type_id>[\w\-]+)$', views.CreateDatasetType.as_view(), name=''),
-    url(r'^validate_measurement$', views.ValidateMeasurement.as_view(), name=''),
+    url(r'^dataset_types/validate_measurement$', views.ValidateMeasurement.as_view(), name=''),
     url(r'^dataset_types/add$', views.DatasetTypeView.as_view(), name=''),
     url(r'^dataset_types/export$', views.DatasetYamlExport.as_view(), name=''),
     url(r'^dataset_types/delete/(?P<dataset_type_id>[\w\-]+)$', views.DeleteDatasetType.as_view(), name=''),
@@ -37,4 +37,8 @@ urlpatterns = [
     url(r'^dataset_types/(?P<dataset_type_id>[\w\-]+)/datasets$', views.DatasetListView.as_view(), name=''),
     url(r'^datasets$', views.DatasetListView.as_view(), name=''),
     url(r'^datasets/delete$', views.DeleteDataset.as_view(), name=''),
+    # Ingestion related functionality
+    url(r'^ingestion$', views.CreateIngestionConfigurationView.as_view(), name=''),
+    url(r'^ingestion/validate_measurement$', views.IngestionMeasurement.as_view(), name=''),
+    url(r'^ingestion/get_existing_measurements$', views.IngestionMeasurement.as_view(), name=''),
 ]

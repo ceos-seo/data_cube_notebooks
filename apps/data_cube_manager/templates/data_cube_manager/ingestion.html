@@ -30,14 +30,13 @@
   <div class="row">
     <div class="col-lg-12">
       <div class="page-header">
-        <h1>{% if dataset_type_id %}View Dataset Definition{% else %}Create a New Dataset Type{% endif %}</h1>
+        <h1>Create a Ingestion Configuration</h1>
         <div class="row">
           <p class="col-lg-9 col-md-10 col-sm-11 col-xs-12">
-            {% if dataset_type_id %}
-            View the full definition of a dataset using the forms below. The left panel contains the dataset metadata and the center panel can be used to see individual measurement details. Select a measurement using the rightmost panel to view that measurement's definition. Use the bottom buttons to download a .yaml file for this dataset or create a new measurement using this as a base.
-            {% else %}
-            Create a new dataset type definition using the forms below. The left panel contains the dataset metadata and the center panel can be used to see individual measurement details. Select a measurement using the rightmost panel to view that measurement's definition or click the trash icon to remove it. Use the bottom buttons to download the .yaml representation of the dataset or to add it to the Data Cube.
-            {% endif %}</p>
+            Create a new ingestion configuration using the forms below. Select an existing dataset type to use as the source data and the measurements will be populated with source measurements.
+            Fill in all metadata fields and edit or change measurement attributes and download the resulting .yaml file.
+            Measurements can be renamed using the 'name' field as long as the 'src_varname' stays the same.            
+          </p>
         </div>
       </div>
     </div>
@@ -47,6 +46,7 @@
       <div class="page-header sub"><span class="form-section-header">Dataset Metadata:</span></div>
       <form id="metadata_form">
         {% bootstrap_form metadata_form bound_css_class="" %}
+        {% bootstrap_form storage_form bound_css_class="" %}
       </form>
     </div>
     <div class="col-lg-7" style="overflow-y:auto; height: 100%;">
@@ -57,30 +57,15 @@
     </div>
     <div class="col-lg-2" style="overflow-y:auto; height: 100%;">
       <div class="page-header sub"><span class="form-section-header">Measurements:</span></div>
-      <table class="table table-hover" style="">
-        <tbody id="measurements_table">
-          {% for measurement_name, measurement in measurements.items %}
-            <tr id="{{ measurement_name }}_row" class="measurement-row">
-              <td onclick='set_form_visible("{{ measurement_name }}")'>{{ measurement_name }}</td>
-              {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement('{{ measurement_name }}')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% if not dataset_type_id %}
-        <button class="btn btn-default pull-right" onclick="add_new_measurement()">Create new measurement</button>
-      {% endif %}
+      <div id="existing_measurement_container">
+        {% include "data_cube_manager/existing_measurements.html" %}
+      </div>
+      <button class="btn btn-default pull-right" onclick="add_new_measurement()">Create new measurement</button>
     </div>
     <div class="col-lg-12" style="padding-top: 10px; padding-bottom: 5px;">
-      {% if dataset_type_id %}
-        <a class="btn btn-default pull-right bottom-btn" href="/data_cube_manager/dataset_types/create/{{dataset_type_id}}">Create a derivative dataset</a>
-      {% endif %}
       <button class="btn btn-default pull-right bottom-btn" onclick="download_yaml()">Download .yaml file</button>
       {% if request.user.is_superuser and not dataset_type_id %}
         <button class="btn btn-default pull-right bottom-btn" onclick="add_dataset_type()">Add dataset</button>
-      {% endif %}
-      {% if request.user.is_superuser and dataset_type_id %}
-        <a class="btn btn-danger pull-right bottom-btn" href="/data_cube_manager/dataset_types/delete/{{dataset_type_id}}">Delete dataset</a>
       {% endif %}
     </div>
   </div>
@@ -89,45 +74,11 @@
   <div id="new_measurement" class="new_measurement" >
     <form class="measurement_form">
       {% csrf_token %}
-      {% bootstrap_field measurements_form.name bound_css_class="" %}
-      {% bootstrap_field measurements_form.aliases bound_css_class="" %}
-      {% bootstrap_field measurements_form.dtype bound_css_class="" %}
-      {% bootstrap_field measurements_form.nodata bound_css_class="" %}
-      {% bootstrap_field measurements_form.units bound_css_class="" %}
-      {% bootstrap_field measurements_form.flags_definition bound_css_class="" %}
-      <div class="flags_definition_form" style="display:none">{% bootstrap_form flags_definition_form bound_css_class="" %}</div>
+      {% bootstrap_form measurement_form %}
     </form>
-    {% if not dataset_type_id %}
-      <button class="btn btn-danger pull-right" onclick="cancel_update(this)">Cancel change</button>
-      <button class="btn btn-default pull-right" onclick="update_measurement(this)">Update measurement</button>
-    {% endif %}
+    <button class="btn btn-danger pull-right" onclick="cancel_update(this)">Cancel change</button>
+    <button class="btn btn-default pull-right" onclick="update_measurement(this)">Update measurement</button>
   </div>
-</div>
-<div id="measurement_record_container" style="display:none;">
-  {% for measurement_name, existing_measurement in measurements.items %}
-    <div id="{{measurement_name}}">
-      <form class="measurement_form record">
-        {% csrf_token %}
-        {% bootstrap_field existing_measurement.measurement_form.name bound_css_class="" %}
-        {% bootstrap_field existing_measurement.measurement_form.aliases bound_css_class="" %}
-        {% bootstrap_field existing_measurement.measurement_form.dtype bound_css_class="" %}
-        {% bootstrap_field existing_measurement.measurement_form.nodata bound_css_class="" %}
-        {% bootstrap_field existing_measurement.measurement_form.units bound_css_class="" %}
-        {% if existing_measurement.flags_definition_form %}
-          {% bootstrap_field existing_measurement.measurement_form.flags_definition bound_css_class="" %}
-          <div class="flags_definition_form" style="">{% bootstrap_form existing_measurement.flags_definition_form bound_css_class="" %}</div>
-        {% else %}
-          {% if not dataset_type_id %}
-            {% bootstrap_field existing_measurement.measurement_form.flags_definition bound_css_class="" %}
-          {% endif %}
-        {% endif %}
-      </form>
-      {% if not dataset_type_id %}
-        <button class="btn btn-danger pull-right" onclick="cancel_update(this)">Cancel change</button>
-        <button class="btn btn-default pull-right" onclick="update_measurement(this)">Update measurement</button>
-      {% endif %}
-    </div>
-  {% endfor %}
 </div>
 <div id="dialog_modal" class="modal fade" role="dialog">
   <div class="modal-dialog modal-sm">
@@ -156,12 +107,17 @@
     {% endif %}
   });
 
-  function toggle_flags_definition(checkbox) {
-    if(checkbox.checked) {
-      jQuery(checkbox.form).children(".flags_definition_form").show();
-    } else {
-      jQuery(checkbox.form).children(".flags_definition_form").hide();
-    }
+
+  function update_forms() {
+    jQuery("#measurement_container").html("");
+    jQuery.get('/data_cube_manager/ingestion/get_existing_measurements', jQuery("#metadata_form").serialize(), function(result) {
+        if(result.status == "ERROR") {
+          set_modal_content("Error", result.message);
+          return;
+        } else {
+          jQuery("#existing_measurement_container").html(result.html);
+        }
+    });
   }
 
   //clear the measurement form container and move a copy of the template there.
@@ -183,7 +139,7 @@
         values[field.name] = field.value;
     });
     var request = new XMLHttpRequest();
-    request.open("POST", '/data_cube_manager/dataset_types/validate_measurement', false);
+    request.open("POST", '/data_cube_manager/ingestion/validate_measurement', false);
     //request.timeout = 100;
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);

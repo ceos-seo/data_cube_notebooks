@@ -50,7 +50,8 @@ class DatasetTypeListView(View):
             dataset_types: queryset of dataset types
         """
         context = {}
-        context['dataset_types'] = models.DatasetType.objects.using('agdc').all()
+        context['dataset_types'] = models.DatasetType.objects.using('agdc').filter(
+            definition__has_keys=['measurements'])
         return render(request, 'data_cube_manager/dataset_types.html', context)
 
 
@@ -236,6 +237,7 @@ class ValidateMeasurement(View):
         """Valid a form using POST data and return any error messages"""
 
         form_data = request.POST
+
         measurement_forms = utils.create_measurement_form(form_data)
         #filters out all valid forms.
         for form in filter(lambda x: not measurement_forms[x].is_valid(), measurement_forms):

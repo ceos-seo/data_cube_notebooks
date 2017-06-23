@@ -32,3 +32,108 @@ from collections import OrderedDict
 
 from apps.data_cube_manager import models
 from apps.data_cube_manager import forms
+
+
+class CreateIngestionConfigurationView(View):
+    """Create a new dataset type using the measurements and metadata forms"""
+
+    def get(self, request):
+        """Return a rendered html page that contains the metadata form and ability to
+        add or delete measurements.
+
+        This can be built upon an existing dataset type (dataset_type_id) or a blank form.
+
+        Args:
+            dataset_type_id: optional id to an existing dataset
+
+        Returns:
+            Rendered HTML for a page that will allow users to customize a dataset
+
+        """
+        context = {
+            'metadata_form': forms.IngestionMetadataForm(),
+            'measurement_form': forms.IngestionMeasurementsForm(),
+            'storage_form': forms.IngestionStorageForm()
+        }
+
+        return render(request, 'data_cube_manager/ingestion.html', context)
+
+
+class IngestionYamlExport(View):
+    """Export a dataset type to yaml from forms
+
+    Using the metadata and measurement forms, create an ordered yaml file that can be used to add the dataset
+    to the database.
+
+    POST Data:
+        measurement form(s), metadata form
+
+    Returns:
+        Json response with a status and (if OK) a url to a yaml file
+    """
+
+    def post(self, request):
+        """
+        """
+        form_data = request.POST
+        measurements = json.loads(form_data.get('measurements'))
+        metadata = json.loads(form_data.get('metadata_form'))
+        #each measurement_form contains a dict of other forms..
+        measurement_forms = [utils.create_measurement_form(measurements[measurement]) for measurement in measurements]
+        #just a single form
+        metadata_form = utils.create_metadata_form(metadata)
+
+        valid, error = utils.validate_dataset_type_forms(metadata_form, measurement_forms)
+        if not valid:
+            return JsonResponse({'status': "ERROR", 'message': error})
+
+        #since everything is valid, now create yaml from defs..
+        product_def = utils.definition_from_forms(metadata_form, measurement_forms)
+        try:
+            os.makedirs('/datacube/ui_results/data_cube_manager/product_defs/')
+        except:
+            pass
+
+        represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data.items())
+        yaml.add_representer(OrderedDict, represent_dict_order)
+
+        yaml_url = '/datacube/ui_results/data_cube_manager/product_defs/' + str(uuid.uuid4()) + '.yaml'
+        with open(yaml_url, 'w') as yaml_file:
+            yaml.dump(product_def, yaml_file)
+        return JsonResponse({'status': 'OK', 'url': yaml_url})
+
+
+class IngestionMeasurement(View):
+    """Gets a list of existing measurements and validates user added measurements"""
+
+    def get(self, request):
+        dataset_type = models.DatasetType.objects.using('agdc').get(id=request.GET.get('dataset_type'))
+        measurements = dataset_type.definition['measurements']
+        for measurement in measurements:
+            measurement['src_varname'] = measurement['name']
+            # conversion from uint16->32 to handle USGS Coll 1.
+            measurement['dtype'] = 'int32' if measurement['dtype'] in ['uint16'] else measurement['dtype']
+        measurement_dict = {
+            measurement['name']: forms.IngestionMeasurementsForm(measurement)
+            for measurement in measurements
+        }
+        return JsonResponse({
+            'status':
+            "OK",
+            'message':
+            "OK",
+            'html':
+            render_to_string('data_cube_manager/existing_measurements.html', {'measurements': measurement_dict})
+        })
+
+    def post(self, request):
+        """Valid a form using POST data and return any error messages"""
+
+        form_data = request.POST
+
+        measurement_form = forms.IngestionMeasurementsForm(form_data)
+        #filters out all valid forms.
+        if not measurement_form.is_valid():
+            for error in measurement_form.errors:
+                return JsonResponse({'status': "ERROR", 'message': measurement_form.errors[error][0]})
+        return JsonResponse({'status': "OK", 'message': "OK"})
