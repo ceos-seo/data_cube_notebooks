@@ -19,16 +19,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
-from django.core.files.base import ContentFile
-from django.template.loader import render_to_string
-from django.forms.models import model_to_dict
-from django.conf import settings
-from django.views import View
+from django import forms
+from django.core.validators import RegexValidator, validate_comma_separated_integer_list, validate_slug
+from django.core import validators
 
-from urllib import parse
-from collections import OrderedDict
+import res
+import datetime
 
-from apps.data_cube_manager import models
-from apps.data_cube_manager import forms
+from apps.data_cube_manager.utils import logical_xor
+from apps.data_cube_manager.models import DatasetType
