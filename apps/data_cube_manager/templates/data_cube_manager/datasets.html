@@ -44,7 +44,9 @@ under the License.
         <form id="filtering_form" action="">
           {% bootstrap_form form bound_css_class="" %}
         </form>
-        <button class="btn btn-danger" onclick="get_deletion_confirmation()">Delete filtered datasets</button>
+        {% if user.is_authenticated and user.is_superuser %}
+          <button class="btn btn-danger" onclick="get_deletion_confirmation()">Delete filtered datasets</button>
+        {% endif %}
         <button class="btn btn-default">Create ingestion request</button>
       </div>
       <div id="table_container" class="col-lg-8">

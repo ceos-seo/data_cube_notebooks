@@ -19,12 +19,7 @@
     WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
     License for the specific language governing permissions and limitations
     under the License.
-  ->-
-<!-- Author: AHDS
-     Creation date: 2016-06-23
-     Modified by:
-     Last modified date: -->
-
+-->
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
     <div class="container-fluid header">
         <div class="navbar-header">
@@ -55,15 +50,15 @@
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="/">Home</a></li>
-                {% if user.is_authenticated and user.is_superuser %}
                 <li class="dropdown visible-lg visible-xs">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">Data Cube Manager
                     <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a id="dataset_types" tabindex="-1" href="/data_cube_manager/dataset_types">Dataset Types</a></li>
+                        <li><a id="datasets" tabindex="-1" href="/data_cube_manager/datasets">Datasets</a></li>
+                        <li><a id="ingestion" tabindex="-1" href="/data_cube_manager/ingestion">Dataset Types</a></li>
                     </ul>
                 </li>
-                {% endif %}
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">Tools
                     <span class="caret"></span></a>
