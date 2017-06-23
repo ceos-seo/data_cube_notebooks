@@ -44,8 +44,8 @@ under the License.
         <form id="filtering_form" action="">
           {% bootstrap_form form bound_css_class="" %}
         </form>
-        <button class="btn btn-danger">Delete filtered datasets</button>
-        <button class="btn btn-default">Download filtered datasets</button>
+        <button class="btn btn-danger" onclick="get_deletion_confirmation()">Delete filtered datasets</button>
+        <button class="btn btn-default">Create ingestion request</button>
       </div>
       <div id="table_container" class="col-lg-8">
         <table id="data_table" class="table table-hover full" style="min-height: 600px;">
@@ -80,7 +80,68 @@ under the License.
     </div>
   </div>
 </div>
+<div id="warning_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Dataset Deletion</h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" onclick="delete_datasets()" class="btn btn-danger" data-dismiss="modal">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="dialog_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-sm">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"></h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
+  function get_deletion_confirmation() {
+    form_data = $('#filtering_form').serialize();
+    jQuery.get('/data_cube_manager/datasets/delete', form_data, function(result) {
+      if(result.status == "ERROR") {
+        set_modal_content("Alert", result.message);
+        return;
+      }
+      jQuery("#warning_modal .modal-body p").text(`Deleting datasets is a permanent operation and can not be undone.
+        With the current filter settings, you have selected ` + result.total_records + ` datasets for deletion from
+        a total of ` + result.total_dataset_types + ` dataset type(s).`);
+      jQuery("#warning_modal").modal();
+    });
+  }
+
+  function delete_datasets() {
+    form_data = $('#filtering_form').serialize();
+    jQuery.post('/data_cube_manager/datasets/delete', form_data, function(result) {
+      if(result.status == "ERROR") {
+        set_modal_content("Alert", result.message);
+        return;
+      }
+      set_modal_content("Alert", "Your selected datasets have been deleted.");
+      table.draw();
+    });
+  }
+
   var table;
   $(document).ready( function () {
     table = $('#data_table').DataTable({
@@ -117,5 +178,11 @@ under the License.
       table.draw();
     })
   });
+
+  function set_modal_content(title, body) {
+    jQuery("#dialog_modal .modal-title").text(title);
+    jQuery("#dialog_modal .modal-body p").text(body);
+    jQuery("#dialog_modal").modal();
+  }
 </script>
 {% endblock %}

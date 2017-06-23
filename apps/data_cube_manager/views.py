@@ -202,6 +202,8 @@ class DeleteDatasetType(View):
             dataset_type_id: required kwarg that specifies the pk of a dataset type to remove
 
         """
+        if not request.user.is_superuser:
+            return JsonResponse({'status': "ERROR", 'message': "Only superusers can delete dataset types."})
         #should cascade
         models.DatasetType.objects.using('agdc').get(id=dataset_type_id).delete()
         return JsonResponse({'status': 'OK'})
@@ -262,29 +264,68 @@ class DatasetListView(View):
             return JsonResponse(context)
         else:
             for error in dataset_filters.errors:
-                print(error, dataset_filters.errors[error])
                 context = {'draw': int(request.POST.get('draw')), 'data': [], 'error': dataset_filters.errors[error]}
                 return JsonResponse(context)
 
 
 class DeleteDataset(View):
-    """
-    """
+    """Delete datasets using some filtering criteria provided by a form"""
 
-    def get(self, request, dataset_type_id=None):
-        """
-        """
+    def get(self, request):
+        """Get a Json response describing what will be deleted
 
-    def post(self, request, dataset_type_id=None):
+        GET data:
+            Bound DatasetFilterForm used to select datasets for removal
+
+        Returns:
+            Json response with either an error message or the number of datasets that will be removed
         """
+        if not request.user.is_superuser:
+            return JsonResponse({'status': "ERROR", 'message': "Only superusers can delete datasets."})
+
+        dataset_filters = forms.DatasetFilterForm(request.GET)
+        if dataset_filters.is_valid():
+            datasets = models.Dataset.filter_datasets(dataset_filters.cleaned_data)
+            total_records = datasets.count()
+            total_datasets = len(dataset_filters.cleaned_data.get('dataset_type_ref'))
+
+            context = {
+                'status': "OK",
+                'total_records': total_records,
+                'total_dataset_types': total_datasets,
+            }
+            return JsonResponse(context)
+        else:
+            for error in dataset_filters.errors:
+                context = {'status': "ERROR", 'message': dataset_filters.errors[error]}
+                return JsonResponse(context)
+
+    def post(self, request):
+        """Delete datasets based on a DatasetFilterForm
+
+        POST data:
+            Bound DatasetFilterForm used to select datasets for removal
+
         """
+        if not request.user.is_superuser:
+            return JsonResponse({'status': "ERROR", 'message': "Only superusers can delete datasets."})
+        dataset_filters = forms.DatasetFilterForm(request.POST)
+        if dataset_filters.is_valid():
+            filtered_datasets = models.Dataset.filter_datasets(dataset_filters.cleaned_data)
+            filtered_datasets.delete()
+            context = {'status': "OK"}
+            return JsonResponse(context)
+        else:
+            for error in dataset_filters.errors:
+                context = {'status': "ERROR", 'message': dataset_filters.errors[error]}
+                return JsonResponse(context)
 
 
 class ValidateMeasurement(View):
-    """"""
+    """Validates user measurements when they're first added to the page"""
 
     def post(self, request):
-        """"""
+        """Valid a form using POST data and return any error messages"""
 
         form_data = request.POST
         measurement_forms = utils.create_measurement_form(form_data)
