@@ -202,6 +202,13 @@ def validate_dataset_type_forms(metadata_form, measurement_forms):
     return True, None
 
 
+def validate_form_groups(*forms):
+    for form in filter(lambda x: not x.is_valid(), forms):
+        for error in form.errors:
+            return False, form.errors[error][0]
+    return True, None
+
+
 def create_measurement_form(post_data):
     measurement_forms = {'measurement_form': forms.DatasetTypeMeasurementsForm(post_data)}
     if measurement_forms['measurement_form'].is_valid():
@@ -218,3 +225,55 @@ def create_metadata_form(post_data):
 
 def logical_xor(a, b):
     return bool(a) ^ bool(b)
+
+
+def ingestion_definition_from_forms(metadata, storage_form, measurement_forms):
+    json_definition = OrderedDict(
+        [('source_type', metadata.cleaned_data['dataset_type'].name),
+         ('output_type', metadata.cleaned_data['output_type']), ('description', metadata.cleaned_data['description']),
+         ('location', metadata.cleaned_data['location']),
+         ('file_path_template', metadata.cleaned_data['file_path_template'])])
+
+    json_definition['global_attributes'] = OrderedDict(
+        [('title', metadata.cleaned_data['title']), ('summary', metadata.cleaned_data['summary']),
+         ('source', metadata.cleaned_data['source']), ('institution', metadata.cleaned_data['institution']),
+         ('platform', metadata.cleaned_data['platform']), ('instrument', metadata.cleaned_data['instrument']),
+         ('processing_level', metadata.cleaned_data['processing_level']),
+         ('product_version', metadata.cleaned_data['product_version']),
+         ('references', metadata.cleaned_data['references'])])
+
+    storage_units = ('longitude', 'latitude') if storage_form.cleaned_data['crs_units'] == "degrees" else ('x', 'y')
+
+    json_definition['storage'] = OrderedDict([
+        ('driver', "NetCDF CF"),
+        ('crs', storage_form.cleaned_data['crs']),
+        ('tile_size', OrderedDict([(storage_units[0], storage_form.cleaned_data['tile_size_longitude']),
+                                   (storage_units[1], storage_form.cleaned_data['tile_size_latitude'])])),
+        ('resolution', OrderedDict([(storage_units[0], storage_form.cleaned_data['resolution_longitude']),
+                                    (storage_units[1], storage_form.cleaned_data['resolution_latitude'])])),
+        # chunking is a dict w/ x/lon, y/lat, time
+        ('chunking', OrderedDict([(storage_units[0], storage_form.cleaned_data['chunking_longitude']),
+                                  (storage_units[1], storage_form.cleaned_data['chunking_latitude']), ('time', 1)])),
+        # time, y, x indexing.
+        ('dimension_order', ['time', storage_units[1], storage_units[0]]),
+    ])
+
+    #measurements
+    def get_measurment_data(measurement_form):
+        #static fields..
+        measurement_data = OrderedDict(
+            [('name', measurement_form.cleaned_data['name']), ('dtype', measurement_form.cleaned_data['dtype']),
+             ('nodata', measurement_form.cleaned_data['nodata']),
+             ('resampling_method', measurement_form.cleaned_data['resampling_method']),
+             ('src_varname', measurement_form.cleaned_data['src_varname']), ('zlib', True)])
+
+        if measurement_form.cleaned_data.get('long_name', None) or measurement_form.cleaned_data.get('alias', None):
+            measurement_data['attrs'] = {
+                key: measurement_form.cleaned_data[key]
+                for key in ['long_name', 'attrs'] if measurement_form.cleaned_data.get(key, None)
+            }
+        return measurement_data
+
+    json_definition['measurements'] = [get_measurment_data(measurement) for measurement in measurement_forms]
+
+    return json_definition

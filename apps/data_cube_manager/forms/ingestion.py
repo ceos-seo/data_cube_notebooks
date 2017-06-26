@@ -93,25 +93,17 @@ class IngestionMetadataForm(forms.Form):
         initial="CEOS",
         widget=forms.TextInput(attrs={'placeholder': "CEOS"}))
 
-    instrument = forms.CharField(
-        label="Instrument",
-        help_text="Enter this dataset's instrument. This should correspond with the source dataset type.",
-        error_messages={'required': 'Instrument is required.'},
-        widget=forms.TextInput(attrs={'placeholder': "ETM"}))
-
-    keywords = forms.CharField(
-        label="Keywords",
-        help_text="Enter keywords that can be used to identify your dataset.",
-        error_messages={'required': 'Keywords is required.'},
-        initial="AU/GA,NASA/GSFC/SED/ESD/LANDSAT,REFLECTANCE,ETM+,TM,OLI,EARTH SCIENCE",
-        widget=forms.TextInput(
-            attrs={'placeholder': "AU/GA,NASA/GSFC/SED/ESD/LANDSAT,REFLECTANCE,ETM+,TM,OLI,EARTH SCIENCE"}))
-
     platform = forms.CharField(
         label="Platform",
         help_text="Enter your dataset's platform. This should correspond with the source dataset type.",
         error_messages={'required': 'Platform is required.'},
         widget=forms.TextInput(attrs={'placeholder': "LANDSAT_7"}))
+
+    instrument = forms.CharField(
+        label="Instrument",
+        help_text="Enter this dataset's instrument. This should correspond with the source dataset type.",
+        error_messages={'required': 'Instrument is required.'},
+        widget=forms.TextInput(attrs={'placeholder': "ETM"}))
 
     processing_level = forms.CharField(
         label="Processing Level",
@@ -125,50 +117,11 @@ class IngestionMetadataForm(forms.Form):
         error_messages={'required': 'Product Version is required.'},
         widget=forms.TextInput(attrs={'placeholder': "2.0.0"}))
 
-    product_suite = forms.CharField(
-        label="Product Suite",
-        help_text="Enter the product suite of your dataset.",
-        error_messages={'required': 'Product Suite is required.'},
-        widget=forms.TextInput(attrs={'placeholder': "USGS Landsat Collection 1"}))
-
-    project = forms.CharField(
-        label="Project",
-        help_text="Enter your/your dataset's project.",
-        error_messages={'required': 'Project is required.'},
-        initial="CEOS",
-        widget=forms.TextInput(attrs={'placeholder': "CEOS"}))
-
-    coverage_content_type = forms.CharField(
-        label="Coverage Content Type",
-        help_text="Enter the coverage content type for your dataset.",
-        error_messages={'required': 'Coverage Content Type is required.'},
-        initial="physicalMeasurement",
-        widget=forms.TextInput(attrs={'placeholder': "physicalMeasurement"}))
-
     references = forms.CharField(
         label="References",
         help_text="Enter any reference links for your dataset.",
         error_messages={'required': 'References is required.'},
         widget=forms.TextInput(attrs={'placeholder': "http://dx.doi.org/10.3334/ORNLDAAC/1146"}))
-
-    license = forms.CharField(
-        label="License",
-        help_text="Enter a link to or name of your dataset's license.",
-        error_messages={'required': 'License is required.'},
-        widget=forms.TextInput(attrs={'placeholder': "https://creativecommons.org/licenses/by/4.0/"}))
-
-    naming_authority = forms.CharField(
-        label="Naming Authority",
-        help_text="Enter the naming authority for your dataset.",
-        error_messages={'required': 'Naming Authority is required.'},
-        widget=forms.TextInput(attrs={'placeholder': "gov.usgs"}))
-
-    acknowledgement = forms.CharField(
-        label="Acknowledgement",
-        help_text="Enter any required acknowledgement for your dataset.",
-        widget=forms.TextInput(
-            attrs={'placeholder': "Landsat data is provided by the United States Geological Survey (USGS)."}),
-        error_messages={'required': 'Acknowledgement is required.'})
 
     def __init__(self, *args, **kwargs):
         super(IngestionMetadataForm, self).__init__(*args, **kwargs)
@@ -184,7 +137,6 @@ class IngestionStorageForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': "EPSG:4326"}),
         initial="EPSG:4326",
         required=True,
-        validators=[validate_slug],
         error_messages={'required': 'CRS is required. Please enter a valid EPSG code in the metadata panel.'})
 
     units = ["degrees", "meters"]
@@ -196,20 +148,20 @@ class IngestionStorageForm(forms.Form):
         required=True)
 
     tile_size_longitude = forms.FloatField(
-        label="Longitude Tile Size",
+        label="Longitude/X Tile Size",
         help_text="Enter your desired tile size in the units of your CRS. This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution.",
         required=True,
         initial=0.943231048326,
         error_messages={'required': 'Tile size is required. Please enter a valid number in the Metadata panel.'})
     tile_size_latitude = forms.FloatField(
-        label="Latitude Tile Size",
+        label="Latitude/Y Tile Size",
         help_text="Enter your desired tile size in the units of your CRS. This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution.",
         required=True,
         initial=0.943231048326,
         error_messages={'required': 'Tile size is required. Please enter a valid number in the Metadata panel.'})
 
     resolution_longitude = forms.FloatField(
-        label="Latitude Resolution",
+        label="Latitude/Y Resolution",
         help_text="Enter your desired resolution in the units of your CRS. This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution",
         required=True,
         initial=0.000269494585236,
@@ -217,7 +169,7 @@ class IngestionStorageForm(forms.Form):
             'required': 'Resoultion values are required. Please enter a valid number in the Metadata panel.'
         })
     resolution_latitude = forms.FloatField(
-        label="Longitude Resolution",
+        label="Longitude/X Resolution",
         help_text="Enter your desired resolution in the units of your CRS. The latitude resolution must be less than zero (negative). This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution",
         required=True,
         initial=-0.000269494585236,
@@ -239,7 +191,7 @@ class IngestionStorageForm(forms.Form):
         error_messages={'required': 'Chunk size is required. Pleaes enter a valid integer in the Metadata panel.'})
 
 
-class IngestionMeasurementsForm(forms.Form):
+class IngestionMeasurementForm(forms.Form):
     name = forms.CharField(
         label="Measurement Name",
         help_text="Please enter the name of the measurement. Spaces and special characters are not allowed.",

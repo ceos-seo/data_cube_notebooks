@@ -29,9 +29,14 @@ from django.views import View
 
 from urllib import parse
 from collections import OrderedDict
+import json
+import yaml
+import uuid
 
 from apps.data_cube_manager import models
 from apps.data_cube_manager import forms
+
+from apps.data_cube_manager import utils
 
 
 class CreateIngestionConfigurationView(View):
@@ -52,7 +57,7 @@ class CreateIngestionConfigurationView(View):
         """
         context = {
             'metadata_form': forms.IngestionMetadataForm(),
-            'measurement_form': forms.IngestionMeasurementsForm(),
+            'measurement_form': forms.IngestionMeasurementForm(),
             'storage_form': forms.IngestionStorageForm()
         }
 
@@ -79,27 +84,30 @@ class IngestionYamlExport(View):
         measurements = json.loads(form_data.get('measurements'))
         metadata = json.loads(form_data.get('metadata_form'))
         #each measurement_form contains a dict of other forms..
-        measurement_forms = [utils.create_measurement_form(measurements[measurement]) for measurement in measurements]
+        measurement_forms = [forms.IngestionMeasurementForm(measurements[measurement]) for measurement in measurements]
         #just a single form
-        metadata_form = utils.create_metadata_form(metadata)
+        metadata_form = forms.IngestionMetadataForm(metadata)
+        storage_form = forms.IngestionStorageForm(metadata)
 
-        valid, error = utils.validate_dataset_type_forms(metadata_form, measurement_forms)
+        valid, error = utils.validate_form_groups(metadata_form, storage_form, *measurement_forms)
         if not valid:
             return JsonResponse({'status': "ERROR", 'message': error})
 
         #since everything is valid, now create yaml from defs..
-        product_def = utils.definition_from_forms(metadata_form, measurement_forms)
+        ingestion_def = utils.ingestion_definition_from_forms(metadata_form, storage_form, measurement_forms)
         try:
-            os.makedirs('/datacube/ui_results/data_cube_manager/product_defs/')
+            os.makedirs('/datacube/ui_results/data_cube_manager/ingestion_configurations/')
         except:
             pass
 
-        represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data.items())
-        yaml.add_representer(OrderedDict, represent_dict_order)
+        def _dict_representer(dumper, data):
+            return dumper.represent_mapping(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, data.items())
 
-        yaml_url = '/datacube/ui_results/data_cube_manager/product_defs/' + str(uuid.uuid4()) + '.yaml'
+        yaml.SafeDumper.add_representer(OrderedDict, _dict_representer)
+
+        yaml_url = '/datacube/ui_results/data_cube_manager/ingestion_configurations/' + str(uuid.uuid4()) + '.yaml'
         with open(yaml_url, 'w') as yaml_file:
-            yaml.dump(product_def, yaml_file)
+            yaml.dump(ingestion_def, yaml_file, Dumper=yaml.SafeDumper, default_flow_style=False, indent=4)
         return JsonResponse({'status': 'OK', 'url': yaml_url})
 
 
@@ -114,7 +122,7 @@ class IngestionMeasurement(View):
             # conversion from uint16->32 to handle USGS Coll 1.
             measurement['dtype'] = 'int32' if measurement['dtype'] in ['uint16'] else measurement['dtype']
         measurement_dict = {
-            measurement['name']: forms.IngestionMeasurementsForm(measurement)
+            measurement['name']: forms.IngestionMeasurementForm(measurement)
             for measurement in measurements
         }
         return JsonResponse({
@@ -131,7 +139,7 @@ class IngestionMeasurement(View):
 
         form_data = request.POST
 
-        measurement_form = forms.IngestionMeasurementsForm(form_data)
+        measurement_form = forms.IngestionMeasurementForm(form_data)
         #filters out all valid forms.
         if not measurement_form.is_valid():
             for error in measurement_form.errors:

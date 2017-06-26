@@ -158,12 +158,14 @@ class DatasetYamlExport(View):
         except:
             pass
 
-        represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data.items())
-        yaml.add_representer(OrderedDict, represent_dict_order)
+        def _dict_representer(dumper, data):
+            return dumper.represent_mapping(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, data.items())
+
+        yaml.SafeDumper.add_representer(OrderedDict, _dict_representer)
 
         yaml_url = '/datacube/ui_results/data_cube_manager/product_defs/' + str(uuid.uuid4()) + '.yaml'
         with open(yaml_url, 'w') as yaml_file:
-            yaml.dump(product_def, yaml_file)
+            yaml.dump(product_def, yaml_file, Dumper=yaml.SafeDumper, default_flow_style=False, indent=4)
         return JsonResponse({'status': 'OK', 'url': yaml_url})
 
 

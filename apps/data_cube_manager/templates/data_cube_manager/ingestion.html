@@ -35,7 +35,7 @@
           <p class="col-lg-9 col-md-10 col-sm-11 col-xs-12">
             Create a new ingestion configuration using the forms below. Select an existing dataset type to use as the source data and the measurements will be populated with source measurements.
             Fill in all metadata fields and edit or change measurement attributes and download the resulting .yaml file.
-            Measurements can be renamed using the 'name' field as long as the 'src_varname' stays the same.            
+            Measurements can be renamed using the 'name' field as long as the 'src_varname' stays the same.
           </p>
         </div>
       </div>
@@ -194,7 +194,7 @@
 
     values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
 
-    jQuery.post('/data_cube_manager/dataset_types/export', values, function(result) {
+    jQuery.post('/data_cube_manager/ingestion/export', values, function(result) {
         if(result.status == "ERROR") {
           set_modal_content("Error", result.message);
           return;
