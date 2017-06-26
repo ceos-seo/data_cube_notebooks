@@ -88,36 +88,32 @@ def forms_from_definition(product_def, display_only=True):
     }
 
 
-def definition_from_forms(metadata, measurements):
-    json_definition = OrderedDict()
-    #do meta first.
-    json_definition['name'] = metadata.cleaned_data['name']
-    json_definition['description'] = metadata.cleaned_data['description']
-    json_definition['metadata_type'] = metadata.cleaned_data['metadata_type']
-    json_definition['managed'] = metadata.cleaned_data['managed']
-    json_definition['metadata'] = {
-        'platform': {
-            'code': metadata.cleaned_data['platform']
-        },
-        'instrument': {
-            'name': metadata.cleaned_data['instrument']
-        },
-        'product_type': metadata.cleaned_data['product_type'],
-        'format': {
-            'name': metadata.cleaned_data['data_format']
-        }
-    }
+def dataset_type_definition_from_forms(metadata, measurements):
+    json_definition = OrderedDict([
+        ('name', metadata.cleaned_data['name']),
+        ('description', metadata.cleaned_data['description']),
+        ('metadata_type', metadata.cleaned_data['metadata_type']),
+        ('managed', metadata.cleaned_data['managed']),
+        ('metadata', OrderedDict([
+            ('platform', {
+                'code': metadata.cleaned_data['platform']
+            }),
+            ('instrument', {
+                'name': metadata.cleaned_data['instrument']
+            }),
+            ('product_type', metadata.cleaned_data['product_type']),
+            ('format', {
+                'name': metadata.cleaned_data['data_format']
+            }),
+        ])),
+    ])
 
     #optional stuff nested in storage
-    storage_attrs = [
-        'storage_driver', 'resolution_latitude', 'resolution_longitude', 'crs', 'tile_size_latitude',
-        'tile_size_longitude', 'chunking_time', 'chunking_latitude', 'chunking_longitude'
-    ]
+    storage_attrs = ['driver', 'resolution_latitude', 'resolution_longitude', 'crs']
 
     # all of these are optional - if any of them exist, create the storage field.
-    if any(storage_attr in metadata.cleaned_data and metadata.cleaned_data[storage_attr]
-           for storage_attr in storage_attrs):
-        storage = {}
+    if any(metadata.cleaned_data.get(storage_attr, None) for storage_attr in storage_attrs):
+        storage = OrderedDict()
 
         storage['driver'] = metadata.cleaned_data.get('storage_driver', None)
 
@@ -128,42 +124,24 @@ def definition_from_forms(metadata, measurements):
             'longitude': metadata.cleaned_data['resolution_longitude']
         } if 'crs' in storage else None
 
-        storage['tile_size'] = {
-            'latitude': metadata.cleaned_data['tile_size_latitude'],
-            'longitude': metadata.cleaned_data['tile_size_longitude']
-        } if metadata.cleaned_data['tile_size_longitude'] else None
-
-        storage['chunking'] = {
-            'time': metadata.cleaned_data['chunking_time'],
-            'latitude': metadata.cleaned_data['chunking_latitude'],
-            'longitude': metadata.cleaned_data['chunking_longitude']
-        } if metadata.cleaned_data['chunking_time'] else None
-
-        storage['dimension_order'] = ['time', 'latitude', 'longitude'] if 'crs' in storage else None
-
-        fields = ['driver', 'crs', 'resolution', 'tile_size', 'chunking', 'dimension_order']
-        ordered_storage = OrderedDict()
-        for field in fields:
-            if field in storage and storage[field]:
-                ordered_storage[field] = storage[field]
         #set storage, but only from dict values that actually exist.
-        json_definition['storage'] = ordered_storage
+        json_definition['storage'] = OrderedDict([(key, val) for key, val in storage.items() if val is not None])
 
-    #measurements
-    measurements_list = []
-    for measurement in measurements:
+    def get_measurment_data(measurement):
         #static fields..
-        unordered_measurements = {}
-        unordered_measurements['name'] = measurement['measurement_form'].cleaned_data['name']
-        unordered_measurements['dtype'] = measurement['measurement_form'].cleaned_data['dtype']
-        unordered_measurements['nodata'] = measurement['measurement_form'].cleaned_data['nodata']
-        unordered_measurements['units'] = measurement['measurement_form'].cleaned_data['units']
+        ordered_measurements = OrderedDict([
+            ('name', measurement['measurement_form'].cleaned_data['name']),
+            ('dtype', measurement['measurement_form'].cleaned_data['dtype']),
+            ('nodata', measurement['measurement_form'].cleaned_data['nodata']),
+            ('units', measurement['measurement_form'].cleaned_data['units']),
+        ])
+
         #split aliases on comma, strip all spaces if they exist.
-        unordered_measurements['aliases'] = list(
+        ordered_measurements['aliases'] = list(
             map(lambda x: re.sub('[^0-9a-zA-Z]+', '_', x.strip(" ")), measurement['measurement_form'].cleaned_data[
                 'aliases'].split(","))) if measurement['measurement_form'].cleaned_data['aliases'] else None
 
-        unordered_measurements['flags_definition'] = {
+        ordered_measurements['flags_definition'] = {
             measurement['flags_definition_form'].cleaned_data['flag_name']: {
                 'bits':
                 list(map(lambda x: int(x), measurement['flags_definition_form'].cleaned_data['bits'].split(","))),
@@ -177,54 +155,11 @@ def definition_from_forms(metadata, measurements):
             }
         } if measurement['measurement_form'].cleaned_data['flags_definition'] else None
 
-        fields = ['name', 'dtype', 'nodata', 'units', 'aliases', 'flags_definition']
-        measurement_dict = OrderedDict()
-        for field in fields:
-            if unordered_measurements[field] is not None:
-                measurement_dict[field] = unordered_measurements[field]
+        return OrderedDict([(key, val) for key, val in ordered_measurements.items() if val is not None])
 
-        measurements_list.append(measurement_dict)
-
-    json_definition['measurements'] = measurements_list
+    json_definition['measurements'] = [get_measurment_data(measurement) for measurement in measurements]
 
     return json_definition
-
-
-def validate_dataset_type_forms(metadata_form, measurement_forms):
-    for measurement_form_group in measurement_forms:
-        for form in filter(lambda x: not measurement_form_group[x].is_valid(), measurement_form_group):
-            for error in measurement_form_group[form].errors:
-                return False, measurement_form_group[form].errors[error][0]
-    if not metadata_form.is_valid():
-        for error in metadata_form.errors:
-            return False, metadata_form.errors[error][0]
-
-    return True, None
-
-
-def validate_form_groups(*forms):
-    for form in filter(lambda x: not x.is_valid(), forms):
-        for error in form.errors:
-            return False, form.errors[error][0]
-    return True, None
-
-
-def create_measurement_form(post_data):
-    measurement_forms = {'measurement_form': forms.DatasetTypeMeasurementsForm(post_data)}
-    if measurement_forms['measurement_form'].is_valid():
-        if measurement_forms['measurement_form'].cleaned_data['flags_definition']:
-            measurement_forms['flags_definition_form'] = forms.DatasetTypeFlagsDefinitionForm(post_data)
-    return measurement_forms
-
-
-#only here because I think I may do some additional validation/comparisons.. todo?
-def create_metadata_form(post_data):
-    metadata_form = forms.DatasetTypeMetadataForm(post_data)
-    return metadata_form
-
-
-def logical_xor(a, b):
-    return bool(a) ^ bool(b)
 
 
 def ingestion_definition_from_forms(metadata, storage_form, measurement_forms):
@@ -277,3 +212,34 @@ def ingestion_definition_from_forms(metadata, storage_form, measurement_forms):
     json_definition['measurements'] = [get_measurment_data(measurement) for measurement in measurement_forms]
 
     return json_definition
+
+
+def validate_dataset_type_forms(metadata_form, measurement_forms):
+    for measurement_form_group in measurement_forms:
+        for form in filter(lambda x: not measurement_form_group[x].is_valid(), measurement_form_group):
+            for error in measurement_form_group[form].errors:
+                return False, measurement_form_group[form].errors[error][0]
+    if not metadata_form.is_valid():
+        for error in metadata_form.errors:
+            return False, metadata_form.errors[error][0]
+
+    return True, None
+
+
+def validate_form_groups(*forms):
+    for form in filter(lambda x: not x.is_valid(), forms):
+        for error in form.errors:
+            return False, form.errors[error][0]
+    return True, None
+
+
+def create_measurement_form(post_data):
+    measurement_forms = {'measurement_form': forms.DatasetTypeMeasurementsForm(post_data)}
+    if measurement_forms['measurement_form'].is_valid():
+        if measurement_forms['measurement_form'].cleaned_data['flags_definition']:
+            measurement_forms['flags_definition_form'] = forms.DatasetTypeFlagsDefinitionForm(post_data)
+    return measurement_forms
+
+
+def logical_xor(a, b):
+    return bool(a) ^ bool(b)

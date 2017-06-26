@@ -131,7 +131,7 @@ class DatasetTypeMetadataForm(forms.Form):
         })
 
     #additional - nested in storage. All of this is Optional
-    storage_driver = forms.CharField(
+    driver = forms.CharField(
         label="Storage Driver",
         help_text="This must correspond with the driver of the dataset - generally only set on products that have been ingested.",
         widget=forms.TextInput(attrs={'readonly': "readonly"}),
@@ -156,36 +156,6 @@ class DatasetTypeMetadataForm(forms.Form):
             'placeholder': "EPSG:4326"
         }),
         required=False)
-    tile_size_longitude = forms.FloatField(
-        label="Tile Size (Longitude)",
-        help_text="Tile size of the dataset in pixels - this is set during ingestion and is otherwise unecessary.",
-        widget=forms.TextInput(attrs={'readonly': "readonly"}),
-        initial="",
-        required=False)
-    tile_size_latitude = forms.FloatField(
-        label="Tile Size (Latitude)",
-        help_text="Tile size of the dataset in pixels - this is set during ingestion and is otherwise unecessary.",
-        widget=forms.TextInput(attrs={'readonly': "readonly"}),
-        initial="",
-        required=False)
-    chunking_time = forms.IntegerField(
-        label="Time Chunk Size",
-        help_text="Internal chunk size of the dataset in pixels - this is set during ingestion and is otherwise unecessary.",
-        widget=forms.TextInput(attrs={'readonly': "readonly"}),
-        initial="",
-        required=False)
-    chunking_longitude = forms.IntegerField(
-        label="Longitude Chunk Size",
-        help_text="Internal chunk size of the dataset in pixels - this is set during ingestion and is otherwise unecessary.",
-        widget=forms.TextInput(attrs={'readonly': "readonly"}),
-        initial="",
-        required=False)
-    chunking_latitude = forms.IntegerField(
-        label="Latitude Chunk Size",
-        help_text="Internal chunk size of the dataset in pixels - this is set during ingestion and is otherwise unecessary.",
-        widget=forms.TextInput(attrs={'readonly': "readonly"}),
-        initial="",
-        required=False)
 
     def __init__(self, *args, **kwargs):
         existing_metadata = kwargs.pop('existing_dataset_type', None)
@@ -201,12 +171,6 @@ class DatasetTypeMetadataForm(forms.Form):
             self.add_error(
                 'resoltion_latitude',
                 'Please enter a value for both resolution attributes. If one of latitude/longitude attribute is set, the other must be as well.'
-            )
-
-        if logical_xor(cleaned_data['tile_size_latitude'], cleaned_data['tile_size_longitude']):
-            self.add_error(
-                'tile_size_latitude',
-                'Please enter a value for both tile size attributes. If one latitude/longitude attribute is set, the other must be as well.'
             )
 
         if cleaned_data['resolution_latitude'] and cleaned_data['resolution_longitude'] and not cleaned_data[

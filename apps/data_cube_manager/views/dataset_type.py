@@ -91,7 +91,7 @@ class DatasetTypeView(View):
         #each measurement_form contains a dict of other forms..
         measurement_forms = [utils.create_measurement_form(measurements[measurement]) for measurement in measurements]
         #just a single form
-        metadata_form = utils.create_metadata_form(metadata)
+        metadata_form = forms.DatasetTypeMetadataForm(metadata)
 
         valid, error = utils.validate_dataset_type_forms(metadata_form, measurement_forms)
         if not valid:
@@ -106,7 +106,7 @@ class DatasetTypeView(View):
             })
 
         #since everything is valid, now create yaml from defs..
-        product_def = utils.definition_from_forms(metadata_form, measurement_forms)
+        product_def = utils.dataset_type_definition_from_forms(metadata_form, measurement_forms)
 
         index = index_connect()
         try:
@@ -145,14 +145,14 @@ class DatasetYamlExport(View):
         #each measurement_form contains a dict of other forms..
         measurement_forms = [utils.create_measurement_form(measurements[measurement]) for measurement in measurements]
         #just a single form
-        metadata_form = utils.create_metadata_form(metadata)
+        metadata_form = forms.DatasetTypeMetadataForm(metadata)
 
         valid, error = utils.validate_dataset_type_forms(metadata_form, measurement_forms)
         if not valid:
             return JsonResponse({'status': "ERROR", 'message': error})
 
         #since everything is valid, now create yaml from defs..
-        product_def = utils.definition_from_forms(metadata_form, measurement_forms)
+        product_def = utils.dataset_type_definition_from_forms(metadata_form, measurement_forms)
         try:
             os.makedirs('/datacube/ui_results/data_cube_manager/product_defs/')
         except:
