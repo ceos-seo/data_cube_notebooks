@@ -162,7 +162,7 @@ def dataset_type_definition_from_forms(metadata, measurements):
     return json_definition
 
 
-def ingestion_definition_from_forms(metadata, storage_form, measurement_forms):
+def ingestion_definition_from_forms(metadata, storage_form, ingestion_bounds_form, measurement_forms):
     json_definition = OrderedDict(
         [('source_type', metadata.cleaned_data['dataset_type'].name),
          ('output_type', metadata.cleaned_data['output_type']), ('description', metadata.cleaned_data['description']),
@@ -176,6 +176,13 @@ def ingestion_definition_from_forms(metadata, storage_form, measurement_forms):
          ('processing_level', metadata.cleaned_data['processing_level']),
          ('product_version', metadata.cleaned_data['product_version']),
          ('references', metadata.cleaned_data['references'])])
+
+    json_definition['ingestion_bounds'] = OrderedDict([
+        ('left', ingestion_bounds_form.cleaned_data['left']),
+        ('bottom', ingestion_bounds_form.cleaned_data['bottom']),
+        ('right', ingestion_bounds_form.cleaned_data['right']),
+        ('top', ingestion_bounds_form.cleaned_data['top']),
+    ])
 
     storage_units = ('longitude', 'latitude') if storage_form.cleaned_data['crs_units'] == "degrees" else ('x', 'y')
 

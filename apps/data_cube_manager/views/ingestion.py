@@ -58,7 +58,8 @@ class CreateIngestionConfigurationView(View):
         context = {
             'metadata_form': forms.IngestionMetadataForm(),
             'measurement_form': forms.IngestionMeasurementForm(),
-            'storage_form': forms.IngestionStorageForm()
+            'storage_form': forms.IngestionStorageForm(),
+            'ingestion_bounds_form': forms.IngestionBoundsForm()
         }
 
         return render(request, 'data_cube_manager/ingestion.html', context)
@@ -88,13 +89,16 @@ class IngestionYamlExport(View):
         #just a single form
         metadata_form = forms.IngestionMetadataForm(metadata)
         storage_form = forms.IngestionStorageForm(metadata)
+        ingestion_bounds_form = forms.IngestionBoundsForm(metadata)
 
-        valid, error = utils.validate_form_groups(metadata_form, storage_form, *measurement_forms)
+        valid, error = utils.validate_form_groups(metadata_form, storage_form, ingestion_bounds_form,
+                                                  *measurement_forms)
         if not valid:
             return JsonResponse({'status': "ERROR", 'message': error})
 
         #since everything is valid, now create yaml from defs..
-        ingestion_def = utils.ingestion_definition_from_forms(metadata_form, storage_form, measurement_forms)
+        ingestion_def = utils.ingestion_definition_from_forms(metadata_form, storage_form, ingestion_bounds_form,
+                                                              measurement_forms)
         try:
             os.makedirs('/datacube/ui_results/data_cube_manager/ingestion_configurations/')
         except:

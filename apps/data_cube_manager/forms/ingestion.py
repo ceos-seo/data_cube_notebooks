@@ -129,6 +129,51 @@ class IngestionMetadataForm(forms.Form):
             definition__has_keys=['managed']) & Q(definition__has_keys=['measurements']))
 
 
+class IngestionBoundsForm(forms.Form):
+    left = forms.FloatField(
+        label="Minimum Longitude",
+        help_text="Enter your desired minimum longitude ingestion bound. Ensure that the maximum value is greater than the minimum value.",
+        required=True,
+        initial=-180,
+        error_messages={
+            'required': 'Ingestion bounding box values are required. Please enter a valid number in the Metadata panel.'
+        })
+
+    right = forms.FloatField(
+        label="Maximum Longitude",
+        help_text="Enter your desired maximum longitude ingestion bound. Ensure that the maximum value is greater than the minimum value.",
+        required=True,
+        initial=180,
+        error_messages={
+            'required': 'Ingestion bounding box values are required. Please enter a valid number in the Metadata panel.'
+        })
+
+    bottom = forms.FloatField(
+        label="Minimum Latitude",
+        help_text="Enter your desired minimum latitude ingestion bound. Ensure that the maximum value is greater than the minimum value.",
+        required=True,
+        initial=-90,
+        error_messages={
+            'required': 'Ingestion bounding box values are required. Please enter a valid number in the Metadata panel.'
+        })
+
+    top = forms.FloatField(
+        label="Maximum Latitude",
+        help_text="Enter your desired maximum latitude ingestion bound. Ensure that the maximum value is greater than the minimum value.",
+        required=True,
+        initial=90,
+        error_messages={
+            'required': 'Ingestion bounding box values are required. Please enter a valid number in the Metadata panel.'
+        })
+
+    def clean(self):
+        cleaned_data = super(IngestionBoundsForm, self).clean()
+        if cleaned_data['left'] > cleaned_data['right']:
+            self.add_error('left', 'The minimum ingestion bound longitude must be less than the maximum longitude.')
+        if cleaned_data['bottom'] > cleaned_data['top']:
+            self.add_error('left', 'The minimum ingestion bound latitude must be less than the maximum latitude.')
+
+
 class IngestionStorageForm(forms.Form):
 
     crs = forms.CharField(
@@ -161,7 +206,7 @@ class IngestionStorageForm(forms.Form):
         error_messages={'required': 'Tile size is required. Please enter a valid number in the Metadata panel.'})
 
     resolution_longitude = forms.FloatField(
-        label="Latitude/Y Resolution",
+        label="Longitude/Y Resolution",
         help_text="Enter your desired resolution in the units of your CRS. This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution",
         required=True,
         initial=0.000269494585236,
@@ -169,10 +214,11 @@ class IngestionStorageForm(forms.Form):
             'required': 'Resoultion values are required. Please enter a valid number in the Metadata panel.'
         })
     resolution_latitude = forms.FloatField(
-        label="Longitude/X Resolution",
+        label="Latitude/X Resolution",
         help_text="Enter your desired resolution in the units of your CRS. The latitude resolution must be less than zero (negative). This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution",
         required=True,
         initial=-0.000269494585236,
+        validators=[validators.MaxValueValidator(0)],
         error_messages={
             'required': 'Resoultion values are required. Please enter a valid number in the Metadata panel.'
         })
@@ -189,6 +235,23 @@ class IngestionStorageForm(forms.Form):
         required=True,
         initial=200,
         error_messages={'required': 'Chunk size is required. Pleaes enter a valid integer in the Metadata panel.'})
+
+    def clean(self):
+        cleaned_data = super(IngestionStorageForm, self).clean()
+        if (cleaned_data['tile_size_latitude'] / cleaned_data['resolution_latitude']) != int(
+                cleaned_data['tile_size_latitude'] / cleaned_data['resolution_latitude']):
+            print((cleaned_data['tile_size_latitude'] / cleaned_data['resolution_latitude']))
+            self.add_error(
+                'tile_size_latitude',
+                "Latitude tile size must be evenly divisible by the latitude resolution. Use a precise calculator to ensure that there are no errors in your ingested data."
+            )
+        if (cleaned_data['tile_size_longitude'] / cleaned_data['resolution_longitude']) != int(
+                cleaned_data['tile_size_longitude'] / cleaned_data['resolution_longitude']):
+            print((cleaned_data['tile_size_longitude'] / cleaned_data['resolution_longitude']))
+            self.add_error(
+                'tile_size_longitude',
+                "Longitude tile size must be evenly divisible by the longitude resolution. Use a precise calculator to ensure that there are no errors in your ingested data."
+            )
 
 
 class IngestionMeasurementForm(forms.Form):
