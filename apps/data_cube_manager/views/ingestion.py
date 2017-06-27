@@ -26,6 +26,7 @@ from django.template.loader import render_to_string
 from django.forms.models import model_to_dict
 from django.conf import settings
 from django.views import View
+from django.db.models import Q
 
 from urllib import parse
 from collections import OrderedDict
@@ -56,10 +57,17 @@ class CreateIngestionConfigurationView(View):
 
         """
         context = {
-            'metadata_form': forms.IngestionMetadataForm(),
-            'measurement_form': forms.IngestionMeasurementForm(),
-            'storage_form': forms.IngestionStorageForm(),
-            'ingestion_bounds_form': forms.IngestionBoundsForm()
+            'metadata_form':
+            forms.IngestionMetadataForm(),
+            'measurement_form':
+            forms.IngestionMeasurementForm(),
+            'storage_form':
+            forms.IngestionStorageForm(),
+            'ingestion_bounds_form':
+            forms.IngestionBoundsForm(),
+            'product_details':
+            models.DatasetType.objects.using('agdc').filter(~Q(definition__has_keys=['managed']) & Q(
+                definition__has_keys=['measurements']))
         }
 
         return render(request, 'data_cube_manager/ingestion.html', context)
@@ -122,10 +130,14 @@ class IngestionYamlExport(View):
 
 
 class SubmitIngestion(View):
-    """"""
+    """Submit an ingestion form for actual ingestion"""
 
     def post(self, request):
-        """
+        """Validate a set of measurements, metadata, storage, and bounds forms to create an ingestion task
+
+        Validates all forms, returning any errors. In the case of no errors, populate an ingestion
+        definition and kick off a celery task that will multiproc ingestion.
+
         """
 
         if not request.user.is_superuser:

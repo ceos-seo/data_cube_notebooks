@@ -113,6 +113,18 @@ class DatasetType(models.Model):
     def __str__(self):
         return self.name + (" - Ingested only" if 'managed' in self.definition else " - Source only")
 
+    def get_description(self):
+        return self.definition['description']
+
+    def get_platform(self):
+        return self.metadata['platform']['code']
+
+    def get_instrument(self):
+        return self.metadata['instrument']['name']
+
+    def get_processing_level(self):
+        return self.metadata['product_type']
+
 
 class MetadataType(models.Model):
     id = models.SmallIntegerField(primary_key=True)

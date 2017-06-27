@@ -108,6 +108,17 @@
     {% endif %}
   });
 
+  var dataset_type_details = {
+    {% for product in product_details %}
+      {{ product.id }}: {
+                          description: "{{ product.get_description }}",
+                          platform: "{{ product.get_platform }}",
+                          instrument: "{{ product.get_instrument }}",
+                          processing_level: "{{ product.get_processing_level }}"
+                        },
+    {% endfor %}
+  }
+
 
   function update_forms() {
     jQuery("#measurement_container").html("");
@@ -117,6 +128,10 @@
           return;
         } else {
           jQuery("#existing_measurement_container").html(result.html);
+          var dataset_type = jQuery("#id_dataset_type").val();
+          jQuery.each(Object.keys(dataset_type_details[dataset_type]), function(index, value) {
+            jQuery("#id_"+value).val(dataset_type_details[dataset_type][value]);
+          });
         }
     });
   }

@@ -22,6 +22,7 @@ def run_ingestion(ingestion_definition):
     paths = [ingest.get_filename(ingestion_definition, task['tile_index'], task['tile'].sources) for task in tasks]
     ingest.check_existing_files(paths)
 
+    # this actually ingests stuff
     #successful, failed = process_tasks(index, ingestion_definition, source_type, output_type, tasks, 3200,
     #                                   get_executor(None, 8))
     return 0
