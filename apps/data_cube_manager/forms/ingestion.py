@@ -31,6 +31,8 @@ from apps.data_cube_manager.models import DatasetType
 
 
 class IngestionMetadataForm(forms.Form):
+    """Form meant to validate all metadata fields for an ingestion configuration file."""
+
     dataset_type = forms.ModelChoiceField(
         queryset=None,
         label="Source Dataset Type",
@@ -130,6 +132,8 @@ class IngestionMetadataForm(forms.Form):
 
 
 class IngestionBoundsForm(forms.Form):
+    """Form meant to validate the ingestion bounds section of the ingestion configuration file."""
+
     left = forms.FloatField(
         label="Minimum Longitude",
         help_text="Enter your desired minimum longitude ingestion bound. Ensure that the maximum value is greater than the minimum value.",
@@ -175,6 +179,10 @@ class IngestionBoundsForm(forms.Form):
 
 
 class IngestionStorageForm(forms.Form):
+    """Validate the storage section of the ingestion configuration file
+
+    Added additional validation to ensure that the resolution evenly divides into the tile sizing.
+    """
 
     crs = forms.CharField(
         label="CRS",
@@ -240,14 +248,12 @@ class IngestionStorageForm(forms.Form):
         cleaned_data = super(IngestionStorageForm, self).clean()
         if (cleaned_data['tile_size_latitude'] / cleaned_data['resolution_latitude']) != int(
                 cleaned_data['tile_size_latitude'] / cleaned_data['resolution_latitude']):
-            print((cleaned_data['tile_size_latitude'] / cleaned_data['resolution_latitude']))
             self.add_error(
                 'tile_size_latitude',
                 "Latitude tile size must be evenly divisible by the latitude resolution. Use a precise calculator to ensure that there are no errors in your ingested data."
             )
         if (cleaned_data['tile_size_longitude'] / cleaned_data['resolution_longitude']) != int(
                 cleaned_data['tile_size_longitude'] / cleaned_data['resolution_longitude']):
-            print((cleaned_data['tile_size_longitude'] / cleaned_data['resolution_longitude']))
             self.add_error(
                 'tile_size_longitude',
                 "Longitude tile size must be evenly divisible by the longitude resolution. Use a precise calculator to ensure that there are no errors in your ingested data."
@@ -255,6 +261,8 @@ class IngestionStorageForm(forms.Form):
 
 
 class IngestionMeasurementForm(forms.Form):
+    """Validate the ingestion configuration measurements. These differ slightly from the dataset type fields"""
+
     name = forms.CharField(
         label="Measurement Name",
         help_text="Please enter the name of the measurement. Spaces and special characters are not allowed.",

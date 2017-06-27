@@ -66,7 +66,7 @@
     <div class="col-lg-12" style="padding-top: 10px; padding-bottom: 5px;">
       <button class="btn btn-default pull-right bottom-btn" onclick="download_yaml()">Download .yaml file</button>
       {% if request.user.is_superuser and not dataset_type_id %}
-        <button class="btn btn-default pull-right bottom-btn" onclick="add_dataset_type()">Add dataset</button>
+        <button class="btn btn-default pull-right bottom-btn" onclick="add_dataset_type()">Create ingestion request</button>
       {% endif %}
     </div>
   </div>

@@ -79,8 +79,14 @@ class IngestionYamlExport(View):
     """
 
     def post(self, request):
+        """Validate form data and create a .yaml file
+
+        Forms include all forms from the ingestion forms module, validated and dump to YAML.
+
+        Returns:
+            JsonResponse with a status and url if there is no error.
         """
-        """
+
         form_data = request.POST
         measurements = json.loads(form_data.get('measurements'))
         metadata = json.loads(form_data.get('metadata_form'))
@@ -119,6 +125,16 @@ class IngestionMeasurement(View):
     """Gets a list of existing measurements and validates user added measurements"""
 
     def get(self, request):
+        """Get existing measurement forms for a dataset type
+
+        Args:
+            dataset type id, used to fetch the dataset type and its definition.
+
+        Returns:
+            Rendered HTML string containing a form for each measurement and a panel that
+            enumerates all measurements. Essentially just the right side panel of the ingestion/dataset type page.
+        """
+
         dataset_type = models.DatasetType.objects.using('agdc').get(id=request.GET.get('dataset_type'))
         measurements = dataset_type.definition['measurements']
         for measurement in measurements:
@@ -139,7 +155,10 @@ class IngestionMeasurement(View):
         })
 
     def post(self, request):
-        """Valid a form using POST data and return any error messages"""
+        """Valid a form using POST data and return any error messages
+
+        Validates an IngestionMeasurementForm and returns any errors
+        """
 
         form_data = request.POST
 

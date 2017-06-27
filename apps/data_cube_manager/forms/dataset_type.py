@@ -28,11 +28,7 @@ import datetime
 
 from apps.data_cube_manager.utils import logical_xor
 from apps.data_cube_manager.models import DatasetType
-"""
-#modeled after
-#https://github.com/opendatacube/datacube-core/blob/develop/datacube/model/schema/dataset-type-schema.yaml
-#TODO: replace help text with descriptions from above. Potentially figure out how to make this more dynamic
-"""
+
 comma_separated_float_list_re = re.compile('^([-+]?\d*\.?\d+[,\s]*)+$')
 validate_comma_separated_float_list = RegexValidator(
     comma_separated_float_list_re,
@@ -41,6 +37,8 @@ validate_comma_separated_float_list = RegexValidator(
 
 class DatasetTypeMetadataForm(forms.Form):
     """Dataset type metadata form, meant to validate and clean the metadata section of dataset types
+
+    Validates a block of .yaml inputs that resemble below:
 
     name: ls5_ledaps_scene
     description: Landsat 5 LEDAPS 25 metre
@@ -54,6 +52,13 @@ class DatasetTypeMetadataForm(forms.Form):
         product_type: ledaps
         format:
             name: GeoTiff
+
+    storage:
+        crs: EPSG:4326
+        resolution:
+            longitude: 1
+            latitude: 1
+        driver: GeoTiff
     """
     #standard meta in the definition - no nesting
     name = forms.CharField(
@@ -184,6 +189,15 @@ class DatasetTypeMetadataForm(forms.Form):
 
 class DatasetTypeMeasurementsForm(forms.Form):
     """Dataset measurement form, meant to validate measurements for dataset types
+
+    Validates a block of .yaml that resembles below:
+
+    - name: 'sr_atmos_opacity'
+      aliases: [atmos_opacity]
+      dtype: uint8
+      nodata: 0
+      units: 'unitless'
+
     """
     name = forms.CharField(
         label="Measurement Name",
@@ -239,6 +253,8 @@ class DatasetTypeMeasurementsForm(forms.Form):
 
 class DatasetTypeFlagsDefinitionForm(forms.Form):
     """Dataset flags defintiion form, meant to validate any instances of flags definitions in measurements.
+
+    Meant to validate the flags definition portion of the .yaml block below.
 
     - name: 'cfmask'
       aliases: [mask, CFmask]
