@@ -108,7 +108,8 @@ class DatasetTypeView(View):
         #since everything is valid, now create yaml from defs..
         product_def = utils.dataset_type_definition_from_forms(metadata_form, measurement_forms)
 
-        index = index_connect()
+        conf_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
+        index = index_connect(local_config=conf_path)
         try:
             type_ = index.products.from_doc(product_def)
             index.products.add(type_)

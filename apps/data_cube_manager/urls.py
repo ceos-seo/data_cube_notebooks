@@ -42,4 +42,5 @@ urlpatterns = [
     url(r'^ingestion/validate_measurement$', views.IngestionMeasurement.as_view(), name=''),
     url(r'^ingestion/get_existing_measurements$', views.IngestionMeasurement.as_view(), name=''),
     url(r'^ingestion/export$', views.IngestionYamlExport.as_view(), name=''),
+    url(r'^ingestion/run$', views.SubmitIngestion.as_view(), name=''),
 ]

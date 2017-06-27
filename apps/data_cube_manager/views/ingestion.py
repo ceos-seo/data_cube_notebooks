@@ -35,8 +35,8 @@ import uuid
 
 from apps.data_cube_manager import models
 from apps.data_cube_manager import forms
-
 from apps.data_cube_manager import utils
+from apps.data_cube_manager import tasks
 
 
 class CreateIngestionConfigurationView(View):
@@ -119,6 +119,40 @@ class IngestionYamlExport(View):
         with open(yaml_url, 'w') as yaml_file:
             yaml.dump(ingestion_def, yaml_file, Dumper=yaml.SafeDumper, default_flow_style=False, indent=4)
         return JsonResponse({'status': 'OK', 'url': yaml_url})
+
+
+class SubmitIngestion(View):
+    """"""
+
+    def post(self, request):
+        """
+        """
+
+        if not request.user.is_superuser:
+            return JsonResponse({'status': "ERROR", 'message': "Only superusers can ingest new data."})
+
+        form_data = request.POST
+        measurements = json.loads(form_data.get('measurements'))
+        metadata = json.loads(form_data.get('metadata_form'))
+        #each measurement_form contains a dict of other forms..
+        measurement_forms = [forms.IngestionMeasurementForm(measurements[measurement]) for measurement in measurements]
+        #just a single form
+        metadata_form = forms.IngestionMetadataForm(metadata)
+        storage_form = forms.IngestionStorageForm(metadata)
+        ingestion_bounds_form = forms.IngestionBoundsForm(metadata)
+
+        valid, error = utils.validate_form_groups(metadata_form, storage_form, ingestion_bounds_form,
+                                                  *measurement_forms)
+        if not valid:
+            return JsonResponse({'status': "ERROR", 'message': error})
+
+        #since everything is valid, now create yaml from defs..
+        ingestion_def = utils.ingestion_definition_from_forms(metadata_form, storage_form, ingestion_bounds_form,
+                                                              measurement_forms)
+
+        tasks.run_ingestion.delay(ingestion_def)
+
+        return JsonResponse({'status': 'OK'})
 
 
 class IngestionMeasurement(View):
