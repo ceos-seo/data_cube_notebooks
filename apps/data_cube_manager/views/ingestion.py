@@ -187,17 +187,18 @@ class IngestionMeasurement(View):
             measurement['src_varname'] = measurement['name']
             # conversion from uint16->32 to handle USGS Coll 1.
             measurement['dtype'] = 'int32' if measurement['dtype'] in ['uint16'] else measurement['dtype']
-        measurement_dict = {
-            measurement['name']: forms.IngestionMeasurementForm(measurement)
-            for measurement in measurements
-        }
+        measurement_dict = OrderedDict(
+            [(measurement['name'], forms.IngestionMeasurementForm(measurement)) for measurement in measurements])
+
         return JsonResponse({
             'status':
             "OK",
             'message':
             "OK",
             'html':
-            render_to_string('data_cube_manager/existing_measurements.html', {'measurements': measurement_dict})
+            render_to_string('data_cube_manager/existing_measurements.html',
+                             {'measurements': measurement_dict,
+                              'initial_measurement': measurements[0]['name']})
         })
 
     def post(self, request):

@@ -44,3 +44,10 @@
     </div>
   {% endfor %}
 </div>
+<script>
+  jQuery(function() {
+    {% if initial_measurement %}
+      set_form_visible("{{ initial_measurement }}")
+    {% endif %}
+  });
+</script>

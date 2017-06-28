@@ -56,3 +56,7 @@ tr.shown td span.glyphicon-chevron-up {
     font-size: 1.5em;
     font-weight: bold;
 }
+.multicolumn_form {
+  border-left: 1px solid #c9c9c9;
+  border-right: 1px solid #c9c9c9;
+}

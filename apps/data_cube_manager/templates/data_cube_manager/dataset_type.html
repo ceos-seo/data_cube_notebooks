@@ -43,19 +43,13 @@
     </div>
   </div>
   <div class="row" style="height:75%;">
-    <div class="col-lg-3" style="overflow-y:auto; height: 100%;">
+    <div class="col-lg-3 multicolumn_form" style="overflow-y:auto; height: 100%;">
       <div class="page-header sub"><span class="form-section-header">Dataset Metadata:</span></div>
       <form id="metadata_form">
         {% bootstrap_form metadata_form bound_css_class="" %}
       </form>
     </div>
-    <div class="col-lg-7" style="overflow-y:auto; height: 100%;">
-      <div class="page-header sub"><span class="form-section-header">Measurement:</span></div>
-      <div id="measurement_container">
-        <p>Select a measurement to the right to view and edit properties.</p>
-      </div>
-    </div>
-    <div class="col-lg-2" style="overflow-y:auto; height: 100%;">
+    <div class="col-lg-2 multicolumn_form" style="overflow-y:auto; height: 100%;">
       <div class="page-header sub"><span class="form-section-header">Measurements:</span></div>
       <table class="table table-hover" style="">
         <tbody id="measurements_table">
@@ -70,6 +64,12 @@
       {% if not dataset_type_id %}
         <button class="btn btn-default pull-right" onclick="add_new_measurement()">Create new measurement</button>
       {% endif %}
+    </div>
+    <div class="col-lg-7 multicolumn_form" style="overflow-y:auto; height: 100%;">
+      <div class="page-header sub"><span class="form-section-header">Measurement:</span></div>
+      <div id="measurement_container">
+        <p>Select a measurement to the right to view and edit properties.</p>
+      </div>
     </div>
     <div class="col-lg-12" style="padding-top: 10px; padding-bottom: 5px;">
       {% if dataset_type_id %}
