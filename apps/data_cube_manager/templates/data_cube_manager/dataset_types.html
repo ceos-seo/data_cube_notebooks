@@ -43,7 +43,7 @@
   <tbody>
     {% for dataset_type in dataset_types %}
     <tr class="">
-      <td class="details-control"><span class="glyphicon glyphicon-plus"></span><span class="glyphicon glyphicon-minus"></span></td>
+      <td class="details-control"><span class="glyphicon glyphicon-chevron-down"></span><span class="glyphicon glyphicon-chevron-up"></span></td>
       <td>{{ dataset_type.id }}</td>
       <td>{{ dataset_type.name }}</td>
       <td>{{ dataset_type.metadata.platform.code }}</td>
@@ -59,25 +59,6 @@
 </table>
 <script>
 
-  function format(data) {
-    return `
-      <table class="table table-hover">
-        <tr>
-          <td>Measurements</td>
-          <td class="details_td">` + data[6] + `</td>
-        </tr>
-        <tr>
-          <td>Description</td>
-          <td class="details_td">` + data[7] + `</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td><a href="/data_cube_manager/dataset_types/delete/` + data[1] + `" class="btn btn-danger pull-right">Delete dataset</a></td>
-        </tr>
-      </table>
-    `
-  }
-
   $(document).ready( function () {
     var table = $('#data_table').DataTable({
       "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
@@ -90,18 +71,7 @@
     // Add event listener for opening and closing details
     $('#data_table tbody').on('click', 'td.details-control', function () {
         var tr = $(this).closest('tr');
-        var row = table.row( tr );
-
-        if ( row.child.isShown() ) {
-            // This row is already open - close it
-            row.child.hide();
-            tr.removeClass('shown');
-        }
-        else {
-            // Open this row
-            row.child(format(row.data())).show();
-            tr.addClass('shown');
-        }
+        tr.toggleClass('shown')
     } );
   });
 

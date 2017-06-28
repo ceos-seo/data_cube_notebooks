@@ -19,13 +19,16 @@ tr td, .table> thead> tr> th {
     white-space: nowrap;
     overflow: hidden;
 }
-tr.shown td span.glyphicon-plus {
+tr.shown td {
+  white-space: normal;
+}
+tr.shown td span.glyphicon-chevron-down {
   display:none;
 }
-tr td span.glyphicon-minus {
+tr td span.glyphicon-chevron-up {
   display:none;
 }
-tr.shown td span.glyphicon-minus {
+tr.shown td span.glyphicon-chevron-up {
   display:inherit;
 }
 .details_td {
