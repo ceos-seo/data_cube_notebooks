@@ -201,12 +201,16 @@
           parent.attr('id', values['name']);
           jQuery("#" + values['name']).appendTo("#measurement_record_container");
           jQuery("#" + values['name'] + ' form').addClass('record');
-          jQuery("#"+id+"_row").remove();
-          jQuery("#measurements_table").append(`<tr id="` + values['name'] + `_row" class="measurement-row">
-                                                  <td onclick='set_form_visible("` + values['name'] + `")'>` + values['name'] + `</td>
-                                                  {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement('` + values['name'] + `')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}
-                                                </tr>`);
-
+          if(!jQuery("#" + id + "_row").length) {
+            jQuery("#measurements_table").append(`<tr id="` + values['name'] + `_row" class="measurement-row">
+                                                    <td onclick='set_form_visible("` + values['name'] + `")'>` + values['name'] + `</td>
+                                                    {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement('` + values['name'] + `')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}
+                                                  </tr>`);
+          } else {
+            jQuery("#" + id + "_row").attr('id', values['name'] + "_row");
+            jQuery("#" + values['name'] + "_row").html(`<td onclick='set_form_visible("` + values['name'] + `")'>` + values['name'] + `</td>
+                                                        {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement('` + values['name'] + `')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}`)
+          }
           jQuery("#measurement_container").html("");
         }
     }
@@ -215,6 +219,7 @@
   function delete_measurement(id) {
     jQuery("#" + id + "_row").remove();
     jQuery("#measurement_record_container #" + id).remove();
+    jQuery("#measurement_container #" + id).remove();
   }
 
   //grab the metadata form and all measurement records to create a yaml.
@@ -286,6 +291,8 @@
   }
 
   function set_form_visible(id) {
+    jQuery(".measurement-row").removeClass("active_measurement");
+    jQuery("#" + id + "_row").addClass("active_measurement");
     jQuery("#measurement_container").html("");
     jQuery("#measurement_container").append(jQuery("#" + id).clone())
     jQuery("#measurement_container form").removeClass('record');

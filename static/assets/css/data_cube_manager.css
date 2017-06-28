@@ -60,3 +60,10 @@ tr.shown td span.glyphicon-chevron-up {
   border-left: 1px solid #c9c9c9;
   border-right: 1px solid #c9c9c9;
 }
+.active_measurement {
+  background-color: #C6D9F1;
+  border: 2px solid #A5B4C8;
+}
+.table-hover > tbody > tr.active_measurement:hover {
+  background-color: #C6D9F1;
+}

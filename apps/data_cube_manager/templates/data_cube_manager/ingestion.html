@@ -42,7 +42,7 @@
     </div>
   </div>
   <div class="row" style="height:75%;">
-    <div class="col-lg-3" style="overflow-y:auto; height: 100%;">
+    <div class="col-lg-3 multicolumn_form" style="overflow-y:auto; height: 100%;">
       <div class="page-header sub"><span class="form-section-header">Dataset Metadata:</span></div>
       <form id="metadata_form">
         {% bootstrap_form metadata_form bound_css_class="" %}
@@ -50,18 +50,18 @@
         {% bootstrap_form storage_form bound_css_class="" %}
       </form>
     </div>
-    <div class="col-lg-7" style="overflow-y:auto; height: 100%;">
-      <div class="page-header sub"><span class="form-section-header">Measurement:</span></div>
-      <div id="measurement_container">
-        <p>Select a measurement to the right to view and edit properties.</p>
-      </div>
-    </div>
-    <div class="col-lg-2" style="overflow-y:auto; height: 100%;">
+    <div class="col-lg-2 multicolumn_form" style="overflow-y:auto; height: 100%;">
       <div class="page-header sub"><span class="form-section-header">Measurements:</span></div>
       <div id="existing_measurement_container">
         {% include "data_cube_manager/existing_measurements.html" %}
       </div>
       <button class="btn btn-default pull-right" onclick="add_new_measurement()">Create new measurement</button>
+    </div>
+    <div class="col-lg-7 multicolumn_form" style="overflow-y:auto; height: 100%;">
+      <div class="page-header sub"><span class="form-section-header">Measurement:</span></div>
+      <div id="measurement_container">
+        <p>Select a measurement to the right to view and edit properties.</p>
+      </div>
     </div>
     <div class="col-lg-12" style="padding-top: 10px; padding-bottom: 5px;">
       <button class="btn btn-default pull-right bottom-btn" onclick="download_yaml()">Download .yaml file</button>
@@ -122,6 +122,10 @@
 
   function update_forms() {
     jQuery("#measurement_container").html("");
+    if(jQuery("#id_dataset_type").val() == "") {
+      jQuery("#measurements_table").html("");
+      return;
+    }
     jQuery.get('/data_cube_manager/ingestion/get_existing_measurements', jQuery("#metadata_form").serialize(), function(result) {
         if(result.status == "ERROR") {
           set_modal_content("Error", result.message);
@@ -173,12 +177,16 @@
           parent.attr('id', values['name']);
           jQuery("#" + values['name']).appendTo("#measurement_record_container");
           jQuery("#" + values['name'] + ' form').addClass('record');
-          jQuery("#"+id+"_row").remove();
-          jQuery("#measurements_table").append(`<tr id="` + values['name'] + `_row" class="measurement-row">
-                                                  <td onclick='set_form_visible("` + values['name'] + `")'>` + values['name'] + `</td>
-                                                  {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement('` + values['name'] + `')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}
-                                                </tr>`);
-
+          if(!jQuery("#" + id + "_row").length) {
+            jQuery("#measurements_table").append(`<tr id="` + values['name'] + `_row" class="measurement-row">
+                                                    <td onclick='set_form_visible("` + values['name'] + `")'>` + values['name'] + `</td>
+                                                    {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement('` + values['name'] + `')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}
+                                                  </tr>`);
+          } else {
+            jQuery("#" + id + "_row").attr('id', values['name'] + "_row");
+            jQuery("#" + values['name'] + "_row").html(`<td onclick='set_form_visible("` + values['name'] + `")'>` + values['name'] + `</td>
+                                                        {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement('` + values['name'] + `')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}`)
+          }
           jQuery("#measurement_container").html("");
         }
     }
@@ -187,6 +195,7 @@
   function delete_measurement(id) {
     jQuery("#" + id + "_row").remove();
     jQuery("#measurement_record_container #" + id).remove();
+    jQuery("#measurement_container #" + id).remove();
   }
 
   //grab the metadata form and all measurement records to create a yaml.
@@ -258,6 +267,8 @@
   }
 
   function set_form_visible(id) {
+    jQuery(".measurement-row").removeClass("active_measurement");
+    jQuery("#" + id + "_row").addClass("active_measurement");
     jQuery("#measurement_container").html("");
     jQuery("#measurement_container").append(jQuery("#" + id).clone())
     jQuery("#measurement_container form").removeClass('record');
