@@ -178,14 +178,14 @@
           jQuery("#" + values['name']).appendTo("#measurement_record_container");
           jQuery("#" + values['name'] + ' form').addClass('record');
           if(!jQuery("#" + id + "_row").length) {
-            jQuery("#measurements_table").append(`<tr id="` + values['name'] + `_row" class="measurement-row">
-                                                    <td onclick='set_form_visible("` + values['name'] + `")'>` + values['name'] + `</td>
-                                                    {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement('` + values['name'] + `')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}
-                                                  </tr>`);
+            jQuery("#measurements_table").append('<tr id="' + values['name'] + '_row" class="measurement-row"> \
+                                                    <td onclick="set_form_visible(\'' + values['name'] + '\')">' + values['name'] + '</td> \
+                                                    {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement(\'' + values['name'] + '\')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %} \
+                                                  </tr>');
           } else {
             jQuery("#" + id + "_row").attr('id', values['name'] + "_row");
-            jQuery("#" + values['name'] + "_row").html(`<td onclick='set_form_visible("` + values['name'] + `")'>` + values['name'] + `</td>
-                                                        {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement('` + values['name'] + `')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}`)
+            jQuery("#" + values['name'] + "_row").html('<td onclick="set_form_visible(\'' + values['name'] + '\')">' + values['name'] + '</td> \
+            {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement(\'' + values['name'] + '\')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}')
           }
           jQuery("#measurement_container").html("");
         }

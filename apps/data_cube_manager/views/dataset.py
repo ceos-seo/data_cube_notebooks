@@ -77,11 +77,8 @@ class DatasetListView(View):
             datasets = models.Dataset.filter_datasets(dataset_filters.cleaned_data)
             total_records = datasets.count()
 
-            order_dir = "-" if request.POST.get("order[0][dir]") == "desc" else ""
-            order_col = request.POST.get("columns[{}][name]".format(request.POST.get("order[0][column]")[0]))
-
-            sliced_datasets = datasets.order_by(
-                "{}{}".format(order_dir, order_col))[int(request.POST.get('start')):ending_slice]
+            sliced_datasets = datasets[int(request.POST.get('start')):ending_slice] if ending_slice != -1 else datasets[
+                int(request.POST.get('start')):]
 
             data = [dataset.get_dataset_table_columns() for dataset in sliced_datasets]
             context = {

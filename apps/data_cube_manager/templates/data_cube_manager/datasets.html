@@ -37,11 +37,16 @@ under the License.
       <div class="page-header">
         <h1>Datasets</h1>
         <div class="row">
-          <p class="col-lg-9 col-md-10 col-sm-11 col-xs-12">Datasets are individual chunks of data - either full acquisitions (scenes) or chunks of acquisitions created during ingestion. Information found in the dataset is the id, added date, and acquisition/chunk data such as extents, date acquired, and path to dataset. Please note that the download feature is only available for ingested products.</p>
+          <p class="col-lg-9 col-md-10 col-sm-11 col-xs-12">
+            Datasets are individual chunks of data - either full acquisitions (scenes) or chunks of acquisitions created during ingestion.
+            Information found in the dataset is the id, added date, and acquisition/chunk data such as extents, date acquired, and path to dataset.
+            The table found on this page contains the datasets that match the criteria specified by the datasets form.
+          </p>
         </div>
       </div>
       <div class="col-lg-4">
         <form id="filtering_form" action="">
+          {% csrf_token %}
           {% bootstrap_form form bound_css_class="" %}
         </form>
         {% if user.is_authenticated and user.is_superuser %}
@@ -125,9 +130,9 @@ under the License.
         set_modal_content("Alert", result.message);
         return;
       }
-      jQuery("#warning_modal .modal-body p").text(`Deleting datasets is a permanent operation and can not be undone.
-        With the current filter settings, you have selected ` + result.total_records + ` datasets for deletion from
-        a total of ` + result.total_dataset_types + ` dataset type(s).`);
+      jQuery("#warning_modal .modal-body p").text("Deleting datasets is a permanent operation and can not be undone. \
+        With the current filter settings, you have selected " + result.total_records + " datasets for deletion from \
+        a total of " + result.total_dataset_types + " dataset type(s).");
       jQuery("#warning_modal").modal();
     });
   }
@@ -148,7 +153,7 @@ under the License.
   $(document).ready( function () {
     table = $('#data_table').DataTable({
       "lengthMenu": [[15, 25, 50, -1], [15, 25, 50, "All"]],
-      "order": [[ 0, "asc" ]],
+      "ordering": false,
       "processing": true,
       "serverSide": true,
       "searching": false,
@@ -159,7 +164,7 @@ under the License.
             d.form_data = $('#filtering_form').serialize();
         }
       },
-      "columns": [{"name": "id", "orderable": true},
+      "columns": [{"name": "id", "orderable": false},
                   {"name": "metadata__platform__code", "orderable": false},
                   {"name": "metadata__instrument__name", "orderable": false},
                   {"name": "metadata__product_type", "orderable": false},
