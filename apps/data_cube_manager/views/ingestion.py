@@ -162,9 +162,9 @@ class SubmitIngestion(View):
         ingestion_def = utils.ingestion_definition_from_forms(metadata_form, storage_form, ingestion_bounds_form,
                                                               measurement_forms)
 
-        tasks.run_ingestion.delay(ingestion_def)
+        output_id = tasks.run_ingestion(ingestion_def)
 
-        return JsonResponse({'status': 'OK'})
+        return JsonResponse({'status': 'OK', 'dataset_type_ref': output_id})
 
 
 class IngestionMeasurement(View):

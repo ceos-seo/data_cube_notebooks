@@ -17,7 +17,14 @@ def run_ingestion(ingestion_definition):
     index = index_connect(local_config=LocalConfig.find([conf_path]))
 
     source_type, output_type = ingest.make_output_type(index, ingestion_definition)
-    tasks = ingest.create_task_list(index, output_type, (2005, 2005), source_type, ingestion_definition)
+    ingestion_work.delay(index, output_type, source_type, ingestion_definition)
+
+    return output_type.id
+
+
+@task(name="data_cube_manager.ingestion_work")
+def ingestion_work(index, output_type, source_type, ingestion_definition):
+    tasks = ingest.create_task_list(index, output_type, None, source_type, ingestion_definition)
     # this is a dry run
     paths = [ingest.get_filename(ingestion_definition, task['tile_index'], task['tile'].sources) for task in tasks]
     ingest.check_existing_files(paths)
