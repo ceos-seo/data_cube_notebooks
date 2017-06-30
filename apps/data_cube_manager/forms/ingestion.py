@@ -170,8 +170,9 @@ class IngestionBoundsForm(forms.Form):
             'required': 'Ingestion bounding box values are required. Please enter a valid number in the Metadata panel.'
         })
 
-    def clean(self):
+    def clean(self, clean=True):
         cleaned_data = super(IngestionBoundsForm, self).clean()
+
         if cleaned_data['left'] > cleaned_data['right']:
             self.add_error('left', 'The minimum ingestion bound longitude must be less than the maximum longitude.')
         if cleaned_data['bottom'] > cleaned_data['top']:
@@ -320,7 +321,7 @@ class IngestionRequestForm(forms.Form):
     """
     """
 
-    dataset_type = forms.ModelChoiceField(
+    dataset_type_ref = forms.ModelChoiceField(
         queryset=None,
         label="Source Dataset Type",
         help_text="Select an existing source dataset type for this ingestion configuration.",
@@ -340,16 +341,87 @@ class IngestionRequestForm(forms.Form):
         widget=forms.DateInput(attrs={'class': 'datepicker field-divided onchange_filter',
                                       'placeholder': '01/02/2010'}))
 
+    latitude_min = forms.FloatField(
+        label='Min Latitude',
+        validators=[validators.MaxValueValidator(90), validators.MinValueValidator(-90)],
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'field-divided onchange_filter',
+                                        'step': "any",
+                                        'min': -90,
+                                        'max': 90}))
+    latitude_max = forms.FloatField(
+        label='Max Latitude',
+        validators=[validators.MaxValueValidator(90), validators.MinValueValidator(-90)],
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'field-divided onchange_filter',
+                                        'step': "any",
+                                        'min': -90,
+                                        'max': 90}))
+    longitude_min = forms.FloatField(
+        label='Min Longitude',
+        validators=[validators.MaxValueValidator(180), validators.MinValueValidator(-180)],
+        required=False,
+        widget=forms.NumberInput(
+            attrs={'class': 'field-divided onchange_filter',
+                   'step': "any",
+                   'min': -180,
+                   'max': 180}))
+    longitude_max = forms.FloatField(
+        label='Max Longitude',
+        validators=[validators.MaxValueValidator(180), validators.MinValueValidator(-180)],
+        required=False,
+        widget=forms.NumberInput(
+            attrs={'class': 'field-divided onchange_filter',
+                   'step': "any",
+                   'min': -180,
+                   'max': 180}))
+
     def __init__(self, *args, **kwargs):
         super(IngestionRequestForm, self).__init__(*args, **kwargs)
-        self.fields['dataset_type'].queryset = DatasetType.objects.using('agdc').filter(~Q(
+        self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').filter(~Q(
             definition__has_keys=['managed']) & Q(definition__has_keys=['measurements']))
 
     def clean(self):
         """
         """
-        cleaned_data = super(IngestionRequestForm, self).clean()
-        if cleaned_data.get('start_date') and cleaned_data.get('end_date') and cleaned_data.get(
-                'start_date') >= cleaned_data.get('end_date'):
+        cleaned_data = {
+            'latitude_min': 0,
+            'latitude_max': 1,
+            'longitude_min': 0,
+            'longitude_max': 1,
+            'start_date': datetime.date.today(),
+            'end_date': datetime.date.today()
+        }
+        cleaned_data.update({key: val for key, val in super(IngestionRequestForm, self).clean().items() if val})
+
+        if cleaned_data.get('latitude_min') > cleaned_data.get('latitude_max'):
+            self.add_error(
+                'latitude_min',
+                "Please enter a valid pair of latitude values where the lower bound is less than the upper bound.")
+
+        if cleaned_data.get('longitude_min') > cleaned_data.get('longitude_max'):
+            self.add_error(
+                'longitude_min',
+                "Please enter a valid pair of longitude values where the lower bound is less than the upper bound.")
+
+        area = (cleaned_data.get('latitude_max') - cleaned_data.get('latitude_min')) * (
+            cleaned_data.get('longitude_max') - cleaned_data.get('longitude_min'))
+
+        if area > 1.0:
+            self.add_error('latitude_min', 'Tasks over an area greater than one square degrees are not permitted.')
+
+        if cleaned_data.get('start_date') > cleaned_data.get('end_date'):
             self.add_error('start_date',
                            "Please enter a valid start and end time range where the start is before the end.")
+
+        if (cleaned_data.get('end_date') - cleaned_data.get('start_date')).days > 367:
+            self.add_error('start_date', "Please enter a date range of less than one year.")
+
+        # this id done to get rid of some weird rounding issues - a lot of the solid BBs end up being 3.999999999123412 rather than
+        # the expected 4
+        cleaned_data['latitude_min'] -= 0.01
+        cleaned_data['longitude_min'] -= 0.01
+        cleaned_data['latitude_max'] += 0.01
+        cleaned_data['longitude_max'] += 0.01
+
+        self.cleaned_data = cleaned_data

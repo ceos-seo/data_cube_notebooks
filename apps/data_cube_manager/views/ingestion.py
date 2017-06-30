@@ -185,16 +185,18 @@ class CreateDataCubeSubset(View):
         """
         context = {}
 
-        ingestion_request_form = forms.IngestionRequestForm()
-        available_fields = ['dataset_type', 'left', 'right', 'bottom', 'top', 'start_date', 'end_date']
+        available_fields = [
+            'dataset_type_ref', 'longitude_min', 'longitude_max', 'latitude_min', 'latitude_max', 'start_date',
+            'end_date'
+        ]
         existing_data = {
             key: request.GET.get(key, None)
             for key in available_fields if request.GET.get(key, None) is not None
         }
 
-        if 'dataset_type' in existing_data:
-            dataset_type = models.DatasetType.objects.using('agdc').get(id=existing_data['dataset_type'])
-            ingestion_request_form = forms.IngestionRequestForm({'dataset_type': dataset_type.id})
+        if 'dataset_type_ref' in existing_data:
+            dataset_type = models.DatasetType.objects.using('agdc').get(id=existing_data['dataset_type_ref'])
+
             measurements = dataset_type.definition['measurements']
             for measurement in measurements:
                 measurement['src_varname'] = measurement['name']
@@ -207,7 +209,7 @@ class CreateDataCubeSubset(View):
 
         context.update({
             'ingestion_request_form':
-            ingestion_request_form,
+            forms.IngestionRequestForm(existing_data),
             'measurement_form':
             forms.IngestionMeasurementForm(),
             'storage_form':
@@ -220,9 +222,7 @@ class CreateDataCubeSubset(View):
                 'resolution_longitude': 0.000269494585236,
                 'chunking_latitude': 200,
                 'chunking_longitude': 200
-            }),
-            'ingestion_bounds_form':
-            forms.IngestionBoundsForm(existing_data),
+            })
         })
 
         return render(request, 'data_cube_manager/ingestion_request.html', context)
@@ -232,9 +232,38 @@ class CreateDataCubeSubset(View):
         if not request.user.is_superuser:
             return JsonResponse({'status': "ERROR", 'message': "Only superusers can ingest new data."})
 
-        metadata = {
-            'dataset_type':
-            dataset_type.id,
+        form_data = request.POST
+        measurements = json.loads(form_data.get('measurements'))
+        metadata = json.loads(form_data.get('metadata_form'))
+
+        #each measurement_form contains a dict of other forms..
+        measurement_forms = [forms.IngestionMeasurementForm(measurements[measurement]) for measurement in measurements]
+        #just a single form
+        metadata_form = forms.IngestionRequestForm(metadata)
+        storage_form = forms.IngestionStorageForm(metadata)
+        ingestion_bounds_form = forms.IngestionBoundsForm({
+            'left': metadata.get('longitude_min', None),
+            'right': metadata.get('longitude_max', None),
+            'bottom': metadata.get('latitude_min', None),
+            'top': metadata.get('latitude_max', None)
+        })
+
+        valid, error = utils.validate_form_groups(metadata_form, storage_form, ingestion_bounds_form,
+                                                  *measurement_forms)
+        if not valid:
+            return JsonResponse({'status': "ERROR", 'message': error})
+
+        dataset_type = metadata_form.cleaned_data.get('dataset_type_ref')
+        metadata_form.cleaned_data.update({'dataset_type': dataset_type, 'dataset_type_ref': [dataset_type]})
+        if not models.Dataset.filter_datasets(metadata_form.cleaned_data).exists():
+            return JsonResponse({
+                'status':
+                "ERROR",
+                'message':
+                "There are no datasets for the entered parameter set. Use the Dataset Viewer page to create a request from a list of datasets."
+            })
+
+        metadata_form.cleaned_data.update({
             'output_type':
             dataset_type.name + "_sample",
             'description':
@@ -261,24 +290,7 @@ class CreateDataCubeSubset(View):
             "1.0",
             'references':
             "https://github.com/ceos-seo/data_cube_ui",
-        }
-
-        metadata.update(json.loads(form_data.get('metadata_form')))
-
-        form_data = request.POST
-        measurements = json.loads(form_data.get('measurements'))
-
-        #each measurement_form contains a dict of other forms..
-        measurement_forms = [forms.IngestionMeasurementForm(measurements[measurement]) for measurement in measurements]
-        #just a single form
-        metadata_form = forms.IngestionMetadataForm(metadata)
-        storage_form = forms.IngestionStorageForm(metadata)
-        ingestion_bounds_form = forms.IngestionBoundsForm(metadata)
-
-        valid, error = utils.validate_form_groups(metadata_form, storage_form, ingestion_bounds_form,
-                                                  *measurement_forms)
-        if not valid:
-            return JsonResponse({'status': "ERROR", 'message': error})
+        })
 
         #since everything is valid, now create yaml from defs..
         ingestion_def = utils.ingestion_definition_from_forms(metadata_form, storage_form, ingestion_bounds_form,
