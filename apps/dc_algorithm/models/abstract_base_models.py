@@ -21,6 +21,7 @@
 
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 import datetime
 import uuid
@@ -75,6 +76,8 @@ class Query(models.Model):
 
     #false by default, only change is false-> true
     complete = models.BooleanField(default=False)
+
+    config_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
 
     class Meta:
         abstract = True

@@ -12,7 +12,7 @@ import imageio
 from collections import OrderedDict
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import ( create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
+from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
                                 add_timestamp_data_to_xr, clear_attrs)
 from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
 
@@ -20,10 +20,12 @@ from .models import AppNameTask
 from apps.dc_algorithm.models import Satellite
 from apps.dc_algorithm.tasks import DCAlgorithmBase
 
-
 logger = get_task_logger(__name__)
+
+
 class BaseTask(DCAlgorithmBase):
     app_name = 'app_name'
+
 
 @task(name="app_name.run", base=BaseTask)
 def run(task_id=None):
@@ -315,7 +317,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     for index, chunk in enumerate(total_chunks):
         metadata = task.combine_metadata(metadata, chunk[1])
-        chunk_data.append(, autoclose=True(chunk[0], autoclose=True))
+        chunk_data.append(xr.open_dataset(chunk[0], autoclose=True))
 
     combined_data = combine_geographic_chunks(chunk_data)
 
@@ -465,9 +467,9 @@ def create_output_products(data, task_id=None):
     # TODO: if there is no animation, remove this. Otherwise, open each time iteration slice and write to disk.
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
-            valid_range = reversed(range(len(
-                full_metadata))) if task.animated_product.animation_id == "scene" and task.get_reverse_time() else range(
-                    len(full_metadata))
+            valid_range = reversed(
+                range(len(full_metadata))) if task.animated_product.animation_id == "scene" and task.get_reverse_time(
+                ) else range(len(full_metadata))
             for index in valid_range:
                 path = os.path.join(task.get_temp_path(), "animation_{}.png".format(index))
                 if os.path.exists(path):
