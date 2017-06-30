@@ -196,7 +196,14 @@ class CreateDataCubeSubset(View):
 
         if 'dataset_type_ref' in existing_data:
             dataset_type = models.DatasetType.objects.using('agdc').get(id=existing_data['dataset_type_ref'])
-
+            if 'managed' in dataset_type.definition:
+                #{"format": {"name": "NetCDF"}, "platform": {"code": "SENTINEL_1"}, "instrument": {"name": "SAR"}, "product_type": "gamma0"}
+                dataset_type = models.DatasetType.objects.using('agdc').filter(~Q(definition__has_keys=['managed']) & Q(
+                    definition__has_keys=['measurements'],
+                    metadata__product_type=dataset_type.metadata['product_type'],
+                    metadata__instrument__name=dataset_type.metadata['instrument']['name'],
+                    metadata__platform__code=dataset_type.metadata['platform']['code']))[0]
+                existing_data['dataset_type_ref'] = dataset_type.id
             measurements = dataset_type.definition['measurements']
             for measurement in measurements:
                 measurement['src_varname'] = measurement['name']
@@ -209,7 +216,7 @@ class CreateDataCubeSubset(View):
 
         context.update({
             'ingestion_request_form':
-            forms.IngestionRequestForm(existing_data),
+            forms.IngestionRequestForm(initial=existing_data),
             'measurement_form':
             forms.IngestionMeasurementForm(),
             'storage_form':

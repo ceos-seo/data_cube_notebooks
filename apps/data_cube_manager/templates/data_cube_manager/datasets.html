@@ -52,7 +52,8 @@ under the License.
         {% if user.is_authenticated and user.is_superuser %}
           <button class="btn btn-danger" onclick="get_deletion_confirmation()">Delete filtered datasets</button>
         {% endif %}
-        <button class="btn btn-default" onclick="get_datacube_subset()">Create Data Cube request</button>
+        <button id="subset_btn_disabled" style="display:none;" class="btn btn-disabled">Select a single product to create a subset</button>
+        <a id="subset_btn" class="btn btn-default" href="/data_cube_manager/ingestion/subset?">Create Data Cube request</a>
       </div>
       <div id="table_container" class="col-lg-8">
         <table id="data_table" class="table table-hover full" style="min-height: 600px;">
@@ -124,8 +125,19 @@ under the License.
 </div>
 <script>
 
-  function get_datacube_subset() {
-    
+  function create_ingestion_link() {
+    jQuery("#subset_btn_disabled").hide();
+    jQuery("#subset_btn").show();
+    var values = {};
+    jQuery.each(jQuery("#filtering_form").serializeArray(), function(i, field) {
+        if(values[field.name]) {
+          jQuery("#subset_btn").hide();
+          jQuery("#subset_btn_disabled").show();
+          return false;
+        }
+        values[field.name] = field.value;
+    });
+    jQuery("#subset_btn").attr('href', "/data_cube_manager/ingestion/subset?" + jQuery("#filtering_form").serialize());
   }
 
   function get_deletion_confirmation() {
@@ -187,6 +199,7 @@ under the License.
     });
 
     jQuery(".onchange_filter").change(function() {
+      create_ingestion_link();
       table.draw();
     })
   });

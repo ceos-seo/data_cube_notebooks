@@ -332,19 +332,19 @@ class IngestionRequestForm(forms.Form):
 
     start_date = forms.DateField(
         label='Start Date',
-        required=False,
+        error_messages={'required': 'Start date is required.'},
         widget=forms.DateInput(attrs={'class': 'datepicker field-divided onchange_filter',
                                       'placeholder': '01/01/2010'}))
     end_date = forms.DateField(
         label='End Date',
-        required=False,
+        error_messages={'required': 'End date is required.'},
         widget=forms.DateInput(attrs={'class': 'datepicker field-divided onchange_filter',
                                       'placeholder': '01/02/2010'}))
 
     latitude_min = forms.FloatField(
         label='Min Latitude',
         validators=[validators.MaxValueValidator(90), validators.MinValueValidator(-90)],
-        required=False,
+        error_messages={'required': 'Latitude min is required.'},
         widget=forms.NumberInput(attrs={'class': 'field-divided onchange_filter',
                                         'step': "any",
                                         'min': -90,
@@ -352,7 +352,7 @@ class IngestionRequestForm(forms.Form):
     latitude_max = forms.FloatField(
         label='Max Latitude',
         validators=[validators.MaxValueValidator(90), validators.MinValueValidator(-90)],
-        required=False,
+        error_messages={'required': 'Latitude max is required.'},
         widget=forms.NumberInput(attrs={'class': 'field-divided onchange_filter',
                                         'step': "any",
                                         'min': -90,
@@ -360,7 +360,7 @@ class IngestionRequestForm(forms.Form):
     longitude_min = forms.FloatField(
         label='Min Longitude',
         validators=[validators.MaxValueValidator(180), validators.MinValueValidator(-180)],
-        required=False,
+        error_messages={'required': 'Longitude min is required.'},
         widget=forms.NumberInput(
             attrs={'class': 'field-divided onchange_filter',
                    'step': "any",
@@ -369,7 +369,7 @@ class IngestionRequestForm(forms.Form):
     longitude_max = forms.FloatField(
         label='Max Longitude',
         validators=[validators.MaxValueValidator(180), validators.MinValueValidator(-180)],
-        required=False,
+        error_messages={'required': 'Longitude max is required.'},
         widget=forms.NumberInput(
             attrs={'class': 'field-divided onchange_filter',
                    'step': "any",
@@ -377,22 +377,21 @@ class IngestionRequestForm(forms.Form):
                    'max': 180}))
 
     def __init__(self, *args, **kwargs):
+        initial_vals = kwargs.pop('initial', None)
         super(IngestionRequestForm, self).__init__(*args, **kwargs)
         self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').filter(~Q(
             definition__has_keys=['managed']) & Q(definition__has_keys=['measurements']))
+        if initial_vals:
+            for field in initial_vals:
+                self.fields[field].initial = initial_vals[field]
 
     def clean(self):
         """
         """
-        cleaned_data = {
-            'latitude_min': 0,
-            'latitude_max': 1,
-            'longitude_min': 0,
-            'longitude_max': 1,
-            'start_date': datetime.date.today(),
-            'end_date': datetime.date.today()
-        }
-        cleaned_data.update({key: val for key, val in super(IngestionRequestForm, self).clean().items() if val})
+        cleaned_data = super(IngestionRequestForm, self).clean()
+
+        if not self.is_valid():
+            return
 
         if cleaned_data.get('latitude_min') > cleaned_data.get('latitude_max'):
             self.add_error(
@@ -413,6 +412,7 @@ class IngestionRequestForm(forms.Form):
         if cleaned_data.get('start_date') > cleaned_data.get('end_date'):
             self.add_error('start_date',
                            "Please enter a valid start and end time range where the start is before the end.")
+            return
 
         if (cleaned_data.get('end_date') - cleaned_data.get('start_date')).days > 367:
             self.add_error('start_date', "Please enter a date range of less than one year.")
