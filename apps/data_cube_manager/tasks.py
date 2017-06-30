@@ -25,11 +25,12 @@ def run_ingestion(ingestion_definition):
 @task(name="data_cube_manager.ingestion_work")
 def ingestion_work(index, output_type, source_type, ingestion_definition):
     tasks = ingest.create_task_list(index, output_type, None, source_type, ingestion_definition)
+
     # this is a dry run
-    paths = [ingest.get_filename(ingestion_definition, task['tile_index'], task['tile'].sources) for task in tasks]
-    ingest.check_existing_files(paths)
+    # paths = [ingest.get_filename(ingestion_definition, task['tile_index'], task['tile'].sources) for task in tasks]
+    # ingest.check_existing_files(paths)
 
     # this actually ingests stuff
-    #successful, failed = process_tasks(index, ingestion_definition, source_type, output_type, tasks, 3200,
-    #                                   get_executor(None, 8))
+    successful, failed = process_tasks(index, ingestion_definition, source_type, output_type, tasks, 3200,
+                                       get_executor(None, 8))
     return 0

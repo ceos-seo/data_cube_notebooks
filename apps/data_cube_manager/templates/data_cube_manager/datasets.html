@@ -52,7 +52,7 @@ under the License.
         {% if user.is_authenticated and user.is_superuser %}
           <button class="btn btn-danger" onclick="get_deletion_confirmation()">Delete filtered datasets</button>
         {% endif %}
-        <button class="btn btn-default">Create ingestion request</button>
+        <button class="btn btn-default" onclick="get_datacube_subset()">Create Data Cube request</button>
       </div>
       <div id="table_container" class="col-lg-8">
         <table id="data_table" class="table table-hover full" style="min-height: 600px;">
@@ -123,6 +123,11 @@ under the License.
   </div>
 </div>
 <script>
+
+  function get_datacube_subset() {
+    
+  }
+
   function get_deletion_confirmation() {
     form_data = $('#filtering_form').serialize();
     jQuery.get('/data_cube_manager/datasets/delete', form_data, function(result) {

@@ -214,7 +214,7 @@ class IngestionStorageForm(forms.Form):
         error_messages={'required': 'Tile size is required. Please enter a valid number in the Metadata panel.'})
 
     resolution_longitude = forms.FloatField(
-        label="Longitude/Y Resolution",
+        label="Longitude/X Resolution",
         help_text="Enter your desired resolution in the units of your CRS. This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution",
         required=True,
         initial=0.000269494585236,
@@ -222,7 +222,7 @@ class IngestionStorageForm(forms.Form):
             'required': 'Resoultion values are required. Please enter a valid number in the Metadata panel.'
         })
     resolution_latitude = forms.FloatField(
-        label="Latitude/X Resolution",
+        label="Latitude/Y Resolution",
         help_text="Enter your desired resolution in the units of your CRS. The latitude resolution must be less than zero (negative). This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution",
         required=True,
         initial=-0.000269494585236,
@@ -314,3 +314,42 @@ class IngestionMeasurementForm(forms.Form):
         help_text="Any any alias that exists for your dataset.",
         widget=forms.TextInput(attrs={'placeholder': "band_3"}),
         required=False)
+
+
+class IngestionRequestForm(forms.Form):
+    """
+    """
+
+    dataset_type = forms.ModelChoiceField(
+        queryset=None,
+        label="Source Dataset Type",
+        help_text="Select an existing source dataset type for this ingestion configuration.",
+        error_messages={'required': 'Source Dataset Type is required.'},
+        widget=forms.Select(attrs={'class': "onchange_refresh",
+                                   'onchange': "update_forms()"}),
+        required=False)
+
+    start_date = forms.DateField(
+        label='Start Date',
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'datepicker field-divided onchange_filter',
+                                      'placeholder': '01/01/2010'}))
+    end_date = forms.DateField(
+        label='End Date',
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'datepicker field-divided onchange_filter',
+                                      'placeholder': '01/02/2010'}))
+
+    def __init__(self, *args, **kwargs):
+        super(IngestionRequestForm, self).__init__(*args, **kwargs)
+        self.fields['dataset_type'].queryset = DatasetType.objects.using('agdc').filter(~Q(
+            definition__has_keys=['managed']) & Q(definition__has_keys=['measurements']))
+
+    def clean(self):
+        """
+        """
+        cleaned_data = super(IngestionRequestForm, self).clean()
+        if cleaned_data.get('start_date') and cleaned_data.get('end_date') and cleaned_data.get(
+                'start_date') >= cleaned_data.get('end_date'):
+            self.add_error('start_date',
+                           "Please enter a valid start and end time range where the start is before the end.")

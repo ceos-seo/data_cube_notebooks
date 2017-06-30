@@ -30,12 +30,12 @@
   <div class="row">
     <div class="col-lg-12">
       <div class="page-header">
-        <h1>Create a Ingestion Configuration</h1>
+        <h1>Create a Sample Data Cube</h1>
         <div class="row">
           <p class="col-lg-9 col-md-10 col-sm-11 col-xs-12">
-            Create a new ingestion configuration using the forms below. Select an existing dataset type to use as the source data and the measurements will be populated with source measurements.
-            Fill in all metadata fields and edit or change measurement attributes and download the resulting .yaml file.
-            Measurements can be renamed using the 'name' field as long as the 'src_varname' stays the same.
+            Create and download a sample Data Cube for small scale analysis cases.
+            Enter a source product, bounding box, time range, and storage attributes to launch a custom ingestion on demand process to create your cube.
+            Sample cubes are restricted to a data volume equivalent to one degree squares over one year.
           </p>
         </div>
       </div>
@@ -45,7 +45,7 @@
     <div class="col-lg-3 multicolumn_form" style="overflow-y:auto; height: 100%;">
       <div class="page-header sub"><span class="form-section-header">Dataset Metadata:</span></div>
       <form id="metadata_form">
-        {% bootstrap_form metadata_form bound_css_class="" %}
+        {% bootstrap_form ingestion_request_form bound_css_class="" %}
         {% bootstrap_form ingestion_bounds_form bound_css_class="" %}
         {% bootstrap_form storage_form bound_css_class="" %}
       </form>
@@ -55,7 +55,6 @@
       <div id="existing_measurement_container">
         {% include "data_cube_manager/existing_measurements.html" %}
       </div>
-      <button class="btn btn-default pull-right" onclick="add_new_measurement()">Create new measurement</button>
     </div>
     <div class="col-lg-7 multicolumn_form" style="overflow-y:auto; height: 100%;">
       <div class="page-header sub"><span class="form-section-header">Measurement:</span></div>
@@ -64,9 +63,8 @@
       </div>
     </div>
     <div class="col-lg-12" style="padding-top: 10px; padding-bottom: 5px;">
-      <button class="btn btn-default pull-right bottom-btn" onclick="download_yaml()">Download .yaml file</button>
       {% if request.user.is_superuser and not dataset_type_id %}
-        <button class="btn btn-danger pull-right bottom-btn" onclick="run_ingestion()">Run ingestion</button>
+        <button class="btn btn-danger pull-right bottom-btn" onclick="create_sample_cube()">Create Sample Cube</button>
       {% endif %}
     </div>
   </div>
@@ -106,19 +104,13 @@
     {% if initial_measurement %}
       set_form_visible("{{ initial_measurement }}")
     {% endif %}
+    $('.datepicker').datepicker({
+        changeMonth: true,
+        changeYear: true,
+        showButtonPanel: true,
+        yearRange: "-30:+0"
+    });
   });
-
-  var dataset_type_details = {
-    {% for product in product_details %}
-      {{ product.id }}: {
-                          description: "{{ product.get_description }}",
-                          platform: "{{ product.get_platform }}",
-                          instrument: "{{ product.get_instrument }}",
-                          processing_level: "{{ product.get_processing_level }}"
-                        },
-    {% endfor %}
-  }
-
 
   function update_forms() {
     jQuery("#measurement_container").html("");
@@ -198,38 +190,8 @@
     jQuery("#measurement_container #" + id).remove();
   }
 
-  //grab the metadata form and all measurement records to create a yaml.
-  //serialize metadata and measurement forms. At this point, everything SHOULD be correct
-  //excluding the metadat which hasn't been validated yet.
-  function download_yaml() {
-    metadata_form = {}
-    $.each(jQuery("#metadata_form").serializeArray(), function(i, field) {
-        metadata_form[field.name] = field.value;
-    });
 
-    measurement_data = {}
-    $.each(jQuery(".measurement_form.record"), function(i, measurement_form) {
-      measurement = {}
-      $.each(jQuery(measurement_form).serializeArray(), function(i, field) {
-          measurement[field.name] = field.value;
-      });
-      measurement_data[measurement['name']] = measurement;
-    });
-
-
-    values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
-
-    jQuery.post('/data_cube_manager/ingestion/export', values, function(result) {
-        if(result.status == "ERROR") {
-          set_modal_content("Error", result.message);
-          return;
-        } else {
-          window.open(result.url, '_blank')
-        }
-    });
-  }
-
-  function run_ingestion() {
+  function create_sample_cube() {
     metadata_form = {}
     $.each(jQuery("#metadata_form").serializeArray(), function(i, field) {
         metadata_form[field.name] = field.value;
@@ -247,7 +209,7 @@
     set_modal_content("Alert", "Please wait while we validate your configuration file.");
 
     values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
-    jQuery.post('/data_cube_manager/ingestion/run', values, function(result) {
+    jQuery.post('/data_cube_manager/ingestion/subset', values, function(result) {
         if(result.status == "ERROR") {
           set_modal_content("Error", result.message);
           return;

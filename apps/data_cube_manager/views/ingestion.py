@@ -167,6 +167,128 @@ class SubmitIngestion(View):
         return JsonResponse({'status': 'OK', 'dataset_type_ref': output_id})
 
 
+class CreateDataCubeSubset(View):
+    """Submit an ingestion form to create a sample Data Cube for user download"""
+
+    def get(self, request):
+        """Return a rendered html page that contains the metadata form and ability to
+        add or delete measurements.
+
+        This can be built upon an existing dataset type (dataset_type_id) or a blank form.
+
+        Args:
+            dataset_type_id: optional id to an existing dataset
+
+        Returns:
+            Rendered HTML for a page that will allow users to customize a dataset
+
+        """
+        context = {}
+
+        ingestion_request_form = forms.IngestionRequestForm()
+        available_fields = ['dataset_type', 'left', 'right', 'bottom', 'top', 'start_date', 'end_date']
+        existing_data = {
+            key: request.GET.get(key, None)
+            for key in available_fields if request.GET.get(key, None) is not None
+        }
+
+        if 'dataset_type' in existing_data:
+            dataset_type = models.DatasetType.objects.using('agdc').get(id=existing_data['dataset_type'])
+            ingestion_request_form = forms.IngestionRequestForm({'dataset_type': dataset_type.id})
+            measurements = dataset_type.definition['measurements']
+            for measurement in measurements:
+                measurement['src_varname'] = measurement['name']
+                # conversion from uint16->32 to handle USGS Coll 1.
+                measurement['dtype'] = 'int32' if measurement['dtype'] in ['uint16'] else measurement['dtype']
+            measurement_dict = OrderedDict(
+                [(measurement['name'], forms.IngestionMeasurementForm(measurement)) for measurement in measurements])
+
+            context.update({'measurements': measurement_dict, 'initial_measurement': measurements[0]['name']})
+
+        context.update({
+            'ingestion_request_form':
+            ingestion_request_form,
+            'measurement_form':
+            forms.IngestionMeasurementForm(),
+            'storage_form':
+            forms.IngestionStorageForm({
+                'crs': "EPSG:4326",
+                'crs_units': "degrees",
+                'tile_size_longitude': 0.269494585236,
+                'tile_size_latitude': 0.269494585236,
+                'resolution_latitude': -0.000269494585236,
+                'resolution_longitude': 0.000269494585236,
+                'chunking_latitude': 200,
+                'chunking_longitude': 200
+            }),
+            'ingestion_bounds_form':
+            forms.IngestionBoundsForm(existing_data),
+        })
+
+        return render(request, 'data_cube_manager/ingestion_request.html', context)
+
+    def post(self, request):
+        """"""
+        if not request.user.is_superuser:
+            return JsonResponse({'status': "ERROR", 'message': "Only superusers can ingest new data."})
+
+        metadata = {
+            'dataset_type':
+            dataset_type.id,
+            'output_type':
+            dataset_type.name + "_sample",
+            'description':
+            "Sample subset of {} created for {}".format(dataset_type.name, request.user.username),
+            'file_path_template':
+            "{}/SAMPLE_CUBE_4326_{{tile_index[0]}}_{{tile_index[1]}}_{{start_time}}.nc".format(request.user.username),
+            'summary':
+            "Contains a small subset of {}.".format(dataset_type.name),
+            'platform':
+            dataset_type.get_description(),
+            'instrument':
+            dataset_type.get_instrument(),
+            'processing_level':
+            dataset_type.get_processing_level(),
+            'location':
+            "/datacube/ingested_data/",
+            'title':
+            "Sample Data Cube created by the CEOS Data Cube UI",
+            'source':
+            "CEOS Data Cube UI",
+            'institution':
+            "CEOS",
+            'product_version':
+            "1.0",
+            'references':
+            "https://github.com/ceos-seo/data_cube_ui",
+        }
+
+        metadata.update(json.loads(form_data.get('metadata_form')))
+
+        form_data = request.POST
+        measurements = json.loads(form_data.get('measurements'))
+
+        #each measurement_form contains a dict of other forms..
+        measurement_forms = [forms.IngestionMeasurementForm(measurements[measurement]) for measurement in measurements]
+        #just a single form
+        metadata_form = forms.IngestionMetadataForm(metadata)
+        storage_form = forms.IngestionStorageForm(metadata)
+        ingestion_bounds_form = forms.IngestionBoundsForm(metadata)
+
+        valid, error = utils.validate_form_groups(metadata_form, storage_form, ingestion_bounds_form,
+                                                  *measurement_forms)
+        if not valid:
+            return JsonResponse({'status': "ERROR", 'message': error})
+
+        #since everything is valid, now create yaml from defs..
+        ingestion_def = utils.ingestion_definition_from_forms(metadata_form, storage_form, ingestion_bounds_form,
+                                                              measurement_forms)
+
+        print("OK")
+
+        return JsonResponse({'status': 'OK'})
+
+
 class IngestionMeasurement(View):
     """Gets a list of existing measurements and validates user added measurements"""
 
