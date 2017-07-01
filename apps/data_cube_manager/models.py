@@ -86,7 +86,8 @@ class DatasetLocation(models.Model):
 
 
 class DatasetSource(models.Model):
-    dataset_ref = models.ForeignKey(Dataset, models.CASCADE, db_column='dataset_ref', related_name='dataset_ref')
+    dataset_ref = models.ForeignKey(
+        Dataset, models.CASCADE, db_column='dataset_ref', related_name='dataset_ref', primary_key=True)
     classifier = models.TextField()
     source_dataset_ref = models.ForeignKey(
         Dataset, models.CASCADE, db_column='source_dataset_ref', related_name='source_dataset_ref')

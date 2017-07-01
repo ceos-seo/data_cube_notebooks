@@ -303,8 +303,8 @@ class CreateDataCubeSubset(View):
         ingestion_def = utils.ingestion_definition_from_forms(metadata_form, storage_form, ingestion_bounds_form,
                                                               measurement_forms)
 
-        print("OK")
-
+        tasks.ingestion_on_demand.delay(
+            search_fields=metadata_form.cleaned_data, user=request.user.username, ingestion_def=ingestion_def)
         return JsonResponse({'status': 'OK'})
 
 
