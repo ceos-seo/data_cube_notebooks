@@ -45,11 +45,17 @@ class Dataset(models.Model):
         latitude_query = Q(metadata__extent__coord__lr__lat__gte=cleaned_form_data['latitude_min'],
                            metadata__extent__coord__lr__lat__lt=cleaned_form_data['latitude_max']) | Q(
                                metadata__extent__coord__ul__lat__gt=cleaned_form_data['latitude_min'],
-                               metadata__extent__coord__ul__lat_lt=cleaned_form_data['latitude_max'])
+                               metadata__extent__coord__ul__lat_lt=cleaned_form_data['latitude_max']) | Q(
+                                   metadata__extent__coord__lr__lat__lt=cleaned_form_data['latitude_max'],
+                                   metadata__extent__coord__ul__lat_gt=cleaned_form_data['latitude_min'])
+
         longitude_query = Q(metadata__extent__coord__ul__lon__gt=cleaned_form_data['longitude_min'],
                             metadata__extent__coord__ul__lon__lt=cleaned_form_data['longitude_max']) | Q(
                                 metadata__extent__coord__lr__lon__gt=cleaned_form_data['longitude_min'],
-                                metadata__extent__coord__lr__lon_lt=cleaned_form_data['longitude_max'])
+                                metadata__extent__coord__lr__lon_lt=cleaned_form_data['longitude_max']) | Q(
+                                    metadata__extent__coord__ul__lon__lt=cleaned_form_data['longitude_max'],
+                                    metadata__extent__coord__lr__lon_gt=cleaned_form_data['longitude_min'])
+
         time_query = Q(metadata__extent__center_dt__lte=cleaned_form_data['end_date'].isoformat(),
                        metadata__extent__center_dt__gte=cleaned_form_data['start_date'].isoformat())
         base_query &= latitude_query & longitude_query & time_query

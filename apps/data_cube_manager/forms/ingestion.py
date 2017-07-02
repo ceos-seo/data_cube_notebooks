@@ -390,6 +390,13 @@ class IngestionRequestForm(forms.Form):
         """
         cleaned_data = super(IngestionRequestForm, self).clean()
 
+        # this id done to get rid of some weird rounding issues - a lot of the solid BBs end up being 3.999999999123412 rather than
+        # the expected 4
+        cleaned_data['latitude_min'] -= 0.01
+        cleaned_data['longitude_min'] -= 0.01
+        cleaned_data['latitude_max'] += 0.01
+        cleaned_data['longitude_max'] += 0.01
+
         if not self.is_valid():
             return
 
@@ -406,22 +413,14 @@ class IngestionRequestForm(forms.Form):
         area = (cleaned_data.get('latitude_max') - cleaned_data.get('latitude_min')) * (
             cleaned_data.get('longitude_max') - cleaned_data.get('longitude_min'))
 
-        if area > 1.0:
+        if area > 1.05:
             self.add_error('latitude_min', 'Tasks over an area greater than one square degrees are not permitted.')
 
         if cleaned_data.get('start_date') > cleaned_data.get('end_date'):
             self.add_error('start_date',
                            "Please enter a valid start and end time range where the start is before the end.")
-            return
 
         if (cleaned_data.get('end_date') - cleaned_data.get('start_date')).days > 367:
             self.add_error('start_date', "Please enter a date range of less than one year.")
-
-        # this id done to get rid of some weird rounding issues - a lot of the solid BBs end up being 3.999999999123412 rather than
-        # the expected 4
-        cleaned_data['latitude_min'] -= 0.01
-        cleaned_data['longitude_min'] -= 0.01
-        cleaned_data['latitude_max'] += 0.01
-        cleaned_data['longitude_max'] += 0.01
 
         self.cleaned_data = cleaned_data
