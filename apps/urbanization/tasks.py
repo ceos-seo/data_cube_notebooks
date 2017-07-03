@@ -325,14 +325,16 @@ def process_band_math(chunk, task_id=None):
     """
 
     def _apply_band_math(dataset):
-        #TODO: apply your band math here!
-        return (dataset.nir - dataset.red) / (dataset.nir + dataset.red)
+        ndvi = (dataset.nir - dataset.red) / (dataset.nir + dataset.red)
+        ndwi = (dataset.green - dataset.nir) / (dataset.green + dataset.nir)
+        ndbi = (dataset.swir2 - dataset.nir) / (dataset.swir2 + dataset.nir)
+        return ndvi, ndwi, ndbi
 
     if chunk is None:
         return None
 
     dataset = xr.open_dataset(chunk[0], autoclose=True).load()
-    dataset['band_math'] = _apply_band_math(dataset)
+    dataset['ndvi'], dataset['ndwi'], dataset['ndbi'] = _apply_band_math(dataset)
     #remove previous nc and write band math to disk
     os.remove(chunk[0])
     dataset.to_netcdf(chunk[0])
@@ -392,20 +394,22 @@ def create_output_products(data, task_id=None):
     dataset = xr.open_dataset(data[0], autoclose=True)
     task = UrbanizationTask.objects.get(pk=task_id)
 
-    task.result_path = os.path.join(task.get_result_path(), "band_math.png")
+    task.result_path = os.path.join(task.get_result_path(), "urbanization.png")
     task.mosaic_path = os.path.join(task.get_result_path(), "png_mosaic.png")
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
     task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'band_math'
-            ] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa', 'band_math']
+    bands = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'ndvi', 'ndwi',
+             'ndbi'] if 'cf_mask' in dataset else [
+                 'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa', 'ndvi', 'ndwi', 'ndbi'
+             ]
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
+    write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands)
     write_png_from_xr(task.mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
-    write_single_band_png_from_xr(task.result_path, dataset, band='band_math', color_scale=task.color_scale_path)
+    write_png_from_xr(task.result_path, dataset, ["ndbi", "ndvi", "ndwi"], scale=[(-1, 1), (0, 1), (0, 1)])
 
     logger.info("All products created.")
     # task.update_bounds_from_dataset(dataset)

@@ -60,9 +60,6 @@ class Query(BaseQuery):
     """
     compositor = models.ForeignKey(Compositor)
 
-    
-    #TODO: add color scale here
-    color_scale_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/default_color_scale'
     measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/urbanization'
 
@@ -132,8 +129,8 @@ class Query(BaseQuery):
 
         """
         query_data = form_data
-        query_data['title'] = "Band Math Query" if 'title' not in form_data or form_data['title'] == '' else form_data[
-            'title']
+        query_data['title'] = "Urbanization Query" if 'title' not in form_data or form_data[
+            'title'] == '' else form_data['title']
         query_data['description'] = "None" if 'description' not in form_data or form_data[
             'description'] == '' else form_data['description']
 

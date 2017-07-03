@@ -109,30 +109,25 @@ under the License.
   </tr>
   <tr>
     <td>8</td>
-    <td>Satellite Mask</td>
-    <td>[0,2] <div class="helper tooltipped" title="0 - Landsat 5, 1 - Landsat 7, 2 - Landsat 8"><a> ?</a></div></td>
+    <td>NDVI</td>
+    <td>[0, 1] <div class="helper tooltipped" title="A derived index that correlates well with the existance of vegetation."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>9</td>
-    <td>Timestamp (Unix)</td>
-    <td>Timestamp of acquisition (per pixel) <div class="helper tooltipped" title="Unix timestamp of the acquisition that the pixel's final value came from. This is useful for creating colored images."><a> ?</a></div></td>
+    <td>NDWI</td>
+    <td>[0, 1] <div class="helper tooltipped" title="A derived index that correlates well with the existance of water."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>10</td>
-    <td>Date (%Y%m%d format)</td>
-    <td>Date of acquisition (per pixel) <div class="helper tooltipped" title="Concatenated date (e.g. 20160101) of the acquisition that the pixel's final value came from."><a> ?</a></div></td>
-  </tr>
-  <tr>
-    <td>11</td>
-    <td>Band Math</td>
-    <td>Band math output</td>
+    <td>NDBI</td>
+    <td>[-1, 1] <div class="helper tooltipped" title="A derived index that correlates well with the existance of urbanization."><a> ?</a></div></td>
   </tr>
 {% endblock %}
 {% block url_block %}
 https://landsat.usgs.gov/landsat-surface-reflectance-high-level-data-products
 {% endblock %}
 {% block download_options %}
-<option value="result_path">Band Math PNG</option>
+<option value="result_path">Urbanization PNG</option>
 <option value="mosaic_path">Mosaic PNG</option>
 <option value="data_path">GeoTIFF</option>
 <option value="data_netcdf_path">netCDF</option>
