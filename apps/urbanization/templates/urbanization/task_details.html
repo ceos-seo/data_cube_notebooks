@@ -88,17 +88,17 @@ under the License.
   <div class="col-lg-12" style="height: 500px;">
     <h2 class="page-header">Scene Metadata</h2>
     <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_list">
-      {% for acquisition, pixels, pixel_percentage in task.acquisitions_dates_with_pixels_percentages %}
+      {% for acquisition, clean_pixels, clean_pixel_percentage in task.get_zipped_fields_as_list %}
         <li>
           <dl class="dl-horizontal">
             <dt class="section_header">{{ acquisition }}</dt>
             <dd></dd>
             <dt>Clean pixels</dt>
-            <dd>{{ pixels }}</dd>
+            <dd>{{ clean_pixels }}</dd>
             <dt>Total Pixels</dt>
             <dd>{{ task.pixel_count }}</dd>
             <dt>Clean Pixel Percentage</dt>
-            <dd>{{ pixel_percentage|floatformat:2 }}%</dd>
+            <dd>{{ clean_pixel_percentage|floatformat:2 }}%</dd>
           </dl>
         </li>
       {% endfor %}
