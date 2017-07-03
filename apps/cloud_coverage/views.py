@@ -31,7 +31,6 @@ from datetime import datetime, timedelta
 
 from apps.dc_algorithm.models import Satellite, Area, Application
 from apps.dc_algorithm.forms import DataSelectionForm
-from .forms import AdditionalOptionsForm
 from .tasks import run
 
 from collections import OrderedDict
@@ -63,16 +62,13 @@ class CloudCoverageTool(ToolView):
     tool_name = 'cloud_coverage'
     task_model_name = 'CloudCoverageTask'
 
-    # TODO: Ensure that this function creates all the forms required for your model.
     def generate_form_dict(self, satellites, area):
         forms = {}
         for satellite in satellites:
             forms[satellite.datacube_platform] = {
-                'Data Selection':
-                AdditionalOptionsForm(
-                    datacube_platform=satellite.datacube_platform, auto_id=satellite.datacube_platform + "_%s"),
                 'Geospatial Bounds':
-                DataSelectionForm(area=area,
+                DataSelectionForm(
+                    area=area,
                     time_start=satellite.date_min,
                     time_end=satellite.date_max,
                     auto_id=satellite.datacube_platform + "_%s")
@@ -95,8 +91,7 @@ class SubmitNewRequest(SubmitNewRequest):
     task_model_name = 'CloudCoverageTask'
     #celery_task_func = create_cloudfree_mosaic
     celery_task_func = run
-    # TODO: Ensure that this list contains all the forms used to create your model
-    form_list = [DataSelectionForm, AdditionalOptionsForm]
+    form_list = [DataSelectionForm]
 
 
 class GetTaskResult(GetTaskResult):
@@ -124,8 +119,6 @@ class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
 
     celery_task_func = run
 
-    # TODO: Ensure that your task_model_update_func works as expected - does this app support
-    # single requests?
     def task_model_update_func(self, task_model, **kwargs):
         """
         Basic funct that updates a task model with kwargs. In this case only the date

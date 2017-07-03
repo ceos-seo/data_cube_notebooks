@@ -56,21 +56,15 @@ def parse_parameters_from_task(task_id=None):
     task = CloudCoverageTask.objects.get(pk=task_id)
 
     parameters = {
-        # TODO: If this is not a multisensory app, uncomment 'platform' and remove 'platforms'
-        # 'platform': task.platform,
-        'platforms': sorted(task.platform.split(",")),
+        'platform': task.platform,
         'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
         'measurements': task.measurements
     }
 
-    # TODO: If this is not a multisensory app, remove 'products' and uncomment the line below.
-    # parameters['product'] = Satellite.objects.get(datacube_platform=parameters['platform']).product_prefix + task.area_id
-    parameters['products'] = [
-        Satellite.objects.get(datacube_platform=platform).product_prefix + task.area_id
-        for platform in parameters['platforms']
-    ]
+    parameters['product'] = Satellite.objects.get(
+        datacube_platform=parameters['platform']).product_prefix + task.area_id
 
     task.execution_start = datetime.now()
     task.update_status("WAIT", "Parsed out parameters.")
@@ -95,26 +89,17 @@ def validate_parameters(parameters, task_id=None):
     dc = DataAccessApi(config=task.config_path)
 
     #validate for any number of criteria here - num acquisitions, etc.
-    # TODO: if this is not a multisensory app, replace list_combined_acquisition_dates with list_acquisition_dates
-    acquisitions = dc.list_combined_acquisition_dates(**parameters)
+    acquisitions = dc.list_acquisition_dates(**parameters)
 
-    # TODO: are there any additional validations that need to be done here?
     if len(acquisitions) < 1:
         task.complete = True
         task.update_status("ERROR", "There are no acquistions for this parameter set.")
         return None
 
-    if task.animated_product.animation_id != "none" and task.compositor.id == "median_pixel":
-        task.complete = True
-        task.update_status("ERROR", "Animations cannot be generated for median pixel operations.")
-        return None
-
     task.update_status("WAIT", "Validated parameters.")
 
-    # TODO: Check that the measurements exist - for Landsat, we're making sure that cf_mask/pixel_qa are interchangable.
-    # replace ['products'][0] with ['products'] if this is not a multisensory app.
-    if not dc.validate_measurements(parameters['products'][0], parameters['measurements']):
-        parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+    if not dc.validate_measurements(parameters['products'], parameters['measurements']):
+        parameters['measurements'] = ['blue', 'green', 'red', 'pixel_qa']
 
     dc.close()
     return parameters
@@ -140,8 +125,8 @@ def perform_task_chunking(parameters, task_id=None):
 
     task = CloudCoverageTask.objects.get(pk=task_id)
     dc = DataAccessApi(config=task.config_path)
-    # TODO: If this is not a multisensory app, replace list_combined_acquisition_dates with list_acquisition_dates
-    dates = dc.list_combined_acquisition_dates(**parameters)
+
+    dates = dc.list_acquisition_dates(**parameters)
     task_chunk_sizing = task.get_chunk_size()
 
     geographic_chunks = create_geographic_chunks(
@@ -250,33 +235,18 @@ def processing_task(task_id=None,
     base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
     for time_index, time in enumerate(times):
         updated_params.update({'time': time})
-        # TODO: If this is not a multisensory app replace get_stacked_datasets_by_extent with get_dataset_by_extent
-        data = dc.get_stacked_datasets_by_extent(**updated_params)
+
+        data = dc.get_dataset_by_extent(**updated_params)
         if data is None or 'time' not in data:
             logger.info("Invalid chunk.")
             continue
 
-        # TODO: Replace anything here with your processing - do you need to create additional masks? Apply bandmaths? etc.
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
-        add_timestamp_data_to_xr(data)
-
         metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
 
         # TODO: Make sure you're producing everything required for your algorithm.
         iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
-
-        # TODO: If there is no animation you can remove this block. Otherwise, save off the data that you need.
-        if task.animated_product.animation_id != "none":
-            path = os.path.join(task.get_temp_path(),
-                                "animation_{}_{}.nc".format(str(geo_chunk_id), str(base_index + time_index)))
-            if task.animated_product.animation_id == "scene":
-                #need to clear out all the metadata..
-                clear_attrs(data)
-                #can't reindex on time - weird?
-                data.isel(time=0).drop('time').to_netcdf(path)
-            elif task.animated_product.animation_id == "cumulative":
-                iteration_data.to_netcdf(path)
 
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
@@ -321,24 +291,6 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     combined_data = combine_geographic_chunks(chunk_data)
 
-    # if we're animating, combine it all and save to disk.
-    # TODO: If there is no animation, delete this block. Otherwise, recombine all the geo chunks for each time chunk
-    #       and save the result to disk.
-    if task.animated_product.animation_id != "none":
-        base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
-        for index in range((task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1)):
-            animated_data = []
-            for chunk in total_chunks:
-                geo_chunk_index = chunk[2]['geo_chunk_id']
-                # if we're animating, combine it all and save to disk.
-                path = os.path.join(task.get_temp_path(),
-                                    "animation_{}_{}.nc".format(str(geo_chunk_index), str(base_index + index)))
-                if os.path.exists(path):
-                    animated_data.append(xr.open_dataset(path, autoclose=True))
-            path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
-            if len(animated_data) > 0:
-                combine_geographic_chunks(animated_data).to_netcdf(path)
-
     path = os.path.join(task.get_temp_path(), "recombined_geo_{}.nc".format(time_chunk_id))
     combined_data.to_netcdf(path)
     logger.info("Done combining geographic chunks for time: " + str(time_chunk_id))
@@ -370,37 +322,11 @@ def recombine_time_chunks(chunks, task_id=None):
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
     metadata = {}
 
-    #TODO: If there is no animation, remove this block. Otherwise, compute the data needed to create each frame.
-    def generate_animation(index, combined_data):
-        base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * index
-        for index in range((task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1)):
-            path = os.path.join(task.get_temp_path(), "animation_{}.nc".format(base_index + index))
-            if os.path.exists(path):
-                animated_data = xr.open_dataset(path, autoclose=True)
-                if task.animated_product.animation_id == "cumulative":
-                    animated_data = xr.concat([animated_data], 'time')
-                    animated_data['time'] = [0]
-                    clear_mask = create_cfmask_clean_mask(
-                        animated_data.cf_mask) if 'cf_mask' in animated_data else create_bit_mask(
-                            animated_data.pixel_qa, [1, 2])
-                    animated_data = task.get_processing_method()(animated_data,
-                                                                 clean_mask=clear_mask,
-                                                                 intermediate_product=combined_data)
-                path = os.path.join(task.get_temp_path(), "animation_{}.png".format(base_index + index))
-                write_png_from_xr(
-                    path,
-                    animated_data,
-                    bands=[task.query_type.red, task.query_type.green, task.query_type.blue],
-                    scale=(0, 4096))
-
     combined_data = None
     for index, chunk in enumerate(total_chunks):
         metadata.update(chunk[1])
         data = xr.open_dataset(chunk[0], autoclose=True)
         if combined_data is None:
-            # TODO: If there is no animation, remove this.
-            if task.animated_product.animation_id != "none":
-                generate_animation(index, combined_data)
             combined_data = data
             continue
         #give time an indice to keep mosaicking from breaking.
@@ -409,10 +335,6 @@ def recombine_time_chunks(chunks, task_id=None):
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
         combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
-        # if we're animating, combine it all and save to disk.
-        # TODO: If there is no animation, remove this.
-        if task.animated_product.animation_id != "none":
-            generate_animation(index, combined_data)
 
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
     combined_data.to_netcdf(path)
@@ -437,44 +359,21 @@ def create_output_products(data, task_id=None):
     dataset = xr.open_dataset(data[0], autoclose=True)
     task = CloudCoverageTask.objects.get(pk=task_id)
 
-    # TODO: Add any paths that you've added in your models.py Result model and remove the ones that aren't there.
     task.result_path = os.path.join(task.get_result_path(), "png_mosaic.png")
-    task.result_filled_path = os.path.join(task.get_result_path(), "filled_png_mosaic.png")
+    task.mosaic_path = os.path.join(task.get_result_path(), "mosaic.png")
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
     task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
-    task.animation_path = os.path.join(task.get_result_path(),
-                                       "animation.gif") if task.animated_product.animation_id != 'none' else ""
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    # TODO: Set the bands that should be written to the final products
-    bands = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2',
-             'cf_mask'] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+    bands = ['blue', 'green', 'red', 'cf_mask'] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'pixel_qa']
 
-    # TODO: If you're creating pngs, specify the RGB bands
-    png_bands = [task.query_type.red, task.query_type.green, task.query_type.blue]
+    png_bands = ['red', 'green', 'blue']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
-    write_png_from_xr(
-        task.result_path,
-        dataset,
-        bands=png_bands,
-        png_filled_path=task.result_filled_path,
-        fill_color=task.query_type.fill,
-        scale=(0, 4096))
-
-    # TODO: if there is no animation, remove this. Otherwise, open each time iteration slice and write to disk.
-    if task.animated_product.animation_id != "none":
-        with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
-            valid_range = reversed(
-                range(len(full_metadata))) if task.animated_product.animation_id == "scene" and task.get_reverse_time(
-                ) else range(len(full_metadata))
-            for index in valid_range:
-                path = os.path.join(task.get_temp_path(), "animation_{}.png".format(index))
-                if os.path.exists(path):
-                    image = imageio.imread(path)
-                    writer.append_data(image)
+    write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands)
+    write_png_from_xr(task.mosaic_path, dataset, bands=png_bands, scale=(0, 4096))
+    write_single_band_png_from_xr(task.result_path, dataset, band='band_math', color_scale=task.color_scale_path)
 
     logger.info("All products created.")
     # task.update_bounds_from_dataset(dataset)
