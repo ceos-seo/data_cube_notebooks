@@ -13,7 +13,7 @@ from datacube.scripts import ingest
 import os
 import configparser
 
-from apps.data_cube_manager.models import Dataset, DatasetType, DatasetSource, DatasetLocation
+from apps.data_cube_manager.models import Dataset, DatasetType, DatasetSource, DatasetLocation, IngestionRequest
 
 logger = get_task_logger(__name__)
 
@@ -44,11 +44,13 @@ def ingestion_work(index, output_type, source_type, ingestion_definition):
 
 
 @task(name="data_cube_manager.ingestion_on_demand")
-def ingestion_on_demand(search_fields=None, user=None, ingestion_def=None):
+def ingestion_on_demand(ingestion_request_id, search_fields=None):
     """
     """
 
-    cmd = "createdb -U dc_user {}".format(user)
+    ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
+
+    cmd = "createdb -U dc_user {}".format(ingestion_request.user)
     os.system(cmd)
 
     config = configparser.ConfigParser()
@@ -56,7 +58,7 @@ def ingestion_on_demand(search_fields=None, user=None, ingestion_def=None):
         'db_password': 'dcuser1',
         'db_connection_timeout': '60',
         'db_username': 'dc_user',
-        'db_database': user,
+        'db_database': ingestion_request.user,
         'db_hostname': settings.MASTER_NODE
     }
 
@@ -65,11 +67,13 @@ def ingestion_on_demand(search_fields=None, user=None, ingestion_def=None):
     """conf_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
     index = index_connect(local_config=LocalConfig.find([conf_path]))"""
 
+    ingestion_request.update_status("WAIT", "Creating base Data Cube database...")
+
     ingestion_pipeline = (
         init_db.si(index=index) |
-        add_source_datasets.si(user=user, ingestion_def=ingestion_def, search_fields=search_fields, index=index) |
-        ingest_subset.si(index=index, user=user, ingestion_def=ingestion_def) |
-        prepare_output.si(index=index, user=user, ingestion_def=ingestion_def))()
+        add_source_datasets.si(ingestion_request_id=ingestion_request_id, search_fields=search_fields, index=index) |
+        ingest_subset.si(index=index, ingestion_request_id=ingestion_request_id) |
+        prepare_output.si(index=index, ingestion_request_id=ingestion_request_id))()
 
 
 @task(name="data_cube_manager.init_db")
@@ -82,53 +86,86 @@ def init_db(index=None):
 
 
 @task(name="data_cube_manager.add_source_datasets")
-def add_source_datasets(user=None, ingestion_def=None, search_fields=None, index=None):
+def add_source_datasets(ingestion_request_id=None, search_fields=None, index=None):
     """
     """
 
-    dataset_type = DatasetType.objects.using('agdc').get(name=ingestion_def['source_type'])
+    ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
+
+    ingestion_request.update_status("WAIT", "Populating database with source datasets...")
+
+    dataset_type = DatasetType.objects.using('agdc').get(id=ingestion_request.source_type)
     datasets = list(Dataset.filter_datasets(search_fields))
 
     dataset_locations = DatasetLocation.objects.using('agdc').filter(dataset_ref__in=datasets)
     dataset_sources = DatasetSource.objects.using('agdc').filter(dataset_ref__in=datasets)
 
-    connections.databases[user] = {
+    create_db(ingestion_request.user)
+
+    dataset_type.id = 0
+    dataset_type.save(using=ingestion_request.user)
+
+    for dataset in datasets:
+        dataset.dataset_type_ref_id = 0
+
+    Dataset.objects.using(ingestion_request.user).bulk_create(datasets)
+    DatasetLocation.objects.using(ingestion_request.user).bulk_create(dataset_locations)
+    DatasetSource.objects.using(ingestion_request.user).bulk_create(dataset_sources)
+
+    close_db(ingestion_request.user)
+
+
+@task(name="data_cube_manager.ingest_subset")
+def ingest_subset(index=None, ingestion_request_id=None):
+    """
+    """
+
+    ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
+
+    # Thisis done because of something that the agdc guys do in ingest: https://github.com/opendatacube/datacube-core/blob/develop/datacube/scripts/ingest.py#L168
+    ingestion_request.ingestion_definition['filename'] = "ceos_data_cube_sample.yaml"
+
+    source_type, output_type = ingest.make_output_type(index, ingestion_request.ingestion_definition)
+    tasks = list(ingest.create_task_list(index, output_type, None, source_type, ingestion_request.ingestion_definition))
+
+    ingestion_request.total_storage_units = len(tasks)
+    ingestion_request.update_status("WAIT", "Starting the ingestion process...")
+
+    successful, failed = ingest.process_tasks(index, ingestion_request.ingestion_definition, source_type, output_type,
+                                              tasks, 3200, get_executor(None, None))
+
+
+@task(name="data_cube_manager.prepare_output")
+def prepare_output(index=None, ingestion_request_id=None):
+    """
+    """
+
+    ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
+    ingestion_request.update_status("WAIT", "Creating output products...")
+
+    cmd = "pg_dump -U dc_user -n agdc {} > {}/datacube_dump".format(ingestion_request.user,
+                                                                    ingestion_request.ingestion_definition['location'])
+    os.system(cmd)
+
+    index.close()
+
+    cmd = "dropdb -U dc_user {}".format(ingestion_request.user)
+    os.system(cmd)
+
+
+def create_db(username):
+    connections.databases[username] = {
         'ENGINE': 'django.db.backends.postgresql',
         'OPTIONS': {
             'options': '-c search_path=agdc'
         },
-        'NAME': user,
+        'NAME': username,
         'USER': 'dc_user',
         'PASSWORD': 'dcuser1',
         'HOST': settings.MASTER_NODE
     }
 
-    dataset_type.id = 0
-    dataset_type.save(using=user)
 
-    for dataset in datasets:
-        dataset.dataset_type_ref_id = 0
-
-    Dataset.objects.using(user).bulk_create(datasets)
-    DatasetLocation.objects.using(user).bulk_create(dataset_locations)
-    DatasetSource.objects.using(user).bulk_create(dataset_sources)
-
-    connections.databases.pop(user)
-
-
-@task(name="data_cube_manager.ingest_subset")
-def ingest_subset(index=None, user=None, ingestion_def=None):
-    """
-    """
-
-    source_type, output_type = ingest.make_output_type(index, ingestion_def)
-    tasks = ingest.create_task_list(index, output_type, None, source_type, ingestion_def)
-    successful, failed = ingest.process_tasks(index, ingestion_def, source_type, output_type, tasks, 3200,
-                                              get_executor(None, None))
-
-
-@task(name="data_cube_manager.prepare_output")
-def prepare_output(index=None, user=None, ingestion_def=None):
-    """
-    """
-    pass
+def close_db(username):
+    connections[username].close()
+    connections.databases.pop(username)

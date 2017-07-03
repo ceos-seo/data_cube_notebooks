@@ -275,8 +275,10 @@ class CreateDataCubeSubset(View):
             dataset_type.name + "_sample",
             'description':
             "Sample subset of {} created for {}".format(dataset_type.name, request.user.username),
+            'location':
+            "/datacube/ingested_data/{}".format(request.user.username),
             'file_path_template':
-            "{}/SAMPLE_CUBE_4326_{{tile_index[0]}}_{{tile_index[1]}}_{{start_time}}.nc".format(request.user.username),
+            "SAMPLE_CUBE_4326_{tile_index[0]}_{tile_index[1]}_{start_time}.nc",
             'summary':
             "Contains a small subset of {}.".format(dataset_type.name),
             'platform':
@@ -285,8 +287,6 @@ class CreateDataCubeSubset(View):
             dataset_type.get_instrument(),
             'processing_level':
             dataset_type.get_processing_level(),
-            'location':
-            "/datacube/ingested_data/",
             'title':
             "Sample Data Cube created by the CEOS Data Cube UI",
             'source':
@@ -303,8 +303,12 @@ class CreateDataCubeSubset(View):
         ingestion_def = utils.ingestion_definition_from_forms(metadata_form, storage_form, ingestion_bounds_form,
                                                               measurement_forms)
 
-        tasks.ingestion_on_demand.delay(
-            search_fields=metadata_form.cleaned_data, user=request.user.username, ingestion_def=ingestion_def)
+        ingestion_request = models.IngestionRequest(
+            user=request.user.username, source_type=dataset_type.pk, ingestion_definition=ingestion_def)
+        ingestion_request.save()
+
+        tasks.ingestion_on_demand.delay(ingestion_request.pk, search_fields=metadata_form.cleaned_data)
+
         return JsonResponse({'status': 'OK'})
 
 

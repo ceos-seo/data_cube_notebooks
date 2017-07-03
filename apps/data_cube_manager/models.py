@@ -143,3 +143,22 @@ class MetadataType(models.Model):
     class Meta:
         managed = False
         db_table = 'metadata_type'
+
+
+class IngestionRequest(models.Model):
+    user = models.CharField(max_length=50)
+
+    # this can't be a fk since the agdc schema isn't managed by Django
+    source_type = models.SmallIntegerField()
+    ingestion_definition = JSONField()
+
+    total_storage_units = models.IntegerField(default=0)
+    storage_units_processed = models.IntegerField(default=0)
+
+    status = models.CharField(max_length=50, default="WAIT")
+    message = models.CharField(max_length=100, default="Please wait while your Data Cube is created.")
+
+    def update_status(self, status, message):
+        self.status = status
+        self.message = message
+        self.save()
