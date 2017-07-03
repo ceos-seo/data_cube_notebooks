@@ -66,6 +66,8 @@ INSTALLED_APPS = [
     'apps.slip',
     'apps.coastal_change',
     'apps.ndvi_anomaly',
+    'apps.urbanization',
+    'apps.cloud_coverage',
     'apps.dc_algorithm',
     'apps.pages',
     'apps.accounts',
