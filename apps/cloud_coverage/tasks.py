@@ -179,9 +179,9 @@ def start_chunk_processing(chunk_details, task_id=None):
                 time_chunk_id=time_index,
                 geographic_chunk=geographic_chunk,
                 time_chunk=time_chunk,
-                **parameters) for geo_index, geographic_chunk in enumerate(geographic_chunks)
-        ]) | recombine_geographic_chunks.s(task_id=task_id) for time_index, time_chunk in enumerate(time_chunks)
-    ]) | recombine_time_chunks.s(task_id=task_id)
+                **parameters) for time_index, time_chunk in enumerate(time_chunks)
+        ]) for geo_index, geographic_chunk in enumerate(geographic_chunks)
+    ]) | recombine_geographic_chunks.s(task_id=task_id)
 
     processing_pipeline = (processing_pipeline | create_output_products.s(task_id=task_id)).apply_async()
     return True
@@ -296,64 +296,6 @@ def recombine_geographic_chunks(chunks, task_id=None):
     path = os.path.join(task.get_temp_path(), "recombined_geo_{}.nc".format(time_chunk_id))
     combined_data.to_netcdf(path)
     logger.info("Done combining geographic chunks for time: " + str(time_chunk_id))
-    return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
-
-
-@task(name="cloud_coverage.recombine_time_chunks", base=BaseTask)
-def recombine_time_chunks(chunks, task_id=None):
-    """Recombine processed chunks over the time index.
-
-    Open time chunked processed datasets and recombine them using the same function
-    that was used to process them. This assumes an iterative algorithm - if it is not, then it will
-    simply return the data again.
-
-    Args:
-        chunks: list of the return from the processing_task function - path, metadata, and {chunk ids}
-
-    Returns:
-        path to the output product, metadata dict, and a dict containing the geo/time ids
-
-    """
-    logger.info("RECOMBINE_TIME")
-    #sorting based on time id - earlier processed first as they're incremented e.g. 0, 1, 2..
-    chunks = chunks if isinstance(chunks, list) else [chunks]
-    chunks = [chunk for chunk in chunks if chunk is not None]
-    total_chunks = sorted(chunks, key=lambda x: x[0]) if isinstance(chunks, list) else [chunks]
-    task = CloudCoverageTask.objects.get(pk=task_id)
-    geo_chunk_id = total_chunks[0][2]['geo_chunk_id']
-    time_chunk_id = total_chunks[0][2]['time_chunk_id']
-    metadata = {}
-
-    def combine_time_chunks(data, intermediate_product):
-        intermediate_product['total_pixels'] += num_acq
-        intermediate_product['total_clear'] += num_clear
-        intermediate_product['clear_percentage'] = intermediate_product.total_clear / intermediate_product.total_pixels
-
-    combined_data = None
-    combined_clear = None
-    for index, chunk in enumerate(total_chunks):
-        metadata.update(chunk[1])
-        data = xr.open_dataset(chunk[0], autoclose=True)
-        bands = ['blue', 'green', 'red', 'cf_mask'] if 'cf_mask' in data else ['blue', 'green', 'red', 'pixel_qa']
-        if combined_data is None:
-            combined_data = data.drop(['total_pixels', 'total_clear', 'clear_percentage'])
-            combined_clear = data.drop(bands)
-            continue
-        #give time an indice to keep mosaicking from breaking.
-        data = xr.concat([data], 'time')
-        data['time'] = [0]
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
-        combined_data = task.get_processing_method()[0](data.drop(['total_pixels', 'total_clear', 'clear_percentage']),
-                                                        clean_mask=clear_mask,
-                                                        intermediate_product=combined_data)
-        combined_clear = combine_time_chunks(data.drop(bands), combined_clear)
-
-    full_product = xr.merge([combined_data, combined_clear])
-
-    path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
-    full_product.to_netcdf(path)
-    logger.info("Done combining time chunks for geo: " + str(geo_chunk_id))
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
 
