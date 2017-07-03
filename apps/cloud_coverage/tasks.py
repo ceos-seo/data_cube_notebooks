@@ -13,7 +13,7 @@ from collections import OrderedDict
 
 from utils.data_access_api import DataAccessApi
 from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
-                                add_timestamp_data_to_xr, clear_attrs)
+                                write_single_band_png_from_xr, add_timestamp_data_to_xr, clear_attrs)
 from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
 
 from .models import CloudCoverageTask
@@ -24,7 +24,7 @@ logger = get_task_logger(__name__)
 
 
 class BaseTask(DCAlgorithmBase):
-    cloud_coverage = 'cloud_coverage'
+    app_name = 'cloud_coverage'
 
 
 @task(name="cloud_coverage.run", base=BaseTask)
@@ -98,7 +98,7 @@ def validate_parameters(parameters, task_id=None):
 
     task.update_status("WAIT", "Validated parameters.")
 
-    if not dc.validate_measurements(parameters['products'], parameters['measurements']):
+    if not dc.validate_measurements(parameters['product'], parameters['measurements']):
         parameters['measurements'] = ['blue', 'green', 'red', 'pixel_qa']
 
     dc.close()
@@ -219,6 +219,7 @@ def processing_task(task_id=None,
         return None
 
     iteration_data = None
+    cloud_cover = None
     metadata = {}
 
     def _get_datetime_range_containing(*time_ranges):
@@ -231,7 +232,6 @@ def processing_task(task_id=None,
     updated_params = parameters
     updated_params.update(geographic_chunk)
     #updated_params.update({'products': parameters['']})
-    iteration_data = None
     base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * time_chunk_id
     for time_index, time in enumerate(times):
         updated_params.update({'time': time})
@@ -245,17 +245,19 @@ def processing_task(task_id=None,
                                                                                                       [1, 2])
         metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
 
-        # TODO: Make sure you're producing everything required for your algorithm.
-        iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
-
+        mosaic, cloud_coverage = task.get_processing_method()
+        iteration_data = mosaic(data, clean_mask=clear_mask, intermediate_product=iteration_data)
+        cloud_cover = cloud_coverage(data, clean_mask=clear_mask, intermediate_product=cloud_cover)
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
 
     if iteration_data is None:
         return None
 
+    full_product = xr.merge([iteration_data, cloud_cover])
+
     path = os.path.join(task.get_temp_path(), chunk_id + ".nc")
-    iteration_data.to_netcdf(path)
+    full_product.to_netcdf(path)
     dc.close()
     logger.info("Done with chunk: " + chunk_id)
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
@@ -322,22 +324,35 @@ def recombine_time_chunks(chunks, task_id=None):
     time_chunk_id = total_chunks[0][2]['time_chunk_id']
     metadata = {}
 
+    def combine_time_chunks(data, intermediate_product):
+        intermediate_product['total_pixels'] += num_acq
+        intermediate_product['total_clear'] += num_clear
+        intermediate_product['clear_percentage'] = intermediate_product.total_clear / intermediate_product.total_pixels
+
     combined_data = None
+    combined_clear = None
     for index, chunk in enumerate(total_chunks):
         metadata.update(chunk[1])
         data = xr.open_dataset(chunk[0], autoclose=True)
+        bands = ['blue', 'green', 'red', 'cf_mask'] if 'cf_mask' in data else ['blue', 'green', 'red', 'pixel_qa']
         if combined_data is None:
-            combined_data = data
+            combined_data = data.drop(['total_pixels', 'total_clear', 'clear_percentage'])
+            combined_clear = data.drop(bands)
             continue
         #give time an indice to keep mosaicking from breaking.
         data = xr.concat([data], 'time')
         data['time'] = [0]
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
-        combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
+        combined_data = task.get_processing_method()[0](data.drop(['total_pixels', 'total_clear', 'clear_percentage']),
+                                                        clean_mask=clear_mask,
+                                                        intermediate_product=combined_data)
+        combined_clear = combine_time_chunks(data.drop(bands), combined_clear)
+
+    full_product = xr.merge([combined_data, combined_clear])
 
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
-    combined_data.to_netcdf(path)
+    full_product.to_netcdf(path)
     logger.info("Done combining time chunks for geo: " + str(geo_chunk_id))
     return path, metadata, {'geo_chunk_id': geo_chunk_id, 'time_chunk_id': time_chunk_id}
 
@@ -366,14 +381,17 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = ['blue', 'green', 'red', 'cf_mask'] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'pixel_qa']
+    bands = ['blue', 'green', 'red', 'cf_mask', 'total_pixels', 'total_clear',
+             'clear_percentage'] if 'cf_mask' in dataset else [
+                 'blue', 'green', 'red', 'pixel_qa', 'total_pixels', 'total_clear', 'clear_percentage'
+             ]
 
     png_bands = ['red', 'green', 'blue']
 
     dataset.to_netcdf(task.data_netcdf_path)
     write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands)
     write_png_from_xr(task.mosaic_path, dataset, bands=png_bands, scale=(0, 4096))
-    write_single_band_png_from_xr(task.result_path, dataset, band='band_math', color_scale=task.color_scale_path)
+    write_single_band_png_from_xr(task.result_path, dataset, band='clear_percentage', color_scale=task.color_scale_path)
 
     logger.info("All products created.")
     # task.update_bounds_from_dataset(dataset)

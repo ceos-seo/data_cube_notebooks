@@ -50,12 +50,8 @@ under the License.
       <td class="right_aligned_text">({{ task.time_start|date:"m/d/Y" }}, {{ task.time_end|date:"m/d/Y" }})</td>
     </tr>
     <tr>
-      <td>Compositing Method:</td>
-      <td class="right_aligned_text">{{ task.compositor }}</td>
-    </tr>
-    <tr>
-      <td><div class="helper tooltipped" title="Fill in all no-data (clouds, shadow, missing data, etc) with a contrasting color."><a>?</a></div>Highlight NoData:</td>
-      <td class="right_aligned_text"><input type="checkbox" name="show_nodata" onclick="toggle_highlight_nodata(this, '{{ task.id }}')"></td>
+      <td><div class="helper tooltipped" title="View the mosaic that was used to create the main result"><a>?</a></div>View Mosaic:</td>
+      <td class="right_aligned_text"><input type="checkbox" name="view_mosaic" onclick="view_mosaic(this, '{{ task.id }}')"></td>
     </tr>
   </tbody>
 </table>
@@ -113,9 +109,9 @@ under the License.
 {% block functions_block %}
 //toggles the nodata highlighting based on a checkbox.
 //outline is shown as visible
-function toggle_highlight_nodata(checkbox, id) {
+function view_mosaic(checkbox, id) {
   map.remove_image_by_id(tasks[id].id);
-  result_path = checkbox.checked ? tasks[id].result_filled_path : tasks[id].result_path;
+  result_path = checkbox.checked ? tasks[id].mosaic_path : tasks[id].result_path;
   add_result_to_map(id, result_path);
   map.toggle_outline_by_id(id, true);
 }

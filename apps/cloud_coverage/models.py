@@ -21,6 +21,7 @@
 
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 from apps.dc_algorithm.models import Area, Compositor, Satellite
 from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as
@@ -31,6 +32,7 @@ from utils.dc_mosaic import create_mosaic
 
 import datetime
 import numpy as np
+import xarray as xr
 
 
 class UserHistory(BaseUserHistory):
@@ -59,7 +61,7 @@ class Query(BaseQuery):
 
     """
 
-    color_scale_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/default_color_scale'
+    color_scale_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/cloud_coverage'
     measurements = ['blue', 'green', 'red', 'cf_mask']
     base_result_dir = '/datacube/ui_results/cloud_coverage'
 
@@ -104,14 +106,37 @@ class Query(BaseQuery):
 
         """
 
-        def clear_percentage(dataset):
-            ## Copys a data-array. Refits the data-array with new clear_percentage values
-            ds = dataset.pixel_qa.copy(deep=True)
-            mask = create_bit_mask(ds, valid_bits=[1, 2]).astype(np.int8)
-            clear_percentage = np.sum(mask, axis=0) / len(dataset.time.values)
-            ds = ds.sum(dim='time')  ## Hack to drop time dims
-            ds.data = clear_percentage
-            return ds.rename('clear_percentage')
+        def clear_percentage(dataset_in, clean_mask, intermediate_product=None):
+            """Calculate the total number of clear pixels and the total number of pixels
+
+            Args:
+                dataset_in: input dataset - must have time dimension.
+                clean_mask: numpy boolean mask of the same shape as data
+                intermediate_product: optional intermediate - can do one timeslice at a time.
+
+            Returns:
+                xarray dataset with total_pixels, total_clear, clear_percentage
+            """
+
+            num_acq = len(dataset_in.time)
+            num_clear = np.sum(clean_mask.astype(np.int8), axis=0)
+            if intermediate_product is None:
+                intermediate_product = xr.Dataset(
+                    {
+                        'total_pixels': (('latitude', 'longitude'), np.full(num_clear.shape, num_acq)),
+                        'total_clear': (('latitude', 'longitude'), num_clear)
+                    },
+                    coords={'latitude': dataset_in.latitude,
+                            'longitude': dataset_in.longitude})
+                intermediate_product[
+                    'clear_percentage'] = intermediate_product.total_clear / intermediate_product.total_pixels
+                return intermediate_product
+
+            intermediate_product['total_pixels'] += num_acq
+            intermediate_product['total_clear'] += num_clear
+            intermediate_product[
+                'clear_percentage'] = intermediate_product.total_clear / intermediate_product.total_pixels
+            return intermediate_product
 
         return create_mosaic, clear_percentage
 

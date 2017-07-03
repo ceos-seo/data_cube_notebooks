@@ -64,10 +64,6 @@ under the License.
       <td>Time Range: </td>
       <td class="right_aligned_text">({{ task.time_start|date:"m/d/Y" }}, {{ task.time_end|date:"m/d/Y" }})</td>
     </tr>
-    <tr>
-      <td>Compositing Method:</td>
-      <td class="right_aligned_text">{{ task.compositor }}</td>
-    </tr>
   </tbody>
 </table>
 {% endblock %}
@@ -109,27 +105,26 @@ under the License.
   </tr>
   <tr>
     <td>8</td>
-    <td>Satellite Mask</td>
-    <td>[0,2] <div class="helper tooltipped" title="0 - Landsat 5, 1 - Landsat 7, 2 - Landsat 8"><a> ?</a></div></td>
+    <td>Total pixels</td>
+    <td>[0+] <div class="helper tooltipped" title="Total acquisitions per pixel."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>9</td>
-    <td>Timestamp (Unix)</td>
-    <td>Timestamp of acquisition (per pixel) <div class="helper tooltipped" title="Unix timestamp of the acquisition that the pixel's final value came from. This is useful for creating colored images."><a> ?</a></div></td>
+    <td>Total clean</td>
+    <td>[0+] <div class="helper tooltipped" title="Total clean acquisitions per pixel."><a> ?</a></div></td>
   </tr>
   <tr>
     <td>10</td>
-    <td>Date (%Y%m%d format)</td>
-    <td>Date of acquisition (per pixel) <div class="helper tooltipped" title="Concatenated date (e.g. 20160101) of the acquisition that the pixel's final value came from."><a> ?</a></div></td>
+    <td>Clean percentage</td>
+    <td>[0, 1] <div class="helper tooltipped" title="Clean pixel percentage per pixel - Total clean / Total pixels"><a> ?</a></div></td>
   </tr>
 {% endblock %}
 {% block url_block %}
 https://landsat.usgs.gov/landsat-surface-reflectance-high-level-data-products
 {% endblock %}
 {% block download_options %}
-<option value="result_path">Mosaic PNG</option>
-<option value="result_filled_path">Filled Mosaic PNG</option>
-<option value="animation_path">Time Series Animation</option>
+<option value="result_path">Cloud Cover PNG</option>
+<option value="result_filled_path">Mosaic PNG</option>
 <option value="data_path">Mosaic GeoTIFF</option>
 <option value="data_netcdf_path">Mosaic netCDF</option>
 {% endblock %}
