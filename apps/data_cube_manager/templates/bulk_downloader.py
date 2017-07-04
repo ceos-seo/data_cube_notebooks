@@ -22,7 +22,7 @@ def download_file(data_file, count, total):
     # see if we've already download this file
     download_file = os.path.basename(data_file)
     if os.path.isfile(download_file):
-        print("Storage unit {0} exists! \n > Skipping download of {1}. ".format(download_file, data_file))
+        print("Storage unit {{0}} exists! \n > Skipping download of {{1}}. ".format(download_file, data_file))
         return None
 
     # attempt https connection
@@ -32,7 +32,7 @@ def download_file(data_file, count, total):
         response = urlopen(request)
 
         # seems to be working
-        print("({0}/{1}) Downloading {2}".format(count, total, data_file))
+        print("({{0}}/{{1}}) Downloading {{2}}".format(count, total, data_file))
 
         # Open our local file for writing and build status bar
         tf = tempfile.NamedTemporaryFile(mode='w+b', delete=False)
@@ -60,10 +60,10 @@ def download_file(data_file, count, total):
 def chunk_report(bytes_so_far, chunk_size, total_size):
     percent = float(bytes_so_far) / total_size
     percent = round(percent * 100, 2)
-    sys.stdout.write(" > Downloaded %d of %d bytes (%0.2f%%)\r" % (bytes_so_far, total_size, percent))
+    print("Downloaded {{}} of {{}} bytes ({{}})\r".format(bytes_so_far, total_size, percent))
 
     if bytes_so_far >= total_size:
-        sys.stdout.write('\n')
+        print('\n')
 
 
 #  chunk_read modified from http://stackoverflow.com/questions/2028517/python-urllib2-progress-hook
@@ -106,6 +106,8 @@ if __name__ == "__main__":
     failed = []
     skipped = []
 
+    size = download_file(database_dump_file, 1, 1)
+
     for data_file in files:
         count += 1
 
@@ -123,7 +125,7 @@ if __name__ == "__main__":
             elapsed = 1.0 if elapsed < 1 else elapsed
             rate = (size / 1024**2) / elapsed
 
-            print("Downloaded {0}b in {1:.2f}secs, Average Rate: {2:.2f}mb/sec".format(size, elapsed, rate))
+            print("Downloaded {{0}}b in {{1:.2f}}secs, Average Rate: {{2:.2f}}mb/sec".format(size, elapsed, rate))
 
             # add up metrics
             total_bytes += size
@@ -136,11 +138,13 @@ if __name__ == "__main__":
 
     # Print summary:
     print("\n\nDownload Summary")
-    print("Successes: {0} files, {1} bytes ".format(len(success), total_bytes))
+    print("Successes: {{0}} files, {{1}} bytes ".format(len(success), total_bytes))
     if len(failed) > 0:
-        print("Failures: {0} files".format(len(failed)))
+        print("Failures: {{0}} files".format(len(failed)))
     if len(skipped) > 0:
-        print("  Skipped: {0} files".format(len(skipped)))
+        print("  Skipped: {{0}} files".format(len(skipped)))
     if len(success) > 0:
-        print("  Average Rate: {0:.2f}mb/sec".format((total_bytes / 1024.0**2) / total_time))
+        print("  Average Rate: {{0:.2f}}mb/sec".format((total_bytes / 1024.0**2) / total_time))
+
+
 """
