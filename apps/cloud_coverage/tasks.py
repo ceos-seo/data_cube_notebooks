@@ -316,7 +316,7 @@ def create_output_products(data, task_id=None):
     dataset = xr.open_dataset(data[0], autoclose=True)
     task = CloudCoverageTask.objects.get(pk=task_id)
 
-    task.result_path = os.path.join(task.get_result_path(), "png_mosaic.png")
+    task.result_path = os.path.join(task.get_result_path(), "cloud_coverage.png")
     task.mosaic_path = os.path.join(task.get_result_path(), "mosaic.png")
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
     task.data_netcdf_path = os.path.join(task.get_result_path(), "data_netcdf.nc")
