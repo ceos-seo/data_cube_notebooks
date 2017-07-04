@@ -72,20 +72,6 @@ class CreateIngestionConfigurationView(View):
 
         return render(request, 'data_cube_manager/ingestion.html', context)
 
-
-class IngestionYamlExport(View):
-    """Export a dataset type to yaml from forms
-
-    Using the metadata and measurement forms, create an ordered yaml file that can be used to add the dataset
-    to the database.
-
-    POST Data:
-        measurement form(s), metadata form
-
-    Returns:
-        Json response with a status and (if OK) a url to a yaml file
-    """
-
     def post(self, request):
         """Validate form data and create a .yaml file
 

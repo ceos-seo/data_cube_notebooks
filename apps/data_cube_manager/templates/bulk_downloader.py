@@ -14,8 +14,9 @@ except:
     print("https://github.com/ceos-seo/data_cube_ui/blob/master/docs/datacube_install.md")
     return None
 
-files = []
-database_dump_file = ""
+files = [{file_list}]
+database_dump_file = "{database_dump_file}"
+base_host = "{base_host}"
 
 def download_file(data_file, count, total):
 
@@ -98,6 +99,8 @@ if __name__ == "__main__":
         print("Data Cube root path is not writeable - please ensure that the path '/datacube' exists and is writeable.")
         exit(-1)
 
+    print("Starting data download. When complete, a list of instructions will be provided for the next steps.")
+
     # summary
     total_bytes = 0
     total_time = 0
@@ -146,5 +149,10 @@ if __name__ == "__main__":
     if len(success) > 0:
         print("  Average Rate: {{0:.2f}}mb/sec".format((total_bytes / 1024.0**2) / total_time))
 
-
+    print("\n\nRequirements:")
+    print("\tAn initialized Data Cube database named 'datacube'. More info found at https://github.com/ceos-seo/data_cube_ui/blob/master/docs/datacube_install.md")
+    print("\tA database role named 'dc_user' that has read/write access to 'datacube')
+    print("\n\nNext steps:")
+    print("\tImport the newly created database dump by running 'psql -U dc_user datacube < {}'".format(database_dump_file))
+    print("\tVerify the import by running 'datacube -v product list'. There should be two entries.")
 """
