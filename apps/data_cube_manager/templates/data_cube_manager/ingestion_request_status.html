@@ -1,0 +1,126 @@
+{% extends "default.html" %}
+<!--
+Copyright 2016 United States Government as represented by the Administrator
+of the National Aeronautics and Space Administration. All Rights Reserved.
+
+Portion of this code is Copyright Geoscience Australia, Licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License
+at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+-->
+{% block javascript %}
+{% endblock %}
+{% block css %}
+<link href="/static/assets/css/data_cube_manager.css" rel="stylesheet" type="text/css" media="screen, projection" />
+{% endblock %}
+{% load bootstrap3 %}
+{% block content %}
+<div class="container-fluid no_footer">
+  <div class="row fullscreen-row">
+    <div class="col-lg-12 seamless-col col-centered fullscreen-col table-container">
+      <div class="page-header">
+        <h1>Ingestion Request Status</h1>
+        <div class="row">
+          <p class="col-lg-9 col-md-10 col-sm-11 col-xs-12">
+            Your ingestion request is being computed. This page will constantly update with the status of your request,
+            generally a full request will be completed in less than ten minutes. When complete, a link will be provided to
+            a Python script that acts as a bulk downloader. Running this script from an environment that has the Data Cube
+            installed will download all the required storage units and a database dump that will result in a fully functional
+            sample Data Cube. Follow the instructions printed by the script or found below to install your Data Cube.
+          </p>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="progress">
+         <div class="ingestion_progress progress-bar progress-bar-danger progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
+         </div>
+        </div>
+        <h4>Your ingestion request of <span id="total">{{ total_storage_units }}</span> storage units is being processed. <span id="processed">{{ storage_units_processed }}</span> units processed so far.</h2>
+        <hr>
+        <form action="">
+          {% csrf_token %}
+          {% bootstrap_form form bound_css_class="" %}
+        </form>
+        <a id="download_btn" style="display:none;" class="btn btn-default pull-right" href="" target="_blank">Download Bulk Download Script</a>
+      </div>
+      <div class="col-lg-8">
+        <h1>Instructions placeholder - images and instructions for import.</h1>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="dialog_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-sm">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"></h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+
+  $(document).ready( function () {
+    if ("{{ status }}" == "ERROR") {
+      set_modal_content("Error", result.message);
+    } else {
+      check_status();
+    }
+  });
+
+  function check_status() {
+    jQuery.post('/data_cube_manager/ingestion/subset/check/{{ingestion_request_id}}', {}, function(result) {
+      switch(result.status) {
+        case "ERROR":
+          set_modal_content("Error", result.message);
+          return;
+        break;
+        case "WAIT":
+          setTimeout(check_status, 3000);
+          jQuery("#processed").text(result.storage_units_processed);
+          jQuery("#total").text(result.total_storage_units);
+          update_progress_bar(100 * result.storage_units_processed / result.total_storage_units)
+        break;
+        case "OK":
+          jQuery("#processed").text(result.storage_units_processed);
+          update_progress_bar(100 * result.storage_units_processed / result.total_storage_units)
+          jQuery("#download_btn").attr('href', result.download_script_path).show();
+          set_modal_content("Alert", "Your request has been completed. Use the 'Download Bulk Download Script' button to download a script.")
+        break;
+      }
+    });
+  }
+
+  //updates the value on a progress bar by id.
+  function update_progress_bar(value) {
+      $(".ingestion_progress").css('width', value+'%').attr('aria-valuenow', value);
+  }
+
+  function set_modal_content(title, body) {
+    jQuery("#dialog_modal .modal-title").text(title);
+    jQuery("#dialog_modal .modal-body p").text(body);
+    jQuery("#dialog_modal").modal();
+  }
+</script>
+{% endblock %}

@@ -39,9 +39,12 @@ urlpatterns = [
     url(r'^datasets/delete$', views.DeleteDataset.as_view(), name=''),
     # Ingestion related functionality
     url(r'^ingestion$', views.CreateIngestionConfigurationView.as_view(), name=''),
+    url(r'^ingestion/export$', views.CreateIngestionConfigurationView.as_view(), name=''),
     url(r'^ingestion/validate_measurement$', views.IngestionMeasurement.as_view(), name=''),
     url(r'^ingestion/get_existing_measurements$', views.IngestionMeasurement.as_view(), name=''),
-    url(r'^ingestion/export$', views.CreateIngestionConfigurationView.as_view(), name=''),
     url(r'^ingestion/run$', views.SubmitIngestion.as_view(), name=''),
     url(r'^ingestion/subset$', views.CreateDataCubeSubset.as_view(), name=''),
+    url(r'^ingestion/subset/check/(?P<ingestion_request_id>[\w\-]+)$',
+        views.CheckIngestionRequestStatus.as_view(),
+        name=''),
 ]

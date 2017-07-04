@@ -378,12 +378,18 @@ class IngestionRequestForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         initial_vals = kwargs.pop('initial', None)
+        readonly = kwargs.pop('readonly', None)
         super(IngestionRequestForm, self).__init__(*args, **kwargs)
         self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').filter(~Q(
             definition__has_keys=['managed']) & Q(definition__has_keys=['measurements']))
         if initial_vals:
             for field in initial_vals:
                 self.fields[field].initial = initial_vals[field]
+        if readonly:
+            self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').filter(
+                id=initial_vals['dataset_type_ref'])
+            for field in self.fields:
+                self.fields[field].widget.attrs['readonly'] = True
 
     def clean(self):
         """

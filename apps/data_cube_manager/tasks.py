@@ -51,7 +51,7 @@ def ingestion_work(output_type, source_type, ingestion_definition):
 
 
 @task(name="data_cube_manager.ingestion_on_demand")
-def ingestion_on_demand(ingestion_request_id, search_fields=None):
+def ingestion_on_demand(ingestion_request_id):
     """
     """
 
@@ -67,11 +67,10 @@ def ingestion_on_demand(ingestion_request_id, search_fields=None):
 
     ingestion_request.update_status("WAIT", "Creating base Data Cube database...")
 
-    ingestion_pipeline = (
-        init_db.si(ingestion_request_id=ingestion_request_id) |
-        add_source_datasets.si(ingestion_request_id=ingestion_request_id, search_fields=search_fields) |
-        ingest_subset.si(ingestion_request_id=ingestion_request_id) |
-        prepare_output.si(ingestion_request_id=ingestion_request_id))()
+    ingestion_pipeline = (init_db.si(ingestion_request_id=ingestion_request_id) |
+                          add_source_datasets.si(ingestion_request_id=ingestion_request_id) |
+                          ingest_subset.si(ingestion_request_id=ingestion_request_id) |
+                          prepare_output.si(ingestion_request_id=ingestion_request_id))()
 
     index.close()
 
@@ -91,7 +90,7 @@ def init_db(ingestion_request_id=None):
 
 
 @task(name="data_cube_manager.add_source_datasets")
-def add_source_datasets(ingestion_request_id=None, search_fields=None):
+def add_source_datasets(ingestion_request_id=None):
     """
     """
 
@@ -101,8 +100,15 @@ def add_source_datasets(ingestion_request_id=None, search_fields=None):
     config = get_config(ingestion_request.user)
     index = index_connect(local_config=config, validate_connection=False)
 
-    dataset_type = DatasetType.objects.using('agdc').get(id=ingestion_request.source_type)
-    datasets = list(Dataset.filter_datasets(search_fields))
+    dataset_type = DatasetType.objects.using('agdc').get(id=ingestion_request.dataset_type_ref)
+    filtering_options = {
+        key: getattr(ingestion_request, key)
+        for key in [
+            'dataset_type_ref', 'start_date', 'end_date', 'latitude_min', 'latitude_max', 'longitude_min',
+            'longitude_max'
+        ]
+    }
+    datasets = list(Dataset.filter_datasets(filtering_options))
 
     dataset_locations = DatasetLocation.objects.using('agdc').filter(dataset_ref__in=datasets)
     dataset_sources = DatasetSource.objects.using('agdc').filter(dataset_ref__in=datasets)
@@ -159,8 +165,8 @@ def prepare_output(ingestion_request_id=None):
     config = get_config(ingestion_request.user)
     index = index_connect(local_config=config, validate_connection=False)
 
-    cmd = "pg_dump -U dc_user -n agdc {} > {}/datacube_dump".format(ingestion_request.user,
-                                                                    ingestion_request.ingestion_definition['location'])
+    cmd = "pg_dump -U dc_user -n agdc {} > {}".format(ingestion_request.user,
+                                                      ingestion_request.get_database_dump_path())
     os.system(cmd)
 
     index.close()

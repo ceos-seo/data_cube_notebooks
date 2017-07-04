@@ -290,12 +290,49 @@ class CreateDataCubeSubset(View):
                                                               measurement_forms)
 
         ingestion_request = models.IngestionRequest(
-            user=request.user.username, source_type=dataset_type.pk, ingestion_definition=ingestion_def)
+            user=request.user.username,
+            dataset_type_ref=dataset_type.pk,
+            ingestion_definition=ingestion_def,
+            start_date=metadata_form.cleaned_data['start_date'],
+            end_date=metadata_form.cleaned_data['end_date'],
+            latitude_min=metadata_form.cleaned_data['latitude_min'],
+            latitude_max=metadata_form.cleaned_data['latitude_max'],
+            longitude_min=metadata_form.cleaned_data['longitude_min'],
+            longitude_max=metadata_form.cleaned_data['longitude_max'])
         ingestion_request.save()
 
-        tasks.ingestion_on_demand.delay(ingestion_request.pk, search_fields=metadata_form.cleaned_data)
+        tasks.ingestion_on_demand.delay(ingestion_request.pk)
 
-        return JsonResponse({'status': 'OK'})
+        return JsonResponse({'status': 'OK', 'ingestion_request_id': ingestion_request.pk})
+
+
+class CheckIngestionRequestStatus(View):
+    """
+    """
+
+    def get(self, request, ingestion_request_id):
+        """Check the status of an ingestion request and update the model"""
+
+        context = {'ingestion_request_id': ingestion_request_id}
+        ingestion_request = models.IngestionRequest.objects.get(pk=ingestion_request_id)
+        filtering_options = {
+            key: getattr(ingestion_request, key)
+            for key in [
+                'dataset_type_ref', 'start_date', 'end_date', 'latitude_min', 'latitude_max', 'longitude_min',
+                'longitude_max'
+            ]
+        }
+        context['form'] = forms.IngestionRequestForm(initial=filtering_options, readonly=True)
+        context.update(model_to_dict(ingestion_request))
+        return render(request, 'data_cube_manager/ingestion_request_status.html', context)
+
+    def post(self, request, ingestion_request_id):
+        """Get the download script url/update a page section"""
+        context = {'ingestion_request_id': ingestion_request_id}
+        ingestion_request = models.IngestionRequest.objects.get(pk=ingestion_request_id)
+        ingestion_request.update_storage_unit_count()
+        context.update(model_to_dict(ingestion_request))
+        return JsonResponse(context)
 
 
 class IngestionMeasurement(View):

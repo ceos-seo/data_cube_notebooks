@@ -12,28 +12,30 @@ except:
     print("Error importing the Data Cube. Please ensure that your environment has the Data Cube installed.")
     print("If you do not have the Data Cube installed, please do so by following the instructions at: ")
     print("https://github.com/ceos-seo/data_cube_ui/blob/master/docs/datacube_install.md")
-    return None
+    exit(1)
 
 files = [{file_list}]
 database_dump_file = "{database_dump_file}"
-base_host = "{base_host}"
+base_host = "http://{base_host}"
+base_data_path = "{base_data_path}"
+"""
+
+static_script = """
 
 def download_file(data_file, count, total):
 
     # see if we've already download this file
-    download_file = os.path.basename(data_file)
-    if os.path.isfile(download_file):
-        print("Storage unit {{0}} exists! \n > Skipping download of {{1}}. ".format(download_file, data_file))
+    if os.path.isfile(data_file):
+        print("Storage unit {0} exists! Skipping download of {1}. ".format(os.path.basename(data_file), data_file))
         return None
 
     # attempt https connection
     try:
-        request = Request(data_file)
-        request.add_header('Cookie', 'datapool=' + cookie)
+        request = Request(base_host + data_file)
         response = urlopen(request)
 
         # seems to be working
-        print("({{0}}/{{1}}) Downloading {{2}}".format(count, total, data_file))
+        print("({0}/{1}) Downloading {2}".format(count, total, data_file))
 
         # Open our local file for writing and build status bar
         tf = tempfile.NamedTemporaryFile(mode='w+b', delete=False)
@@ -52,19 +54,19 @@ def download_file(data_file, count, total):
         return False
 
     # Return the file size
-    shutil.copy(tempfile_name, download_file)
+    shutil.copy(tempfile_name, data_file)
     os.remove(tempfile_name)
-    return os.path.getsize(download_file)
+    return os.path.getsize(data_file)
 
 
 #  chunk_report taken from http://stackoverflow.com/questions/2028517/python-urllib2-progress-hook
 def chunk_report(bytes_so_far, chunk_size, total_size):
     percent = float(bytes_so_far) / total_size
     percent = round(percent * 100, 2)
-    print("Downloaded {{}} of {{}} bytes ({{}})\r".format(bytes_so_far, total_size, percent))
+    print("Downloaded {} of {} bytes ({})".format(bytes_so_far, total_size, percent))
 
     if bytes_so_far >= total_size:
-        print('\n')
+        print('')
 
 
 #  chunk_read modified from http://stackoverflow.com/questions/2028517/python-urllib2-progress-hook
@@ -99,6 +101,11 @@ if __name__ == "__main__":
         print("Data Cube root path is not writeable - please ensure that the path '/datacube' exists and is writeable.")
         exit(-1)
 
+    try:
+        os.makedirs(base_data_path)
+    except:
+        pass
+
     print("Starting data download. When complete, a list of instructions will be provided for the next steps.")
 
     # summary
@@ -128,7 +135,7 @@ if __name__ == "__main__":
             elapsed = 1.0 if elapsed < 1 else elapsed
             rate = (size / 1024**2) / elapsed
 
-            print("Downloaded {{0}}b in {{1:.2f}}secs, Average Rate: {{2:.2f}}mb/sec".format(size, elapsed, rate))
+            print("Downloaded {0}b in {1:.2f}secs, Average Rate: {2:.2f}mb/sec".format(size, elapsed, rate))
 
             # add up metrics
             total_bytes += size
@@ -140,19 +147,18 @@ if __name__ == "__main__":
             failed.append(data_file)
 
     # Print summary:
-    print("\n\nDownload Summary")
-    print("Successes: {{0}} files, {{1}} bytes ".format(len(success), total_bytes))
+    print("Download Summary")
+    print("Successes: {0} files, {1} bytes ".format(len(success), total_bytes))
     if len(failed) > 0:
-        print("Failures: {{0}} files".format(len(failed)))
+        print("Failures: {0} files".format(len(failed)))
     if len(skipped) > 0:
-        print("  Skipped: {{0}} files".format(len(skipped)))
+        print("  Skipped: {0} files".format(len(skipped)))
     if len(success) > 0:
-        print("  Average Rate: {{0:.2f}}mb/sec".format((total_bytes / 1024.0**2) / total_time))
+        print("  Average Rate: {0:.2f}mb/sec".format((total_bytes / 1024.0**2) / total_time))
 
-    print("\n\nRequirements:")
+    print("Requirements:")
     print("\tAn initialized Data Cube database named 'datacube'. More info found at https://github.com/ceos-seo/data_cube_ui/blob/master/docs/datacube_install.md")
-    print("\tA database role named 'dc_user' that has read/write access to 'datacube')
-    print("\n\nNext steps:")
+    print("\tA database role named 'dc_user' that has read/write access to 'datacube'")
+    print("Next steps:")
     print("\tImport the newly created database dump by running 'psql -U dc_user datacube < {}'".format(database_dump_file))
-    print("\tVerify the import by running 'datacube -v product list'. There should be two entries.")
-"""
+    print("\tVerify the import by running 'datacube -v product list'. There should be two entries.")"""

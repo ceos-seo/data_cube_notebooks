@@ -3,8 +3,13 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.db.models import Q
+from django.conf import settings
 
 from dateutil.parser import parse
+from collections import Iterable
+from glob import glob
+
+from apps.data_cube_manager.templates.bulk_downloader import base_downloader_script, static_script
 
 
 class Dataset(models.Model):
@@ -37,7 +42,9 @@ class Dataset(models.Model):
         """
         base_query = Q()
         if 'dataset_type_ref' in cleaned_form_data:
-            base_query &= Q(dataset_type_ref__in=cleaned_form_data['dataset_type_ref'])
+            dataset_type_ref = cleaned_form_data['dataset_type_ref'] if isinstance(
+                cleaned_form_data['dataset_type_ref'], Iterable) else [cleaned_form_data['dataset_type_ref']]
+            base_query &= Q(dataset_type_ref__in=dataset_type_ref)
         if 'managed' in cleaned_form_data:
             base_query &= Q(dataset_type_ref__definition__managed=cleaned_form_data['managed'])
         # range intersections done like:
@@ -149,11 +156,19 @@ class IngestionRequest(models.Model):
     user = models.CharField(max_length=50)
 
     # this can't be a fk since the agdc schema isn't managed by Django
-    source_type = models.SmallIntegerField()
+    dataset_type_ref = models.SmallIntegerField()
     ingestion_definition = JSONField()
+
+    start_date = models.DateField('start_date')
+    end_date = models.DateField('end_date')
+    latitude_min = models.FloatField()
+    latitude_max = models.FloatField()
+    longitude_min = models.FloatField()
+    longitude_max = models.FloatField()
 
     total_storage_units = models.IntegerField(default=0)
     storage_units_processed = models.IntegerField(default=0)
+    download_script_path = models.CharField(max_length=100, default="")
 
     status = models.CharField(max_length=50, default="WAIT")
     message = models.CharField(max_length=100, default="Please wait while your Data Cube is created.")
@@ -162,3 +177,28 @@ class IngestionRequest(models.Model):
         self.status = status
         self.message = message
         self.save()
+
+    def get_database_dump_path(self):
+        return "{}/datacube_dump".format(self.ingestion_definition['location'])
+
+    def get_base_data_path(self):
+        return self.ingestion_definition['location']
+
+    def update_storage_unit_count(self):
+        self.storage_units_processed = len(glob(self.get_base_data_path() + "/*.nc"))
+        if self.storage_units_processed == self.total_storage_units:
+            self.generate_download_script()
+            self.update_status("OK", "Please follow the directions on the right side panel to download your cube.")
+
+    def generate_download_script(self):
+        self.download_script_path = self.get_base_data_path() + "/bulk_downloader.py"
+
+        file_list = ",".join('"{}"'.format(path) for path in glob(self.get_base_data_path() + '/*.nc'))
+        download_script = base_downloader_script.format(
+            file_list=file_list,
+            database_dump_file=self.get_database_dump_path(),
+            base_host=settings.BASE_HOST,
+            base_data_path=self.get_base_data_path()) + static_script
+
+        with open(self.download_script_path, "w+") as downloader:
+            downloader.write(download_script)

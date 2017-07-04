@@ -213,9 +213,9 @@
           set_modal_content("Error", result.message);
           return;
         } else {
-          set_modal_content("Alert", "Your ingestion request has been started. You can check on the progress on the ingestion request page.");
+          set_modal_content("Alert", "Your ingestion request has been started. You will be redirected to the ingestion status page shortly.");
           setTimeout(function() {
-            //window.location.href = '/data_cube_manager/dataset_types/' + result.dataset_type_ref + '/datasets';
+            window.location.href = '/data_cube_manager/ingestion/subset/check/' + result.ingestion_request_id;
           }, 3000);
         }
     });
