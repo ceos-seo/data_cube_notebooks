@@ -9,8 +9,6 @@ from dateutil.parser import parse
 from collections import Iterable
 from glob import glob
 
-from apps.data_cube_manager.templates.bulk_downloader import base_downloader_script, static_script
-
 
 class Dataset(models.Model):
     id = models.UUIDField(primary_key=True)  # This field type is a guess.
@@ -186,19 +184,4 @@ class IngestionRequest(models.Model):
 
     def update_storage_unit_count(self):
         self.storage_units_processed = len(glob(self.get_base_data_path() + "/*.nc"))
-        if self.storage_units_processed == self.total_storage_units:
-            self.generate_download_script()
-            self.update_status("OK", "Please follow the directions on the right side panel to download your cube.")
-
-    def generate_download_script(self):
-        self.download_script_path = self.get_base_data_path() + "/bulk_downloader.py"
-
-        file_list = ",".join('"{}"'.format(path) for path in glob(self.get_base_data_path() + '/*.nc'))
-        download_script = base_downloader_script.format(
-            file_list=file_list,
-            database_dump_file=self.get_database_dump_path(),
-            base_host=settings.BASE_HOST,
-            base_data_path=self.get_base_data_path()) + static_script
-
-        with open(self.download_script_path, "w+") as downloader:
-            downloader.write(download_script)
+        self.save()

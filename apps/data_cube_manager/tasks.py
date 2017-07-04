@@ -12,8 +12,10 @@ from datacube.scripts import ingest
 
 import os
 import configparser
+from glob import glob
 
 from apps.data_cube_manager.models import Dataset, DatasetType, DatasetSource, DatasetLocation, IngestionRequest
+from apps.data_cube_manager.templates.bulk_downloader import base_downloader_script, static_script
 
 logger = get_task_logger(__name__)
 
@@ -168,11 +170,22 @@ def prepare_output(ingestion_request_id=None):
     cmd = "pg_dump -U dc_user -n agdc {} > {}".format(ingestion_request.user,
                                                       ingestion_request.get_database_dump_path())
     os.system(cmd)
-
     index.close()
-
     cmd = "dropdb -U dc_user {}".format(ingestion_request.user)
     os.system(cmd)
+
+    ingestion_request.download_script_path = ingestion_request.get_base_data_path() + "/bulk_downloader.py"
+
+    with open(ingestion_request.download_script_path, "w+") as downloader:
+        file_list = ",".join('"{}"'.format(path) for path in glob(ingestion_request.get_base_data_path() + '/*.nc'))
+        download_script = base_downloader_script.format(
+            file_list=file_list,
+            database_dump_file=ingestion_request.get_database_dump_path(),
+            base_host=settings.BASE_HOST,
+            base_data_path=ingestion_request.get_base_data_path()) + static_script
+        downloader.write(download_script)
+
+    ingestion_request.update_status("OK", "Please follow the directions on the right side panel to download your cube.")
 
 
 def get_config(username):

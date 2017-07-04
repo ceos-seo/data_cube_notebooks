@@ -16,20 +16,9 @@ except:
 
 files = [
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_46_20150221092302000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_47_20150613092352000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_46_20150512092340000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_46_20150426092332000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_46_20150104092248000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_48_20150410092326000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_46_20150426092332000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_46_20150613092352000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_45_20150410092326000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_48_20150613092352000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_45_20150528092344000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_45_20150120092248000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_46_20150528092344000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_46_20150120092248000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_48_20150426092332000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_46_20150221092302000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_47_20150309092308000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_45_20150221092302000000.nc",
@@ -40,40 +29,21 @@ files = [
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_45_20150104092248000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_46_20150104092248000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_48_20150104092248000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_47_20150410092326000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_45_20150426092332000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_46_20150410092326000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_45_20150426092332000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_45_20150104092248000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_46_20150325092318000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_46_20150528092344000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_47_20150120092248000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_45_20150221092302000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_46_20150512092340000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_46_20150309092308000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_45_20150309092308000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_46_20150410092326000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_45_20150120092248000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_46_20150309092308000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_45_20150309092308000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_47_20150221092302000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_47_20150512092340000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_45_20150512092340000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_45_20150410092326000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_46_20150613092352000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_45_20150613092352000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_47_45_20150613092352000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_48_20150325092318000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_48_20150120092248000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_45_20150512092340000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_48_20150512092340000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_45_20150528092344000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_47_20150426092332000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_47_20150104092248000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_48_20150528092344000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_45_20150325092318000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_47_20150325092318000000.nc",
-    "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_47_20150528092344000000.nc",
     "/datacube/ingested_data/localuser/SAMPLE_CUBE_4326_48_48_20150309092308000000.nc"
 ]
 database_dump_file = "/datacube/ingested_data/localuser/datacube_dump"
@@ -122,10 +92,10 @@ def download_file(data_file, count, total):
 def chunk_report(bytes_so_far, chunk_size, total_size):
     percent = float(bytes_so_far) / total_size
     percent = round(percent * 100, 2)
-    print("Downloaded {} of {} bytes ({})".format(bytes_so_far, total_size, percent))
+    sys.stdout.write(" > Downloaded %d of %d bytes (%0.2f%%)\r" % (bytes_so_far, total_size, percent))
 
     if bytes_so_far >= total_size:
-        print('')
+        sys.stdout.write('\n')
 
 
 #  chunk_read modified from http://stackoverflow.com/questions/2028517/python-urllib2-progress-hook

@@ -63,10 +63,10 @@ def download_file(data_file, count, total):
 def chunk_report(bytes_so_far, chunk_size, total_size):
     percent = float(bytes_so_far) / total_size
     percent = round(percent * 100, 2)
-    print("Downloaded {} of {} bytes ({})".format(bytes_so_far, total_size, percent))
+    sys.stdout.write("Downloaded %d of %d bytes (%0.2f%%)\\r" % (bytes_so_far, total_size, percent))
 
     if bytes_so_far >= total_size:
-        print('')
+        sys.stdout.write('\\n')
 
 
 #  chunk_read modified from http://stackoverflow.com/questions/2028517/python-urllib2-progress-hook
