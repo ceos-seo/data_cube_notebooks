@@ -151,6 +151,16 @@ class MetadataType(models.Model):
 
 
 class IngestionRequest(models.Model):
+    """Ingestion subset request model class containing all data required to ingest a sample cube.
+
+    This model will be submitted to the tasks processing pipeline that will create a db with the user,
+    ingest data based on the start/end date + geographic bounds query, and create a bulk download script.
+
+    total storage units and storage units processed will be updated by the task/update_storage_unit count with
+    current progress.
+    
+    """
+
     user = models.CharField(max_length=50)
 
     # this can't be a fk since the agdc schema isn't managed by Django

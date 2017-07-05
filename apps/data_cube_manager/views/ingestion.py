@@ -27,6 +27,8 @@ from django.forms.models import model_to_dict
 from django.conf import settings
 from django.views import View
 from django.db.models import Q
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
 from urllib import parse
 from collections import OrderedDict
@@ -119,6 +121,7 @@ class CreateIngestionConfigurationView(View):
 class SubmitIngestion(View):
     """Submit an ingestion form for actual ingestion"""
 
+    @method_decorator(login_required)
     def post(self, request):
         """Validate a set of measurements, metadata, storage, and bounds forms to create an ingestion task
 
@@ -129,6 +132,15 @@ class SubmitIngestion(View):
 
         if not request.user.is_superuser:
             return JsonResponse({'status': "ERROR", 'message': "Only superusers can ingest new data."})
+        if models.IngestionRequest.objects.filter(
+                user=request.user.username).exists() and models.IngestionRequest.objects.filter(
+                    user=request.user.username)[0].status != "OK":
+            return JsonResponse({
+                'status':
+                "ERROR",
+                'message':
+                "Please wait until your previous ingestion request is complete before submitting."
+            })
 
         form_data = request.POST
         measurements = json.loads(form_data.get('measurements'))
@@ -157,6 +169,7 @@ class SubmitIngestion(View):
 class CreateDataCubeSubset(View):
     """Submit an ingestion form to create a sample Data Cube for user download"""
 
+    @method_decorator(login_required)
     def get(self, request):
         """Return a rendered html page that contains the metadata form and ability to
         add or delete measurements.
@@ -221,8 +234,17 @@ class CreateDataCubeSubset(View):
 
         return render(request, 'data_cube_manager/ingestion_request.html', context)
 
+    @method_decorator(login_required)
     def post(self, request):
-        """"""
+        """Submit a Data Cube subset request using form data
+
+        POST Data:
+            IngestionRequestForm, IngestionStorageForm, IngestionBoundsForm
+
+        Returns:
+            Json response containing a pk to an ingestion request.
+
+        """
         if not request.user.is_superuser:
             return JsonResponse({'status': "ERROR", 'message': "Only superusers can ingest new data."})
 
@@ -316,11 +338,14 @@ class CreateDataCubeSubset(View):
 
 
 class CheckIngestionRequestStatus(View):
-    """
-    """
+    """Status page for an ingestion request"""
 
     def get(self, request, ingestion_request_id):
-        """Check the status of an ingestion request and update the model"""
+        """Check the status of an ingestion request and update the model
+
+        Returns a rendered html response containing a non-editable form displaying the ingestion request data,
+        instructions, and a progress bar.
+        """
 
         context = {'ingestion_request_id': ingestion_request_id}
         try:
@@ -339,7 +364,7 @@ class CheckIngestionRequestStatus(View):
         return render(request, 'data_cube_manager/ingestion_request_status.html', context)
 
     def post(self, request, ingestion_request_id):
-        """Get the download script url/update a page section"""
+        """Check on the status of an ingestion request, returning a json response containing the model"""
         context = {'ingestion_request_id': ingestion_request_id}
         ingestion_request = models.IngestionRequest.objects.get(pk=ingestion_request_id)
         ingestion_request.update_storage_unit_count()

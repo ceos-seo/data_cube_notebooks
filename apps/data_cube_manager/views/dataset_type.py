@@ -125,20 +125,19 @@ class DatasetTypeView(View):
 
 
 class DatasetYamlExport(View):
-    """Export a dataset type to yaml from forms
-
-    Using the metadata and measurement forms, create an ordered yaml file that can be used to add the dataset
-    to the database.
-
-    POST Data:
-        measurement form(s), metadata form
-
-    Returns:
-        Json response with a status and (if OK) a url to a yaml file
-    """
+    """Export a dataset type to yaml from forms"""
 
     def post(self, request):
-        """
+        """Export a dataset type to yaml from forms
+
+        Using the metadata and measurement forms, create an ordered yaml file that can be used to add the dataset
+        to the database.
+
+        POST Data:
+            measurement form(s), metadata form
+
+        Returns:
+            Json response with a status and (if OK) a url to a yaml file
         """
         form_data = request.POST
         measurements = json.loads(form_data.get('measurements'))

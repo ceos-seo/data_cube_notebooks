@@ -23,6 +23,14 @@ logger = get_task_logger(__name__)
 
 @task(name="data_cube_manager.run_ingestion")
 def run_ingestion(ingestion_definition):
+    """Kick off the standard system database ingestion process using a user defined configuration
+
+    Args:
+        ingestion_definition: dict representing a Data Cube ingestion def produced using the utils func.
+
+    Returns:
+        The primary key of the new dataset type.
+    """
     conf_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
     index = index_connect(local_config=LocalConfig.find([conf_path]))
 
@@ -35,7 +43,12 @@ def run_ingestion(ingestion_definition):
 
 @task(name="data_cube_manager.ingestion_work")
 def ingestion_work(output_type, source_type, ingestion_definition):
+    """Run the ingestion process for a user defined configuration
 
+    Args:
+        output_type, source_type: types produced by ingest.make_output_type
+        ingestion_definition: dict representing a Data Cube ingestion def produced using the utils func.
+    """
     conf_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
     index = index_connect(local_config=LocalConfig.find([conf_path]))
 
@@ -55,18 +68,15 @@ def ingestion_work(output_type, source_type, ingestion_definition):
 
 @task(name="data_cube_manager.ingestion_on_demand")
 def ingestion_on_demand(ingestion_request_id):
-    """
+    """Kick off the ingestion on demand/active subset process
+
+    Creates a Celery canvas that handles the full ingestion process.
+
+    Args:
+        ingestion_request_id: pk of a models.IngestionRequest obj.
     """
 
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
-
-    cmd = "createdb -U dc_user {}".format(ingestion_request.user)
-    os.system(cmd)
-
-    config = get_config(ingestion_request.user)
-    index = index_connect(local_config=config, validate_connection=False)
-    """conf_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
-    index = index_connect(local_config=LocalConfig.find([conf_path]))"""
 
     ingestion_request.update_status("WAIT", "Creating base Data Cube database...")
 
@@ -80,9 +90,16 @@ def ingestion_on_demand(ingestion_request_id):
 
 @task(name="data_cube_manager.init_db")
 def init_db(ingestion_request_id=None):
-    """
+    """Creates a new database and initializes it with the standard agdc schema
+
+    Creates a new database named the user using a psql call and uses the agdc api
+    to initalize the schema.
+
     """
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
+
+    cmd = "createdb -U dc_user {}".format(ingestion_request.user)
+    os.system(cmd)
 
     config = get_config(ingestion_request.user)
     index = index_connect(local_config=config, validate_connection=False)
@@ -94,7 +111,13 @@ def init_db(ingestion_request_id=None):
 
 @task(name="data_cube_manager.add_source_datasets")
 def add_source_datasets(ingestion_request_id=None):
-    """
+    """Populate the newly created database with source datasets that match the criteria
+
+    Searches for datasets using the search criteria found on the IngestionRequest model and populates
+    the newly created database with the new data. The dataset type's id is reset to 0 to prevent collisions in
+    the agdc script.
+
+    A dataset type, datasets, dataset_locations, and dataset_sources are added to the new database.
     """
 
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
@@ -134,7 +157,11 @@ def add_source_datasets(ingestion_request_id=None):
 
 @task(name="data_cube_manager.ingest_subset")
 def ingest_subset(ingestion_request_id=None):
-    """
+    """Run the ingestion process on the new database
+
+    Open a connection to the new database and run ingestion based on the
+    ingestion configuration found on the IngestionRequest model.
+
     """
 
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
@@ -159,7 +186,10 @@ def ingest_subset(ingestion_request_id=None):
 
 @task(name="data_cube_manager.prepare_output")
 def prepare_output(ingestion_request_id=None):
-    """
+    """Dump the database and perform cleanup functions
+
+    Drops the database, create the bulk download script, and dumps the database.
+
     """
 
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
@@ -191,6 +221,7 @@ def prepare_output(ingestion_request_id=None):
 
 @task(name="data_cube_manager.delete_ingestion_request")
 def delete_ingestion_request(ingestion_request_id=None):
+    """Delete an existing ingestion request before proceeding with a new one"""
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     try:
         shutil.rmtree(ingestion_request.get_base_data_path())
