@@ -36,6 +36,7 @@
             Create and download a sample Data Cube for small scale analysis cases.
             Enter a source product, bounding box, time range, and storage attributes to launch a custom ingestion on demand process to create your cube.
             Sample cubes are restricted to a data volume equivalent to one degree squares over one year.
+            The easiest way to create an ingestion request is to use the <a href="/data_cube_manager/datasets">Dataset Viewer</a> to search for storage units in one of the source only datasets.
           </p>
         </div>
       </div>
@@ -108,7 +109,7 @@
         showButtonPanel: true,
         yearRange: "-30:+0"
     });
-
+    get_dataset_count();
     jQuery(".onchange_filter").change(get_dataset_count)
   });
 

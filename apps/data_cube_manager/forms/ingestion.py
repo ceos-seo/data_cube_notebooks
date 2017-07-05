@@ -396,15 +396,15 @@ class IngestionRequestForm(forms.Form):
         """
         cleaned_data = super(IngestionRequestForm, self).clean()
 
+        if not self.is_valid():
+            return
+
         # this id done to get rid of some weird rounding issues - a lot of the solid BBs end up being 3.999999999123412 rather than
         # the expected 4
         cleaned_data['latitude_min'] -= 0.01
         cleaned_data['longitude_min'] -= 0.01
         cleaned_data['latitude_max'] += 0.01
         cleaned_data['longitude_max'] += 0.01
-
-        if not self.is_valid():
-            return
 
         if cleaned_data.get('latitude_min') > cleaned_data.get('latitude_max'):
             self.add_error(

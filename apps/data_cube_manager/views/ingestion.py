@@ -33,6 +33,7 @@ from collections import OrderedDict
 import json
 import yaml
 import uuid
+import shutil
 
 from apps.data_cube_manager import models
 from apps.data_cube_manager import forms
@@ -257,6 +258,8 @@ class CreateDataCubeSubset(View):
             })
 
         metadata_form.cleaned_data.update({
+            'dataset_type_ref':
+            metadata_form.cleaned_data['dataset_type_ref'][0],
             'output_type':
             dataset_type.name + "_sample",
             'description':
@@ -289,6 +292,12 @@ class CreateDataCubeSubset(View):
         ingestion_def = utils.ingestion_definition_from_forms(metadata_form, storage_form, ingestion_bounds_form,
                                                               measurement_forms)
 
+        existing_requests = models.IngestionRequest.objects.filter(user=request.user.username)
+
+        if existing_requests.exists():
+            tasks.delete_ingestion_request(ingestion_request_id=existing_requests[0].pk)
+            existing_requests.delete()
+
         ingestion_request = models.IngestionRequest(
             user=request.user.username,
             dataset_type_ref=dataset_type.pk,
@@ -314,7 +323,10 @@ class CheckIngestionRequestStatus(View):
         """Check the status of an ingestion request and update the model"""
 
         context = {'ingestion_request_id': ingestion_request_id}
-        ingestion_request = models.IngestionRequest.objects.get(pk=ingestion_request_id)
+        try:
+            ingestion_request = models.IngestionRequest.objects.get(pk=ingestion_request_id)
+        except models.IngestionRequest.DoesNotExist:
+            return redirect('/data_cube_manager/ingestion/subset')
         filtering_options = {
             key: getattr(ingestion_request, key)
             for key in [

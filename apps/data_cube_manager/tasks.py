@@ -13,6 +13,7 @@ from datacube.scripts import ingest
 import os
 import configparser
 from glob import glob
+import shutil
 
 from apps.data_cube_manager.models import Dataset, DatasetType, DatasetSource, DatasetLocation, IngestionRequest
 from apps.data_cube_manager.templates.bulk_downloader import base_downloader_script, static_script
@@ -186,6 +187,15 @@ def prepare_output(ingestion_request_id=None):
         downloader.write(download_script)
 
     ingestion_request.update_status("OK", "Please follow the directions on the right side panel to download your cube.")
+
+
+@task(name="data_cube_manager.delete_ingestion_request")
+def delete_ingestion_request(ingestion_request_id=None):
+    ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
+    try:
+        shutil.rmtree(ingestion_request.get_base_data_path())
+    except:
+        pass
 
 
 def get_config(username):
