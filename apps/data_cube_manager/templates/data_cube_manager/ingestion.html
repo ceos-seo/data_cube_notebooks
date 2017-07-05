@@ -132,7 +132,7 @@
           return;
         } else {
           jQuery("#existing_measurement_container").html(result.html);
-          var dataset_type = jQuery("#id_dataset_type").val();
+          var dataset_type = jQuery("#id_dataset_type_ref").val();
           jQuery.each(Object.keys(dataset_type_details[dataset_type]), function(index, value) {
             jQuery("#id_"+value).val(dataset_type_details[dataset_type][value]);
           });

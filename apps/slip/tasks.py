@@ -188,8 +188,9 @@ def start_chunk_processing(chunk_details, task_id=None):
     time_chunks = chunk_details.get('time_chunks')
 
     task = SlipTask.objects.get(pk=task_id)
-    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time'] if
-                                                                     task.get_chunk_size()['time'] is not None else 1)
+    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time']
+                                                                     if task.get_chunk_size()['time'] is not None else
+                                                                     len(time_chunks[0]))
     task.scenes_processed = 0
     task.update_status("WAIT", "Starting processing.")
 
@@ -344,7 +345,7 @@ def recombine_time_chunks(chunks, task_id=None):
         combined_data = create_mosaic(data.drop('slip'), clean_mask=clear_mask, intermediate_product=combined_data)
         combined_slip.values[combined_slip.values == 0] = data.slip.values[combined_slip.values == 0]
 
-    # Since we added a time dim to combined_slip, we need to remove it here. 
+    # Since we added a time dim to combined_slip, we need to remove it here.
     combined_data['slip'] = combined_slip.isel(time=0, drop=True)
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
     combined_data.to_netcdf(path)

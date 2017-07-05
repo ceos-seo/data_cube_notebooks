@@ -92,6 +92,7 @@ class DatasetFilterForm(forms.Form):
                                       'placeholder': '01/02/2010'}))
 
     def __init__(self, *args, **kwargs):
+        """Initialize the dataset filtering form. If a dataset type id is provided, set the default"""
         dataset_type_ref = kwargs.pop('dataset_type_id', None)
         super(DatasetFilterForm, self).__init__(*args, **kwargs)
         self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').all()

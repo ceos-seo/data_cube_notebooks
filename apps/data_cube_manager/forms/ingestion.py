@@ -201,34 +201,46 @@ class IngestionStorageForm(forms.Form):
         initial="degrees",
         required=True)
 
-    tile_size_longitude = forms.FloatField(
+    tile_size_longitude = forms.DecimalField(
         label="Longitude/X Tile Size",
         help_text="Enter your desired tile size in the units of your CRS. This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution.",
         required=True,
         initial=0.943231048326,
-        error_messages={'required': 'Tile size is required. Please enter a valid number in the Metadata panel.'})
-    tile_size_latitude = forms.FloatField(
+        decimal_places=12,
+        error_messages={
+            'max_decimal_places': "Please ensure that the tile size values do not exceed 12 decimal places.",
+            'required': 'Tile size is required. Please enter a valid number in the Metadata panel.'
+        })
+    tile_size_latitude = forms.DecimalField(
         label="Latitude/Y Tile Size",
         help_text="Enter your desired tile size in the units of your CRS. This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution.",
         required=True,
         initial=0.943231048326,
-        error_messages={'required': 'Tile size is required. Please enter a valid number in the Metadata panel.'})
+        decimal_places=12,
+        error_messages={
+            'max_decimal_places': "Please ensure that the tile size values do not exceed 12 decimal places.",
+            'required': 'Tile size is required. Please enter a valid number in the Metadata panel.'
+        })
 
-    resolution_longitude = forms.FloatField(
+    resolution_longitude = forms.DecimalField(
         label="Longitude/X Resolution",
         help_text="Enter your desired resolution in the units of your CRS. This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution",
         required=True,
         initial=0.000269494585236,
+        decimal_places=15,
         error_messages={
+            'max_decimal_places': "Please ensure that the resolution values do not exceed 15 decimal places.",
             'required': 'Resoultion values are required. Please enter a valid number in the Metadata panel.'
         })
-    resolution_latitude = forms.FloatField(
+    resolution_latitude = forms.DecimalField(
         label="Latitude/Y Resolution",
         help_text="Enter your desired resolution in the units of your CRS. The latitude resolution must be less than zero (negative). This can be a floating point number, but please ensure that your tile size is evenly divisible by the resolution",
         required=True,
         initial=-0.000269494585236,
+        decimal_places=15,
         validators=[validators.MaxValueValidator(0)],
         error_messages={
+            'max_decimal_places': "Please ensure that the resolution values do not exceed 15 decimal places.",
             'required': 'Resoultion values are required. Please enter a valid number in the Metadata panel.'
         })
 
@@ -247,6 +259,14 @@ class IngestionStorageForm(forms.Form):
 
     def clean(self):
         cleaned_data = super(IngestionStorageForm, self).clean()
+
+        if not self.is_valid():
+            return
+
+        float_casting = ['tile_size_latitude', 'tile_size_longitude', 'resolution_latitude', 'resolution_longitude']
+        for field in float_casting:
+            self.cleaned_data[field] = float(self.cleaned_data[field])
+
         if (cleaned_data['tile_size_latitude'] / cleaned_data['resolution_latitude']) != int(
                 cleaned_data['tile_size_latitude'] / cleaned_data['resolution_latitude']):
             self.add_error(
@@ -318,7 +338,10 @@ class IngestionMeasurementForm(forms.Form):
 
 
 class IngestionRequestForm(forms.Form):
-    """
+    """Information required to submit an ingestion request, including start/end date and geographic bounds.
+
+    Can be initialized as a bound form with initial data or as a readonly form
+
     """
 
     dataset_type_ref = forms.ModelChoiceField(
@@ -377,6 +400,12 @@ class IngestionRequestForm(forms.Form):
                    'max': 180}))
 
     def __init__(self, *args, **kwargs):
+        """Initialize the ingestion request form with optional kwargs
+
+        Args:
+            initial_vals: dict with form data - sets initial rather than binding
+            readonly: boolean value signifying whether or not this form should be modified.
+        """
         initial_vals = kwargs.pop('initial', None)
         readonly = kwargs.pop('readonly', None)
         super(IngestionRequestForm, self).__init__(*args, **kwargs)
@@ -392,7 +421,9 @@ class IngestionRequestForm(forms.Form):
                 self.fields[field].widget.attrs['readonly'] = True
 
     def clean(self):
-        """
+        """Validate the ingestion form - similar to dataset form but with required fields
+
+        Does the +- 0.01 to avoid rounding issues and checks for a max 1deg area.
         """
         cleaned_data = super(IngestionRequestForm, self).clean()
 

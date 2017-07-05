@@ -244,6 +244,7 @@ class DatasetTypeMeasurementsForm(forms.Form):
         required=False)
 
     def __init__(self, *args, **kwargs):
+        """If this is an existing dataset type, the form is set to readonly as a 'viewing' form."""
         existing_metadata = kwargs.pop('existing_dataset_type', None)
         super(DatasetTypeMeasurementsForm, self).__init__(*args, **kwargs)
         if existing_metadata:
@@ -297,6 +298,7 @@ class DatasetTypeFlagsDefinitionForm(forms.Form):
         required=False)
 
     def __init__(self, *args, **kwargs):
+        """If this is an existing dataset type, the form is set to readonly as a 'viewing' form."""
         existing_metadata = kwargs.pop('existing_dataset_type', None)
         super(DatasetTypeFlagsDefinitionForm, self).__init__(*args, **kwargs)
         if existing_metadata:
