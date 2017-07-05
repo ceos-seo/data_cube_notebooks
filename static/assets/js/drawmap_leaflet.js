@@ -112,16 +112,19 @@ function DrawMap(container_id, options) {
  * Configure leaflet for rectangle drawing - adds a new control and starts the handlers.
  */
 DrawMap.prototype.set_rectangle_draw = function() {
+    /*
+    rectangle: {
+        shapeOptions: {
+            clickable: false
+        }
+    }
+    */
     var draw_options = {
         draw: {
             polyline: false,
             polygon: false,
             circle: false,
-            rectangle: {
-                shapeOptions: {
-                    clickable: false
-                }
-            },
+            rectangle: false,
             marker: false
         },
         edit: false
