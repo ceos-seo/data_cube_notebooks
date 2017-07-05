@@ -27,7 +27,7 @@ class Dataset(models.Model):
     def filter_datasets(cls, cleaned_form_data):
         """Custom filtering based on form data found in forms.DatasetFilterForm
 
-        dataset_type_ref and managed are optional and can be null, so those need to be checked.
+        dataset_type_ref and is optional and can be null, so that needs to be checked.
         Uses Django Q objects to combine and/or operations on queries. Does a BB intersection
         and time query to filter datasets.
 
@@ -43,8 +43,7 @@ class Dataset(models.Model):
             dataset_type_ref = cleaned_form_data['dataset_type_ref'] if isinstance(
                 cleaned_form_data['dataset_type_ref'], Iterable) else [cleaned_form_data['dataset_type_ref']]
             base_query &= Q(dataset_type_ref__in=dataset_type_ref)
-        if 'managed' in cleaned_form_data:
-            base_query &= Q(dataset_type_ref__definition__managed=cleaned_form_data['managed'])
+
         # range intersections done like:
         #   if x1[0] > x2[0] and x1[0] < x2[1] or x1[1] > x2[0] and x1[1] < x2[1]: return True
         latitude_query = Q(metadata__extent__coord__lr__lat__gte=cleaned_form_data['latitude_min'],
@@ -158,7 +157,7 @@ class IngestionRequest(models.Model):
 
     total storage units and storage units processed will be updated by the task/update_storage_unit count with
     current progress.
-    
+
     """
 
     user = models.CharField(max_length=50)

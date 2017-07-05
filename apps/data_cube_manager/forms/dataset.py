@@ -39,13 +39,6 @@ class DatasetFilterForm(forms.Form):
         widget=forms.SelectMultiple(attrs={'class': "onchange_filter"}),
         required=False)
 
-    managed_choices = ((None, 'Any'), (False, 'Source only'), (True, 'Ingested only'))
-    managed = forms.ChoiceField(
-        label="Managed",
-        required=False,
-        choices=managed_choices,
-        widget=forms.Select(attrs={'class': "onchange_filter"}))
-
     latitude_min = forms.FloatField(
         label='Min Latitude',
         validators=[validators.MaxValueValidator(90), validators.MinValueValidator(-90)],
@@ -116,11 +109,6 @@ class DatasetFilterForm(forms.Form):
             'end_date': datetime.date.today()
         }
         cleaned_data.update({key: val for key, val in super(DatasetFilterForm, self).clean().items() if val})
-
-        # this is godawful - This needs to be a three state input (Any, True, False) but it won't pass types.. String only,
-        # so I can't even use 0/1/None to signify true / false without a compariason.
-        if 'managed' in cleaned_data:
-            cleaned_data['managed'] = True if cleaned_data['managed'] == 'True' else False
 
         if cleaned_data.get('latitude_min') > cleaned_data.get('latitude_max'):
             self.add_error(
