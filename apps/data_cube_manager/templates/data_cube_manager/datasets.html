@@ -53,7 +53,7 @@ under the License.
           <button class="btn btn-danger" onclick="get_deletion_confirmation()">Delete filtered datasets</button>
         {% endif %}
         <button id="subset_btn_disabled" style="display:none;" class="btn btn-disabled">Select a single product to create a subset</button>
-        <a id="subset_btn" class="btn btn-default" href="/data_cube_manager/ingestion/subset?">Create Data Cube request</a>
+        <a id="subset_btn" class="btn btn-default" href="{% url 'create_ingestion_subset' %}?">Create Data Cube request</a>
       </div>
       <div id="table_container" class="col-lg-8">
         <table id="data_table" class="table table-hover full" style="min-height: 600px;">
@@ -137,12 +137,12 @@ under the License.
         }
         values[field.name] = field.value;
     });
-    jQuery("#subset_btn").attr('href', "/data_cube_manager/ingestion/subset?" + jQuery("#filtering_form").serialize());
+    jQuery("#subset_btn").attr('href', "{% url 'create_ingestion_subset' %}?" + jQuery("#filtering_form").serialize());
   }
 
   function get_deletion_confirmation() {
     form_data = $('#filtering_form').serialize();
-    jQuery.get('/data_cube_manager/datasets/delete', form_data, function(result) {
+    jQuery.get('{% url "delete_datasets" %}', form_data, function(result) {
       if(result.status == "ERROR") {
         set_modal_content("Alert", result.message);
         return;
@@ -156,7 +156,7 @@ under the License.
 
   function delete_datasets() {
     form_data = $('#filtering_form').serialize();
-    jQuery.post('/data_cube_manager/datasets/delete', form_data, function(result) {
+    jQuery.post('{% url "delete_datasets" %}', form_data, function(result) {
       if(result.status == "ERROR") {
         set_modal_content("Alert", result.message);
         return;
@@ -175,7 +175,7 @@ under the License.
       "serverSide": true,
       "searching": false,
       "ajax": {
-        "url": "/data_cube_manager/datasets",
+        "url": "{% url 'datasets' %}",
         "type": "POST",
         "data": function ( d ) {
             d.form_data = $('#filtering_form').serialize();

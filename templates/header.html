@@ -54,10 +54,10 @@
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">Data Cube Manager
                     <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a id="dataset_types" tabindex="-1" href="/data_cube_manager/dataset_types">Dataset Types</a></li>
-                        <li><a id="datasets" tabindex="-1" href="/data_cube_manager/datasets">Dataset Viewer</a></li>
-                        <li><a id="ingestion" tabindex="-1" href="/data_cube_manager/ingestion">Ingestion Configuration Builder</a></li>
-                        <li><a id="ingestion_on_demand" tabindex="-1" href="/data_cube_manager/ingestion/subset">Ingestion on Demand</a></li>
+                        <li><a id="dataset_types" tabindex="-1" href="{% url 'dataset_types' %}">Dataset Types</a></li>
+                        <li><a id="datasets" tabindex="-1" href="{% url 'datasets' %}">Dataset Viewer</a></li>
+                        <li><a id="ingestion" tabindex="-1" href="{% url 'ingestion_configuration' %}">Ingestion Configuration Builder</a></li>
+                        <li><a id="ingestion_on_demand" tabindex="-1" href="{% url 'create_ingestion_subset' %}">Ingestion on Demand</a></li>
                     </ul>
                 </li>
                 <li class="dropdown">

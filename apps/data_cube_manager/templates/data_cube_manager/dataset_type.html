@@ -73,14 +73,14 @@
     </div>
     <div class="col-lg-12" style="padding-top: 10px; padding-bottom: 5px;">
       {% if dataset_type_id %}
-        <a class="btn btn-default pull-right bottom-btn" href="/data_cube_manager/dataset_types/create/{{dataset_type_id}}">Create a derivative dataset</a>
+        <a class="btn btn-default pull-right bottom-btn" href="{% url 'create_dataset_type_from_base' dataset_type_id=dataset_type_id %}">Create a derivative dataset</a>
       {% endif %}
       <button class="btn btn-default pull-right bottom-btn" onclick="download_yaml()">Download .yaml file</button>
       {% if request.user.is_superuser and not dataset_type_id %}
         <button class="btn btn-default pull-right bottom-btn" onclick="add_dataset_type()">Add dataset</button>
       {% endif %}
       {% if request.user.is_superuser and dataset_type_id %}
-        <a class="btn btn-danger pull-right bottom-btn" href="/data_cube_manager/dataset_types/delete/{{dataset_type_id}}">Delete dataset</a>
+        <a class="btn btn-danger pull-right bottom-btn" href="{% url 'delete_dataset_type' dataset_type_id=dataset_type_id %}">Delete dataset</a>
       {% endif %}
     </div>
   </div>
@@ -183,7 +183,7 @@
         values[field.name] = field.value;
     });
     var request = new XMLHttpRequest();
-    request.open("POST", '/data_cube_manager/dataset_types/validate_measurement', false);
+    request.open("POST", '{% url "validate_dataset_type_measurement" %}', false);
     //request.timeout = 100;
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);
@@ -243,7 +243,7 @@
 
     values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
 
-    jQuery.post('/data_cube_manager/dataset_types/export', values, function(result) {
+    jQuery.post('{% url "export_dataset_type" %}', values, function(result) {
         if(result.status == "ERROR") {
           set_modal_content("Error", result.message);
           return;
@@ -271,14 +271,14 @@
     set_modal_content("Alert", "Please wait while we validate your dataset type.");
 
     values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
-    jQuery.post('/data_cube_manager/dataset_types/add', values, function(result) {
+    jQuery.post('{% url "add_dataset_type" %}', values, function(result) {
         if(result.status == "ERROR") {
           set_modal_content("Error", result.message);
           return;
         } else {
           set_modal_content("Alert", "Your dataset type has been added, redirecting back to dataset type list...");
           setTimeout(function() {
-            window.location.href = '/data_cube_manager/dataset_types';
+            window.location.href = '{% url "dataset_types" %}';
           }, 3000);
         }
     });

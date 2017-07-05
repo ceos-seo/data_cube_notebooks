@@ -36,7 +36,7 @@
             Create and download a sample Data Cube for small scale analysis cases.
             Enter a source product, bounding box, time range, and storage attributes to launch a custom ingestion on demand process to create your cube.
             Sample cubes are restricted to a data volume equivalent to one degree squares over one year.
-            The easiest way to create an ingestion request is to use the <a href="/data_cube_manager/datasets">Dataset Viewer</a> to search for storage units in one of the source only datasets.
+            The easiest way to create an ingestion request is to use the <a href="{% url 'datasets' %}">Dataset Viewer</a> to search for storage units in one of the source only datasets.
             <strong>Users are only allowed a single ingestion request at a time. Please note that submitting a new request will delete any existing requests.</strong>
           </p>
         </div>
@@ -119,7 +119,7 @@
             length: 10,
             draw: 0,
             form_data: jQuery("#metadata_form").serialize()}
-    jQuery.post('/data_cube_manager/datasets', data, function(result) {
+    jQuery.post('{% url "datasets" %}', data, function(result) {
         if(result.status == "ERROR") {
           set_modal_content("Error", result.message);
           return;
@@ -135,7 +135,7 @@
       jQuery("#measurements_table").html("");
       return;
     }
-    jQuery.get('/data_cube_manager/ingestion/get_existing_measurements', jQuery("#metadata_form").serialize(), function(result) {
+    jQuery.get('{% url "get_existing_measurements" %}', jQuery("#metadata_form").serialize(), function(result) {
         if(result.status == "ERROR") {
           set_modal_content("Error", result.message);
           return;
@@ -164,7 +164,7 @@
         values[field.name] = field.value;
     });
     var request = new XMLHttpRequest();
-    request.open("POST", '/data_cube_manager/ingestion/validate_measurement', false);
+    request.open("POST", '/data_cube_manager/ingestion/{% url "validate_ingestion_measurement" %}', false);
     //request.timeout = 100;
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);
@@ -222,13 +222,14 @@
     set_modal_content("Alert", "Please wait while we validate your configuration file.");
 
     values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
-    jQuery.post('/data_cube_manager/ingestion/subset', values, function(result) {
+    jQuery.post('{% url "create_ingestion_subset" %}', values, function(result) {
         if(result.status == "ERROR") {
           set_modal_content("Error", result.message);
           return;
         } else {
           set_modal_content("Alert", "Your ingestion request has been started. You will be redirected to the ingestion status page shortly.");
           setTimeout(function() {
+            //{\% url "check_ingestion_subset" ingestion_request_id=ingestion_request_id %\}
             window.location.href = '/data_cube_manager/ingestion/subset/check/' + result.ingestion_request_id;
           }, 3000);
         }

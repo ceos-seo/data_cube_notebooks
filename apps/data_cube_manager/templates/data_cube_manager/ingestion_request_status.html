@@ -121,7 +121,7 @@ under the License.
   });
 
   function check_status() {
-    jQuery.post('/data_cube_manager/ingestion/subset/check/{{ingestion_request_id}}', {}, function(result) {
+    jQuery.post('{% url "check_ingestion_subset" ingestion_request_id=ingestion_request_id %}', {}, function(result) {
       switch(result.status) {
         case "ERROR":
           set_modal_content("Error", result.message);

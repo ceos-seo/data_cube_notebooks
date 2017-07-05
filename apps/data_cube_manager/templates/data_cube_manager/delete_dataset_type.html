@@ -103,14 +103,14 @@ In the future this functionality may be added, but for now a system administrato
   });
 
   function remove_dataset_type() {
-    jQuery.post('/data_cube_manager/dataset_types/delete/{{ dataset_type_id }}', {}, function(result) {
+    jQuery.post('{% url "delete_dataset_type" dataset_type_id=dataset_type_id %}', {}, function(result) {
         if(result.status == "ERROR") {
           set_modal_content("Error", result.message);
           return;
         } else {
           set_modal_content("Alert", "Your dataset type has been deleted, redirecting back to dataset type list...");
           setTimeout(function() {
-            window.location.href = '/data_cube_manager/dataset_types';
+            window.location.href = '{% url "dataset_types" %}';
           }, 3000);
         }
     });
