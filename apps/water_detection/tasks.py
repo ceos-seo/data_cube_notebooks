@@ -35,8 +35,10 @@ def run(task_id=None):
     Chains the parsing of parameters, validation, chunking, and the start to data processing.
     """
     chain(
-        parse_parameters_from_task.s(task_id),
-        validate_parameters.s(task_id), perform_task_chunking.s(task_id), start_chunk_processing.s(task_id))()
+        parse_parameters_from_task.s(task_id=task_id),
+        validate_parameters.s(task_id=task_id),
+        perform_task_chunking.s(task_id=task_id),
+        start_chunk_processing.s(task_id=task_id))()
     return True
 
 

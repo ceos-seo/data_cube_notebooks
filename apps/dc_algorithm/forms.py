@@ -86,6 +86,9 @@ class DataSelectionForm(forms.Form):
             self.add_error('time_start',
                            "Please enter a valid start and end time range where the start is before the end.")
 
+        if not self.is_valid():
+            return
+
         area = (cleaned_data.get('latitude_max') - cleaned_data.get('latitude_min')) * (
             cleaned_data.get('longitude_max') - cleaned_data.get('longitude_min'))
 
