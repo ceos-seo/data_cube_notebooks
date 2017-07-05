@@ -348,8 +348,7 @@ class IngestionMeasurement(View):
             Rendered HTML string containing a form for each measurement and a panel that
             enumerates all measurements. Essentially just the right side panel of the ingestion/dataset type page.
         """
-
-        dataset_type = models.DatasetType.objects.using('agdc').get(id=request.GET.get('dataset_type'))
+        dataset_type = models.DatasetType.objects.using('agdc').get(id=request.GET.get('dataset_type_ref'))
         measurements = dataset_type.definition['measurements']
         for measurement in measurements:
             measurement['src_varname'] = measurement['name']

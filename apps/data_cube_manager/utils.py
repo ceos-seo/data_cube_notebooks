@@ -164,7 +164,7 @@ def dataset_type_definition_from_forms(metadata, measurements):
 
 def ingestion_definition_from_forms(metadata, storage_form, ingestion_bounds_form, measurement_forms):
     json_definition = OrderedDict(
-        [('source_type', metadata.cleaned_data['dataset_type'].name),
+        [('source_type', metadata.cleaned_data['dataset_type_ref'].name),
          ('output_type', metadata.cleaned_data['output_type']), ('description', metadata.cleaned_data['description']),
          ('location', metadata.cleaned_data['location']),
          ('file_path_template', metadata.cleaned_data['file_path_template'])])

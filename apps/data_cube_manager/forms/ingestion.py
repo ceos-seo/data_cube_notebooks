@@ -33,7 +33,7 @@ from apps.data_cube_manager.models import DatasetType
 class IngestionMetadataForm(forms.Form):
     """Form meant to validate all metadata fields for an ingestion configuration file."""
 
-    dataset_type = forms.ModelChoiceField(
+    dataset_type_ref = forms.ModelChoiceField(
         queryset=None,
         label="Source Dataset Type",
         help_text="Select an existing source dataset type for this ingestion configuration.",
@@ -127,7 +127,7 @@ class IngestionMetadataForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(IngestionMetadataForm, self).__init__(*args, **kwargs)
-        self.fields['dataset_type'].queryset = DatasetType.objects.using('agdc').filter(~Q(
+        self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').filter(~Q(
             definition__has_keys=['managed']) & Q(definition__has_keys=['measurements']))
 
 

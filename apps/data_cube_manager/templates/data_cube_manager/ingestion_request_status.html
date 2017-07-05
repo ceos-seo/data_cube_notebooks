@@ -44,12 +44,14 @@ under the License.
         </div>
       </div>
       <div class="col-lg-4">
-        <div class="progress">
-         <div class="ingestion_progress progress-bar progress-bar-danger progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
-         </div>
+        <div class="hidden_when_complete">
+          <div class="progress">
+           <div class="ingestion_progress progress-bar progress-bar-danger progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
+           </div>
+          </div>
+          <h4>Your ingestion request of <span id="total">{{ total_storage_units }}</span> storage units is being processed. <span id="processed">{{ storage_units_processed }}</span> units processed so far.</h2>
+          <hr>
         </div>
-        <h4>Your ingestion request of <span id="total">{{ total_storage_units }}</span> storage units is being processed. <span id="processed">{{ storage_units_processed }}</span> units processed so far.</h2>
-        <hr>
         <form action="">
           {% csrf_token %}
           {% bootstrap_form form bound_css_class="" %}
@@ -57,7 +59,36 @@ under the License.
         <a id="download_btn" style="display:none;" class="btn btn-default pull-right" href="" target="_blank">Download Bulk Download Script</a>
       </div>
       <div class="col-lg-8">
-        <h1>Instructions placeholder - images and instructions for import.</h1>
+        <div class="row">
+          <div class="col-lg-12"><h1>Instructions</h1><hr></div>
+        </div>
+        <div class="row">
+          <div class="col-lg-6">
+            <img class="img-responsive center-block" src="/static/assets/images/bulk_downloader.png" alt="Download window">
+            <hr>
+            <img class="img-responsive center-block" src="/static/assets/images/ingestion_commands.png" alt="Ingestion commands">
+            <hr>
+            <img class="img-responsive center-block" src="/static/assets/images/ingestion_results.png" alt="Ingestion results">
+            <hr>
+          </div>
+          <div class="col-lg-6">
+            <h3>Downloading the Script</h3>
+            When your ingestion request is complete, click the download button and download the bulk download script. The button will appear when the status bar is full
+            <hr>
+            <h3>Downloading Storage Units</h3>
+            You will need to run the bulk downloader script from within the virtual environment that the Data Cube is installed in.
+            If you do not have the Data Cube installed, please refer to our documentation <a href="https://github.com/ceos-seo/data_cube_ui/blob/master/docs/datacube_install.md">here</a>.<br>
+            Ensure that you are running Python 3 and are properly within the virtual environment, then run the script as seen in the image: 'python bulk_downloader.py'
+            You will need the path '/datacube' to exist and be writeable by the user. If this is not the case, the program will exit with an error message.
+            <hr>
+            <h3>Initializing Your Sample Cube</h3>
+            When all files are downloaded, you should see the window resembling the image. The next steps are to import the database dump and to ensure that the Data Cube is initialized properly.<br>
+            Ensure that the Data Cube database has been created and initialized according to our documentation <a href="https://github.com/ceos-seo/data_cube_ui/blob/master/docs/datacube_install.md">here</a>.
+            The database named 'datacube' will need to exist, and a role 'dc_user' must also exist and have write access to the database.
+            Import the database by running 'psql -U dc_user datacube < /datacube/ingested_data/{username}/datacube_dump'. If you have any issues, you can run "psql -U dc_user datacube -c 'DROP SCHEMA agdc CASCADE;'"
+            and then rerun the import statement. You can then run 'datacube product list' to ensure that your datasets have been added.
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -100,13 +131,14 @@ under the License.
           setTimeout(check_status, 3000);
           jQuery("#processed").text(result.storage_units_processed);
           jQuery("#total").text(result.total_storage_units);
-          update_progress_bar(100 * result.storage_units_processed / result.total_storage_units)
+          update_progress_bar(100 * result.storage_units_processed / result.total_storage_units);
         break;
         case "OK":
+          jQuery(".hidden_when_complete").hide();
           jQuery("#processed").text(result.storage_units_processed);
-          update_progress_bar(100 * result.storage_units_processed / result.total_storage_units)
+          update_progress_bar(100 * result.storage_units_processed / result.total_storage_units);
           jQuery("#download_btn").attr('href', result.download_script_path).show();
-          set_modal_content("Alert", "Your request has been completed. Use the 'Download Bulk Download Script' button to download a script.")
+          set_modal_content("Alert", "Your request has been completed. Use the 'Download Bulk Download Script' button to download a script.");
         break;
       }
     });

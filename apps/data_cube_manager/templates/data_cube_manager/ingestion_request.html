@@ -62,9 +62,8 @@
       </div>
     </div>
     <div class="col-lg-12" style="padding-top: 10px; padding-bottom: 5px;">
-      {% if request.user.is_superuser and not dataset_type_id %}
-        <button class="btn btn-danger pull-right bottom-btn" onclick="create_sample_cube()">Create Sample Cube</button>
-      {% endif %}
+      <span class="pull-left">Your current parameter set will include <strong id="dataset_count">0</strong> acquisitions.</span>
+      <button class="btn btn-danger pull-right bottom-btn" onclick="create_sample_cube()">Create Sample Cube</button>
     </div>
   </div>
 </div>
@@ -109,11 +108,28 @@
         showButtonPanel: true,
         yearRange: "-30:+0"
     });
+
+    jQuery(".onchange_filter").change(get_dataset_count)
   });
+
+  function get_dataset_count() {
+    data = {start: 0,
+            length: 10,
+            draw: 0,
+            form_data: jQuery("#metadata_form").serialize()}
+    jQuery.post('/data_cube_manager/datasets', data, function(result) {
+        if(result.status == "ERROR") {
+          set_modal_content("Error", result.message);
+          return;
+        } else {
+          jQuery("#dataset_count").text(result.recordsTotal);
+        }
+    });
+  }
 
   function update_forms() {
     jQuery("#measurement_container").html("");
-    if(jQuery("#id_dataset_type").val() == "") {
+    if(jQuery("#id_dataset_type_ref").val() == "") {
       jQuery("#measurements_table").html("");
       return;
     }
@@ -123,10 +139,6 @@
           return;
         } else {
           jQuery("#existing_measurement_container").html(result.html);
-          var dataset_type = jQuery("#id_dataset_type").val();
-          jQuery.each(Object.keys(dataset_type_details[dataset_type]), function(index, value) {
-            jQuery("#id_"+value).val(dataset_type_details[dataset_type][value]);
-          });
         }
     });
   }
