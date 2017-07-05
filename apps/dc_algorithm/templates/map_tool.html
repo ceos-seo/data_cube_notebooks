@@ -123,6 +123,12 @@
         map.insert_image_with_bounds(id, result_path, tasks[id].latitude_min, tasks[id].latitude_max, tasks[id].longitude_min, tasks[id].longitude_max);
     }
 
+    //adds a task to the map by its id. if boolean filled is true, use the filled version.
+    function add_plot_to_map(id, plot_path) {
+        map.add_control(id, plot_path);
+    }
+
+
     //removes a result from the map and modifies the tasks and workers variables.
     //refreshes all relevant panels.
     function remove_result(id) {
@@ -158,6 +164,9 @@
             case "RESULT":
                 tasks[data.task.id] = data.task;
                 remove_task_bar(data.task.id);
+                if(data.task.plot_path) {
+                  add_plot_to_map(data.task.id, data.task.plot_path);
+                }
                 add_result_to_map(data.task.id, data.task.result_path);
                 loadHistoryPanel();
                 loadResultsPanel();
