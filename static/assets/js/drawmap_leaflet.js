@@ -81,6 +81,7 @@ function DrawMap(container_id, options) {
         });
         this.color_scale_collapsed.onAdd = function(map) {
             var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+            L.DomEvent.disableClickPropagation(container);
 
             container.onclick = function() {
                 self.map.removeControl(self.color_scale_collapsed);
@@ -91,12 +92,13 @@ function DrawMap(container_id, options) {
         };
         this.color_scale_expanded.onAdd = function(map) {
             var container = L.DomUtil.create('div', 'info');
+            L.DomEvent.disableClickPropagation(container);
 
             container.onclick = function() {
                 self.map.removeControl(self.color_scale_expanded);
                 self.map.addControl(self.color_scale_collapsed);
             }
-            container.innerHTML = `<img class="img-responsive thumbnail" src=` + options.color_scale + ` alt="">`;
+            container.innerHTML = `<img class="img-responsive" src=` + options.color_scale + ` alt="">`;
             return container;
         };
 
@@ -105,6 +107,7 @@ function DrawMap(container_id, options) {
 
     this.images = {};
     this.controls = {};
+    this.controls_collapsed = {};
 }
 
 
@@ -326,7 +329,7 @@ DrawMap.prototype.remove_image_by_id = function(id) {
  * Add a 2d plot in the form of a control div with an image url and id
  */
 DrawMap.prototype.add_control = function(id, image_url) {
-    this.controls[id] = L.control({
+    /*this.controls[id] = L.control({
         position: 'bottomright'
     });
 
@@ -336,7 +339,41 @@ DrawMap.prototype.add_control = function(id, image_url) {
         return container;
     };
 
-    this.controls[id].addTo(this.map);
+    this.controls[id].addTo(this.map);*/
+    var self = this;
+
+    this.controls[id] = L.control({
+        position: 'bottomright'
+    });
+    this.controls_collapsed[id] = L.control({
+        position: 'bottomright'
+    });
+
+    this.controls_collapsed[id].onAdd = function(map) {
+        var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom label');
+        L.DomEvent.disableClickPropagation(container);
+
+        container.onclick = function() {
+            self.map.removeControl(self.controls_collapsed[id]);
+            self.map.addControl(self.controls[id]);
+        }
+        container.innerHTML = `<span class="map_icon tooltipped">View 2D Plot</span>`;
+        return container;
+    };
+    this.controls[id].onAdd = function(map) {
+        var container = L.DomUtil.create('div', 'info map_plot');
+        L.DomEvent.disableClickPropagation(container);
+
+        container.onclick = function() {
+            self.map.removeControl(self.controls[id]);
+            self.map.addControl(self.controls_collapsed[id]);
+        }
+        container.innerHTML = `<img class="img-responsive" src=` + image_url + ` alt="">`;
+        return container;
+    };
+
+    this.controls_collapsed[id].addTo(this.map);
+
 }
 
 /**
@@ -345,6 +382,9 @@ DrawMap.prototype.add_control = function(id, image_url) {
 DrawMap.prototype.remove_control_by_id = function(id) {
     if (this.controls[id]) {
         this.map.removeControl(this.controls[id]);
+    }
+    if (this.controls_collapsed[id]) {
+        this.map.removeControl(this.controls_collapsed[id]);
     }
 }
 

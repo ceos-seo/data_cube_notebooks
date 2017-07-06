@@ -76,7 +76,7 @@
                     <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         {% for app in apps %}
-                        <li><a id="{{ app.id }}_task_mgr" tabindex="-1" href="/task_manager/{{ app.id }}">{{ app.name }}</a></li>
+                        <li><a id="{{ app.id }}_task_mgr" tabindex="-1" href="{% url 'get_task_manager' app_id=app.id %}">{{ app.name }}</a></li>
                         {% endfor %}
                     </ul>
                 </li>
