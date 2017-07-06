@@ -15,6 +15,7 @@ from utils.data_access_api import DataAccessApi
 from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
                                 add_timestamp_data_to_xr, clear_attrs)
 from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
+from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import CustomMosaicToolTask
 from apps.dc_algorithm.models import Satellite
@@ -464,13 +465,16 @@ def create_output_products(data, task_id=None):
                 if os.path.exists(path):
                     image = imageio.imread(path)
                     writer.append_data(image)
-    from apps.dc_algorithm.utils import create_2d_image
-    create_2d_image(
-        "/datacube/ui_results/figure.png",
-        dates=list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list'))),
-        datasets=task._get_field_as_list('clean_pixel_percentages_per_acquisition'),
-        data_labels="Clean Pixel Percentage (%)",
-        titles="Clean Pixel Percentage Per Acquisition")
+
+    dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
+    if len(dates) > 1:
+        task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+        create_2d_plot(
+            task.plot_path,
+            dates=dates,
+            datasets=task._get_field_as_list('clean_pixel_percentages_per_acquisition'),
+            data_labels="Clean Pixel Percentage (%)",
+            titles="Clean Pixel Percentage Per Acquisition")
 
     logger.info("All products created.")
     # task.update_bounds_from_dataset(dataset)

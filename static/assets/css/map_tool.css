@@ -75,7 +75,9 @@ hr {
 }
 
 /* Map css */
-
+.hidden {
+  display:none;
+}
 .leaflet-control.info {
     padding: 6px 8px;
     font: 14px/16px Arial, Helvetica, sans-serif;
@@ -93,7 +95,7 @@ hr {
 }
 .leaflet-control.info.map_plot img {
     max-height: 350px;
-    max-width: 1000px;
+    max-width: 100%;
 }
 .leaflet-bar.leaflet-control.leaflet-control-custom {
     width: 30px;

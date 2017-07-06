@@ -106,8 +106,8 @@ function DrawMap(container_id, options) {
     }
 
     this.images = {};
-    this.controls = {};
-    this.controls_collapsed = {};
+    this.map_plot = undefined;
+    this.map_plot_collapsed = undefined;
 }
 
 
@@ -328,63 +328,62 @@ DrawMap.prototype.remove_image_by_id = function(id) {
 /**
  * Add a 2d plot in the form of a control div with an image url and id
  */
-DrawMap.prototype.add_control = function(id, image_url) {
-    /*this.controls[id] = L.control({
-        position: 'bottomright'
-    });
-
-    this.controls[id].onAdd = function(map) {
-        var container = L.DomUtil.create('div', 'info 2d_plot');
-        container.innerHTML = `<img class="img-responsive thumbnail" src=` + image_url + ` alt="">`;
-        return container;
-    };
-
-    this.controls[id].addTo(this.map);*/
+DrawMap.prototype.add_toggle_control = function(id, on_title, off_title, callback) {
     var self = this;
 
-    this.controls[id] = L.control({
+    this.remove_toggle_control_by_id(id);
+
+    this.map_plot = L.control({
         position: 'bottomright'
     });
-    this.controls_collapsed[id] = L.control({
+    this.map_plot_collapsed = L.control({
         position: 'bottomright'
     });
 
-    this.controls_collapsed[id].onAdd = function(map) {
+    this.map_plot_collapsed.onAdd = function(map) {
         var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom label');
         L.DomEvent.disableClickPropagation(container);
 
         container.onclick = function() {
-            self.map.removeControl(self.controls_collapsed[id]);
-            self.map.addControl(self.controls[id]);
+            self.map.removeControl(self.map_plot_collapsed);
+            self.map.addControl(self.map_plot);
+            callback();
         }
-        container.innerHTML = `<span class="map_icon tooltipped">View 2D Plot</span>`;
+        container.innerHTML = `<span class="map_icon tooltipped">` + off_title + `</span>`;
         return container;
     };
-    this.controls[id].onAdd = function(map) {
-        var container = L.DomUtil.create('div', 'info map_plot');
+    this.map_plot.onAdd = function(map) {
+        var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom label');
         L.DomEvent.disableClickPropagation(container);
 
         container.onclick = function() {
-            self.map.removeControl(self.controls[id]);
-            self.map.addControl(self.controls_collapsed[id]);
+            self.map.removeControl(self.map_plot);
+            self.map.addControl(self.map_plot_collapsed);
+            callback();
         }
-        container.innerHTML = `<img class="img-responsive" src=` + image_url + ` alt="">`;
+        container.innerHTML = `<span class="map_icon tooltipped">` + on_title + `</span>`;
         return container;
     };
 
-    this.controls_collapsed[id].addTo(this.map);
+    this.map_plot_collapsed.addTo(this.map);
+}
 
+DrawMap.prototype.toggle_control = function(id) {
+  this.map.removeControl(this.map_plot);
+  this.map.addControl(this.map_plot_collapsed);
 }
 
 /**
  * Remove 2D plot control div by id.
  */
-DrawMap.prototype.remove_control_by_id = function(id) {
-    if (this.controls[id]) {
-        this.map.removeControl(this.controls[id]);
+DrawMap.prototype.remove_toggle_control_by_id = function(id) {
+    if (this.map_plot) {
+        this.map.removeControl(this.map_plot);
+        this.map_plot = undefined;
     }
-    if (this.controls_collapsed[id]) {
-        this.map.removeControl(this.controls_collapsed[id]);
+    if (this.map_plot_collapsed) {
+        this.map.removeControl(this.map_plot_collapsed);
+        this.map_plot_collapsed = undefined;
     }
 }
 

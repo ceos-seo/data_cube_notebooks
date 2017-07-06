@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from collections import Iterable
 
 
-def create_2d_image(path, dates=None, datasets=None, data_labels=None, titles=None):
+def create_2d_plot(path, dates=None, datasets=None, data_labels=None, titles=None, vertical=True):
     """Create a 2d image and save it to disk
 
     Args:
@@ -22,10 +22,11 @@ def create_2d_image(path, dates=None, datasets=None, data_labels=None, titles=No
     data_labels = data_labels if _iterable else [data_labels]
     titles = titles if _iterable else [titles]
 
-    columns = len(datasets)
-    figure = plt.figure(figsize=(columns * 6, 4))
+    plot_count = len(datasets)
+    figure = plt.figure(figsize=(6, plot_count * 4)) if vertical else plt.figure(figsize=(plot_count * 6, 4))
     for index, dataset in enumerate(datasets):
-        axes = figure.add_subplot(1, columns, index + 1)
+        axes = figure.add_subplot(plot_count, 1, index + 1) if vertical else figure.add_subplot(1, plot_count,
+                                                                                                index + 1)
         axes.plot(dates, datasets[index])
         axes.set_title(titles[index])
         axes.set_xlabel('Acquisition Date')
@@ -33,4 +34,5 @@ def create_2d_image(path, dates=None, datasets=None, data_labels=None, titles=No
 
     figure.tight_layout()
     figure.autofmt_xdate()
-    figure.savefig(path, orientation="landscape", format='png')
+    orientation = "portrait" if vertical else "landscape"
+    figure.savefig(path, orientation=orientation, format='png')
