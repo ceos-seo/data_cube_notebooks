@@ -181,7 +181,6 @@ class Metadata(BaseMetadata):
     class Meta(BaseMetadata.Meta):
         abstract = True
 
-    # TODO: Enter any additional metadata fields that you want to collect from a dataset here.
     def metadata_from_dataset(self, metadata, dataset, clear_mask, parameters):
         """implements metadata_from_dataset as required by the base class
 
@@ -245,6 +244,7 @@ class Result(BaseResult):
 
     clear_observations_path = models.CharField(max_length=250, default="")
     water_percentage_path = models.CharField(max_length=250, default="")
+    plot_path = models.CharField(max_length=250, default="")
     animation_path = models.CharField(max_length=250, default="None")
     data_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")

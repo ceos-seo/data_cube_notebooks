@@ -17,6 +17,7 @@ from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write
 from utils.dc_chunker import (create_geographic_chunks, generate_baseline, combine_geographic_chunks)
 from utils.dc_slip import compute_slip, mask_mosaic_with_slip
 from utils.dc_mosaic import create_mosaic
+from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import SlipTask
 from apps.dc_algorithm.models import Satellite
@@ -423,6 +424,19 @@ def create_output_products(data, task_id=None):
 
     write_png_from_xr(task.result_path, mask_mosaic_with_slip(dataset), bands=['red', 'green', 'blue'], scale=(0, 4096))
     write_png_from_xr(task.result_mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
+
+    dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
+    if len(dates) > 1:
+        task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+        create_2d_plot(
+            task.plot_path,
+            dates=dates,
+            datasets=[
+                task._get_field_as_list('clean_pixel_percentages_per_acquisition'),
+                task._get_field_as_list('slip_pixels_per_acquisition')
+            ],
+            data_labels=["Clean Pixel Percentage (%)", "SLIP Pixel Count (#)"],
+            titles=["Clean Pixel Percentage Per Acquisition", "SLIP Pixels Percentage Per Acquisition"])
 
     logger.info("All products created.")
     # task.update_bounds_from_dataset(dataset)

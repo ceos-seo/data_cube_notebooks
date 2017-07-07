@@ -230,6 +230,7 @@ class Result(BaseResult):
 
     # result path + other data. More to come.
     mosaic_path = models.CharField(max_length=250, default="")
+    plot_path = models.CharField(max_length=250, default="")
     data_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
 

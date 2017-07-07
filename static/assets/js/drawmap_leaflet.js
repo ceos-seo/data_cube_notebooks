@@ -268,7 +268,7 @@ DrawMap.prototype.insert_image_with_bounds = function(id, url, min_lat, max_lat,
  * Set the view based on the BB of an image.
  */
 DrawMap.prototype.zoom_to_image_by_id = function(id) {
-    this.map.fitBounds(this.images[id].image.getBounds(), {
+    this.map.flyToBounds(this.images[id].image.getBounds(), {
         padding: [50, 50]
     });
 }
