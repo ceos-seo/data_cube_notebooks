@@ -40,7 +40,7 @@ class IngestionMetadataForm(forms.Form):
         error_messages={'required': 'Source Dataset Type is required.'},
         widget=forms.Select(attrs={'class': "onchange_refresh",
                                    'onchange': "update_forms()"}),
-        required=False)
+        required=True)
 
     output_type = forms.CharField(
         label="Output Type Name",

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import connections
 from django.forms.models import model_to_dict
 
+import celery
 from celery.task import task
 from celery import chain, group, chord
 from celery.utils.log import get_task_logger
@@ -19,6 +20,24 @@ from apps.data_cube_manager.models import Dataset, DatasetType, DatasetSource, D
 from apps.data_cube_manager.templates.bulk_downloader import base_downloader_script, static_script
 
 logger = get_task_logger(__name__)
+
+
+class IngestionBase(celery.Task):
+    """Serves as a base class for ingestion tasks"""
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        """Onfailure call for celery tasks
+
+        all tasks should have a kwarg 'ingestion_request_id' that can be used to 'get' the model
+        from the app.
+
+        """
+        request_id = kwargs.get('ingestion_request_id')
+        try:
+            request = IngestionRequest.objects.get(pk=request_id)
+            request.update_status("ERROR", "There was an unhandled exception during the processing of your task.")
+        except IngestionRequest.DoesNotExist:
+            pass
 
 
 @task(name="data_cube_manager.run_ingestion")
@@ -66,8 +85,8 @@ def ingestion_work(output_type, source_type, ingestion_definition):
     return 0
 
 
-@task(name="data_cube_manager.ingestion_on_demand")
-def ingestion_on_demand(ingestion_request_id):
+@task(name="data_cube_manager.ingestion_on_demand", base=IngestionBase)
+def ingestion_on_demand(ingestion_request_id=None):
     """Kick off the ingestion on demand/active subset process
 
     Creates a Celery canvas that handles the full ingestion process.
@@ -88,7 +107,7 @@ def ingestion_on_demand(ingestion_request_id):
     index.close()
 
 
-@task(name="data_cube_manager.init_db")
+@task(name="data_cube_manager.init_db", base=IngestionBase)
 def init_db(ingestion_request_id=None):
     """Creates a new database and initializes it with the standard agdc schema
 
@@ -109,7 +128,7 @@ def init_db(ingestion_request_id=None):
     index.close()
 
 
-@task(name="data_cube_manager.add_source_datasets")
+@task(name="data_cube_manager.add_source_datasets", base=IngestionBase)
 def add_source_datasets(ingestion_request_id=None):
     """Populate the newly created database with source datasets that match the criteria
 
@@ -155,7 +174,7 @@ def add_source_datasets(ingestion_request_id=None):
     index.close()
 
 
-@task(name="data_cube_manager.ingest_subset")
+@task(name="data_cube_manager.ingest_subset", base=IngestionBase)
 def ingest_subset(ingestion_request_id=None):
     """Run the ingestion process on the new database
 
@@ -184,7 +203,7 @@ def ingest_subset(ingestion_request_id=None):
     index.close()
 
 
-@task(name="data_cube_manager.prepare_output")
+@task(name="data_cube_manager.prepare_output", base=IngestionBase)
 def prepare_output(ingestion_request_id=None):
     """Dump the database and perform cleanup functions
 
@@ -219,7 +238,7 @@ def prepare_output(ingestion_request_id=None):
     ingestion_request.update_status("OK", "Please follow the directions on the right side panel to download your cube.")
 
 
-@task(name="data_cube_manager.delete_ingestion_request")
+@task(name="data_cube_manager.delete_ingestion_request", base=IngestionBase)
 def delete_ingestion_request(ingestion_request_id=None):
     """Delete an existing ingestion request before proceeding with a new one"""
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)

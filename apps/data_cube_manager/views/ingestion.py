@@ -245,8 +245,6 @@ class CreateDataCubeSubset(View):
             Json response containing a pk to an ingestion request.
 
         """
-        if not request.user.is_superuser:
-            return JsonResponse({'status': "ERROR", 'message': "Only superusers can ingest new data."})
 
         form_data = request.POST
         measurements = json.loads(form_data.get('measurements'))
@@ -332,7 +330,7 @@ class CreateDataCubeSubset(View):
             longitude_max=metadata_form.cleaned_data['longitude_max'])
         ingestion_request.save()
 
-        tasks.ingestion_on_demand.delay(ingestion_request.pk)
+        tasks.ingestion_on_demand.delay(ingestion_request_id=ingestion_request.pk)
 
         return JsonResponse({'status': 'OK', 'ingestion_request_id': ingestion_request.pk})
 
