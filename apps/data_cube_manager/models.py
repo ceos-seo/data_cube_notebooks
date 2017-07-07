@@ -43,22 +43,28 @@ class Dataset(models.Model):
             dataset_type_ref = cleaned_form_data['dataset_type_ref'] if isinstance(
                 cleaned_form_data['dataset_type_ref'], Iterable) else [cleaned_form_data['dataset_type_ref']]
             base_query &= Q(dataset_type_ref__in=dataset_type_ref)
+        """
+        bool doOverlap(Point l1, Point r1, Point l2, Point r2)
+            {
+                // If one rectangle is on left side of other
+                if (l1.x > r2.x || l2.x > r1.x)
+                    return false;
 
-        # range intersections done like:
-        #   if x1[0] > x2[0] and x1[0] < x2[1] or x1[1] > x2[0] and x1[1] < x2[1]: return True
-        latitude_query = Q(metadata__extent__coord__lr__lat__gte=cleaned_form_data['latitude_min'],
-                           metadata__extent__coord__lr__lat__lt=cleaned_form_data['latitude_max']) | Q(
-                               metadata__extent__coord__ul__lat__gt=cleaned_form_data['latitude_min'],
-                               metadata__extent__coord__ul__lat_lt=cleaned_form_data['latitude_max']) | Q(
-                                   metadata__extent__coord__lr__lat__lt=cleaned_form_data['latitude_max'],
-                                   metadata__extent__coord__ul__lat_gt=cleaned_form_data['latitude_min'])
+                // If one rectangle is above other
+                if (l1.y < r2.y || l2.y < r1.y)
+                    return false;
 
-        longitude_query = Q(metadata__extent__coord__ul__lon__gt=cleaned_form_data['longitude_min'],
-                            metadata__extent__coord__ul__lon__lt=cleaned_form_data['longitude_max']) | Q(
-                                metadata__extent__coord__lr__lon__gt=cleaned_form_data['longitude_min'],
-                                metadata__extent__coord__lr__lon_lt=cleaned_form_data['longitude_max']) | Q(
-                                    metadata__extent__coord__ul__lon__lt=cleaned_form_data['longitude_max'],
-                                    metadata__extent__coord__lr__lon_gt=cleaned_form_data['longitude_min'])
+                return true;
+            }
+        """
+
+        longitude_query = ~Q(
+            Q(metadata__extent__coord__ul__lon__gt=cleaned_form_data['longitude_max']) | Q(
+                metadata__extent__coord__lr__lon__lt=cleaned_form_data['longitude_min']))
+
+        latitude_query = ~Q(
+            Q(metadata__extent__coord__ul__lat__lt=cleaned_form_data['latitude_min']) | Q(
+                metadata__extent__coord__lr__lat__gt=cleaned_form_data['latitude_max']))
 
         time_query = Q(metadata__extent__center_dt__lte=cleaned_form_data['end_date'].isoformat(),
                        metadata__extent__center_dt__gte=cleaned_form_data['start_date'].isoformat())
@@ -178,7 +184,7 @@ class IngestionRequest(models.Model):
     download_script_path = models.CharField(max_length=100, default="")
 
     status = models.CharField(max_length=50, default="WAIT")
-    message = models.CharField(max_length=100, default="Please wait while your Data Cube is created.")
+    message = models.CharField(max_length=150, default="Please wait while your Data Cube is created.")
 
     def update_status(self, status, message):
         self.status = status

@@ -164,7 +164,7 @@
         values[field.name] = field.value;
     });
     var request = new XMLHttpRequest();
-    request.open("POST", '/data_cube_manager/ingestion/{% url "validate_ingestion_measurement" %}', false);
+    request.open("POST", '{% url "validate_ingestion_measurement" %}', false);
     //request.timeout = 100;
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     request.setRequestHeader("X-CSRFToken", csrftoken);

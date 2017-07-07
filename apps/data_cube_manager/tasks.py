@@ -35,7 +35,9 @@ class IngestionBase(celery.Task):
         request_id = kwargs.get('ingestion_request_id')
         try:
             request = IngestionRequest.objects.get(pk=request_id)
-            request.update_status("ERROR", "There was an unhandled exception during the processing of your task.")
+            request.update_status(
+                "ERROR",
+                "There was an unhandled exception during ingestion. Did you change the src_varname of any measurement?")
         except IngestionRequest.DoesNotExist:
             pass
 
@@ -103,8 +105,6 @@ def ingestion_on_demand(ingestion_request_id=None):
                           add_source_datasets.si(ingestion_request_id=ingestion_request_id) |
                           ingest_subset.si(ingestion_request_id=ingestion_request_id) |
                           prepare_output.si(ingestion_request_id=ingestion_request_id))()
-
-    index.close()
 
 
 @task(name="data_cube_manager.init_db", base=IngestionBase)
@@ -191,14 +191,19 @@ def ingest_subset(ingestion_request_id=None):
     # Thisis done because of something that the agdc guys do in ingest: https://github.com/opendatacube/datacube-core/blob/develop/datacube/scripts/ingest.py#L168
     ingestion_request.ingestion_definition['filename'] = "ceos_data_cube_sample.yaml"
 
-    source_type, output_type = ingest.make_output_type(index, ingestion_request.ingestion_definition)
-    tasks = list(ingest.create_task_list(index, output_type, None, source_type, ingestion_request.ingestion_definition))
+    try:
+        source_type, output_type = ingest.make_output_type(index, ingestion_request.ingestion_definition)
+        tasks = list(
+            ingest.create_task_list(index, output_type, None, source_type, ingestion_request.ingestion_definition))
 
-    ingestion_request.total_storage_units = len(tasks)
-    ingestion_request.update_status("WAIT", "Starting the ingestion process...")
+        ingestion_request.total_storage_units = len(tasks)
+        ingestion_request.update_status("WAIT", "Starting the ingestion process...")
 
-    successful, failed = ingest.process_tasks(index, ingestion_request.ingestion_definition, source_type, output_type,
-                                              tasks, 3200, get_executor(None, None))
+        successful, failed = ingest.process_tasks(index, ingestion_request.ingestion_definition, source_type,
+                                                  output_type, tasks, 3200, get_executor(None, None))
+    except:
+        index.close()
+        raise
 
     index.close()
 
