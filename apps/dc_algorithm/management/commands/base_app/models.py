@@ -280,6 +280,7 @@ class Result(BaseResult):
     # TODO: Add or remove any paths that you need to store results.
     # the base path is 'result_path' - any additional go here.
     result_filled_path = models.CharField(max_length=250, default="")
+    plot_path = models.CharField(max_length=250, default="")
     animation_path = models.CharField(max_length=250, default="None")
     data_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
