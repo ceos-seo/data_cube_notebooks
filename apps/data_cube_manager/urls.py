@@ -24,6 +24,9 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
+    # visualization tool related functionality
+    url(r'^visualization$', views.DataCubeVisualization.as_view(), name='visualization'),
+    url(r'^get_ingested_areas$', views.GetIngestedAreas.as_view(), name='get_ingested_areas'),
     # dataset type related functionality - view list, view single, create new, delete
     url(r'^dataset_types$', views.DatasetTypeListView.as_view(), name='dataset_types'),
     url(r'^dataset_types/view/(?P<dataset_type_id>[\w\-]+)$', views.DatasetTypeView.as_view(), name='dataset_type'),

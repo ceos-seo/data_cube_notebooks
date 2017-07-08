@@ -186,6 +186,9 @@ class IngestionRequest(models.Model):
     status = models.CharField(max_length=50, default="WAIT")
     message = models.CharField(max_length=150, default="Please wait while your Data Cube is created.")
 
+    def __str__(self):
+        return self.user
+
     def update_status(self, status, message):
         self.status = status
         self.message = message
@@ -199,4 +202,83 @@ class IngestionRequest(models.Model):
 
     def update_storage_unit_count(self):
         self.storage_units_processed = len(glob(self.get_base_data_path() + "/*.nc"))
+        self.save()
+
+
+class IngestionDetails(models.Model):
+    """Acts as a cached version of the Data Cube ingested datasets details
+
+    Updated by a celery task that runs periodically, then served to the visualization tool
+    as a json response.
+
+    """
+    datase_type_ref = models.IntegerField(primary_key=True)
+    product = models.CharField(max_length=100)
+    platform = models.CharField(max_length=100, default="")
+    global_dataset = models.BooleanField(default=False)
+
+    start_date = models.DateField('start_date', blank=True, null=True)
+    end_date = models.DateField('end_date', blank=True, null=True)
+    latitude_min = models.FloatField(default=0)
+    latitude_max = models.FloatField(default=0)
+    longitude_min = models.FloatField(default=0)
+    longitude_max = models.FloatField(default=0)
+
+    pixel_count = models.IntegerField(default=0)
+    scene_count = models.IntegerField(default=0)
+
+    def __str__(self):
+        return "{} - {}".format(self.product, self.platform)
+
+    def get_serialized_response(self):
+        """Returns json serializable data as required by the visualization tool
+
+        {
+    		"product": "ls5_ledaps_bangladesh",
+    		"time_extents": "1990-01-23 03:46:40 - 2011-09-30 04:12:38",
+    		"lon_extents": [89.405167326, 92.233509888],
+    		"lat_extents": [23.524819572000002, 26.002656],
+    		"pixel_count": 87756764,
+    		"scene_count": 186
+    	}
+
+        """
+
+        return {
+            'dataset_type_ref': self.datase_type_ref,
+            'product': self.product,
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+            'latitude_min': self.latitude_min,
+            'latitude_max': self.latitude_max,
+            'longitude_min': self.longitude_min,
+            'longitude_max': self.longitude_max,
+            'pixel_count': self.pixel_count,
+            'scene_count': self.scene_count
+        }
+
+    def update_with_query_metadata(self, metadata_dict):
+        """Update this model using a DataAccessApi.get_query_metadata call
+
+        {
+            'lat_extents': (0, 0),
+            'lon_extents': (0, 0),
+            'time_extents': (0, 0),
+            'scene_count': 0,
+            'pixel_count': 0,
+            'tile_count': 0,
+            'storage_units': {}
+        }
+
+        """
+        self.start_date = metadata_dict['time_extents'][0]
+        self.end_date = metadata_dict['time_extents'][1]
+        self.latitude_min = metadata_dict['lat_extents'][0]
+        self.latitude_max = metadata_dict['lat_extents'][1]
+        self.longitude_min = metadata_dict['lon_extents'][0]
+        self.longitude_max = metadata_dict['lon_extents'][1]
+
+        self.pixel_count = metadata_dict['pixel_count']
+        self.scene_count = metadata_dict['tile_count']
+
         self.save()

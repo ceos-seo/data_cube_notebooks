@@ -1,11 +1,14 @@
 from django.conf import settings
 from django.db import connections
 from django.forms.models import model_to_dict
+from django.db.models import Q
 
 import celery
 from celery.task import task
 from celery import chain, group, chord
 from celery.utils.log import get_task_logger
+from celery.decorators import periodic_task
+from celery.task.schedules import crontab
 from datacube.index import index_connect
 from datacube.executor import get_executor
 from datacube.config import LocalConfig
@@ -16,8 +19,10 @@ import configparser
 from glob import glob
 import shutil
 
-from apps.data_cube_manager.models import Dataset, DatasetType, DatasetSource, DatasetLocation, IngestionRequest
+from apps.data_cube_manager.models import (Dataset, DatasetType, DatasetSource, DatasetLocation, IngestionRequest,
+                                           IngestionDetails)
 from apps.data_cube_manager.templates.bulk_downloader import base_downloader_script, static_script
+from utils.data_access_api import DataAccessApi
 
 logger = get_task_logger(__name__)
 
@@ -40,6 +45,25 @@ class IngestionBase(celery.Task):
                 "There was an unhandled exception during ingestion. Did you change the src_varname of any measurement?")
         except IngestionRequest.DoesNotExist:
             pass
+
+
+@periodic_task(
+    name="data_cube_manager.get_data_cube_details",
+    run_every=(30.0),
+    #run_every=(crontab(hour=0, minute=0)),
+    ignore_result=True)
+def update_data_cube_details(ingested_only=True):
+    dataset_types = DatasetType.objects.using('agdc').filter(
+        Q(definition__has_keys=['managed']) & Q(definition__has_keys=['measurements']))
+
+    dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf')
+
+    for dataset_type in dataset_types:
+        ingestion_details, created = IngestionDetails.objects.get_or_create(
+            datase_type_ref=dataset_type.id,
+            product=dataset_type.name,
+            platform=dataset_type.metadata['platform']['code'])
+        ingestion_details.update_with_query_metadata(dc.get_datacube_metadata(dataset_type.name))
 
 
 @task(name="data_cube_manager.run_ingestion")

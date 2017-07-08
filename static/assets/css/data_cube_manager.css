@@ -67,3 +67,13 @@ tr.shown td span.glyphicon-chevron-up {
 .table-hover > tbody > tr.active_measurement:hover {
   background-color: #C6D9F1;
 }
+.area_details_container {
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid #c9c9c9;
+  border-radius: 4px;
+  padding: 5px;
+  display: none;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
