@@ -66,10 +66,13 @@ INSTALLED_APPS = [
     'apps.slip',
     'apps.coastal_change',
     'apps.ndvi_anomaly',
+    'apps.urbanization',
+    'apps.cloud_coverage',
     'apps.dc_algorithm',
     'apps.pages',
-    'data_cube_ui',
     'apps.accounts',
+    'apps.data_cube_manager',
+    'data_cube_ui',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -136,7 +139,16 @@ DATABASES = {
         'USER': 'dc_user',
         'PASSWORD': 'dcuser1',
         'HOST': MASTER_NODE
-    }
+    },
+    'agdc': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'OPTIONS': {
+            'options': '-c search_path=agdc'
+        },
+        'NAME': 'datacube',
+        'USER': 'dc_user',
+        'PASSWORD': 'dcuser1',
+    },
 }
 
 # Password validation
@@ -192,52 +204,36 @@ CELERY_ACKS_LATE = True
 CELERY_TIMEZONE = 'UTC'
 
 BOOTSTRAP3 = {
-
     # The URL to the jQuery JavaScript file
     'jquery_url': '//code.jquery.com/jquery.min.js',
-
     # The Bootstrap base URL
     'base_url': '//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/',
-
     # The complete URL to the Bootstrap CSS file (None means derive it from base_url)
     'css_url': None,
-
     # The complete URL to the Bootstrap CSS file (None means no theme)
     'theme_url': None,
-
     # The complete URL to the Bootstrap JavaScript file (None means derive it from base_url)
     'javascript_url': None,
-
     # Put JavaScript in the HEAD section of the HTML document (only relevant if you use bootstrap3.html)
     'javascript_in_head': False,
-
     # Include jQuery with Bootstrap JavaScript (affects django-bootstrap3 template tags)
     'include_jquery': True,
-
     # Label class to use in horizontal forms
     'horizontal_label_class': 'col-md-3',
-
     # Field class to use in horizontal forms
     'horizontal_field_class': 'col-md-9',
-
     # Set HTML required attribute on required fields, for Django <= 1.8 only
     'set_required': True,
-
     # Set HTML disabled attribute on disabled fields, for Django <= 1.8 only
     'set_disabled': False,
-
     # Set placeholder attributes to label if no placeholder is provided
     'set_placeholder': True,
-
     # Class to indicate required (better to set this in your Django form)
     'required_css_class': '',
-
     # Class to indicate error (better to set this in your Django form)
     'error_css_class': 'has-error',
-
     # Class to indicate success, meaning the field has valid input (better to set this in your Django form)
     'success_css_class': 'has-success',
-
     # Renderers (only set these if you have studied the source and understand the inner workings)
     'formset_renderers': {
         'default': 'bootstrap3.renderers.FormsetRenderer',

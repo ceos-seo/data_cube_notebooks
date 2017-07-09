@@ -26,8 +26,6 @@ under the License.
   <div class="col-lg-6">
     <h2 class="page-header">Task Details</h2>
     <dl class="dl-horizontal">
-      <dt>User ID</dt>
-      <dd>{{task.user_id}}</dd>
       <dt>Title</dt>
       <dd>{{task.title}}</dd>
       <dt>Description</dt>
@@ -61,7 +59,7 @@ under the License.
       <dt>(Lat, Lon) Max</dt>
       <dd>({{task.latitude_max|floatformat:6}} , {{task.longitude_max|floatformat:6}})</dd>
       <dt>Compositing Method</dt>
-      <dd>{{task.get_compositor_name}}</dd>
+      <dd>{{task.compositor}}</dd>
     </dl>
   </div>
   <div class="col-lg-6">

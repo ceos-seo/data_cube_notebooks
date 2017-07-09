@@ -342,7 +342,7 @@ The output of our script can be seen below - feel free to copy and paste the com
 ... dc = datacube.Datacube()
 >>>
 >>> print(dc)
-Datacube<index=Index<db=PostgresDb<engine=Engine(postgresql://dc_user:***@:5432/datacube)>>>
+Datacube<index=Index<db=PostgresDb<engine=Engine(postgresql://localuser:***@:5432/datacube)>>>
 >>>
 >>> #now, query the data cube for some data using the name of the product type
 ... #if you added a different dataset type, use that here.

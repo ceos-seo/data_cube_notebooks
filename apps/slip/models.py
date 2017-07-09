@@ -21,7 +21,6 @@
 
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.conf import settings
 
 from apps.dc_algorithm.models import Area, Compositor, Satellite
 from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as
@@ -75,13 +74,13 @@ class Query(BaseQuery):
     baseline_method = models.ForeignKey(BaselineMethod)
     baseline_length = models.IntegerField(default=10)
 
-    config_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
     measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/slip'
 
     class Meta(BaseQuery.Meta):
-        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
-                            'longitude_min', 'title', 'description', 'baseline_method', 'baseline_length'))
+        unique_together = (
+            ('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
+             'longitude_min', 'title', 'description', 'baseline_method', 'baseline_length'))
         abstract = True
 
     def get_fields_with_labels(self, labels, field_names):
@@ -238,6 +237,7 @@ class Result(BaseResult):
     """
 
     result_mosaic_path = models.CharField(max_length=250, default="")
+    plot_path = models.CharField(max_length=250, default="")
     data_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
 

@@ -79,7 +79,6 @@ class Query(BaseQuery):
     query_type = models.ForeignKey(ResultType)
     animated_product = models.ForeignKey(AnimationType)
 
-    config_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
     measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/water_detection'
     color_scales = {
@@ -253,6 +252,7 @@ class Result(BaseResult):
 
     water_observations_path = models.CharField(max_length=250, default="")
     clear_observations_path = models.CharField(max_length=250, default="")
+    plot_path = models.CharField(max_length=250, default="")
     animation_path = models.CharField(max_length=250, default="None")
     data_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")

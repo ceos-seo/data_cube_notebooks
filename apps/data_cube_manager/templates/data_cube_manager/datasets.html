@@ -1,0 +1,213 @@
+{% extends "default.html" %}
+<!--
+Copyright 2016 United States Government as represented by the Administrator
+of the National Aeronautics and Space Administration. All Rights Reserved.
+
+Portion of this code is Copyright Geoscience Australia, Licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the License
+at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+-->
+{% block javascript %}
+<script type="text/javascript" charset="utf8" src="/static/assets/js/DataTables/media/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/static/assets/js/DataTables/media/js/dataTables.bootstrap.min.js"></script>
+{% endblock %}
+{% block css %}
+<link href="/static/assets/css/data_cube_manager.css" rel="stylesheet" type="text/css" media="screen, projection" />
+<link rel="stylesheet" type="text/css" href="/static/assets/js/DataTables/media/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% load bootstrap3 %}
+{% block content %}
+<div class="container-fluid no_footer">
+  <div class="row fullscreen-row">
+    <div class="col-lg-12 seamless-col col-centered fullscreen-col table-container">
+      <div class="page-header">
+        <h1>Datasets</h1>
+        <div class="row">
+          <p class="col-lg-9 col-md-10 col-sm-11 col-xs-12">
+            Datasets are individual chunks of data - either full acquisitions (scenes) or chunks of acquisitions created during ingestion.
+            Information found in the dataset is the id, added date, and acquisition/chunk data such as extents, date acquired, and path to dataset.
+            The table found on this page contains the datasets that match the criteria specified by the datasets form.
+          </p>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <form id="filtering_form" action="">
+          {% csrf_token %}
+          {% bootstrap_form form bound_css_class="" %}
+        </form>
+        {% if user.is_authenticated and user.is_superuser %}
+          <button class="btn btn-danger" onclick="get_deletion_confirmation()">Delete filtered datasets</button>
+        {% endif %}
+        <button id="subset_btn_disabled" style="display:none;" class="btn btn-disabled">Select a single product to create a subset</button>
+        <a id="subset_btn" class="btn btn-default" href="{% url 'create_ingestion_subset' %}?">Create Data Cube request</a>
+      </div>
+      <div id="table_container" class="col-lg-8">
+        <table id="data_table" class="table table-hover full" style="min-height: 600px;">
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Platform</th>
+              <th>Instrument</th>
+              <th>Product Type</th>
+              <th>Upper Left</th>
+              <th>Lower Right</th>
+              <th>Dataset Acq. Date</th>
+              <th>Format</th>
+            </tr>
+          </thead>
+          <!--tbody>
+            {% for dataset in datasets %}
+            <tr>
+              <td>{{ dataset.id }}</td>
+              <td>{{ dataset.metadata.platform.code }}</td>
+              <td>{{ dataset.metadata.instrument.name }}</td>
+              <td>{{ dataset.metadata.product_type }}</td>
+              <td>{{ dataset.metadata.extent.coord.ul.lon|floatformat:2 }}, {{dataset.metadata.extent.coord.ul.lat|floatformat:2 }}</td>
+              <td>{{ dataset.metadata.extent.coord.lr.lon|floatformat:2 }}, {{ dataset.metadata.extent.coord.lr.lat|floatformat:2 }}</td>
+              <td>{{ dataset.metadata.extent.center_dt }}</td>
+              <td>{{ dataset.metadata.format.name }}</td>
+            </tr>
+            {% endfor %}
+          </tbody-->
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="warning_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Dataset Deletion</h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" onclick="delete_datasets()" class="btn btn-danger" data-dismiss="modal">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="dialog_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-sm">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"></h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+
+  function create_ingestion_link() {
+    jQuery("#subset_btn_disabled").hide();
+    jQuery("#subset_btn").show();
+    var values = {};
+    jQuery.each(jQuery("#filtering_form").serializeArray(), function(i, field) {
+        if(values[field.name]) {
+          jQuery("#subset_btn").hide();
+          jQuery("#subset_btn_disabled").show();
+          return false;
+        }
+        values[field.name] = field.value;
+    });
+    jQuery("#subset_btn").attr('href', "{% url 'create_ingestion_subset' %}?" + jQuery("#filtering_form").serialize());
+  }
+
+  function get_deletion_confirmation() {
+    form_data = $('#filtering_form').serialize();
+    jQuery.get('{% url "delete_datasets" %}', form_data, function(result) {
+      if(result.status == "ERROR") {
+        set_modal_content("Alert", result.message);
+        return;
+      }
+      jQuery("#warning_modal .modal-body p").text("Deleting datasets is a permanent operation and can not be undone. \
+        With the current filter settings, you have selected " + result.total_records + " datasets for deletion from \
+        a total of " + result.total_dataset_types + " dataset type(s).");
+      jQuery("#warning_modal").modal();
+    });
+  }
+
+  function delete_datasets() {
+    form_data = $('#filtering_form').serialize();
+    jQuery.post('{% url "delete_datasets" %}', form_data, function(result) {
+      if(result.status == "ERROR") {
+        set_modal_content("Alert", result.message);
+        return;
+      }
+      set_modal_content("Alert", "Your selected datasets have been deleted.");
+      table.draw();
+    });
+  }
+
+  var table;
+  $(document).ready( function () {
+    table = $('#data_table').DataTable({
+      "lengthMenu": [[15, 25, 50, -1], [15, 25, 50, "All"]],
+      "ordering": false,
+      "processing": true,
+      "serverSide": true,
+      "searching": false,
+      "ajax": {
+        "url": "{% url 'datasets' %}",
+        "type": "POST",
+        "data": function ( d ) {
+            d.form_data = $('#filtering_form').serialize();
+        }
+      },
+      "columns": [{"name": "id", "orderable": false},
+                  {"name": "metadata__platform__code", "orderable": false},
+                  {"name": "metadata__instrument__name", "orderable": false},
+                  {"name": "metadata__product_type", "orderable": false},
+                  {"name": "ul", "orderable": false},
+                  {"name": "lr", "orderable": false},
+                  {"name": "metadata__extent__center_dt", "orderable": false},
+                  {"name": "metadata__format__name", "orderable": false}]
+    });
+
+    $('.datepicker').datepicker({
+        changeMonth: true,
+        changeYear: true,
+        showButtonPanel: true,
+        yearRange: "-30:+0"
+    });
+
+    jQuery(".onchange_filter").change(function() {
+      create_ingestion_link();
+      table.draw();
+    });
+  });
+
+  function set_modal_content(title, body) {
+    jQuery("#dialog_modal .modal-title").text(title);
+    jQuery("#dialog_modal .modal-body p").text(body);
+    jQuery("#dialog_modal").modal();
+  }
+</script>
+{% endblock %}

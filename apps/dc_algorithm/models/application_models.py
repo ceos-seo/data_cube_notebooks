@@ -47,12 +47,15 @@ class Satellite(models.Model):
 
     """
 
-    datacube_platform = models.CharField(max_length=50, unique=True)
+    datacube_platform = models.CharField(max_length=50)
     name = models.CharField(max_length=25)
     product_prefix = models.CharField(max_length=100)
 
     date_min = models.DateField('date_min', default=datetime.date.today)
     date_max = models.DateField('date_min', default=datetime.date.today)
+
+    class Meta:
+        unique_together = (('datacube_platform', 'product_prefix'))
 
     def __str__(self):
         return self.datacube_platform

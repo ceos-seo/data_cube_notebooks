@@ -1,0 +1,53 @@
+<!--
+    Copyright 2016 United States Government as represented by the Administrator
+    of the National Aeronautics and Space Administration. All Rights Reserved.
+
+    Portion of this code is Copyright Geoscience Australia, Licensed under the
+    Apache License, Version 2.0 (the "License"); you may not use this file
+    except in compliance with the License. You may obtain a copy of the License
+    at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0.
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+    License for the specific language governing permissions and limitations
+    under the License.
+  -->
+{% load bootstrap3 %}
+<table class="table table-hover" style="">
+  <tbody id="measurements_table">
+    {% for measurement_name, measurement in measurements.items %}
+      <tr id="{{ measurement_name }}_row" class="measurement-row">
+        <td onclick='set_form_visible("{{ measurement_name }}")'>{{ measurement_name }}</td>
+        {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement('{{ measurement_name }}')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div id="measurement_record_container" style="display:none;">
+  {% for measurement_name, existing_measurement in measurements.items %}
+    <div id="{{measurement_name}}">
+      <form class="measurement_form record">
+        {% if existing_measurement %}
+          {% bootstrap_form existing_measurement %}
+        {% endif %}
+      </form>
+      <button class="btn btn-danger pull-right" onclick="cancel_update(this)">Cancel change</button>
+      <button class="btn btn-default pull-right" onclick="update_measurement(this)">Update measurement</button>
+    </div>
+  {% endfor %}
+</div>
+<script>
+  jQuery(function() {
+    {% if initial_measurement %}
+      set_form_visible("{{ initial_measurement }}")
+    {% endif %}
+  });
+</script>

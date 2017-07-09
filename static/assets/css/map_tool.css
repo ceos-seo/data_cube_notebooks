@@ -75,7 +75,9 @@ hr {
 }
 
 /* Map css */
-
+.hidden {
+  display:none;
+}
 .leaflet-control.info {
     padding: 6px 8px;
     font: 14px/16px Arial, Helvetica, sans-serif;
@@ -91,14 +93,22 @@ hr {
     max-height: 750px;
     max-width: 450px;
 }
-.leaflet-control.info.2d_plot img {
-    max-height: 250px;
-    max-width: 500px;
+.leaflet-control.info.map_plot img {
+    max-height: 350px;
+    max-width: 100%;
 }
 .leaflet-bar.leaflet-control.leaflet-control-custom {
     width: 30px;
     height: 30px;
     background: rgba(255, 255, 255, 0.8);
+}
+.leaflet-bar.leaflet-control.leaflet-control-custom.label {
+    width: auto;
+    height: auto;
+    background: rgba(255, 255, 255, 0.8);
+    color: black;
+    font-size: 20px;
+    cursor: pointer;
 }
 .glyphicon_container {
     text-decoration: none;

@@ -17,6 +17,7 @@ from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write
 from utils.dc_chunker import (create_geographic_chunks, generate_baseline, combine_geographic_chunks)
 from utils.dc_slip import compute_slip, mask_mosaic_with_slip
 from utils.dc_mosaic import create_mosaic
+from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import SlipTask
 from apps.dc_algorithm.models import Satellite
@@ -45,8 +46,10 @@ def run(task_id=None):
     Chains the parsing of parameters, validation, chunking, and the start to data processing.
     """
     chain(
-        parse_parameters_from_task.s(task_id),
-        validate_parameters.s(task_id), perform_task_chunking.s(task_id), start_chunk_processing.s(task_id))()
+        parse_parameters_from_task.s(task_id=task_id),
+        validate_parameters.s(task_id=task_id),
+        perform_task_chunking.s(task_id=task_id),
+        start_chunk_processing.s(task_id=task_id))()
     return True
 
 
@@ -188,8 +191,9 @@ def start_chunk_processing(chunk_details, task_id=None):
     time_chunks = chunk_details.get('time_chunks')
 
     task = SlipTask.objects.get(pk=task_id)
-    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time'] if
-                                                                     task.get_chunk_size()['time'] is not None else 1)
+    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time']
+                                                                     if task.get_chunk_size()['time'] is not None else
+                                                                     len(time_chunks[0]))
     task.scenes_processed = 0
     task.update_status("WAIT", "Starting processing.")
 
@@ -344,7 +348,7 @@ def recombine_time_chunks(chunks, task_id=None):
         combined_data = create_mosaic(data.drop('slip'), clean_mask=clear_mask, intermediate_product=combined_data)
         combined_slip.values[combined_slip.values == 0] = data.slip.values[combined_slip.values == 0]
 
-    # Since we added a time dim to combined_slip, we need to remove it here. 
+    # Since we added a time dim to combined_slip, we need to remove it here.
     combined_data['slip'] = combined_slip.isel(time=0, drop=True)
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
     combined_data.to_netcdf(path)
@@ -421,8 +425,21 @@ def create_output_products(data, task_id=None):
     write_png_from_xr(task.result_path, mask_mosaic_with_slip(dataset), bands=['red', 'green', 'blue'], scale=(0, 4096))
     write_png_from_xr(task.result_mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
 
+    dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
+    if len(dates) > 1:
+        task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+        create_2d_plot(
+            task.plot_path,
+            dates=dates,
+            datasets=[
+                task._get_field_as_list('clean_pixel_percentages_per_acquisition'),
+                task._get_field_as_list('slip_pixels_per_acquisition')
+            ],
+            data_labels=["Clean Pixel Percentage (%)", "SLIP Pixel Count (#)"],
+            titles=["Clean Pixel Percentage Per Acquisition", "SLIP Pixels Percentage Per Acquisition"])
+
     logger.info("All products created.")
-    task.update_bounds_from_dataset(dataset)
+    # task.update_bounds_from_dataset(dataset)
     task.complete = True
     task.execution_end = datetime.now()
     task.update_status("OK", "All products have been generated. Your result will be loaded on the map.")

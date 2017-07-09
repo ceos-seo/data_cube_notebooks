@@ -21,7 +21,7 @@ Container begins here.
     display: table;
     height: calc(100% - 45px);
 }
-.no-footer {
+.no_footer {
     height: 100%;
 }
 
