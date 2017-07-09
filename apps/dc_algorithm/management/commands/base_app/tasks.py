@@ -12,18 +12,22 @@ import imageio
 from collections import OrderedDict
 
 from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import ( create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
+from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
                                 add_timestamp_data_to_xr, clear_attrs)
 from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
+from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import AppNameTask
 from apps.dc_algorithm.models import Satellite
 from apps.dc_algorithm.tasks import DCAlgorithmBase
 
-
 logger = get_task_logger(__name__)
+
+
 class BaseTask(DCAlgorithmBase):
-    app_name = 'app_name'
+    # TODO: replace the __app__name var with app_name - avoids the auto rename.
+    __app__name = 'app_name'
+
 
 @task(name="app_name.run", base=BaseTask)
 def run(task_id=None):
@@ -32,8 +36,10 @@ def run(task_id=None):
     Chains the parsing of parameters, validation, chunking, and the start to data processing.
     """
     chain(
-        parse_parameters_from_task.s(task_id),
-        validate_parameters.s(task_id), perform_task_chunking.s(task_id), start_chunk_processing.s(task_id))()
+        parse_parameters_from_task.s(task_id=task_id),
+        validate_parameters.s(task_id=task_id),
+        perform_task_chunking.s(task_id=task_id),
+        start_chunk_processing.s(task_id=task_id))()
     return True
 
 
@@ -177,8 +183,9 @@ def start_chunk_processing(chunk_details, task_id=None):
     time_chunks = chunk_details.get('time_chunks')
 
     task = AppNameTask.objects.get(pk=task_id)
-    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time'] if
-                                                                     task.get_chunk_size()['time'] is not None else 1)
+    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time']
+                                                                     if task.get_chunk_size()['time'] is not None else
+                                                                     len(time_chunks[0]))
     task.scenes_processed = 0
     task.update_status("WAIT", "Starting processing.")
 
@@ -315,7 +322,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
 
     for index, chunk in enumerate(total_chunks):
         metadata = task.combine_metadata(metadata, chunk[1])
-        chunk_data.append(, autoclose=True(chunk[0], autoclose=True))
+        chunk_data.append(xr.open_dataset(chunk[0], autoclose=True))
 
     combined_data = combine_geographic_chunks(chunk_data)
 
@@ -465,14 +472,26 @@ def create_output_products(data, task_id=None):
     # TODO: if there is no animation, remove this. Otherwise, open each time iteration slice and write to disk.
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
-            valid_range = reversed(range(len(
-                full_metadata))) if task.animated_product.animation_id == "scene" and task.get_reverse_time() else range(
-                    len(full_metadata))
+            valid_range = reversed(
+                range(len(full_metadata))) if task.animated_product.animation_id == "scene" and task.get_reverse_time(
+                ) else range(len(full_metadata))
             for index in valid_range:
                 path = os.path.join(task.get_temp_path(), "animation_{}.png".format(index))
                 if os.path.exists(path):
                     image = imageio.imread(path)
                     writer.append_data(image)
+
+    # TODO: if you're capturing more tabular metadata, plot it here by converting these to lists.
+    # an example of this is the current water detection app.
+    dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
+    if len(dates) > 1:
+        task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+        create_2d_plot(
+            task.plot_path,
+            dates=dates,
+            datasets=task._get_field_as_list('clean_pixel_percentages_per_acquisition'),
+            data_labels="Clean Pixel Percentage (%)",
+            titles="Clean Pixel Percentage Per Acquisition")
 
     logger.info("All products created.")
     # task.update_bounds_from_dataset(dataset)

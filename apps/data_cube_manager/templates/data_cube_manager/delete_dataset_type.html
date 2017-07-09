@@ -1,0 +1,129 @@
+{% extends "data_cube_manager/page_table_with_header.html" %}
+<!--
+    Copyright 2016 United States Government as represented by the Administrator
+    of the National Aeronautics and Space Administration. All Rights Reserved.
+
+    Portion of this code is Copyright Geoscience Australia, Licensed under the
+    Apache License, Version 2.0 (the "License"); you may not use this file
+    except in compliance with the License. You may obtain a copy of the License
+    at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0.
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+    License for the specific language governing permissions and limitations
+    under the License.
+  -->
+{% block header %}Delete Dataset Type{% endblock %}
+{% block description %}
+Deleting a dataset type will remove it and all its datasets from the database.
+This process will only remove the references to the data from the database and will not delete the storage units on disk.
+In the future this functionality may be added, but for now a system administrator must manually delete the files.
+<br>
+<strong>This process is not reversible and can not be undone. Please verify that the storage units listed below can be removed from the database.</strong>
+{% endblock %}
+
+{% block table %}
+<table id="data_table" class="table table-hover full">
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Spatial Reference</th>
+      <th>Upper Left</th>
+      <th>Lower Right</th>
+      <th>Dataset Acq. Date</th>
+      <th>Format</th>
+      <th>Added Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for dataset in datasets %}
+    <tr>
+      <td>{{ dataset.id }}</td>
+      <td>{{ dataset.metadata.grid_spatial.projection.spatial_reference }}</td>
+      <td>{{ dataset.metadata.extent.coord.ul.lon|floatformat:2 }}, {{dataset.metadata.extent.coord.ul.lat|floatformat:2 }}</td>
+      <td>{{ dataset.metadata.extent.coord.lr.lon|floatformat:2 }}, {{ dataset.metadata.extent.coord.lr.lat|floatformat:2 }}</td>
+      <td>{{ dataset.metadata.extent.center_dt }}</td>
+      <td>{{ dataset.metadata.format.name }}</td>
+      <td>{{ dataset.added }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div id="warning_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Dataset Type Deletion</h4>
+      </div>
+      <div class="modal-body">
+        <p>Deleting a dataset type will permanently remove the type and all related datasets. Continue?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" onclick="remove_dataset_type()" class="btn btn-danger" data-dismiss="modal">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="dialog_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-sm">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"></h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+
+  $(document).ready( function () {
+    var table = $('#data_table').DataTable({
+      "lengthMenu": [[15, 25, 50, -1], [15, 25, 50, "All"]],
+      "order": [[ 0, "asc" ]]
+    });
+
+  });
+
+  function remove_dataset_type() {
+    jQuery.post('{% url "delete_dataset_type" dataset_type_id=dataset_type_id %}', {}, function(result) {
+        if(result.status == "ERROR") {
+          set_modal_content("Error", result.message);
+          return;
+        } else {
+          set_modal_content("Alert", "Your dataset type has been deleted, redirecting back to dataset type list...");
+          setTimeout(function() {
+            window.location.href = '{% url "dataset_types" %}';
+          }, 3000);
+        }
+    });
+  }
+
+
+  function set_modal_content(title, body) {
+    jQuery("#dialog_modal .modal-title").text(title);
+    jQuery("#dialog_modal .modal-body p").text(body);
+    jQuery("#dialog_modal").modal();
+  }
+</script>
+{% endblock %}
+{% block bottom_button %}
+<button class="btn btn-danger pull-right bottom-btn" onclick="jQuery('#warning_modal').modal()">Remove this dataset type</button>
+{% endblock %}

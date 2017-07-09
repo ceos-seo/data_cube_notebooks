@@ -141,7 +141,7 @@ There are a few minor changes required to prevent any potential errors that can 
 
 PostgreSQL Configuration
 ---------------
-The first step is modifying some PostgreSQL settings to ensure that everything goes smoothly for the next few steps. Open the postgresql.conf fipiple found at `/etc/postgresql/9.5/main/postgresql.conf`
+The first step is modifying some PostgreSQL settings to ensure that everything goes smoothly for the next few steps. Open the postgresql.conf file found at `/etc/postgresql/9.5/main/postgresql.conf` as a super user.
 
 Open this file in your editor of choice and find the line that starts with 'timezone'. This setting may default to 'localtime'; change this to 'UTC'. The resulting line should look like:
 
@@ -185,11 +185,11 @@ db_database: datacube
 
 # db_hostname
 
-db_username: dc_user
+db_username: localuser
 db_password: localuser1234
 ```
 
-The db_username and db_password fields represent the credentials to a PostgreSQL role that will need to be created. We use the credentials listed above, but they can be changed to any desired combination that contains only valid PostgreSQL characters. Using this user, a database named 'datacube' will be created. Again, this database name is fully configurable and can be set in the above configuration file.
+The db_username and db_password fields represent the credentials to a PostgreSQL role that will need to be created. We use the credentials listed above, but they can be changed to any desired combination that contains only valid PostgreSQL characters. Using this user, a database named 'datacube' will be created. Again, this database name is fully configurable and can be set in the above configuration file. **If you do not want to use localuser as the database role, please change this in the .datacube.conf file**
 
 Please note that this is the **database user** and is different from the local system user.
 
@@ -207,8 +207,8 @@ To create the database use the following:
 
 ```
 sudo -u postgres createuser --superuser localuser
-sudo -u postgres psql -c "ALTER USER dc_user WITH PASSWORD 'localuser1234';"
-createdb -U dc_user datacube
+sudo -u postgres psql -c "ALTER USER localuser WITH PASSWORD 'localuser1234';"
+createdb -U localuser datacube
 ```
 
 This command block creates a superuser with the username 'localuser', sets the password, and creates a database as 'localuser'. If the username, password, or database name was changed in the configuration file change them in the commands listed above as well.

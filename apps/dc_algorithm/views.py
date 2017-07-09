@@ -296,7 +296,8 @@ class UserHistory(View, ToolClass):
         task_model_class = self._get_tool_model(self._get_task_model_name())
         user_history = self._get_tool_model('userhistory').objects.filter(user_id=user_id)
 
-        task_history = task_model_class.get_queryset_from_history(user_history, complete=True).exclude(status="ERROR")
+        task_history = task_model_class.get_queryset_from_history(
+            user_history, complete=True, area_id=area_id).exclude(status="ERROR")
 
         context = {'task_history': task_history}
         return render(request, "/".join([self._get_tool_name(), 'task_history_list.html']), context)

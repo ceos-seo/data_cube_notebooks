@@ -24,10 +24,8 @@ under the License.
 {% block task_details %}
 <div class="row">
   <div class="col-lg-6">
-    <h2 class="page-header">task Details</h2>
+    <h2 class="page-header">Task Details</h2>
     <dl class="dl-horizontal">
-      <dt>User ID</dt>
-      <dd>{{task.user_id}}</dd>
       <dt>Title</dt>
       <dd>{{task.title}}</dd>
       <dt>Description</dt>
@@ -61,7 +59,7 @@ under the License.
       <dt>(Lat, Lon) Max</dt>
       <dd>({{task.latitude_max|floatformat:6}} , {{task.longitude_max|floatformat:6}})</dd>
       <dt>Compositing Method</dt>
-      <dd>{{task.get_compositor_name}}</dd>
+      <dd>{{task.compositor}}</dd>
     </dl>
   </div>
   <div class="col-lg-6">
@@ -90,17 +88,17 @@ under the License.
   <div class="col-lg-12" style="height: 500px;">
     <h2 class="page-header">Scene Metadata</h2>
     <ul style="list-style:none; padding-left: 0;" class="alternating scenes_list" id="scenes_list">
-      {% for acquisition, pixels, pixel_percentage in task.acquisitions_dates_with_pixels_percentages %}
+      {% for acquisition, clean_pixels, clean_pixel_percentage in task.get_zipped_fields_as_list %}
         <li>
           <dl class="dl-horizontal">
             <dt class="section_header">{{ acquisition }}</dt>
             <dd></dd>
             <dt>Clean pixels</dt>
-            <dd>{{ pixels }}</dd>
+            <dd>{{ clean_pixels }}</dd>
             <dt>Total Pixels</dt>
             <dd>{{ task.pixel_count }}</dd>
             <dt>Clean Pixel Percentage</dt>
-            <dd>{{ pixel_percentage|floatformat:2 }}%</dd>
+            <dd>{{ clean_pixel_percentage|floatformat:2 }}%</dd>
           </dl>
         </li>
       {% endfor %}

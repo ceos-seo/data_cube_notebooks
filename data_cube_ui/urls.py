@@ -47,7 +47,10 @@ urlpatterns = [
     url(r'^slip/', include('apps.slip.urls')),
     url(r'^coastal_change/', include('apps.coastal_change.urls')),
     url(r'^ndvi_anomaly/', include('apps.ndvi_anomaly.urls')),
+    url(r'^cloud_coverage/', include('apps.cloud_coverage.urls')),
+    url(r'^urbanization/', include('apps.urbanization.urls')),
     url(r'^task_manager/', include('apps.task_manager.urls')),
+    url(r'^data_cube_manager/', include('apps.data_cube_manager.urls')),
     url(r'^accounts/', include('apps.accounts.urls')),
     url(r'^', include('apps.pages.urls')),
 ] + static(

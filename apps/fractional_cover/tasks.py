@@ -17,6 +17,7 @@ from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write
 from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
 from utils.dc_fractional_coverage_classifier import frac_coverage_classify
 from utils.dc_water_classifier import wofs_classify
+from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import FractionalCoverTask
 from apps.dc_algorithm.models import Satellite
@@ -36,8 +37,10 @@ def run(task_id=None):
     Chains the parsing of parameters, validation, chunking, and the start to data processing.
     """
     chain(
-        parse_parameters_from_task.s(task_id),
-        validate_parameters.s(task_id), perform_task_chunking.s(task_id), start_chunk_processing.s(task_id))()
+        parse_parameters_from_task.s(task_id=task_id),
+        validate_parameters.s(task_id=task_id),
+        perform_task_chunking.s(task_id=task_id),
+        start_chunk_processing.s(task_id=task_id))()
     return True
 
 
@@ -172,8 +175,9 @@ def start_chunk_processing(chunk_details, task_id=None):
     time_chunks = chunk_details.get('time_chunks')
 
     task = FractionalCoverTask.objects.get(pk=task_id)
-    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time'] if
-                                                                     task.get_chunk_size()['time'] is not None else 1)
+    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time']
+                                                                     if task.get_chunk_size()['time'] is not None else
+                                                                     len(time_chunks[0]))
     task.scenes_processed = 0
     task.update_status("WAIT", "Starting processing.")
 
@@ -420,6 +424,16 @@ def create_output_products(data, task_id=None):
     write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
     write_png_from_xr(task.mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
     write_png_from_xr(task.result_path, dataset, bands=['bs', 'pv', 'npv'])
+
+    dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
+    if len(dates) > 1:
+        task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+        create_2d_plot(
+            task.plot_path,
+            dates=dates,
+            datasets=task._get_field_as_list('clean_pixel_percentages_per_acquisition'),
+            data_labels="Clean Pixel Percentage (%)",
+            titles="Clean Pixel Percentage Per Acquisition")
 
     logger.info("All products created.")
     # task.update_bounds_from_dataset(dataset)

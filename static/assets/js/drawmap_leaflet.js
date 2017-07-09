@@ -81,6 +81,7 @@ function DrawMap(container_id, options) {
         });
         this.color_scale_collapsed.onAdd = function(map) {
             var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+            L.DomEvent.disableClickPropagation(container);
 
             container.onclick = function() {
                 self.map.removeControl(self.color_scale_collapsed);
@@ -91,12 +92,13 @@ function DrawMap(container_id, options) {
         };
         this.color_scale_expanded.onAdd = function(map) {
             var container = L.DomUtil.create('div', 'info');
+            L.DomEvent.disableClickPropagation(container);
 
             container.onclick = function() {
                 self.map.removeControl(self.color_scale_expanded);
                 self.map.addControl(self.color_scale_collapsed);
             }
-            container.innerHTML = `<img class="img-responsive thumbnail" src=` + options.color_scale + ` alt="">`;
+            container.innerHTML = `<img class="img-responsive" src=` + options.color_scale + ` alt="">`;
             return container;
         };
 
@@ -104,7 +106,8 @@ function DrawMap(container_id, options) {
     }
 
     this.images = {};
-    this.controls = {};
+    this.map_plot = undefined;
+    this.map_plot_collapsed = undefined;
 }
 
 
@@ -112,16 +115,19 @@ function DrawMap(container_id, options) {
  * Configure leaflet for rectangle drawing - adds a new control and starts the handlers.
  */
 DrawMap.prototype.set_rectangle_draw = function() {
+    /*
+    rectangle: {
+        shapeOptions: {
+            clickable: false
+        }
+    }
+    */
     var draw_options = {
         draw: {
             polyline: false,
             polygon: false,
             circle: false,
-            rectangle: {
-                shapeOptions: {
-                    clickable: false
-                }
-            },
+            rectangle: false,
             marker: false
         },
         edit: false
@@ -262,7 +268,7 @@ DrawMap.prototype.insert_image_with_bounds = function(id, url, min_lat, max_lat,
  * Set the view based on the BB of an image.
  */
 DrawMap.prototype.zoom_to_image_by_id = function(id) {
-    this.map.fitBounds(this.images[id].image.getBounds(), {
+    this.map.flyToBounds(this.images[id].image.getBounds(), {
         padding: [50, 50]
     });
 }
@@ -322,26 +328,62 @@ DrawMap.prototype.remove_image_by_id = function(id) {
 /**
  * Add a 2d plot in the form of a control div with an image url and id
  */
-DrawMap.prototype.add_control = function(id, image_url) {
-    this.controls[id] = L.control({
+DrawMap.prototype.add_toggle_control = function(id, on_title, off_title, callback) {
+    var self = this;
+
+    this.remove_toggle_control_by_id(id);
+
+    this.map_plot = L.control({
+        position: 'bottomright'
+    });
+    this.map_plot_collapsed = L.control({
         position: 'bottomright'
     });
 
-    this.controls[id].onAdd = function(map) {
-        var container = L.DomUtil.create('div', 'info 2d_plot');
-        container.innerHTML = `<img class="img-responsive thumbnail" src=` + image_url + ` alt="">`;
+    this.map_plot_collapsed.onAdd = function(map) {
+        var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom label');
+        L.DomEvent.disableClickPropagation(container);
+
+        container.onclick = function() {
+            self.map.removeControl(self.map_plot_collapsed);
+            self.map.addControl(self.map_plot);
+            callback();
+        }
+        container.innerHTML = `<span class="map_icon tooltipped">` + off_title + `</span>`;
+        return container;
+    };
+    this.map_plot.onAdd = function(map) {
+        var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom label');
+        L.DomEvent.disableClickPropagation(container);
+
+        container.onclick = function() {
+            self.map.removeControl(self.map_plot);
+            self.map.addControl(self.map_plot_collapsed);
+            callback();
+        }
+        container.innerHTML = `<span class="map_icon tooltipped">` + on_title + `</span>`;
         return container;
     };
 
-    this.controls[id].addTo(this.map);
+    this.map_plot_collapsed.addTo(this.map);
+}
+
+DrawMap.prototype.toggle_control = function(id) {
+  this.map.removeControl(this.map_plot);
+  this.map.addControl(this.map_plot_collapsed);
 }
 
 /**
  * Remove 2D plot control div by id.
  */
-DrawMap.prototype.remove_control_by_id = function(id) {
-    if (this.controls[id]) {
-        this.map.removeControl(this.controls[id]);
+DrawMap.prototype.remove_toggle_control_by_id = function(id) {
+    if (this.map_plot) {
+        this.map.removeControl(this.map_plot);
+        this.map_plot = undefined;
+    }
+    if (this.map_plot_collapsed) {
+        this.map.removeControl(this.map_plot_collapsed);
+        this.map_plot_collapsed = undefined;
     }
 }
 

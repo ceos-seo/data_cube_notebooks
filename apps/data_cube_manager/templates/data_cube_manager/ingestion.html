@@ -1,0 +1,284 @@
+{% extends "default.html" %} {% load bootstrap3 %}
+<!--
+    Copyright 2016 United States Government as represented by the Administrator
+    of the National Aeronautics and Space Administration. All Rights Reserved.
+
+    Portion of this code is Copyright Geoscience Australia, Licensed under the
+    Apache License, Version 2.0 (the "License"); you may not use this file
+    except in compliance with the License. You may obtain a copy of the License
+    at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0.
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+    License for the specific language governing permissions and limitations
+    under the License.
+  -->
+
+{% block css %}
+<link rel="stylesheet" href="/static/assets/css/data_cube_manager.css" />
+{% endblock %}
+{% block content %}
+<div class="container-fluid no_footer fullscreen-row">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="page-header">
+        <h1>Create a Ingestion Configuration</h1>
+        <div class="row">
+          <p class="col-lg-9 col-md-10 col-sm-11 col-xs-12">
+            Create a new ingestion configuration using the forms below. Select an existing dataset type to use as the source data and the measurements will be populated with source measurements.
+            Fill in all metadata fields and edit or change measurement attributes and download the resulting .yaml file.
+            Measurements can be renamed using the 'name' field as long as the 'src_varname' stays the same.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row" style="height:75%;">
+    <div class="col-lg-3 multicolumn_form" style="overflow-y:auto; height: 100%;">
+      <div class="page-header sub"><span class="form-section-header">Dataset Metadata:</span></div>
+      <form id="metadata_form">
+        {% bootstrap_form metadata_form bound_css_class="" %}
+        {% bootstrap_form ingestion_bounds_form bound_css_class="" %}
+        {% bootstrap_form storage_form bound_css_class="" %}
+      </form>
+    </div>
+    <div class="col-lg-2 multicolumn_form" style="overflow-y:auto; height: 100%;">
+      <div class="page-header sub"><span class="form-section-header">Measurements:</span></div>
+      <div id="existing_measurement_container">
+        {% include "data_cube_manager/existing_measurements.html" %}
+      </div>
+      <button class="btn btn-default pull-right" onclick="add_new_measurement()">Create new measurement</button>
+    </div>
+    <div class="col-lg-7 multicolumn_form" style="overflow-y:auto; height: 100%;">
+      <div class="page-header sub"><span class="form-section-header">Measurement:</span></div>
+      <div id="measurement_container">
+        <p>Select a measurement to the right to view and edit properties.</p>
+      </div>
+    </div>
+    <div class="col-lg-12" style="padding-top: 10px; padding-bottom: 5px;">
+      <button class="btn btn-default pull-right bottom-btn" onclick="download_yaml()">Download .yaml file</button>
+      {% if request.user.is_superuser and not dataset_type_id %}
+        <button class="btn btn-danger pull-right bottom-btn" onclick="run_ingestion()">Run ingestion</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div id="new_measurement_template" style="display:none;">
+  <div id="new_measurement" class="new_measurement" >
+    <form class="measurement_form">
+      {% csrf_token %}
+      {% bootstrap_form measurement_form %}
+    </form>
+    <button class="btn btn-danger pull-right" onclick="cancel_update(this)">Cancel change</button>
+    <button class="btn btn-default pull-right" onclick="update_measurement(this)">Update measurement</button>
+  </div>
+</div>
+<div id="dialog_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-sm">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"></h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block javascript %}
+<script>
+
+  jQuery(function() {
+    {% if initial_measurement %}
+      set_form_visible("{{ initial_measurement }}")
+    {% endif %}
+  });
+
+  var dataset_type_details = {
+    {% for product in product_details %}
+      {{ product.id }}: {
+                          description: "{{ product.get_description }}",
+                          platform: "{{ product.get_platform }}",
+                          instrument: "{{ product.get_instrument }}",
+                          processing_level: "{{ product.get_processing_level }}"
+                        },
+    {% endfor %}
+  }
+
+
+  function update_forms() {
+    jQuery("#measurement_container").html("");
+    if(jQuery("#id_dataset_type_ref").val() == "") {
+      jQuery("#measurements_table").html("");
+      return;
+    }
+    jQuery.get('{% url "get_existing_measurements" %}', jQuery("#metadata_form").serialize(), function(result) {
+        if(result.status == "ERROR") {
+          set_modal_content("Error", result.message);
+          return;
+        } else {
+          jQuery("#existing_measurement_container").html(result.html);
+          var dataset_type = jQuery("#id_dataset_type_ref").val();
+          jQuery.each(Object.keys(dataset_type_details[dataset_type]), function(index, value) {
+            jQuery("#id_"+value).val(dataset_type_details[dataset_type][value]);
+          });
+        }
+    });
+  }
+
+  //clear the measurement form container and move a copy of the template there.
+  function add_new_measurement() {
+    jQuery("#measurement_container").html("");
+    jQuery("#measurement_container").append(jQuery("#new_measurement_template").html());
+  }
+
+  //Update or add a new measurement to the list of valid measurements.
+  //These are kept in a hidden 'parity' group of forms and updated from user input
+  //through clones
+  function update_measurement(elem) {
+    var parent = jQuery(elem).parent()
+    //get the current id to remove from measurement container.
+    var id = parent.attr('id')
+    var form = parent.children('form')
+    var values = {};
+    $.each(form.serializeArray(), function(i, field) {
+        values[field.name] = field.value;
+    });
+    var request = new XMLHttpRequest();
+    request.open("POST", '{% url "validate_ingestion_measurement" %}', false);
+    //request.timeout = 100;
+    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    request.setRequestHeader("X-CSRFToken", csrftoken);
+    request.send($(form).serialize());
+    if (request.status != 200) {
+        set_modal_content("Error", "There was an issue submitting your measurement for validation. Please try again later.");
+        return;
+    } else {
+        var response = JSON.parse(request.response);
+        if(response.status == "ERROR") {
+          set_modal_content("Error", response.message);
+          return;
+        } else {
+          jQuery("#measurement_record_container #" + id).remove();
+          parent.attr('id', values['name']);
+          jQuery("#" + values['name']).appendTo("#measurement_record_container");
+          jQuery("#" + values['name'] + ' form').addClass('record');
+          if(!jQuery("#" + id + "_row").length) {
+            jQuery("#measurements_table").append('<tr id="' + values['name'] + '_row" class="measurement-row"> \
+                                                    <td onclick="set_form_visible(\'' + values['name'] + '\')">' + values['name'] + '</td> \
+                                                    {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement(\'' + values['name'] + '\')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %} \
+                                                  </tr>');
+          } else {
+            jQuery("#" + id + "_row").attr('id', values['name'] + "_row");
+            jQuery("#" + values['name'] + "_row").html('<td onclick="set_form_visible(\'' + values['name'] + '\')">' + values['name'] + '</td> \
+            {% if not dataset_type_id %}<td class="trash" onclick="delete_measurement(\'' + values['name'] + '\')"><span class="glyphicon glyphicon-trash"></span></td>{% endif %}')
+          }
+          jQuery("#measurement_container").html("");
+        }
+    }
+  }
+
+  function delete_measurement(id) {
+    jQuery("#" + id + "_row").remove();
+    jQuery("#measurement_record_container #" + id).remove();
+    jQuery("#measurement_container #" + id).remove();
+  }
+
+  //grab the metadata form and all measurement records to create a yaml.
+  //serialize metadata and measurement forms. At this point, everything SHOULD be correct
+  //excluding the metadat which hasn't been validated yet.
+  function download_yaml() {
+    metadata_form = {}
+    $.each(jQuery("#metadata_form").serializeArray(), function(i, field) {
+        metadata_form[field.name] = field.value;
+    });
+
+    measurement_data = {}
+    $.each(jQuery(".measurement_form.record"), function(i, measurement_form) {
+      measurement = {}
+      $.each(jQuery(measurement_form).serializeArray(), function(i, field) {
+          measurement[field.name] = field.value;
+      });
+      measurement_data[measurement['name']] = measurement;
+    });
+
+
+    values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
+
+    jQuery.post('{% url "export_ingestion" %}', values, function(result) {
+        if(result.status == "ERROR") {
+          set_modal_content("Error", result.message);
+          return;
+        } else {
+          window.open(result.url, '_blank')
+        }
+    });
+  }
+
+  function run_ingestion() {
+    metadata_form = {}
+    $.each(jQuery("#metadata_form").serializeArray(), function(i, field) {
+        metadata_form[field.name] = field.value;
+    });
+
+    measurement_data = {}
+    $.each(jQuery(".measurement_form.record"), function(i, measurement_form) {
+      measurement = {}
+      $.each(jQuery(measurement_form).serializeArray(), function(i, field) {
+          measurement[field.name] = field.value;
+      });
+      measurement_data[measurement['name']] = measurement;
+    });
+
+    set_modal_content("Alert", "Please wait while we validate your configuration file.");
+
+    values = {metadata_form: JSON.stringify(metadata_form), measurements: JSON.stringify(measurement_data)}
+    jQuery.post('{% url "run_ingestion" %}', values, function(result) {
+        if(result.status == "ERROR") {
+          set_modal_content("Error", result.message);
+          return;
+        } else {
+          set_modal_content("Alert", "Ingestion has been started. You can view the storage units as they are created on the Datasets page.");
+          setTimeout(function() {
+            //{\% url 'view_dataset_type_datasets' dataset_type_id=result.dataset_type_ref ?? %\}
+            window.location.href = '/data_cube_manager/dataset_types/' + result.dataset_type_ref + '/datasets';
+          }, 3000);
+        }
+    });
+  }
+
+
+  //just clear the container - no changes have been moved to the actual div.
+  function cancel_update() {
+    jQuery("#measurement_container").html("");
+  }
+
+  function set_form_visible(id) {
+    jQuery(".measurement-row").removeClass("active_measurement");
+    jQuery("#" + id + "_row").addClass("active_measurement");
+    jQuery("#measurement_container").html("");
+    jQuery("#measurement_container").append(jQuery("#" + id).clone())
+    jQuery("#measurement_container form").removeClass('record');
+  }
+
+  function set_modal_content(title, body) {
+    jQuery("#dialog_modal .modal-title").text(title);
+    jQuery("#dialog_modal .modal-body p").text(body);
+    jQuery("#dialog_modal").modal();
+  }
+</script>
+{% endblock %}

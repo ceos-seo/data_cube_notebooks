@@ -21,7 +21,6 @@
 
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.conf import settings
 
 from apps.dc_algorithm.models import Area, Compositor, Satellite
 from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as
@@ -60,7 +59,6 @@ class Query(BaseQuery):
     """
     compositor = models.ForeignKey(Compositor)
 
-    config_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/config/.datacube.conf'
     measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/fractional_cover'
 
@@ -232,6 +230,7 @@ class Result(BaseResult):
 
     # result path + other data. More to come.
     mosaic_path = models.CharField(max_length=250, default="")
+    plot_path = models.CharField(max_length=250, default="")
     data_path = models.CharField(max_length=250, default="")
     data_netcdf_path = models.CharField(max_length=250, default="")
 

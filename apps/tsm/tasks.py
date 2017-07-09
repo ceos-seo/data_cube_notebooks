@@ -17,6 +17,7 @@ from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write
                                 perform_timeseries_analysis, nan_to_num)
 from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
 from utils.dc_tsm import tsm, mask_tsm
+from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import TsmTask
 from apps.dc_algorithm.models import Satellite
@@ -36,8 +37,10 @@ def run(task_id=None):
     Chains the parsing of parameters, validation, chunking, and the start to data processing.
     """
     chain(
-        parse_parameters_from_task.s(task_id),
-        validate_parameters.s(task_id), perform_task_chunking.s(task_id), start_chunk_processing.s(task_id))()
+        parse_parameters_from_task.s(task_id=task_id),
+        validate_parameters.s(task_id=task_id),
+        perform_task_chunking.s(task_id=task_id),
+        start_chunk_processing.s(task_id=task_id))()
     return True
 
 
@@ -459,6 +462,16 @@ def create_output_products(data, task_id=None):
                         fill_color=task.query_type.fill)
                     image = imageio.imread(png_path)
                     writer.append_data(image)
+
+    dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
+    if len(dates) > 1:
+        task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+        create_2d_plot(
+            task.plot_path,
+            dates=dates,
+            datasets=task._get_field_as_list('clean_pixel_percentages_per_acquisition'),
+            data_labels="Clean Pixel Percentage (%)",
+            titles="Clean Pixel Percentage Per Acquisition")
 
     logger.info("All products created.")
     task.update_bounds_from_dataset(dataset_masked)

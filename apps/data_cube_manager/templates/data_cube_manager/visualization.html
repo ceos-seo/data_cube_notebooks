@@ -1,0 +1,465 @@
+{% extends "default.html" %} {% load bootstrap3 %}
+<!--
+    Copyright 2016 United States Government as represented by the Administrator
+    of the National Aeronautics and Space Administration. All Rights Reserved.
+
+    Portion of this code is Copyright Geoscience Australia, Licensed under the
+    Apache License, Version 2.0 (the "License"); you may not use this file
+    except in compliance with the License. You may obtain a copy of the License
+    at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0.
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+    License for the specific language governing permissions and limitations
+    under the License.
+  -->
+{% block css %}
+<link rel="stylesheet" href="/static/assets/css/map_tool.css" />
+<link rel="stylesheet" href="/static/assets/css/data_cube_manager.css" />
+<link href="/static/assets/js/leaflet/leaflet.css" rel="stylesheet" type="text/css" />
+<link href="/static/assets/js/Leaflet.draw/leaflet.draw.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block javascript %}
+<script src="/static/assets/js/leaflet/leaflet.js"></script>
+<script src="/static/assets/js/Leaflet.draw/leaflet.draw.js"></script>
+<script src="/static/assets/js/drawmap_leaflet.js"></script>
+
+<script>
+
+  var map, info_map;
+  var ingestedAreaLayerGroups = {};
+  var layerIdDateRange = {};
+  var highlightDiv = '#C6D9F1';
+  var unHighlightDiv = '#ffffff';
+  var highlightLayer = '#333A56';
+  var unHighlightLayer = '#52658F';
+
+  $(function() {
+      $('.datepicker').datepicker({
+          changeMonth: true,
+          changeYear: true,
+          showButtonPanel: true,
+          yearRange: "-30:+0"
+      });
+      $(".tooltipped").tooltip();
+
+      // Map related functionality - generate two leaflet maps, one for the modal and one for the main view.
+      osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+      });
+      info_osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        noWrap: true,
+        attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+      });
+
+      map = new L.Map('map', {
+        minZoom: 3,
+        maxZoom: 6,
+        zoomSnap: 0.25,
+      });
+      info_map = new L.Map('info_map', {
+        zoomSnap: 0.25
+      });
+
+      map.addLayer(osm);
+      info_map.addLayer(info_osm);
+      // Setting the map to be fully zoomed out and the max bounds to the corners of the Earth.
+      map.setView([0, 0], 3);
+      map.setMaxBounds([
+        [-60, -200],
+        [85, 200]
+      ]);
+
+      // Start the map in the popup focused on the 0,0 point with max bounds same as the main map.
+      info_map.setView([0, 0], 3);
+      info_map.setMaxBounds([
+        [-60, -180],
+        [85, 180]
+      ]);
+
+      load_ingested_areas();
+      initialize_map_listeners();
+
+  });
+
+  var ingestion_data = undefined;
+  function load_ingested_areas() {
+    jQuery.get('{% url "get_ingested_areas" %}', {}, function(result) {
+        if(result.status == "ERROR") {
+          set_modal_content("Error", result.message);
+          return;
+        } else {
+          ingestion_data = result
+          add_ingested_areas(ingestedAreaLayerGroups, ingestion_data);
+        }
+    });
+  }
+
+  function update_shown_cubes() {
+    // Get the values of dates.
+    var startInputYear = Date.parse($('#id_start_date').val());
+    var endInputYear = Date.parse($('#id_end_date').val());
+
+    if (!startInputYear) {
+      startInputYear = Date.parse("01/01/1900");
+    }
+    if (!endInputYear) {
+      endInputYear = Date.parse("01/01/3000");
+    }
+
+    // Remove the layers to start.
+    for (groupLayerNum in ingestedAreaLayerGroups) {
+      ingestedAreaLayerGroups[groupLayerNum].removeFrom(map);
+      for (individualLayerNum in ingestedAreaLayerGroups[groupLayerNum].getLayers()) {
+        ingestedAreaLayerGroups[groupLayerNum].getLayers()[individualLayerNum].removeFrom(map);
+      }
+    }
+
+    var platform_input = jQuery("#id_platform").val();
+
+    function is_in_date_range(id) {
+      return ((startInputYear >= Date.parse(layerIdDateRange[id][0])) &&
+          startInputYear <= Date.parse(layerIdDateRange[id][1])) ||
+        (endInputYear >= Date.parse(layerIdDateRange[id][0]) &&
+          endInputYear <= Date.parse(layerIdDateRange[id][1])) ||
+        (startInputYear < Date.parse(layerIdDateRange[id][0]) &&
+          endInputYear > Date.parse(layerIdDateRange[id][1]))
+    }
+
+    switch(platform_input) {
+      case "All":
+        for (key in ingestion_data) {
+          for (layerId in ingestedAreaLayerGroups[key]._layers) {
+            if(is_in_date_range(layerId)) {
+              ingestedAreaLayerGroups[key]._layers[layerId].addTo(map);
+            }
+          }
+        }
+      break;
+      default:
+        for (layerId in ingestedAreaLayerGroups[platform_input]._layers) {
+          if(is_in_date_range(layerId)) {
+            ingestedAreaLayerGroups[platform_input]._layers[layerId].addTo(map);
+          }
+        }
+      break;
+    }
+
+    // Loop over all the satellite check boxes.
+    $('.checkClassIngestedMode').each(function(e) {
+      if ($(this).is(":checked")) {
+        // Go through all the layers in that group.
+        for (layerId in ingestedAreaLayerGroups[$(this).val()]._layers) {
+          // Check for approriate year ranges.
+
+        }
+      }
+    });
+  }
+
+  function initialize_map_listeners() {
+    /* Adding a listener with a call to highlight ingested area mouse cursor is in. */
+    map.addEventListener('mousemove', function(e) {
+      drillDown(e.latlng, activate_layer, deactivate_layer);
+    });
+
+    /* Adding on click event for clicking on a region to add to side list. */
+    map.on('click', function(e) {
+      $('.area_details_container').hide();
+      reveal_area_card(e.latlng, show_area_card);
+    });
+  }
+
+  // Handler for when the mouse cursor enters a div in the list.
+  function activate_card(leafletId) {
+    map.eachLayer(function(layer) {
+      if (layer instanceof L.Rectangle && layer._leaflet_id == leafletId) {
+        layer.setStyle({
+          fillColor: highlightLayer,
+          color: highlightLayer
+        });
+        $('#' + leafletId).css('background-color', highlightDiv);
+      }
+    });
+  }
+
+  // Handle for when the mouse cursor exits a div in the list.
+  function deactivate_card(leafletId) {
+    map.eachLayer(function(layer) {
+      if (layer instanceof L.Rectangle && layer._leaflet_id == leafletId) {
+        layer.setStyle({
+          fillColor: unHighlightLayer,
+          color: unHighlightLayer
+        });
+        $('#' + leafletId).css('background-color', unHighlightDiv);
+      }
+    });
+  }
+
+  // Highlight the ingested area(s) the cursor is in and the side list equivalent.
+  function activate_layer(layer) {
+    layer.setStyle({
+      fillColor: highlightLayer,
+      color: highlightLayer
+    });
+    $('#' + layer._leaflet_id).css('background-color', highlightDiv);
+  }
+
+  // Unhighlight the ingested area(s) the cursor is in and the side list equivalent(s).
+  function deactivate_layer(layer) {
+    layer.setStyle({
+      fillColor: unHighlightLayer,
+      color: unHighlightLayer
+    });
+    $('#' + layer._leaflet_id).css('background-color', unHighlightDiv);
+  }
+
+  // Display the div in the list.
+  function show_area_card(layer) {
+    $('#' + layer._leaflet_id).fadeIn();
+  }
+
+  // Hide the div in the list.
+  function hide_area_card(event, id) {
+    $('#' + id).fadeOut();
+    // Prevent the click event from propagating upwards in the DOM.
+    event.stopPropagation();
+  }
+
+  function drillDown(selectedPoint, selectedFunc, deSelectedFunc) {
+    map.eachLayer(function(layer) {
+      if (layer instanceof L.Rectangle) {
+        if (selectedPoint['lat'] > layer.getBounds().getSouthWest()['lat'] &&
+          selectedPoint['lat'] < layer.getBounds().getNorthEast()['lat'] &&
+          selectedPoint['lng'] > layer.getBounds().getSouthWest()['lng'] &&
+          selectedPoint['lng'] < layer.getBounds().getNorthEast()['lng']) {
+          selectedFunc(layer);
+        } else {
+          deSelectedFunc(layer);
+        }
+      }
+    });
+  }
+
+  // Display the modal equivalent with data for the DIV.
+  function displayModal(id, key, index) {
+    var query_string = jQuery.param(ingestion_data[key][index]);
+    var additional_information = `
+    <dl class="dl-horizontal">
+      <dt style="text-align:left;">Satellite</dt>
+      <dd>` + key.replace('_', ' ') + `</dd>
+      <dt style="text-align:left;">Product</dt>
+      <dd>` + ingestion_data[key][index]['product'] + `</dd>
+      <dt style="text-align:left;">Min Latitude</dt>
+      <dd>` + ingestion_data[key][index]['latitude_min'] + `</dd>
+      <dt style="text-align:left;">Max Latitude</dt>
+      <dd>` + ingestion_data[key][index]['latitude_max'] + `</dd>
+      <dt style="text-align:left;">Min Longitude</dt>
+      <dd>` + ingestion_data[key][index]['longitude_min'] + `</dd>
+      <dt style="text-align:left;">Max Longitude</dt>
+      <dd>` + ingestion_data[key][index]['longitude_max'] + `</dd>
+      <dt style="text-align:left;">Start Date</dt>
+      <dd>` + ingestion_data[key][index]['start_date'] + `</dd>
+      <dt style="text-align:left;">End Date</dt>
+      <dd>` + ingestion_data[key][index]['end_date'] + `</dd>
+      <dt style="text-align:left;">Scene Count</dt>
+      <dd>` + ingestion_data[key][index]['scene_count'] + `</dd>
+      <dt style="text-align:left;">Pixel Count</dt>
+      <dd>` + ingestion_data[key][index]['pixel_count'] + `</dd>
+    </dl>
+    <div class="form-group">
+      <a class="btn btn-default form-control" target="_blank" href="/data_cube_manager/dataset_types/view/` + ingestion_data[key][index]['dataset_type_ref'] + `">View Dataset Type</a>
+    </div>
+    <div class="form-group">
+      <a class="btn btn-default form-control" target="_blank" href="dataset_types/` + ingestion_data[key][index]['dataset_type_ref'] + `/datasets">View Datasets</a>
+    </div>
+    <div class="form-group">
+      <a class="btn btn-default form-control" target="_blank" href="{% url 'create_ingestion_subset' %}?` + query_string + `">Create a Sample Cube</a>
+    </div>
+    `;
+    jQuery("#info_table").html(additional_information);
+    jQuery("#info_modal").modal();
+    // horrid hack since the map needs to be initialized when the modal is loaded.
+    setTimeout(function() {
+        info_map.invalidateSize();
+        // Remove all Rectangle layers so they don't stack for each card click.
+        info_map.eachLayer(function(layer) {
+          if (layer instanceof L.Rectangle) {
+            info_map.removeLayer(layer);
+          }
+        });
+
+        info_map.fitBounds([
+          [ingestion_data[key][index]['latitude_min'], ingestion_data[key][index]['longitude_min']],
+          [ingestion_data[key][index]['latitude_max'], ingestion_data[key][index]['longitude_max']]
+        ], {padding: [50, 50]});
+
+        var rectangle = L.rectangle([
+          [ingestion_data[key][index]['latitude_min'], ingestion_data[key][index]['longitude_min']],
+          [ingestion_data[key][index]['latitude_min'], ingestion_data[key][index]['longitude_max']],
+          [ingestion_data[key][index]['latitude_max'], ingestion_data[key][index]['longitude_max']],
+          [ingestion_data[key][index]['latitude_max'], ingestion_data[key][index]['longitude_min']]
+        ], {
+          color: unHighlightLayer
+        });
+
+        // Add rectangle to map in the modal popup.
+        rectangle.addTo(info_map);
+    }, 250);
+
+  }
+
+  // Hides the modal on the page.
+  function hideModal() {
+    $('#moreInfoModal').fadeOut();
+    $('.mainpage').css('pointer-events', 'auto');
+  }
+
+  // Function for handling highlighted click area on the map.
+  function reveal_area_card(selectedPoint, clickFunc) {
+    map.eachLayer(function(layer) {
+      if (layer instanceof L.Rectangle) {
+        if (selectedPoint['lat'] > layer.getBounds().getSouthWest()['lat'] &&
+          selectedPoint['lat'] < layer.getBounds().getNorthEast()['lat'] &&
+          selectedPoint['lng'] > layer.getBounds().getSouthWest()['lng'] &&
+          selectedPoint['lng'] < layer.getBounds().getNorthEast()['lng']) {
+          show_area_card(layer);
+        }
+      }
+    });
+  }
+
+  function add_ingested_areas(ingestedAreaLayerGroups, ingestion_data) {
+    // Set up the layer groups and other required objects for the ingested area JSON data.
+    for (key in ingestion_data) {
+      var aLayerGroup = L.layerGroup();
+      for (let i = 0; i < ingestion_data[key].length; ++i) {
+        var rectangle = L.rectangle([
+          [ingestion_data[key][i]['latitude_min'], ingestion_data[key][i]['longitude_min']],
+          [ingestion_data[key][i]['latitude_min'], ingestion_data[key][i]['longitude_max']],
+          [ingestion_data[key][i]['latitude_max'], ingestion_data[key][i]['longitude_max']],
+          [ingestion_data[key][i]['latitude_max'], ingestion_data[key][i]['longitude_min']]
+        ], {
+          color: unHighlightLayer
+        });
+
+        // Add rectangle to layer group object.
+        aLayerGroup.addLayer(rectangle);
+
+        // Getting Leaflet generated ID of the rectangle.
+        var id = aLayerGroup.getLayerId(rectangle);
+        layerIdDateRange[id] = [ingestion_data[key][i]['start_date'], ingestion_data[key][i]['end_date']];
+
+        // Dynamically generating the DIVs.
+        var area_details_card = `
+        <div id="` + id + `" class="col-lg-12 seamless-col area_details_container" onclick="displayModal('` + id + `', '` + key + `', '` + i + `')">
+          <span class="glyphicon glyphicon-remove pull-left" onclick="hide_area_card(event, ` + id + `)"></span>
+          ` + ingestion_data[key][i].product + `
+        </div>
+        `
+        $('#areaList').append(area_details_card);
+
+        $('#' + id).hover(function() {
+          activate_card($(this).attr("id"));
+        }, function() {
+          deactivate_card($(this).attr("id"));
+        });
+      } // End loop over array.
+
+      // Add layer group object to list and to map.
+      aLayerGroup.addTo(map);
+      ingestedAreaLayerGroups[key] = aLayerGroup
+    } // End loop over keys.
+  }
+
+  function set_dialog_modal_content(title, body) {
+      jQuery("#dialog_modal .modal-title").text(title);
+      jQuery("#dialog_modal .modal-body p").text(body);
+      jQuery("#dialog_modal").modal();
+  }
+
+  function hide_dialog_modal() {
+      jQuery("#dialog_modal").modal('hide');
+  }
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid no_footer">
+    <div class="row fullscreen-row">
+      <div class="col-lg-3 fullscreen-col seamless-col">
+        <div class="col-lg-12">
+          <h1 class="page-header">Ingested Data Cubes</h1>
+          <p>The regions visualized on the map represent the various Data Cubes that are present and ingested on the system.</p>
+          <p>Use the filtering options below to hide or show specific subsets of ingested data. Clicking a region on the map will
+          populate the area below with additional information about the clicked regions.</p>
+          <p>Selecting one of these cards will create a pop up with specific details about the area and a link where a sample
+          cube can be created based on the area.</p>
+          <hr>
+          <form>
+            {% bootstrap_form form %}
+          </form>
+          <hr>
+          <div id="areaList">
+
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-9 fullscreen-col seamless-col map-col">
+        <div id="map-canvas" class="map">
+          <div id="map" class="map">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="info_modal" class="modal fade" role="dialog">
+      <div class="modal-dialog modal-lg">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Additional Information</h4>
+          </div>
+          <div class="modal-body" style="">
+            <div class="row" style="height: 40vh;">
+              <div id="info_table" class="col-sm-6">
+
+              </div>
+              <div id="info_map" class="col-sm-6" style="height:100%;"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="dialog_modal" class="modal fade" role="dialog">
+      <div class="modal-dialog modal-sm">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title"></h4>
+          </div>
+          <div class="modal-body">
+            <p></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

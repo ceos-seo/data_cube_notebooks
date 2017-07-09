@@ -1,0 +1,25 @@
+[{
+    "model": "cloud_coverage.toolinfo",
+    "pk": 1,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_1.png",
+        "image_title": "Run Band Math Analyses on Mosaics",
+        "image_description": "Run arbitrary band math calculations on mosaics that are generated automatically."
+    }
+}, {
+    "model": "cloud_coverage.toolinfo",
+    "pk": 2,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_2.png",
+        "image_title": "Pixel Preference",
+        "image_description": "Choose how the 'best' pixel will be chosen: Most recent, least recent, median, or min/max cloud_coverage value pixel."
+    }
+}, {
+    "model": "cloud_coverage.toolinfo",
+    "pk": 3,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_3.png",
+        "image_title": "Time Series",
+        "image_description": "Run powerful time series analyses that composites a series of acquisitions to produce a single image then calculates some band math equation."
+    }
+}]

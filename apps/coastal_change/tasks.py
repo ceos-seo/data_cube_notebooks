@@ -35,8 +35,10 @@ def run(task_id=None):
     Chains the parsing of parameters, validation, chunking, and the start to data processing.
     """
     chain(
-        parse_parameters_from_task.s(task_id),
-        validate_parameters.s(task_id), perform_task_chunking.s(task_id), start_chunk_processing.s(task_id))()
+        parse_parameters_from_task.s(task_id=task_id),
+        validate_parameters.s(task_id=task_id),
+        perform_task_chunking.s(task_id=task_id),
+        start_chunk_processing.s(task_id=task_id))()
     return True
 
 
@@ -175,8 +177,9 @@ def start_chunk_processing(chunk_details, task_id=None):
     time_chunks = chunk_details.get('time_chunks')
 
     task = CoastalChangeTask.objects.get(pk=task_id)
-    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time'] if
-                                                                     task.get_chunk_size()['time'] is not None else 1)
+    task.total_scenes = len(geographic_chunks) * len(time_chunks) * (task.get_chunk_size()['time']
+                                                                     if task.get_chunk_size()['time'] is not None else
+                                                                     len(time_chunks[0]))
     task.scenes_processed = 0
     task.update_status("WAIT", "Starting processing.")
 
