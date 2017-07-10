@@ -105,6 +105,9 @@
   }
 
   function update_shown_cubes() {
+
+    $('.area_details_container').hide();
+
     // Get the values of dates.
     var startInputYear = Date.parse($('#id_start_date').val());
     var endInputYear = Date.parse($('#id_end_date').val());
