@@ -137,7 +137,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'datacube',
         'USER': 'dc_user',
-        'PASSWORD': 'dcuser1',
+        'PASSWORD': 'localuser1234',
         'HOST': MASTER_NODE
     },
     'agdc': {
@@ -147,7 +147,7 @@ DATABASES = {
         },
         'NAME': 'datacube',
         'USER': 'dc_user',
-        'PASSWORD': 'dcuser1',
+        'PASSWORD': 'localuser1234',
     },
 }
 
