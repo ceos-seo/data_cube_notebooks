@@ -185,11 +185,11 @@ db_database: datacube
 
 # db_hostname
 
-db_username: localuser
+db_username: dc_user
 db_password: localuser1234
 ```
 
-The db_username and db_password fields represent the credentials to a PostgreSQL role that will need to be created. We use the credentials listed above, but they can be changed to any desired combination that contains only valid PostgreSQL characters. Using this user, a database named 'datacube' will be created. Again, this database name is fully configurable and can be set in the above configuration file. **If you do not want to use localuser as the database role, please change this in the .datacube.conf file**
+The db_username and db_password fields represent the credentials to a PostgreSQL role that will need to be created. We use the credentials listed above, but they can be changed to any desired combination that contains only valid PostgreSQL characters. Using this user, a database named 'datacube' will be created. Again, this database name is fully configurable and can be set in the above configuration file. **If you do not want to use dc_user as the database role, please change this in the .datacube.conf file**
 
 Please note that this is the **database user** and is different from the local system user.
 
@@ -206,12 +206,12 @@ This will move the required .datacube.conf file to the home directory. The user'
 To create the database use the following:
 
 ```
-sudo -u postgres createuser --superuser localuser
-sudo -u postgres psql -c "ALTER USER localuser WITH PASSWORD 'localuser1234';"
-createdb -U localuser datacube
+sudo -u postgres createuser --superuser dc_user
+sudo -u postgres psql -c "ALTER USER dc_user WITH PASSWORD 'localuser1234';"
+createdb -U dc_user datacube
 ```
 
-This command block creates a superuser with the username 'localuser', sets the password, and creates a database as 'localuser'. If the username, password, or database name was changed in the configuration file change them in the commands listed above as well.
+This command block creates a superuser with the username 'dc_user', sets the password, and creates a database as 'dc_user'. If the username, password, or database name was changed in the configuration file change them in the commands listed above as well.
 
 To finish the system initialization process, run the following Data Cube command to initialize the database with the default schemas and metadata types.
 
