@@ -49,6 +49,7 @@ pip install matplotlib
 pip install scipy
 pip install sklearn
 pip install lcmap-pyccd
+pip install folium
 ```
 
 We'll now need to manually download and install Basemap from source. Create a temporary directory in your home directory with the following commands and download the required .tar.gz

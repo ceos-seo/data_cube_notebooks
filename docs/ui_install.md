@@ -8,10 +8,10 @@ Contents
 
   * [Introduction](#introduction)
   * [Prerequisites](#prerequisites)
+  * [Automated Setup](#automated_setup)
   * [Installation Process](#installation_process)
   * [Configuring the Server](#configuration)
   * [Initializing the Database](#database_initialization)
-  * [Automated Setup](#automated_setup)
   * [Starting Workers](#starting_workers)
   * [System Overview](#system_overview)
   * [Customize the UI](#customization)
@@ -52,6 +52,18 @@ To set up and run our Data Cube UI, the following conditions must be met:
 
 If these requirements are not met, please see the associated documentation. Please take some time to get familiar with the documentation of our core technologies - most of this guide is concerning setup and configuration and is not geared towards teaching about our tools.
 
+<a name="automated_setup"></a> Automated Setup
+=================
+
+We have automated this setup process as much as we could - You will need to edit all the configurations manually, but the rest of the setup is automated. Edit the files in the `config` directory (.datacube.conf, dc_ui.conf) and the project `settings.py` to reflect the user that will be used to run the UI and the database credentials. Examples of this can be found in the later sections. After your credentials are entered and you have replaced instances of 'localuser' with your system user, run:
+
+```
+cd ~/Datacube/data_cube_ui
+bash scripts/ui_setup.sh
+```
+
+This will move the configuration files, do the migrations, and restart everything. This will also daemonize the celery workers. If you want more detail about the setup process or require some additional modifications, follow the entire process below.
+
 <a name="installation_process"></a> Installation Process
 =================
 
@@ -75,6 +87,7 @@ pip install django
 pip install redis
 pip install imageio
 pip install django-bootstrap3
+pip install matplotlib
 ```
 
 The UI relies on a slightly newer version of Celery that has not yet been pushed to Pypi - This is due to a bug that was fixed a few days after their latest release.
@@ -257,7 +270,8 @@ Run the following commands:
 
 ```
 cd ~/Datacube/data_cube_ui
-python manage.py makemigrations {data_cube_ui,accounts,coastal_change,custom_mosaic_tool,fractional_cover,ndvi_anomaly,slip,task_manager,tsm,water_detection,dc_algorithm}
+python manage.py makemigrations {data_cube_ui,accounts,coastal_change,custom_mosaic_tool,fractional_cover,ndvi_anomaly,slip,task_manager,tsm,water_detection,dc_algorithm,data_cube_manager,cloud_coverage,urbanization}
+python manage.py makemigrations
 python manage.py migrate
 
 python manage.py loaddata db_backups/init_database.json
@@ -275,17 +289,6 @@ Now that we have everything initialized, we can view the site and see what we've
 
 Visit the administration panel by going to either {ip}/admin or localhost/admin. You'll see a page that shows all of the various models and default values.
 
-<a name="automated_setup"></a> Automated Setup
-=================
-
-We have automated this setup process as much as we could - You will need to edit all the configurations manually, but the rest of the setup is automated. Edit the configuration files from the previous section then run the following command:
-
-```
-cd ~/Datacube/data_cube_ui
-bash scripts/ui_setup.sh
-```
-
-This will move the configuration files, do the migrations, and restart everything. This will also daemonize the celery workers.
 
 <a name="starting_workers"></a> Starting Workers
 =================

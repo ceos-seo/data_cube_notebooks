@@ -269,3 +269,35 @@ A:
 >	This occurrs when PostgreSQL is incorrectly configured. Open your pg_hba.conf file and check that the local connection authenticates using the md5 method. If you are trying to connect to a remote database (e.g. using PGAdmin3 from a host machine when the Data Cube is on a guest VM) then a new entry will be required to allow non local connections. More details can be found on the [PostgreSQL documentation](https://www.postgresql.org/docs/9.5/static/auth-pg-hba-conf.html).
 
 ---  
+
+Q: 	
+ >Can the Data Cube be accessed from R/C++/IDL/etc.?
+
+A:  
+>This is not currently directly supported, the Data Cube is a Python based API. The base technology managing data access PostgreSQL, so theoretically the functionality can be ported to any language that can interact with the database. An additional option is just shelling out from those languages, accessing data using the Python API, then passing the result back to the other program/language.
+
+---  
+
+Q: 	
+ >Does the Data Cube support *xyz* projection?
+
+A:  
+>Yes, the Data Cube either does support or can support with minimal changes any projection that rasterio can read or write to.
+
+---  
+
+Q: 	
+ >I want to store more metadata that isn't mentioned in the documentation. Is this possible?
+
+A:  
+>This entire process is completely customizable. Users can configure exactly what metadata they want to capture for each dataset - we use the default for simplicities sake.
+
+---  
+
+Q: 	
+ >Does ingestion handle preprocessing or does data need to be processed before ingestion?
+
+A:  
+>The ingestion process is simply a reprojection and resampling process for existing data. Data should be preprocessed before ingestion.
+
+---  
