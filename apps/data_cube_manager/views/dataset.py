@@ -50,8 +50,10 @@ class DatasetListView(View):
             form: DatasetFilerForm instance, bound to dataset_type_id if available
         """
         context = {
-            'form': forms.DatasetFilterForm({
-                'dataset_type_ref': [dataset_type_id] if dataset_type_id is not None else [1]
+            'form':
+            forms.DatasetFilterForm({
+                'dataset_type_ref': [dataset_type_id]
+                if dataset_type_id is not None else [models.DatasetType.objects.using('agdc').all()[0].id]
             })
         }
         return render(request, 'data_cube_manager/datasets.html', context)
