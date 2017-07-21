@@ -1,0 +1,103 @@
+{% extends "default.html" %} {% load bootstrap3 %}
+<!--
+    Copyright 2016 United States Government as represented by the Administrator
+    of the National Aeronautics and Space Administration. All Rights Reserved.
+
+    Portion of this code is Copyright Geoscience Australia, Licensed under the
+    Apache License, Version 2.0 (the "License"); you may not use this file
+    except in compliance with the License. You may obtain a copy of the License
+    at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    The CEOS 2 platform is licensed under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0.
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+    License for the specific language governing permissions and limitations
+    under the License.
+  -->
+
+{% block css %}
+<style>
+.page-header {
+  margin: 0px 0 20px;
+}
+.dl-horizontal dt {
+  width: 290px;
+  text-align: left;
+}
+.dl-horizontal dd {
+  margin-left: 290px;
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container container-table no_footer">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="jumbotron">
+          <h1>Open Data Cube Workshop</h1>
+          <p>
+            Welcome to the ODC Workshop at IGARSS. This page serves to aggregate some useful links and content that may be referenced during this presentation. You can use this page to follow along or to reference at a later date. You will receive
+            a sheet containing a server IP address that will serve as a sandboxed Data Cube instance for this workshop.
+          </p>
+          <p>
+            When directed to visit a webpage or open a configuration file or document, you can use this page to quickly and easily open the files. Additionally, a command 'cheat sheet' is provided to ensure that everyone who
+            wants to follow along is able to keep up. For ease of use, this has been divided into sections.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-7">
+          <h1 class="page-header">Command Cheat Sheet</h1>
+          <p>
+            <dl class="">
+              <dt>SSH into the server:</dt>
+              <dd><kbd>ssh localuser@{Your server IP address}</kbd></dd>
+              <dt>Activating a virtual environment:</dt>
+              <dd><kbd>source ~/Datacube/datacube_env/bin/activate</kbd></dd>
+              <dt>Adding a dataset type/product definition:</dt>
+              <dd><kbd>datacube -v product add ~/Datacube/agdc-v2/ingest/dataset_types/gpm/gpm_imerg_gis.yaml</kbd></dd>
+              <dt>Running a preprocessing script on a dataset:</dt>
+              <dd><kbd>python ~/Datacube/agdc-v2/ingest/prepare_scripts/gpm/gpm_imerg_gis_prepare.py /datacube/original_data/GPM/Month/3B-MO*</kbd></dd>
+              <dt>Adding dataset to the Data Cube:</dt>
+              <dd><kbd>datacube -v dataset add /datacube/original_data/GPM/Month/3B-MO*/*.yaml</kbd></dd>
+              <dt>Running the ingestion process:</dt>
+              <dd><kbd>datacube -v ingest -c ~/Datacube/agdc-v2/ingest/ingestion_configs/gpm/gpm_monthly_global.yaml</kbd></dd>
+            </dl>
+          </p>
+        </div>
+        <div class="col-lg-5">
+          <h1 class="page-header">Reference Materials</h1>
+          <p>
+            <dl class="dl-horizontal">
+              <dt>PuTTY</dt>
+              <dd><a href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html">Download PuTTY</a></dt>
+              <dt>Link to interactive examples:</dt>
+              <dd>Your server IP address, port 8888</dd>
+              <dt>GPM product guide:</dt>
+              <dd><a href="http://ec2-52-201-154-0.compute-1.amazonaws.com/datacube/original_data/gpm/README.GIS.pdf">GPM README</a></dd>
+              <dt>GPM dataset definition:</dt>
+              <dd><a href="https://github.com/ceos-seo/agdc-v2/blob/master/ingest/dataset_types/gpm/gpm_imerg_gis.yaml">View on GitHub</a></dd>
+              <dt>GPM preparation script reference:</dt>
+              <dd><a href="https://github.com/ceos-seo/agdc-v2/blob/master/ingest/prepare_scripts/gpm/gpm_imerg_gis_prepare.py">view on GitHub</a></dd>
+              <dt>Example GPM monthly dataset</dt>
+              <dd><a href="http://ec2-52-201-154-0.compute-1.amazonaws.com/datacube/original_data/gpm/3B-MO-GIS.MS.MRG.3IMERG.20140301-S000000-E235959.03.V04A.zip">Download here</a></dd>
+              <dt>GPM metadata .yaml example:</dt>
+              <dd><a href="http://ec2-52-201-154-0.compute-1.amazonaws.com/datacube/original_data/gpm/datacube-metadata.yaml">Download or view here</a></dd>
+              <dt>Default metadata type:</dt>
+              <dd><a href="https://github.com/ceos-seo/agdc-v2/blob/master/datacube/index/default-metadata-types.yaml">View on GitHub</a></dd>
+              <dt>GPM ingestion config</dt>
+              <dd><a href="https://github.com/ceos-seo/agdc-v2/blob/master/ingest/ingestion_configs/gpm/gpm_monthly_global.yaml">View on GitHub</a></dd>
+            </dl>
+          </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
