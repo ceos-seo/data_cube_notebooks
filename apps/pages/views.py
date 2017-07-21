@@ -23,6 +23,21 @@ def home(request):
     return render(request, 'index.html', context)
 
 
+def workshop(request):
+    """
+    Navigates to the home page of the application.
+
+    **Context**
+
+    **Template**
+
+    :template:`home/index.html`
+    """
+
+    context = {}
+    return render(request, 'workshop.html', context)
+
+
 @login_required
 def submit_feedback(request):
     if request.method == 'POST':

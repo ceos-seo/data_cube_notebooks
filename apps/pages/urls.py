@@ -8,5 +8,6 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.home, name='home'),
+    url(r'^workshop', views.workshop, name="workshop"),
     url(r'^submit_feedback', views.submit_feedback, name='submit_feedback'),
 ]
