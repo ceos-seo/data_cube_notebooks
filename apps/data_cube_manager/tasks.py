@@ -22,7 +22,7 @@ import shutil
 from apps.data_cube_manager.models import (Dataset, DatasetType, DatasetSource, DatasetLocation, IngestionRequest,
                                            IngestionDetails)
 from apps.data_cube_manager.templates.bulk_downloader import base_downloader_script, static_script
-from utils.data_access_api import DataAccessApi
+from utils.data_cube_utilities.data_access_api import DataAccessApi
 
 logger = get_task_logger(__name__)
 

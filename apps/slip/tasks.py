@@ -11,12 +11,12 @@ import os
 import imageio
 from collections import OrderedDict
 
-from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
+from utils.data_cube_utilities.data_access_api import DataAccessApi
+from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
                                 add_timestamp_data_to_xr, clear_attrs)
-from utils.dc_chunker import (create_geographic_chunks, generate_baseline, combine_geographic_chunks)
-from utils.dc_slip import compute_slip, mask_mosaic_with_slip
-from utils.dc_mosaic import create_mosaic
+from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, generate_baseline, combine_geographic_chunks)
+from utils.data_cube_utilities.dc_slip import compute_slip, mask_mosaic_with_slip
+from utils.data_cube_utilities.dc_mosaic import create_mosaic
 from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import SlipTask

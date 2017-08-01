@@ -19,10 +19,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from .models import Area, Application
+from .models import Area, Application, ApplicationGroup
 
 
 def apps(request):
     return {
-        'apps': Application.objects.all().order_by('name'),
+        'apps': Application.objects.filter(application_group=None).order_by('name'),
+        'app_groups': {
+            application_group.name: Application.objects.filter(application_group=application_group)
+            for application_group in ApplicationGroup.objects.all()
+        }
     }

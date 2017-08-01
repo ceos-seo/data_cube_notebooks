@@ -11,10 +11,10 @@ import os
 import imageio
 from collections import OrderedDict
 
-from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
+from utils.data_cube_utilities.data_access_api import DataAccessApi
+from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
                                 write_single_band_png_from_xr, add_timestamp_data_to_xr, clear_attrs)
-from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
+from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
 from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import CloudCoverageTask

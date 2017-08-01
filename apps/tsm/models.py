@@ -28,7 +28,7 @@ from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetada
                                       BaseResultType, UserHistory as BaseUserHistory, AnimationType as
                                       BaseAnimationType, ToolInfo as BaseToolInfo)
 
-from utils.dc_water_classifier import wofs_classify
+from utils.data_cube_utilities.dc_water_classifier import wofs_classify
 
 import datetime
 import numpy as np
