@@ -68,6 +68,8 @@ INSTALLED_APPS = [
     'apps.ndvi_anomaly',
     'apps.urbanization',
     'apps.cloud_coverage',
+    'apps.nazeer_chlorophyll',
+    'apps.watanabe_chlorophyll',
     'apps.dc_algorithm',
     'apps.pages',
     'apps.accounts',

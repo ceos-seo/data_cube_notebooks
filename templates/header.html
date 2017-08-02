@@ -75,7 +75,7 @@
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ app_group }}</a>
                             <ul class="dropdown-menu">
                               {% for app in grouped_apps %}
-                                <li class="">
+                                <li class="" style="">
                                   <a id="{{ app.id }}" tabindex="-1" href="/{{ app.id }}/region_selection">{{ app.name }}</a>
                                 </li>
                               {% endfor %}
