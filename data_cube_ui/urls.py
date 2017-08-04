@@ -49,7 +49,6 @@ urlpatterns = [
     url(r'^ndvi_anomaly/', include('apps.ndvi_anomaly.urls')),
     url(r'^cloud_coverage/', include('apps.cloud_coverage.urls')),
     url(r'^urbanization/', include('apps.urbanization.urls')),
-    url(r'^pixel_plotting/', include('apps.pixel_plotting.urls')),
     url(r'^task_manager/', include('apps.task_manager.urls')),
     url(r'^data_cube_manager/', include('apps.data_cube_manager.urls')),
     url(r'^accounts/', include('apps.accounts.urls')),
