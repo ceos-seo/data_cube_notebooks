@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'apps.cloud_coverage',
     'apps.nazeer_chlorophyll',
     'apps.watanabe_chlorophyll',
+    'apps.pixel_plotting',
     'apps.dc_algorithm',
     'apps.pages',
     'apps.accounts',
