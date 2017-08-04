@@ -69,7 +69,7 @@
 
         //container id, min lat, max lat, min lon, max lon
         map = new DrawMap("map",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: true, {% if application.color_scale %}color_scale: "{{application.color_scale}}",{% endif %}});
-        map.set_rectangle_draw();
+        map.set_point_draw();
 
         {% for satellite in satellites %}
           //jquery to set the end date equal to the start date when its changed.
@@ -78,10 +78,9 @@
               date.setFullYear(date.getFullYear() + 1);
               $("#{{ satellite.datacube_platform }}_time_end").datepicker('setDate', date);
           })
-          map.set_bb_listeners({min_lat: "{{ satellite.datacube_platform }}_latitude_min", max_lat: "{{ satellite.datacube_platform }}_latitude_max", min_lon: "{{ satellite.datacube_platform }}_longitude_min", max_lon: "{{ satellite.datacube_platform }}_longitude_max"})
-          $("#{{ satellite.datacube_platform }}_latitude_min, #{{ satellite.datacube_platform }}_latitude_max, #{{ satellite.datacube_platform }}_longitude_min, #{{ satellite.datacube_platform }}_longitude_max").change(function() {
-              map.bounding_box_from_form($("#{{ satellite.datacube_platform }}_latitude_min").val(), $("#{{ satellite.datacube_platform }}_latitude_max").val(), $("#{{ satellite.datacube_platform }}_longitude_min").val(), $(
-                  "#{{ satellite.datacube_platform }}_longitude_max").val());
+          map.set_point_listeners({lat: "{{ satellite.datacube_platform }}_latitude", lon: "{{ satellite.datacube_platform }}_longitude"})
+          $("#{{ satellite.datacube_platform }}_latitude, #{{ satellite.datacube_platform }}_longitude").change(function() {
+              map.point_from_form($("#{{ satellite.datacube_platform }}_latitude").val(), $("#{{ satellite.datacube_platform }}_longitude").val());
           });
         {% endfor %}
 
@@ -387,16 +386,16 @@
             </div>
           </div>
         </div>
-        <div class="col-lg-9 fullscreen-col seamless-col map-col">
+        <div class="col-lg-6 fullscreen-col seamless-col map-col">
           <div id="map-canvas" class="map">
             <div id="map" class="map">
             </div>
           </div>
         </div>
-        <div class="col-lg-3 right_panel fullscreen-col seamless-col hidden" style="">
-          <h3 style="text-align:center;"><span class="glyphicon glyphicon-chevron-right pull-left" style="cursor:pointer;" onclick="toggle_right_panel(); map.toggle_control(selected_result);"></span><div id="right_panel_title"></div></h3>
+        <div class="col-lg-3 right_panel fullscreen-col seamless-col" style="">
+          <h3 style="text-align:center;"><div id="right_panel_title">2D Plots</div></h3>
           <hr>
-          <div class="col-lg-12" id="right_panel_description"></div>
+          <div class="col-lg-12" id="right_panel_description">Click anywhere on the map to generate 2d plots for the selected variables.</div>
           <hr>
           <div id="right_panel_content"></div>
         </div>

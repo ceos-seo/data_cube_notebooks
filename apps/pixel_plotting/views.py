@@ -30,8 +30,7 @@ import json
 from datetime import datetime, timedelta
 
 from apps.dc_algorithm.models import Satellite, Area, Application
-from apps.dc_algorithm.forms import DataSelectionForm
-from .forms import AdditionalOptionsForm
+from .forms import AdditionalOptionsForm, DataSelectionForm
 from .tasks import run
 
 from collections import OrderedDict
@@ -63,6 +62,8 @@ class PixelPlottingTool(ToolView):
     tool_name = 'pixel_plotting'
     task_model_name = 'PixelPlottingTask'
 
+    map_tool_template = 'pixel_plotting/map_tool.html'
+
     # TODO: Ensure that this function creates all the forms required for your model.
     def generate_form_dict(self, satellites, area):
         forms = {}
@@ -72,7 +73,8 @@ class PixelPlottingTool(ToolView):
                 AdditionalOptionsForm(
                     datacube_platform=satellite.datacube_platform, auto_id=satellite.datacube_platform + "_%s"),
                 'Geospatial Bounds':
-                DataSelectionForm(area=area,
+                DataSelectionForm(
+                    area=area,
                     time_start=satellite.date_min,
                     time_end=satellite.date_max,
                     auto_id=satellite.datacube_platform + "_%s")

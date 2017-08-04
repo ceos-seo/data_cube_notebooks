@@ -25,6 +25,4 @@ from . import models
 admin.site.register(models.PixelPlottingTask)
 admin.site.register(models.UserHistory)
 admin.site.register(models.ToolInfo)
-# TODO: Register any models that actually exist here. 
 admin.site.register(models.ResultType)
-admin.site.register(models.AnimationType)

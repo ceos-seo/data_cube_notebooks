@@ -23,8 +23,63 @@ from django import forms
 
 import datetime
 
-from .models import ResultType, AnimationType
-from apps.dc_algorithm.models import Area, Compositor
+from .models import ResultType
+from apps.dc_algorithm.models import Area
+
+
+class DataSelectionForm(forms.Form):
+
+    two_column_format = True
+
+    title = forms.CharField(required=False, widget=forms.HiddenInput(attrs={'class': 'hidden_form_title'}))
+    description = forms.CharField(required=False, widget=forms.HiddenInput(attrs={'class': 'hidden_form_description'}))
+    platform = forms.CharField(widget=forms.HiddenInput(attrs={'class': 'hidden_form_platform'}))
+    area_id = forms.CharField(widget=forms.HiddenInput(attrs={'class': 'hidden_form_id'}))
+
+    latitude = forms.FloatField(
+        label='Latitude',
+        widget=forms.NumberInput(attrs={'class': 'field-divided',
+                                        'step': "any",
+                                        'required': 'required'}))
+
+    longitude = forms.FloatField(
+        label='Longitude',
+        widget=forms.NumberInput(attrs={'class': 'field-divided',
+                                        'step': "any",
+                                        'required': 'required'}))
+    time_start = forms.DateField(
+        label='Start Date',
+        widget=forms.DateInput(
+            attrs={'class': 'datepicker field-divided',
+                   'placeholder': '01/01/2010',
+                   'required': 'required'}))
+    time_end = forms.DateField(
+        label='End Date',
+        widget=forms.DateInput(
+            attrs={'class': 'datepicker field-divided',
+                   'placeholder': '01/02/2010',
+                   'required': 'required'}))
+
+    def __init__(self, *args, **kwargs):
+        time_start = kwargs.pop('time_start', None)
+        time_end = kwargs.pop('time_end', None)
+        area = kwargs.pop('area', None)
+        super(DataSelectionForm, self).__init__(*args, **kwargs)
+        #meant to prevent this routine from running if trying to init from querydict.
+        if time_start and time_end:
+            self.fields['time_start'] = forms.DateField(
+                initial=time_start.strftime("%m/%d/%Y"),
+                label='Start Date',
+                widget=forms.DateInput(attrs={'class': 'datepicker field-divided',
+                                              'required': 'required'}))
+            self.fields['time_end'] = forms.DateField(
+                initial=time_end.strftime("%m/%d/%Y"),
+                label='End Date',
+                widget=forms.DateInput(attrs={'class': 'datepicker field-divided',
+                                              'required': 'required'}))
+        if area:
+            self.fields['latitude'].widget.attrs.update({'min': area.latitude_min, 'max': area.latitude_max})
+            self.fields['longitude'].widget.attrs.update({'min': area.longitude_min, 'max': area.longitude_max})
 
 
 class AdditionalOptionsForm(forms.Form):
