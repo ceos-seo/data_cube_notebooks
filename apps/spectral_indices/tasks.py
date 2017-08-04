@@ -344,7 +344,7 @@ def process_band_math(chunk, task_id=None):
     }
 
     def _apply_band_math(dataset):
-        return spectral_indices_map[task.query_type](dataset)
+        return spectral_indices_map[task.query_type.result_id](dataset)
 
     if chunk is None:
         return None
@@ -423,7 +423,8 @@ def create_output_products(data, task_id=None):
     dataset.to_netcdf(task.data_netcdf_path)
     write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
     write_png_from_xr(task.mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
-    write_single_band_png_from_xr(task.result_path, dataset, band='band_math', color_scale=task.color_scale_path)
+    write_single_band_png_from_xr(
+        task.result_path, dataset, band='band_math', color_scale=task.color_scale_path.get(task.query_type.result_id))
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
     if len(dates) > 1:

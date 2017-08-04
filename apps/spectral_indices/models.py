@@ -70,8 +70,15 @@ class Query(BaseQuery):
     compositor = models.ForeignKey(Compositor)
     query_type = models.ForeignKey(ResultType)
 
-    #TODO: add color scale here
-    color_scale_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/default_color_scale'
+    color_scale_path = {
+        'ndvi': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ndvi',
+        'evi': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/evi',
+        'savi': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ryg',
+        'nbr': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ryg',
+        'nbr2': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ryg',
+        'ndwi': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ryg',
+        'ndbi': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ryg',
+    }
     measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/spectral_indices'
 

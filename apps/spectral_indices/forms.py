@@ -24,7 +24,7 @@ from django import forms
 import datetime
 
 from apps.dc_algorithm.models import Area, Compositor
-from .forms import ResultType
+from .models import ResultType
 
 
 class AdditionalOptionsForm(forms.Form):
