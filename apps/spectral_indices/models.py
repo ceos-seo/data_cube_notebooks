@@ -148,8 +148,8 @@ class Query(BaseQuery):
 
         """
         query_data = form_data
-        query_data['title'] = "Band Math Query" if 'title' not in form_data or form_data['title'] == '' else form_data[
-            'title']
+        query_data['title'] = "Spectral Index Query" if 'title' not in form_data or form_data[
+            'title'] == '' else form_data['title']
         query_data['description'] = "None" if 'description' not in form_data or form_data[
             'description'] == '' else form_data['description']
 
