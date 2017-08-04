@@ -142,9 +142,7 @@ class Metadata(BaseMetadata):
     See the dc_algorithm.Metadata docstring for more information
     """
 
-    zipped_metadata_fields = [
-        'acquisition_list', 'clean_pixels_per_acquisition', 'clean_pixel_percentages_per_acquisition'
-    ]
+    zipped_metadata_fields = ['acquisition_list']
 
     class Meta(BaseMetadata.Meta):
         abstract = True

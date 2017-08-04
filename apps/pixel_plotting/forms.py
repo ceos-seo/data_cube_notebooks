@@ -36,38 +36,17 @@ class AdditionalOptionsForm(forms.Form):
         description
     Init function to initialize dynamic forms.
     """
-    # TODO: Add/remove/modify fields that are used to create your query here.
-    # e.g. if there is no type, anim, or compositor, remove everything here.
-    #if you need a property on the Task model called Color Scale, create that here.
 
     #these are done in the init funct.
     query_type = forms.ModelChoiceField(
         queryset=None,
         to_field_name="result_id",
         empty_label=None,
-        help_text='Select the type of image you would like displayed.',
-        label='Result Type (Map view/png):',
-        widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
-
-    compositor = forms.ModelChoiceField(
-        queryset=None,
-        to_field_name="id",
-        empty_label=None,
-        help_text='Select the method by which the "best" pixel will be chosen.',
-        label="Compositing Method:",
-        widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
-
-    animated_product = forms.ModelChoiceField(
-        queryset=None,
-        to_field_name="id",
-        empty_label=None,
-        help_text='Generate a .gif containing either scene data or the cumulative mosaic over time. This is not compatible with median pixel mosaics.',
-        label='Generate Time Series Animation',
+        help_text='Select the type of plot that will be generated.',
+        label='Plot Variables:',
         widget=forms.Select(attrs={'class': 'field-long tooltipped'}))
 
     def __init__(self, *args, **kwargs):
         datacube_platform = kwargs.pop('datacube_platform', None)
         super(AdditionalOptionsForm, self).__init__(*args, **kwargs)
         self.fields["query_type"].queryset = ResultType.objects.all()
-        self.fields["compositor"].queryset = Compositor.objects.all()
-        self.fields["animated_product"].queryset = AnimationType.objects.all().order_by('pk')
