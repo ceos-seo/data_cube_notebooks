@@ -60,17 +60,12 @@ class CreateIngestionConfigurationView(View):
 
         """
         context = {
-            'metadata_form':
-            forms.IngestionMetadataForm(),
-            'measurement_form':
-            forms.IngestionMeasurementForm(),
-            'storage_form':
-            forms.IngestionStorageForm(),
-            'ingestion_bounds_form':
-            forms.IngestionBoundsForm(),
+            'metadata_form': forms.IngestionMetadataForm(),
+            'measurement_form': forms.IngestionMeasurementForm(),
+            'storage_form': forms.IngestionStorageForm(),
+            'ingestion_bounds_form': forms.IngestionBoundsForm(),
             'product_details':
-            models.DatasetType.objects.using('agdc').filter(~Q(definition__has_keys=['managed']) & Q(
-                definition__has_keys=['measurements']))
+            models.DatasetType.objects.using('agdc').filter(Q(definition__has_keys=['measurements']))
         }
 
         return render(request, 'data_cube_manager/ingestion.html', context)

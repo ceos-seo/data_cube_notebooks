@@ -127,8 +127,8 @@ class IngestionMetadataForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(IngestionMetadataForm, self).__init__(*args, **kwargs)
-        self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').filter(~Q(
-            definition__has_keys=['managed']) & Q(definition__has_keys=['measurements']))
+        self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').filter(
+            Q(definition__has_keys=['measurements']))
 
 
 class IngestionBoundsForm(forms.Form):
