@@ -49,8 +49,8 @@ class IngestionBase(celery.Task):
 
 @periodic_task(
     name="data_cube_manager.get_data_cube_details",
-    run_every=(30.0),
-    #run_every=(crontab(hour=0, minute=0)),
+    #run_every=(30.0),
+    run_every=(crontab(hour=0, minute=0)),
     ignore_result=True)
 def update_data_cube_details(ingested_only=True):
     dataset_types = DatasetType.objects.using('agdc').filter(
@@ -64,6 +64,8 @@ def update_data_cube_details(ingested_only=True):
             product=dataset_type.name,
             platform=dataset_type.metadata['platform']['code'])
         ingestion_details.update_with_query_metadata(dc.get_datacube_metadata(dataset_type.name))
+
+    dc.close()
 
 
 @task(name="data_cube_manager.run_ingestion")

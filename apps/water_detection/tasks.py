@@ -430,7 +430,12 @@ def create_output_products(data, task_id=None):
 
     for band, band_path in zip(bands, band_paths):
         write_single_band_png_from_xr(
-            band_path, dataset, band, color_scale=task.color_scales[band], fill_color=task.query_type.fill)
+            band_path,
+            dataset,
+            band,
+            color_scale=task.color_scales[band],
+            fill_color=task.query_type.fill,
+            interpolate=False)
 
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:

@@ -85,7 +85,7 @@ class Query(BaseQuery):
         'wofs':
         '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_water_percentage',
         'normalized_data':
-        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_water_percentage',
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/water_detection_new',
         'total_data':
         '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_water_observations',
         'total_clean':
