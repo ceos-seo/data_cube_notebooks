@@ -60,7 +60,7 @@ def update_data_cube_details(ingested_only=True):
 
     for dataset_type in dataset_types:
         ingestion_details, created = IngestionDetails.objects.get_or_create(
-            datase_type_ref=dataset_type.id,
+            dataset_type_ref=dataset_type.id,
             product=dataset_type.name,
             platform=dataset_type.metadata['platform']['code'])
         ingestion_details.update_with_query_metadata(dc.get_datacube_metadata(dataset_type.name))

@@ -60,12 +60,17 @@ class CreateIngestionConfigurationView(View):
 
         """
         context = {
-            'metadata_form': forms.IngestionMetadataForm(),
-            'measurement_form': forms.IngestionMeasurementForm(),
-            'storage_form': forms.IngestionStorageForm(),
-            'ingestion_bounds_form': forms.IngestionBoundsForm(),
+            'metadata_form':
+            forms.IngestionMetadataForm(),
+            'measurement_form':
+            forms.IngestionMeasurementForm(),
+            'storage_form':
+            forms.IngestionStorageForm(),
+            'ingestion_bounds_form':
+            forms.IngestionBoundsForm(),
             'product_details':
-            models.DatasetType.objects.using('agdc').filter(Q(definition__has_keys=['measurements']))
+            models.DatasetType.objects.using('agdc').filter(~Q(definition__has_keys=['managed']) & Q(
+                definition__has_keys=['measurements']))
         }
 
         return render(request, 'data_cube_manager/ingestion.html', context)
@@ -189,16 +194,9 @@ class CreateDataCubeSubset(View):
             for key in available_fields if request.GET.get(key, None) is not None
         }
 
+        ingestion_storage_defaults = None
         if 'dataset_type_ref' in existing_data:
             dataset_type = models.DatasetType.objects.using('agdc').get(id=existing_data['dataset_type_ref'])
-            if 'managed' in dataset_type.definition:
-                #{"format": {"name": "NetCDF"}, "platform": {"code": "SENTINEL_1"}, "instrument": {"name": "SAR"}, "product_type": "gamma0"}
-                dataset_type = models.DatasetType.objects.using('agdc').filter(~Q(definition__has_keys=['managed']) & Q(
-                    definition__has_keys=['measurements'],
-                    metadata__product_type=dataset_type.metadata['product_type'],
-                    metadata__instrument__name=dataset_type.metadata['instrument']['name'],
-                    metadata__platform__code=dataset_type.metadata['platform']['code']))[0]
-                existing_data['dataset_type_ref'] = dataset_type.id
             measurements = dataset_type.definition['measurements']
             for measurement in measurements:
                 measurement['src_varname'] = measurement['name']
@@ -209,17 +207,28 @@ class CreateDataCubeSubset(View):
 
             context.update({'measurements': measurement_dict, 'initial_measurement': measurements[0]['name']})
 
+            ingestion_storage_defaults = {
+                'crs': "EPSG:4326",
+                'crs_units': "degrees",
+                'tile_size_longitude': dataset_type.definition['storage']['tile_size']['longitude'],
+                'tile_size_latitude': dataset_type.definition['storage']['tile_size']['latitude'],
+                'resolution_latitude': dataset_type.definition['storage']['resolution']['latitude'],
+                'resolution_longitude': dataset_type.definition['storage']['resolution']['longitude'],
+                'chunking_latitude': 200,
+                'chunking_longitude': 200
+            }
+
         context.update({
             'ingestion_request_form':
             forms.IngestionRequestForm(initial=existing_data),
             'measurement_form':
             forms.IngestionMeasurementForm(),
             'storage_form':
-            forms.IngestionStorageForm({
+            forms.IngestionStorageForm(ingestion_storage_defaults if ingestion_storage_defaults else {
                 'crs': "EPSG:4326",
                 'crs_units': "degrees",
-                'tile_size_longitude': 0.269494585236,
-                'tile_size_latitude': 0.269494585236,
+                'tile_size_longitude': 0.943231048326,
+                'tile_size_latitude': 0.943231048326,
                 'resolution_latitude': -0.000269494585236,
                 'resolution_longitude': 0.000269494585236,
                 'chunking_latitude': 200,
@@ -387,6 +396,21 @@ class IngestionMeasurement(View):
         measurement_dict = OrderedDict(
             [(measurement['name'], forms.IngestionMeasurementForm(measurement)) for measurement in measurements])
 
+        product_details = {}
+        if 'managed' in dataset_type.definition and models.IngestionDetails.objects.filter(
+                dataset_type_ref=dataset_type.pk).exists():
+            product_details = {
+                'crs': "EPSG:4326",
+                'crs_units': "degrees",
+                'tile_size_longitude': dataset_type.definition['storage']['tile_size']['longitude'],
+                'tile_size_latitude': dataset_type.definition['storage']['tile_size']['latitude'],
+                'resolution_latitude': dataset_type.definition['storage']['resolution']['latitude'],
+                'resolution_longitude': dataset_type.definition['storage']['resolution']['longitude'],
+                'chunking_latitude': 200,
+                'chunking_longitude': 200
+            }
+            product_details.update(model_to_dict(models.IngestionDetails.objects.get(dataset_type_ref=dataset_type.pk)))
+
         return JsonResponse({
             'status':
             "OK",
@@ -395,7 +419,9 @@ class IngestionMeasurement(View):
             'html':
             render_to_string('data_cube_manager/existing_measurements.html',
                              {'measurements': measurement_dict,
-                              'initial_measurement': measurements[0]['name']})
+                              'initial_measurement': measurements[0]['name']}),
+            'product_details':
+            product_details
         })
 
     def post(self, request):

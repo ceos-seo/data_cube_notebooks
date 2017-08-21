@@ -212,7 +212,7 @@ class IngestionDetails(models.Model):
     as a json response.
 
     """
-    datase_type_ref = models.IntegerField(primary_key=True)
+    dataset_type_ref = models.IntegerField(primary_key=True)
     product = models.CharField(max_length=100)
     platform = models.CharField(max_length=100, default="")
     global_dataset = models.BooleanField(default=False)
@@ -245,7 +245,7 @@ class IngestionDetails(models.Model):
         """
 
         return {
-            'dataset_type_ref': self.datase_type_ref,
+            'dataset_type_ref': self.dataset_type_ref,
             'product': self.product,
             'start_date': self.start_date,
             'end_date': self.end_date,
