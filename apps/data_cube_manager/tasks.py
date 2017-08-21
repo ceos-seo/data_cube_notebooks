@@ -180,21 +180,48 @@ def add_source_datasets(ingestion_request_id=None):
         ]
     }
     datasets = list(Dataset.filter_datasets(filtering_options))
-
     dataset_locations = DatasetLocation.objects.using('agdc').filter(dataset_ref__in=datasets)
     dataset_sources = DatasetSource.objects.using('agdc').filter(dataset_ref__in=datasets)
 
+    def create_source_dataset_models(dataset_sources, dataset_type_index=0):
+        source_datasets = Dataset.objects.using('agdc').filter(
+            pk__in=dataset_sources.values_list('source_dataset_ref', flat=True))
+        source_dataset_type = DatasetType.objects.using('agdc').get(id=source_datasets[0].dataset_type_ref.id)
+        source_dataset_locations = DatasetLocation.objects.using('agdc').filter(dataset_ref__in=source_datasets)
+        source_dataset_sources = DatasetSource.objects.using('agdc').filter(dataset_ref__in=source_datasets)
+
+        if source_dataset_sources.exists():
+            dataset_type_index = create_source_dataset_models(source_dataset_sources, index=dataset_type_index)
+
+        source_dataset_type.id = dataset_type_index
+        source_dataset_type.save(using=ingestion_request.user)
+
+        for dataset in source_datasets:
+            dataset.dataset_type_ref_id = source_dataset_type.id
+
+        Dataset.objects.using(ingestion_request.user).bulk_create(source_datasets)
+        DatasetLocation.objects.using(ingestion_request.user).bulk_create(source_dataset_locations)
+        DatasetSource.objects.using(ingestion_request.user).bulk_create(source_dataset_sources)
+
+        return dataset_type_index + 1
+
     create_db(ingestion_request.user)
 
-    dataset_type.id = 0
+    dataset_type_index = create_source_dataset_models(dataset_sources) if dataset_sources else 0
+
+    dataset_type.id = dataset_type_index
     dataset_type.save(using=ingestion_request.user)
 
     for dataset in datasets:
-        dataset.dataset_type_ref_id = 0
+        dataset.dataset_type_ref_id = dataset_type.id
 
     Dataset.objects.using(ingestion_request.user).bulk_create(datasets)
     DatasetLocation.objects.using(ingestion_request.user).bulk_create(dataset_locations)
     DatasetSource.objects.using(ingestion_request.user).bulk_create(dataset_sources)
+
+    cmd = "psql -U dc_user {} -c \"ALTER SEQUENCE agdc.dataset_type_id_seq RESTART WITH {};\"".format(
+        ingestion_request.user, dataset_type_index + 1)
+    os.system(cmd)
 
     close_db(ingestion_request.user)
     index.close()
