@@ -84,11 +84,14 @@ class Query(BaseQuery):
     base_result_dir = '/datacube/ui_results/tsm'
 
     color_scales = {
-        'wofs': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_water_percentage',
-        'tsm': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ramp',
-        'normalized_data': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ramp',
+        'wofs':
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/water_percentage_binned',
+        'tsm':
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/tsm_binned',
+        'normalized_data':
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/tsm_binned',
         'total_clean':
-        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_clear_observations'
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/clear_observations_binned'
     }
 
     class Meta(BaseQuery.Meta):

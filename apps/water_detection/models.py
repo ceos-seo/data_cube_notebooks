@@ -83,13 +83,13 @@ class Query(BaseQuery):
     base_result_dir = '/datacube/ui_results/water_detection'
     color_scales = {
         'wofs':
-        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_water_percentage',
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/water_percentage_binned',
         'normalized_data':
-        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/water_detection_new',
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/water_percentage_binned',
         'total_data':
-        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_water_observations',
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/water_observations_binned',
         'total_clean':
-        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_clear_observations'
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/clear_observations_binned'
     }
 
     class Meta(BaseQuery.Meta):
