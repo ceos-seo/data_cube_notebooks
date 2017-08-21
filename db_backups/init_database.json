@@ -14,7 +14,7 @@
   "fields": {
     "datacube_platform": "LANDSAT_8",
     "name": "Landsat 8",
-    "product_prefix": "ls8_ledaps_",
+    "product_prefix": "ls8_lasrc_",
     "date_min": "2013-02-11",
     "date_max": "2016-12-26"
   }

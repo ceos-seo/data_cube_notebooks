@@ -373,7 +373,8 @@ def recombine_time_chunks(chunks, task_id=None):
                     animated_data,
                     task.animated_product.data_variable,
                     color_scale=task.color_scales[task.animated_product.data_variable],
-                    fill_color=task.query_type.fill)
+                    fill_color=task.query_type.fill,
+                    interpolate=False)
 
     combined_data = None
     for index, chunk in enumerate(total_chunks):
