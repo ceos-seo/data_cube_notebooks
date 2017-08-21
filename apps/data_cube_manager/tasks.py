@@ -43,6 +43,9 @@ class IngestionBase(celery.Task):
             request.update_status(
                 "ERROR",
                 "There was an unhandled exception during ingestion. Did you change the src_varname of any measurement?")
+            delete_ingestion_request.delay(ingestion_request_id=request_id)
+            cmd = "dropdb -U dc_user {}".format(request.user)
+            os.system(cmd)
         except IngestionRequest.DoesNotExist:
             pass
 
