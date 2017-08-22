@@ -187,9 +187,13 @@ p.mini {
     margin-top: -3px;
 }
 
-.help, p.help, form p.help {
+.help, p.help, form p.help, div.help, form div.help, div.help li {
     font-size: 11px;
     color: #999;
+}
+
+div.help ul {
+     margin-bottom: 0;
 }
 
 .help-tooltip {
@@ -270,6 +274,10 @@ tfoot td {
 tfoot td {
     border-bottom: none;
     border-top: 1px solid #eee;
+}
+
+thead th.required {
+    color: #000;
 }
 
 tr.alt {
@@ -406,6 +414,9 @@ input, textarea, select, .form-row p, form .button {
     font-weight: normal;
     font-size: 13px;
 }
+.form-row div.help {
+    padding: 2px 3px;
+}
 
 textarea {
     vertical-align: top;
@@ -436,7 +447,7 @@ select[multiple] {
 /* FORM BUTTONS */
 
 .button, input[type=submit], input[type=button], .submit-row input, a.button {
-    background: #417690;
+    background: #79aec8;
     padding: 10px 15px;
     border: none;
     border-radius: 4px;
@@ -727,7 +738,7 @@ a.deletelink:focus, a.deletelink:hover {
 
 .object-tools a.viewsitelink, .object-tools a.golink,.object-tools a.addlink {
     background-repeat: no-repeat;
-    background-position: 93% center;
+    background-position: right 7px center;
     padding-right: 26px;
 }
 

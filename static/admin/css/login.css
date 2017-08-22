@@ -50,7 +50,7 @@ body.login {
     color: #333;
 }
 
-.login .form-row input {
+.login .form-row #id_username, .login .form-row #id_password {
     clear: both;
     padding: 8px;
     width: 100%;
