@@ -165,3 +165,6 @@ class Compositor(models.Model):
 
     def __str__(self):
         return self.name
+
+    def is_iterative(self):
+        return self.id not in ["median_pixel", "geometric_median", "medoid"]

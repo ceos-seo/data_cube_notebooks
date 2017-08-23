@@ -108,7 +108,7 @@ def validate_parameters(parameters, task_id=None):
         task.update_status("ERROR", "There are no acquistions for this parameter set.")
         return None
 
-    if task.animated_product.animation_id != "none" and task.compositor.id == "median_pixel":
+    if task.animated_product.animation_id != "none" and task.compositor.is_iterative():
         task.complete = True
         task.update_status("ERROR", "Animations cannot be generated for median pixel operations.")
         return None

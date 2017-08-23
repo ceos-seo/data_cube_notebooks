@@ -134,7 +134,7 @@ class Query(models.Model):
             Dict containing {'geographic': float, 'time': integer}
 
         """
-        """if self.compositor.id == "median_pixel":
+        """if not self.compositor.is_iterative():
             return {'time': None, 'geographic': 0.005}
         return {'time': 25, 'geographic': 0.5}"""
         raise NotImplementedError("You must define 'get_reverse_time' in the inheriting class.")

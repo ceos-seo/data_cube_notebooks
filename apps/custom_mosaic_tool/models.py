@@ -26,7 +26,8 @@ from apps.dc_algorithm.models import Area, Compositor, Satellite
 from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as
                                       BaseResultType, UserHistory as BaseUserHistory, AnimationType as
                                       BaseAnimationType, ToolInfo as BaseToolInfo)
-from utils.data_cube_utilities.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
+from utils.data_cube_utilities.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic,
+                                                 create_min_ndvi_mosaic, create_hdmedians_multiple_band_mosaic)
 
 import datetime
 import numpy as np
@@ -101,7 +102,7 @@ class Query(BaseQuery):
         See the base query class docstring for more information.
 
         """
-        if self.compositor.id == "median_pixel":
+        if not self.compositor.is_iterative():
             return {'time': None, 'geographic': 0.01}
         return {'time': 25, 'geographic': 0.5}
 
@@ -111,7 +112,7 @@ class Query(BaseQuery):
         See the base query class docstring for more information.
 
         """
-        return self.compositor.id != "median_pixel"
+        return self.compositor.is_iterative()
 
     def get_reverse_time(self):
         """implements get_reverse_time as required by the base class
@@ -128,11 +129,22 @@ class Query(BaseQuery):
 
         """
         processing_methods = {
-            'most_recent': create_mosaic,
-            'least_recent': create_mosaic,
-            'max_ndvi': create_max_ndvi_mosaic,
-            'min_ndvi': create_min_ndvi_mosaic,
-            'median_pixel': create_median_mosaic
+            'most_recent':
+            create_mosaic,
+            'least_recent':
+            create_mosaic,
+            'max_ndvi':
+            create_max_ndvi_mosaic,
+            'min_ndvi':
+            create_min_ndvi_mosaic,
+            'median_pixel':
+            create_median_mosaic,
+            'geometric_median':
+            lambda *args, **kwargs: create_hdmedians_multiple_band_mosaic(*args, operation="median",
+                exclusion_list=['pixel_qa', 'satellite', 'timestamp', 'date'], **kwargs),
+            'medoid':
+            lambda *args, **kwargs: create_hdmedians_multiple_band_mosaic(*args, operation="medoid",
+                exclusion_list=['pixel_qa', 'satellite', 'timestamp', 'date'], **kwargs),
         }
 
         return processing_methods.get(self.compositor.id, create_mosaic)
