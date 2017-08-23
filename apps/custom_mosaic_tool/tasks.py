@@ -107,7 +107,7 @@ def validate_parameters(parameters, task_id=None):
         task.update_status("ERROR", "Animations cannot be generated for median pixel operations.")
         return None
 
-    if task.compositor.is_iterative() and (task.time_end - task.time_start).days > 367:
+    if not task.compositor.is_iterative() and (task.time_end - task.time_start).days > 367:
         task.complete = True
         task.update_status("ERROR", "Median pixel operations are only supported for single year time periods.")
         return None
