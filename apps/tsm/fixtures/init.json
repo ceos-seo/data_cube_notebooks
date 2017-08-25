@@ -23,37 +23,37 @@
         "image_description": "Create animated GIFs of TSM values over time to show trends of increasing or decreasing suspended matter."
     }
 }, {
-    "model": "tsm.resulttype",
-    "pk": 1,
-    "fields": {
-        "result_id": "black_background",
-        "name": "Black",
-        "fill": "black"
-    }
+  "model": "tsm.resulttype",
+  "pk": 5,
+  "fields": {
+    "result_id": "normalized_data",
+    "name": "Average TSM",
+    "data_variable": "normalized_data"
+  }
 }, {
-    "model": "tsm.resulttype",
-    "pk": 2,
-    "fields": {
-        "result_id": "white_background",
-        "name": "White",
-        "fill": "white"
-    }
+  "model": "tsm.resulttype",
+  "pk": 6,
+  "fields": {
+    "result_id": "min",
+    "name": "Minimum TSM",
+    "data_variable": "min"
+  }
 }, {
-    "model": "tsm.resulttype",
-    "pk": 3,
-    "fields": {
-        "result_id": "transparent_background",
-        "name": "Transparent",
-        "fill": "transparent"
-    }
+  "model": "tsm.resulttype",
+  "pk": 7,
+  "fields": {
+    "result_id": "max",
+    "name": "Maximum TSM",
+    "data_variable": "max"
+  }
 }, {
-    "model": "tsm.resulttype",
-    "pk": 4,
-    "fields": {
-        "result_id": "gray_background",
-        "name": "Gray",
-        "fill": "gray"
-    }
+  "model": "tsm.resulttype",
+  "pk": 8,
+  "fields": {
+    "result_id": "variability",
+    "name": "TSM Variability",
+    "data_variable": "variability"
+  }
 }, {
     "model": "tsm.animationtype",
     "pk": 0,
