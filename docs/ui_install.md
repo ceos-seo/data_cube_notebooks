@@ -15,6 +15,7 @@ Contents
   * [Starting Workers](#starting_workers)
   * [System Overview](#system_overview)
   * [Customize the UI](#customization)
+  * [Maintenance, Upgrades, and Debugging](#maintenance)
   * [Common problems/FAQs](#faqs)
 
 <a name="introduction"></a> Introduction
@@ -369,12 +370,12 @@ from utils import data_access_api
 
 dc = data_access_api.DataAccessApi()
 
-dc.get_datacube_metadata('LANDSAT_7', 'ls7_ledaps_general')
+dc.get_datacube_metadata('ls7_ledaps_general','LANDSAT_7')
 ```
 
 Record the latitude and longitude extents.
 
-Go back to the admin page, select Data_Cube_UI->Areas, delete all of the initial areas, then click the 'Add Area' button.
+Go back to the admin page, select dc_algorithm->Areas, delete all of the initial areas, then click the 'Add Area' button.
 
 For the Area Id, enter 'general', or whatever area you've named that is prepended by the 'ls7_ledaps_'. Give the area a name as well.
 
@@ -384,9 +385,32 @@ For all of the imagery fields, enter '/static/assets/images/black.png'/static/as
 
 Select LANDSAT_7 in the satellites field and save your new area.
 
-Navigate back to the main admin page and select Data_Cube_UI->Applications. Choose custom_mosaic_tool and select your area in the areas field. Save the model and exit.
+Navigate back to the main admin page and select dc_algorithm->Applications. Choose custom_mosaic_tool and select your area in the areas field. Save the model and exit.
 
 Go back to the main site and navigate back to the Custom Mosaic Tool. You will see that your area is the only one in the list - select this area to load the tool. Make sure your workers are running and submit a task over the default time over some area and watch it complete. The web page should load an image result.
+
+
+<a name="maintenance"></a> Maintenance, Upgrades, and Debugging
+=================
+
+Upgrades can be pulled directly from our GitHub releases using Git. There are a few steps that will need to be taken to complete an upgrade from an earlier release version:
+
+* Pull the code from our repository
+* Make and run the Django migrations with 'python manage.py makemigrations && python manage.py migrate'. We do not keep our migrations in Git so these are specific to your system.
+* If we have added any new applications (found in the apps directory) then you'll need to run the specific migration with 'python manage.py makemigrations {app_name} && python manage.py migrate'
+* If there are any new migrations, load the new initial values from our .json file with 'python manage.py loaddata db_backups/init_database.json'
+* Now that your database is working, stop your existing Celery workers (daemon and console) and run a test instance in the console with 'celery -A data_cube_ui worker -l info'.
+* To test the current codebase for functionality, run 'python manage.py runserver 0.0.0.0:8000'. Any errors will be printed to the console - make any required updates.
+* Restart apache2 for changes to appear on the live site and restart your Celery worker. Ensure that only one instance of the worker is running.
+
+Occasionally there may be some issues that need to be debugged. Some of the common scenarios have been enumerated below, but the general workflow is found below:
+
+* Stop the daemon Celery process and start a console instance
+* Run the task that is causing your error and observe the error message in the console
+* If there is a 500 http error or a Django error page, ensure that DEBUG is set to True in settings.py and observe the error message in the logs or the error page.
+* Fix the error described by the message, restart apache, restart workers
+
+If you are having trouble diagnosing issues with the UI, feel free to contact us with a description of the issue and all relevant logs or screenshots. To ensure that we are able to assist you quickly and efficiently, please verify that your server is running with DEBUG = True and your Celery worker process is running in the terminal with loglevel info. 
 
 <a name="faqs"></a> Common problems/FAQs
 ========  
@@ -398,4 +422,27 @@ Q:
 A:  
 >	More often than not the issue is caused by a lack of permissions on the folder where the application is located.  Grant full access to the folder and its subfolders and files (this can be done by using the command “chmod -R 777 FOLDER_NAME”).  
 
+Q: 	
+ >I'm getting a too many connections error when I visit a UI page
+
+A:  
+>	The Celery worker processes have opened too many connections for your database setup. Edit the connection number allowed in your postgresql.conf file. If this number is already sufficient, that means that one of the celery workers is opening connections without closing them. To diagnose this issue, start the celery workers with a concurrency of 1 (e.g. -c 1) and check to see what tasks are opening postgres connections and not closing them. Ensure that you stop the daemon process before creating the console Celery worker process.
+
+Q: 	
+ >My tasks won't run - there is an error produced and the UI creates an alert
+
+A:  
+>	Start your celery worker in the terminal with debug mode turned on and loglevel=info. Stop the daemon process if it is started to ensure that all tasks will be visible. Run the task that is failing and observe any errors. The terminal output will tell you what task caused the error and what the general problem is.
+
+Q: 	
+ >Tasks don't start - when submitted on the UI, a progress bar is created but there is never any progress.
+
+A:  
+>	This state means that the Celery worker pool is not accepting your task. Check your server to ensure that a celery worker process is running with 'ps aux | grep celery'. If there is a Celery worker running, check that the MASTER_NODE setting is set in the settings.py file to point to your server and that Celery is able to connect - if you are currently using the daemon process, stop it and run the worker in the terminal.  
+
+Q: 	
+ >I'm seeing some SQL related errors in the Celery logs that prevent tasks from running
+
+A:  
+>	Run the Django migrations to ensure that you have the latest database schemas. If you have updated recently, ensure that you have a database table for each app - if any are missing, run 'python manage.py makemigrations {app_name}' followed by 'python manage.py migrate'.
 ---  
