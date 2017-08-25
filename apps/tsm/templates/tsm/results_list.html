@@ -50,6 +50,10 @@ under the License.
       <td class="right_aligned_text">({{ task.time_start|date:"m/d/Y" }}, {{ task.time_end|date:"m/d/Y" }})</td>
     </tr>
     <tr>
+      <td>Query Type:</td>
+      <td class="right_aligned_text">{{ task.query_type }}</td>
+    </tr>
+    <tr>
       <td>Show Average TSM:</td>
       <td class="right_aligned_text"><input type="checkbox" checked='true' name="show_average_tsm" onclick="show_result(this, '{{ task.id }}', 0)"></td>
     </tr>
