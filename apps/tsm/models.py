@@ -86,6 +86,8 @@ class Query(BaseQuery):
     color_scales = {
         'wofs':
         '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/water_percentage_binned',
+        'tsm':
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/tsm_binned',
         'normalized_data':
         '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/tsm_binned',
         'max':

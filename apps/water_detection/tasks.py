@@ -249,7 +249,8 @@ def processing_task(task_id=None,
                                                                                                       [1, 2])
 
         wofs_data = task.get_processing_method()(data, clean_mask=clear_mask, enforce_float64=True)
-        water_analysis = perform_timeseries_analysis(wofs_data, 'wofs', intermediate_product=water_analysis)
+        water_analysis = perform_timeseries_analysis(
+            wofs_data, 'wofs', intermediate_product=water_analysis, no_data=-9999)
 
         metadata = task.metadata_from_dataset(metadata, wofs_data, clear_mask, updated_params)
         if task.animated_product.animation_id != "none":

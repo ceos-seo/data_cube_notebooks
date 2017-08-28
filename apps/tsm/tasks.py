@@ -249,8 +249,9 @@ def processing_task(task_id=None,
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
 
-        wofs_data = task.get_processing_method()(data, clean_mask=clear_mask, enforce_float64=True)
-        water_analysis = perform_timeseries_analysis(wofs_data, 'wofs', intermediate_product=water_analysis)
+        wofs_data = task.get_processing_method()(data, clean_mask=clear_mask, enforce_float64=True, no_data=-9999)
+        water_analysis = perform_timeseries_analysis(
+            wofs_data, 'wofs', intermediate_product=water_analysis, no_data=-9999)
 
         clear_mask[(data.swir2.values > 100) | (wofs_data.wofs.values == 0)] = False
         tsm_data = tsm(data, clean_mask=clear_mask, no_data=-9999)
@@ -368,9 +369,11 @@ def recombine_time_chunks(chunks, task_id=None):
         dataset_intermediate['normalized_data'] = dataset_intermediate['total_data'] / dataset_intermediate[
             'total_clean']
         dataset_intermediate['min'] = xr.concat(
-            [dataset_intermediate['min'], dataset['min']], dim='time').min(dim='time')
+            [dataset_intermediate['min'], dataset['min']], dim='time').min(
+                dim='time', skipna=True)
         dataset_intermediate['max'] = xr.concat(
-            [dataset_intermediate['max'], dataset['max']], dim='time').max(dim='time')
+            [dataset_intermediate['max'], dataset['max']], dim='time').max(
+                dim='time', skipna=True)
         dataset_intermediate['wofs'] += dataset.wofs
         dataset_intermediate['wofs_total_clean'] += dataset.wofs_total_clean
 
