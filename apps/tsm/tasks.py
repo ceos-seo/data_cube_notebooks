@@ -432,7 +432,7 @@ def create_output_products(data, task_id=None):
 
     task = TsmTask.objects.get(pk=task_id)
 
-    task.result_path = os.path.join(task.get_result_path(), "_tsm.png")
+    task.result_path = os.path.join(task.get_result_path(), "tsm.png")
     task.clear_observations_path = os.path.join(task.get_result_path(), "clear_observations.png")
     task.water_percentage_path = os.path.join(task.get_result_path(), "water_percentage.png")
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
