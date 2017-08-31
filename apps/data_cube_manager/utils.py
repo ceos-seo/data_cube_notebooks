@@ -217,6 +217,7 @@ def ingestion_definition_from_forms(metadata, storage_form, ingestion_bounds_for
         return measurement_data
 
     json_definition['measurements'] = [get_measurment_data(measurement) for measurement in measurement_forms]
+    json_definition['fuse_data'] = 'copy'
 
     return json_definition
 

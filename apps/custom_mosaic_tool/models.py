@@ -27,7 +27,7 @@ from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetada
                                       BaseResultType, UserHistory as BaseUserHistory, AnimationType as
                                       BaseAnimationType, ToolInfo as BaseToolInfo)
 from utils.data_cube_utilities.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic,
-                                                 create_min_ndvi_mosaic, create_hdmedians_multiple_band_mosaic)
+                                                 create_min_ndvi_mosaic)
 
 import datetime
 import numpy as np
@@ -129,22 +129,11 @@ class Query(BaseQuery):
 
         """
         processing_methods = {
-            'most_recent':
-            create_mosaic,
-            'least_recent':
-            create_mosaic,
-            'max_ndvi':
-            create_max_ndvi_mosaic,
-            'min_ndvi':
-            create_min_ndvi_mosaic,
-            'median_pixel':
-            create_median_mosaic,
-            'geometric_median':
-            lambda *args, **kwargs: create_hdmedians_multiple_band_mosaic(*args, operation="median",
-                exclusion_list=['pixel_qa', 'satellite', 'timestamp', 'date'], **kwargs),
-            'medoid':
-            lambda *args, **kwargs: create_hdmedians_multiple_band_mosaic(*args, operation="medoid",
-                exclusion_list=['pixel_qa', 'satellite', 'timestamp', 'date'], **kwargs),
+            'most_recent': create_mosaic,
+            'least_recent': create_mosaic,
+            'max_ndvi': create_max_ndvi_mosaic,
+            'min_ndvi': create_min_ndvi_mosaic,
+            'median_pixel': create_median_mosaic
         }
 
         return processing_methods.get(self.compositor.id, create_mosaic)

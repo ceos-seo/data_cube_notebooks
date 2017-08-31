@@ -12,11 +12,12 @@ import imageio
 from collections import OrderedDict
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
-from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
-                                write_single_band_png_from_xr, add_timestamp_data_to_xr, clear_attrs,
-                                perform_timeseries_analysis, nan_to_num)
-from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
-from utils.data_cube_utilities.dc_tsm import tsm, mask_tsm
+from utils.data_cube_utilities.dc_utilities import (
+    create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr, write_single_band_png_from_xr,
+    add_timestamp_data_to_xr, clear_attrs, perform_timeseries_analysis, nan_to_num)
+from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, create_time_chunks,
+                                                  combine_geographic_chunks)
+from utils.data_cube_utilities.dc_water_quality import tsm, mask_water_quality
 from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import TsmTask
@@ -428,7 +429,7 @@ def create_output_products(data, task_id=None):
     dataset['variability'] = dataset['max'] - dataset['normalized_data']
     dataset['wofs'] = dataset.wofs / dataset.wofs_total_clean
     nan_to_num(dataset, 0)
-    dataset_masked = mask_tsm(dataset, dataset.wofs)
+    dataset_masked = mask_water_quality(dataset, dataset.wofs)
 
     task = TsmTask.objects.get(pk=task_id)
 
@@ -459,7 +460,7 @@ def create_output_products(data, task_id=None):
                 path = os.path.join(task.get_temp_path(), "animation_final_{}.nc".format(index))
                 if os.path.exists(path):
                     png_path = os.path.join(task.get_temp_path(), "animation_{}.png".format(index))
-                    animated_data = mask_tsm(
+                    animated_data = mask_water_quality(
                         xr.open_dataset(path, autoclose=True).astype('float64'),
                         dataset.wofs) if task.animated_product.animation_id != "scene" else xr.open_dataset(
                             path, autoclose=True)

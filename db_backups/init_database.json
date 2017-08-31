@@ -370,12 +370,6 @@
   }
 }, {
   "model": "dc_algorithm.compositor",
-  "pk": "geometric_median",
-  "fields": {
-    "name": "Geometric Median"
-  }
-}, {
-  "model": "dc_algorithm.compositor",
   "pk": "least_recent",
   "fields": {
     "name": "Least Recent Pixel"
@@ -391,12 +385,6 @@
   "pk": "median_pixel",
   "fields": {
     "name": "Median Pixel"
-  }
-}, {
-  "model": "dc_algorithm.compositor",
-  "pk": "medoid",
-  "fields": {
-    "name": "Medoid"
   }
 }, {
   "model": "dc_algorithm.compositor",
