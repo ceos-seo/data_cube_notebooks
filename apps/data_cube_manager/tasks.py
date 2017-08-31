@@ -297,6 +297,7 @@ def prepare_output(ingestion_request_id=None):
         downloader.write(download_script)
 
     ingestion_request.update_status("OK", "Please follow the directions on the right side panel to download your cube.")
+    index.close()
 
 
 @task(name="data_cube_manager.delete_ingestion_request", base=IngestionBase)
