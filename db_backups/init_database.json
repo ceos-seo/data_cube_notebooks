@@ -14,7 +14,7 @@
   "fields": {
     "datacube_platform": "LANDSAT_8",
     "name": "Landsat 8",
-    "product_prefix": "ls8_ledaps_",
+    "product_prefix": "ls8_lasrc_",
     "date_min": "2013-02-11",
     "date_max": "2016-12-26"
   }
@@ -84,6 +84,30 @@
   }
 }, {
   "model": "dc_algorithm.area",
+  "pk": "bangladesh_bari",
+  "fields": {
+    "name": "Bangladesh (BARI)",
+    "latitude_min": 23.5,
+    "latitude_max": 25.6,
+    "longitude_min": 87.8,
+    "longitude_max": 91.2,
+    "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/bangladesh_thumbnail_88E_93E_22N27N.png",
+    "satellites": [1]
+  }
+}, {
+  "model": "dc_algorithm.area",
+  "pk": "caqueta",
+  "fields": {
+    "name": "Caqueta",
+    "latitude_min": 0.0,
+    "latitude_max": 1.0,
+    "longitude_min": -75.0,
+    "longitude_max": -73.8,
+    "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/caqueta_-75_-.1_-73.8_1.1.png",
+    "satellites": [1, 2, 6]
+  }
+}, {
+  "model": "dc_algorithm.area",
   "pk": "colombia",
   "fields": {
     "name": "Colombia Micro Cube",
@@ -132,30 +156,6 @@
   }
 }, {
   "model": "dc_algorithm.area",
-  "pk": "lake_chad",
-  "fields": {
-    "name": "Lake Chad",
-    "latitude_min": 12.75,
-    "latitude_max": 13.0,
-    "longitude_min": 14.25,
-    "longitude_max": 14.5,
-    "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/lake_chad_thumbail_14E_15E_12N_13N.png",
-    "satellites": [1]
-  }
-}, {
-  "model": "dc_algorithm.area",
-  "pk": "lake_chad_example",
-  "fields": {
-    "name": "Lake Chad",
-    "latitude_min": 12.75,
-    "latitude_max": 13.0,
-    "longitude_min": 14.25,
-    "longitude_max": 14.5,
-    "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/lake_chad_thumbail_14E_15E_12N_13N.png",
-    "satellites": [1]
-  }
-}, {
-  "model": "dc_algorithm.area",
   "pk": "lake_chad_full",
   "fields": {
     "name": "Full Lake Chad",
@@ -164,7 +164,7 @@
     "longitude_min": 13.65,
     "longitude_max": 15.5,
     "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/lake_chad_full_thumbnail_0_1E_35N_37N.png",
-    "satellites": [1, 2, 3, 4]
+    "satellites": [1, 3, 4, 2]
   }
 }, {
   "model": "dc_algorithm.area",
@@ -180,18 +180,6 @@
   }
 }, {
   "model": "dc_algorithm.area",
-  "pk": "menindee_lakes",
-  "fields": {
-    "name": "Menindee Lakes",
-    "latitude_min": -33.25,
-    "latitude_max": -31.24,
-    "longitude_min": 141.8,
-    "longitude_max": 143.1,
-    "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/meninee_lakes_thumbnail_140.25E_144.25E_33.5S_30S.png",
-    "satellites": [1]
-  }
-}, {
-  "model": "dc_algorithm.area",
   "pk": "meta_river",
   "fields": {
     "name": "Meta River",
@@ -200,7 +188,7 @@
     "longitude_min": -72.0,
     "longitude_max": -71.0,
     "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/meta_river_thumbnail_75W_67W_0_5N_8_5N.png",
-    "satellites": [1, 2, 6]
+    "satellites": [1, 6, 2]
   }
 }, {
   "model": "dc_algorithm.area",
@@ -240,6 +228,18 @@
   }
 }, {
   "model": "dc_algorithm.area",
+  "pk": "uruguay",
+  "fields": {
+    "name": "Uruguay",
+    "latitude_min": -35.7,
+    "latitude_max": -33.5,
+    "longitude_min": -57.0,
+    "longitude_max": -54.0,
+    "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/uruguay_thumbnail_-57E_-54E_-36.25S_-33.25S.png",
+    "satellites": [2]
+  }
+}, {
+  "model": "dc_algorithm.area",
   "pk": "vietnam",
   "fields": {
     "name": "Vietnam",
@@ -248,7 +248,7 @@
     "longitude_min": 106.75,
     "longitude_max": 109.0,
     "thumbnail_imagery": "/static/assets/images/thumbnails/area_thumbnails/vietnam_thumbnail_105E_110E_9N_14N.png",
-    "satellites": [1, 2, 6]
+    "satellites": [1, 6, 2]
   }
 }, {
   "model": "dc_algorithm.application",
@@ -256,8 +256,9 @@
   "fields": {
     "name": "Cloud Coverage",
     "color_scale": "/static/assets/images/color_scales/cloud_coverage.png",
-    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_example", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
-    "satellites": [1, 2, 3]
+    "application_group": 1,
+    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad_full", "lake_cortijo", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam", "uruguay", "bangladesh_bari", "caqueta"],
+    "satellites": [1, 3, 2]
   }
 }, {
   "model": "dc_algorithm.application",
@@ -265,8 +266,9 @@
   "fields": {
     "name": "Coastal Change",
     "color_scale": "/static/assets/images/color_scales/coastal_change_color_scale.png",
-    "areas": ["togo", "tonga", "vietnam"],
-    "satellites": [1, 2, 3]
+    "application_group": 3,
+    "areas": ["tonga", "togo", "vietnam"],
+    "satellites": [1, 3, 2]
   }
 }, {
   "model": "dc_algorithm.application",
@@ -274,8 +276,9 @@
   "fields": {
     "name": "Custom Mosaic",
     "color_scale": null,
-    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
-    "satellites": [1, 2, 3, 4, 6]
+    "application_group": 1,
+    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad_full", "lake_cortijo", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam", "uruguay", "bangladesh_bari", "caqueta"],
+    "satellites": [1, 3, 4, 6, 2]
   }
 }, {
   "model": "dc_algorithm.application",
@@ -283,8 +286,9 @@
   "fields": {
     "name": "Fractional Cover",
     "color_scale": "/static/assets/images/color_scales/fractional_cover_color_scale.png",
-    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
-    "satellites": [1, 2, 3, 4, 6]
+    "application_group": 2,
+    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad_full", "lake_cortijo", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam", "uruguay", "bangladesh_bari", "caqueta"],
+    "satellites": [1, 3, 4, 6, 2]
   }
 }, {
   "model": "dc_algorithm.application",
@@ -292,8 +296,9 @@
   "fields": {
     "name": "NDVI Anomaly",
     "color_scale": "/static/assets/images/color_scales/ndvi_color_scale.png",
-    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
-    "satellites": [1, 2, 3]
+    "application_group": 2,
+    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad_full", "lake_cortijo", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam", "uruguay", "bangladesh_bari", "caqueta"],
+    "satellites": [1, 3, 2]
   }
 }, {
   "model": "dc_algorithm.application",
@@ -301,8 +306,19 @@
   "fields": {
     "name": "Slip",
     "color_scale": null,
+    "application_group": 2,
     "areas": ["salgar_colombia"],
     "satellites": [1]
+  }
+}, {
+  "model": "dc_algorithm.application",
+  "pk": "spectral_indices",
+  "fields": {
+    "name": "Spectral Indices",
+    "color_scale": null,
+    "application_group": 2,
+    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad_full", "lake_cortijo", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+    "satellites": [1, 3, 2]
   }
 }, {
   "model": "dc_algorithm.application",
@@ -310,8 +326,9 @@
   "fields": {
     "name": "Water Quality TSM",
     "color_scale": "/static/assets/images/color_scales/tsm_color_scale.png",
-    "areas": ["lake_baringo", "lake_chad", "lake_chad_full", "menindee_lakes", "meta_river", "vietnam"],
-    "satellites": [1, 2, 3, 4, 6]
+    "application_group": 3,
+    "areas": ["lake_baringo", "meta_river", "lake_chad_full", "vietnam", "uruguay"],
+    "satellites": [1, 3, 4, 6, 2]
   }
 }, {
   "model": "dc_algorithm.application",
@@ -319,8 +336,9 @@
   "fields": {
     "name": "Urbanization",
     "color_scale": "/static/assets/images/color_scales/urbanization.png",
-    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad", "lake_chad_example", "lake_chad_full", "lake_cortijo", "menindee_lakes", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
-    "satellites": [1, 2, 3]
+    "application_group": 2,
+    "areas": ["amazon_river", "bangladesh", "colombia", "ghana", "kenya", "lake_baringo", "lake_chad_full", "lake_cortijo", "meta_river", "salgar_colombia", "togo", "tonga", "vietnam"],
+    "satellites": [1, 3, 2]
   }
 }, {
   "model": "dc_algorithm.application",
@@ -328,8 +346,27 @@
   "fields": {
     "name": "Water Detection",
     "color_scale": "/static/assets/images/color_scales/water_detection_color_scale.png",
-    "areas": ["lake_baringo", "lake_chad", "lake_chad_full", "menindee_lakes", "meta_river", "vietnam"],
-    "satellites": [1, 2, 3, 4, 6]
+    "application_group": 3,
+    "areas": ["lake_baringo", "meta_river", "lake_chad_full", "vietnam", "uruguay"],
+    "satellites": [1, 3, 4, 6, 2]
+  }
+}, {
+  "model": "dc_algorithm.applicationgroup",
+  "pk": 1,
+  "fields": {
+    "name": "General"
+  }
+}, {
+  "model": "dc_algorithm.applicationgroup",
+  "pk": 2,
+  "fields": {
+    "name": "Land"
+  }
+}, {
+  "model": "dc_algorithm.applicationgroup",
+  "pk": 3,
+  "fields": {
+    "name": "Water"
   }
 }, {
   "model": "dc_algorithm.compositor",
@@ -487,70 +524,6 @@
     "data_variable": "None"
   }
 }, {
-  "model": "coastal_change.toolinfo",
-  "pk": 18,
-  "fields": {
-    "image_path": "/static/assets/images/thumbnails/coastal_change_1.png",
-    "image_title": "Coastline Identification",
-    "image_description": "Identify the coastline of a yearly mosaic and compare it to a baseline year."
-  }
-}, {
-  "model": "coastal_change.toolinfo",
-  "pk": 19,
-  "fields": {
-    "image_path": "/static/assets/images/thumbnails/coastal_change_2.png",
-    "image_title": "Coastal Change",
-    "image_description": "Compute the area covered by receding coastline over a user defined period."
-  }
-}, {
-  "model": "coastal_change.animationtype",
-  "pk": 0,
-  "fields": {
-    "animation_id": "none",
-    "name": "None",
-    "data_variable": "None"
-  }
-}, {
-  "model": "coastal_change.animationtype",
-  "pk": 1,
-  "fields": {
-    "animation_id": "coastline_change",
-    "name": "Coastline Change",
-    "data_variable": "None"
-  }
-}, {
-  "model": "coastal_change.animationtype",
-  "pk": 2,
-  "fields": {
-    "animation_id": "coastal_change",
-    "name": "Coastal Change",
-    "data_variable": "None"
-  }
-}, {
-  "model": "fractional_cover.toolinfo",
-  "pk": 4,
-  "fields": {
-    "image_path": "/static/assets/images/thumbnails/fractional_cover_1.png",
-    "image_title": "Fractional Coverage",
-    "image_description": "The Fractional Coverage tool allows users to create a three band output product used to visualize the sub pixel composition of selected areas. Pixels are classified as a percentage of photosynthetic vegetation, non-photosynthetic vegetation, and bare soil."
-  }
-}, {
-  "model": "fractional_cover.toolinfo",
-  "pk": 5,
-  "fields": {
-    "image_path": "/static/assets/images/thumbnails/fractional_cover_2.png",
-    "image_title": "Pixel Preference",
-    "image_description": "Pick a compositing algorithm (most recent, least recent, median, min/max NDVI pixel) that will produce the desired mosaic for the fractional cover application."
-  }
-}, {
-  "model": "fractional_cover.toolinfo",
-  "pk": 6,
-  "fields": {
-    "image_path": "/static/assets/images/thumbnails/fractional_cover_3.png",
-    "image_title": "Downloads",
-    "image_description": "All products (both data and images) are available for download in various formats, including GeoTIFF, NetCDF, and PNG."
-  }
-}, {
   "model": "ndvi_anomaly.toolinfo",
   "pk": 9,
   "fields": {
@@ -628,35 +601,35 @@
   }
 }, {
   "model": "tsm.resulttype",
-  "pk": 1,
+  "pk": 5,
   "fields": {
-    "result_id": "black_background",
-    "name": "Black",
-    "fill": "black"
+    "result_id": "normalized_data",
+    "name": "Average TSM",
+    "data_variable": "normalized_data"
   }
 }, {
   "model": "tsm.resulttype",
-  "pk": 2,
+  "pk": 6,
   "fields": {
-    "result_id": "white_background",
-    "name": "White",
-    "fill": "white"
+    "result_id": "min",
+    "name": "Minimum TSM",
+    "data_variable": "min"
   }
 }, {
   "model": "tsm.resulttype",
-  "pk": 3,
+  "pk": 7,
   "fields": {
-    "result_id": "transparent_background",
-    "name": "Transparent",
-    "fill": "transparent"
+    "result_id": "max",
+    "name": "Maximum TSM",
+    "data_variable": "max"
   }
 }, {
   "model": "tsm.resulttype",
-  "pk": 4,
+  "pk": 8,
   "fields": {
-    "result_id": "gray_background",
-    "name": "Gray",
-    "fill": "gray"
+    "result_id": "variability",
+    "name": "TSM Variability",
+    "data_variable": "variability"
   }
 }, {
   "model": "tsm.animationtype",
@@ -763,22 +736,6 @@
     "data_variable": "total_data"
   }
 }, {
-  "model": "cloud_coverage.toolinfo",
-  "pk": 2,
-  "fields": {
-    "image_path": "/static/assets/images/thumbnails/cloud_coverage_1.png",
-    "image_title": "Determine Optimal Analysis Case Areas",
-    "image_description": "Using the cloud coverage tool, determine whether or not a new area is optimal for an analysis case based on average cloud cover."
-  }
-}, {
-  "model": "cloud_coverage.toolinfo",
-  "pk": 3,
-  "fields": {
-    "image_path": "/static/assets/images/thumbnails/cloud_coverage_3.png",
-    "image_title": "Time Series",
-    "image_description": "Run a time series analysis case that will result in the average cloud coverage percentage over the time period."
-  }
-}, {
   "model": "urbanization.toolinfo",
   "pk": 1,
   "fields": {
@@ -801,5 +758,78 @@
     "image_path": "/static/assets/images/thumbnails/urbanization_3.png",
     "image_title": "Compute Indices to Visualize Area Content",
     "image_description": "Visualize area contents with the use of well known remote sensing indices."
+  }
+}, {
+  "model": "spectral_indices.toolinfo",
+  "pk": 1,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_1.png",
+    "image_title": "Run Band Math Analyses on Mosaics",
+    "image_description": "Calculate any common spectral index on time series data"
+  }
+}, {
+  "model": "spectral_indices.toolinfo",
+  "pk": 2,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_2.png",
+    "image_title": "Pixel Preference",
+    "image_description": "Choose how the 'best' pixel will be chosen: Most recent, least recent, median, or min/max NDVI value pixel."
+  }
+}, {
+  "model": "spectral_indices.toolinfo",
+  "pk": 3,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_3.png",
+    "image_title": "Time Series",
+    "image_description": "Run powerful time series analyses that composites a series of acquisitions to produce a single image then calculates the selected spectral index."
+  }
+}, {
+  "model": "spectral_indices.resulttype",
+  "pk": 1,
+  "fields": {
+    "result_id": "ndvi",
+    "name": "NDVI"
+  }
+}, {
+  "model": "spectral_indices.resulttype",
+  "pk": 2,
+  "fields": {
+    "result_id": "ndwi",
+    "name": "NDWI"
+  }
+}, {
+  "model": "spectral_indices.resulttype",
+  "pk": 3,
+  "fields": {
+    "result_id": "ndbi",
+    "name": "NDBI"
+  }
+}, {
+  "model": "spectral_indices.resulttype",
+  "pk": 4,
+  "fields": {
+    "result_id": "evi",
+    "name": "EVI"
+  }
+}, {
+  "model": "spectral_indices.resulttype",
+  "pk": 5,
+  "fields": {
+    "result_id": "savi",
+    "name": "SAVI"
+  }
+}, {
+  "model": "spectral_indices.resulttype",
+  "pk": 6,
+  "fields": {
+    "result_id": "nbr",
+    "name": "NBR"
+  }
+}, {
+  "model": "spectral_indices.resulttype",
+  "pk": 7,
+  "fields": {
+    "result_id": "nbr2",
+    "name": "NBR2"
   }
 }]

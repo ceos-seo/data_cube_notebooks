@@ -123,6 +123,8 @@ class Application(models.Model):
             so we would leave it unselected.
         satellites: M2M field outlining what satellties should be displayed for each tool. If water detection
             does not use SAR data, we would select only optical satellites here.
+        application_group: Optional FK to a app group. Apps with no groups are displayed as single choices, otherwise
+            they are in a multilevel dropdown by group.
         color_scale: path to a color scale image to be displayed in the main tool view. If no color scale is
             necessary, this should be left blank/null.
 
@@ -135,8 +137,20 @@ class Application(models.Model):
 
     color_scale = models.CharField(max_length=250, default="", blank=True, null=True)
 
+    application_group = models.ForeignKey('ApplicationGroup', null=True, blank=True)
+
     def __str__(self):
         return self.id
+
+
+class ApplicationGroup(models.Model):
+    """
+    Stores a grouping for applications. Optional, only field is a string.
+    """
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
 
 
 class Compositor(models.Model):
@@ -151,3 +165,6 @@ class Compositor(models.Model):
 
     def __str__(self):
         return self.name
+
+    def is_iterative(self):
+        return self.id not in ["median_pixel", "geometric_median", "medoid"]

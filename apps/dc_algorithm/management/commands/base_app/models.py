@@ -28,7 +28,7 @@ from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetada
                                       BaseAnimationType, ToolInfo as BaseToolInfo)
 
 # TODO: Fill in any required algorithm imports here. Remove mosaic if unused
-from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
+from utils.data_cube_utilities.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
 
 import datetime
 import numpy as np
@@ -113,7 +113,7 @@ class Query(BaseQuery):
         See the base query class docstring for more information.
 
         """
-        if self.compositor.id == "median_pixel":
+        if not self.compositor.is_iterative():
             return {'time': None, 'geographic': 0.005}
         return {'time': 25, 'geographic': 0.5}
 

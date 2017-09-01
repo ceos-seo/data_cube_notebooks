@@ -11,11 +11,12 @@ import os
 import imageio
 from collections import OrderedDict
 
-from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
-                                write_single_band_png_from_xr, add_timestamp_data_to_xr, clear_attrs,
-                                perform_timeseries_analysis)
-from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
+from utils.data_cube_utilities.data_access_api import DataAccessApi
+from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
+                                                    write_png_from_xr, write_single_band_png_from_xr,
+                                                    add_timestamp_data_to_xr, clear_attrs, perform_timeseries_analysis)
+from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, create_time_chunks,
+                                                  combine_geographic_chunks)
 from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import WaterDetectionTask
@@ -248,7 +249,8 @@ def processing_task(task_id=None,
                                                                                                       [1, 2])
 
         wofs_data = task.get_processing_method()(data, clean_mask=clear_mask, enforce_float64=True)
-        water_analysis = perform_timeseries_analysis(wofs_data, 'wofs', intermediate_product=water_analysis)
+        water_analysis = perform_timeseries_analysis(
+            wofs_data, 'wofs', intermediate_product=water_analysis, no_data=-9999)
 
         metadata = task.metadata_from_dataset(metadata, wofs_data, clear_mask, updated_params)
         if task.animated_product.animation_id != "none":
@@ -372,7 +374,8 @@ def recombine_time_chunks(chunks, task_id=None):
                     animated_data,
                     task.animated_product.data_variable,
                     color_scale=task.color_scales[task.animated_product.data_variable],
-                    fill_color=task.query_type.fill)
+                    fill_color=task.query_type.fill,
+                    interpolate=False)
 
     combined_data = None
     for index, chunk in enumerate(total_chunks):
@@ -429,7 +432,12 @@ def create_output_products(data, task_id=None):
 
     for band, band_path in zip(bands, band_paths):
         write_single_band_png_from_xr(
-            band_path, dataset, band, color_scale=task.color_scales[band], fill_color=task.query_type.fill)
+            band_path,
+            dataset,
+            band,
+            color_scale=task.color_scales[band],
+            fill_color=task.query_type.fill,
+            interpolate=False)
 
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:

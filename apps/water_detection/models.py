@@ -28,7 +28,7 @@ from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetada
                                       BaseResultType, UserHistory as BaseUserHistory, AnimationType as
                                       BaseAnimationType, ToolInfo as BaseToolInfo)
 
-from utils.dc_water_classifier import wofs_classify
+from utils.data_cube_utilities.dc_water_classifier import wofs_classify
 
 import datetime
 import numpy as np
@@ -83,13 +83,13 @@ class Query(BaseQuery):
     base_result_dir = '/datacube/ui_results/water_detection'
     color_scales = {
         'wofs':
-        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_water_percentage',
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/water_percentage_binned',
         'normalized_data':
-        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_water_percentage',
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/water_percentage_binned',
         'total_data':
-        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_water_observations',
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/water_observations_binned',
         'total_clean':
-        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/au_clear_observations'
+        '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/clear_observations_binned'
     }
 
     class Meta(BaseQuery.Meta):

@@ -114,7 +114,7 @@ under the License.
 
   $(document).ready( function () {
     if ("{{ status }}" == "ERROR") {
-      set_modal_content("Error", result.message);
+      set_modal_content("Error", "{{ message }}");
     } else {
       check_status();
     }

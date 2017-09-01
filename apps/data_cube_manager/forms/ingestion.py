@@ -349,7 +349,7 @@ class IngestionRequestForm(forms.Form):
         label="Source Dataset Type",
         help_text="Select an existing source dataset type for this ingestion configuration.",
         error_messages={'required': 'Source Dataset Type is required.'},
-        widget=forms.Select(attrs={'class': "onchange_refresh",
+        widget=forms.Select(attrs={'class': "onchange_refresh onchange_filter",
                                    'onchange': "update_forms()"}),
         required=False)
 
@@ -409,8 +409,8 @@ class IngestionRequestForm(forms.Form):
         initial_vals = kwargs.pop('initial', None)
         readonly = kwargs.pop('readonly', None)
         super(IngestionRequestForm, self).__init__(*args, **kwargs)
-        self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').filter(~Q(
-            definition__has_keys=['managed']) & Q(definition__has_keys=['measurements']))
+        self.fields['dataset_type_ref'].queryset = DatasetType.objects.using('agdc').filter(
+            Q(definition__has_keys=['managed']) & Q(definition__has_keys=['measurements']))
         if initial_vals:
             for field in initial_vals:
                 self.fields[field].initial = initial_vals[field]

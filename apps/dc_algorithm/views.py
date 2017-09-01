@@ -132,6 +132,8 @@ class ToolView(View, ToolClass):
         'template': 'panels/output_panel.html'
     }]
 
+    map_tool_template = 'map_tool.html'
+
     @method_decorator(login_required)
     def get(self, request, area_id):
         """Get the main tool view page using the map_tool template
@@ -180,7 +182,7 @@ class ToolView(View, ToolClass):
             'panels': self.panels
         }
 
-        return render(request, 'map_tool.html', context)
+        return render(request, self.map_tool_template, context)
 
     def generate_form_dict(satellites, area):
         """Generate a dictionary of forms keyed by satellite for rendering

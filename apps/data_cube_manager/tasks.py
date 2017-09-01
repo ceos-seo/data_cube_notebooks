@@ -10,10 +10,11 @@ from celery.utils.log import get_task_logger
 from celery.decorators import periodic_task
 from celery.task.schedules import crontab
 from datacube.index import index_connect
-from datacube.executor import get_executor
+from datacube.executor import SerialExecutor
 from datacube.config import LocalConfig
 from datacube.scripts import ingest
 
+import uuid
 import os
 import configparser
 from glob import glob
@@ -22,7 +23,7 @@ import shutil
 from apps.data_cube_manager.models import (Dataset, DatasetType, DatasetSource, DatasetLocation, IngestionRequest,
                                            IngestionDetails)
 from apps.data_cube_manager.templates.bulk_downloader import base_downloader_script, static_script
-from utils.data_access_api import DataAccessApi
+from utils.data_cube_utilities.data_access_api import DataAccessApi
 
 logger = get_task_logger(__name__)
 
@@ -43,14 +44,21 @@ class IngestionBase(celery.Task):
             request.update_status(
                 "ERROR",
                 "There was an unhandled exception during ingestion. Did you change the src_varname of any measurement?")
+            delete_ingestion_request.delay(ingestion_request_id=request_id)
+            cmd = "dropdb -U dc_user {}".format(request.get_database_name())
+            os.system(cmd)
         except IngestionRequest.DoesNotExist:
             pass
+
+    def on_success(self, retval, task_id, args, kwargs):
+        """"""
+        pass
 
 
 @periodic_task(
     name="data_cube_manager.get_data_cube_details",
-    run_every=(30.0),
-    #run_every=(crontab(hour=0, minute=0)),
+    #run_every=(30.0),
+    run_every=(crontab(hour=0, minute=0)),
     ignore_result=True)
 def update_data_cube_details(ingested_only=True):
     dataset_types = DatasetType.objects.using('agdc').filter(
@@ -60,10 +68,12 @@ def update_data_cube_details(ingested_only=True):
 
     for dataset_type in dataset_types:
         ingestion_details, created = IngestionDetails.objects.get_or_create(
-            datase_type_ref=dataset_type.id,
+            dataset_type_ref=dataset_type.id,
             product=dataset_type.name,
             platform=dataset_type.metadata['platform']['code'])
         ingestion_details.update_with_query_metadata(dc.get_datacube_metadata(dataset_type.name))
+
+    dc.close()
 
 
 @task(name="data_cube_manager.run_ingestion")
@@ -141,14 +151,18 @@ def init_db(ingestion_request_id=None):
     """
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
 
-    cmd = "createdb -U dc_user {}".format(ingestion_request.user)
+    cmd = "createdb -U dc_user {}".format(ingestion_request.get_database_name())
     os.system(cmd)
 
-    config = get_config(ingestion_request.user)
+    config = get_config(ingestion_request.get_database_name())
     index = index_connect(local_config=config, validate_connection=False)
+    try:
+        index.init_db(with_default_types=True, with_permissions=True)
+        index.metadata_types.check_field_indexes(allow_table_lock=True, rebuild_indexes=True, rebuild_views=True)
+    except:
+        index.close()
+        raise
 
-    index.init_db(with_default_types=True, with_permissions=True)
-    index.metadata_types.check_field_indexes(allow_table_lock=False, rebuild_indexes=False, rebuild_views=True)
     index.close()
 
 
@@ -166,8 +180,8 @@ def add_source_datasets(ingestion_request_id=None):
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     ingestion_request.update_status("WAIT", "Populating database with source datasets...")
 
-    config = get_config(ingestion_request.user)
-    index = index_connect(local_config=config, validate_connection=False)
+    config = get_config(ingestion_request.get_database_name())
+    index = index_connect(local_config=config, validate_connection=True)
 
     dataset_type = DatasetType.objects.using('agdc').get(id=ingestion_request.dataset_type_ref)
     filtering_options = {
@@ -178,27 +192,54 @@ def add_source_datasets(ingestion_request_id=None):
         ]
     }
     datasets = list(Dataset.filter_datasets(filtering_options))
-
     dataset_locations = DatasetLocation.objects.using('agdc').filter(dataset_ref__in=datasets)
     dataset_sources = DatasetSource.objects.using('agdc').filter(dataset_ref__in=datasets)
 
-    create_db(ingestion_request.user)
+    def create_source_dataset_models(dataset_sources, dataset_type_index=0):
+        source_datasets = Dataset.objects.using('agdc').filter(
+            pk__in=dataset_sources.values_list('source_dataset_ref', flat=True))
+        source_dataset_type = DatasetType.objects.using('agdc').get(id=source_datasets[0].dataset_type_ref.id)
+        source_dataset_locations = DatasetLocation.objects.using('agdc').filter(dataset_ref__in=source_datasets)
+        source_dataset_sources = DatasetSource.objects.using('agdc').filter(dataset_ref__in=source_datasets)
 
-    dataset_type.id = 0
-    dataset_type.save(using=ingestion_request.user)
+        if source_dataset_sources.exists():
+            dataset_type_index = create_source_dataset_models(source_dataset_sources, index=dataset_type_index)
+
+        source_dataset_type.id = dataset_type_index
+        source_dataset_type.save(using=ingestion_request.get_database_name())
+
+        for dataset in source_datasets:
+            dataset.dataset_type_ref_id = source_dataset_type.id
+
+        Dataset.objects.using(ingestion_request.get_database_name()).bulk_create(source_datasets)
+        DatasetLocation.objects.using(ingestion_request.get_database_name()).bulk_create(source_dataset_locations)
+        DatasetSource.objects.using(ingestion_request.get_database_name()).bulk_create(source_dataset_sources)
+
+        return dataset_type_index + 1
+
+    create_db(ingestion_request.get_database_name())
+
+    dataset_type_index = create_source_dataset_models(dataset_sources) if dataset_sources else 0
+
+    dataset_type.id = dataset_type_index
+    dataset_type.save(using=ingestion_request.get_database_name())
 
     for dataset in datasets:
-        dataset.dataset_type_ref_id = 0
+        dataset.dataset_type_ref_id = dataset_type.id
 
-    Dataset.objects.using(ingestion_request.user).bulk_create(datasets)
-    DatasetLocation.objects.using(ingestion_request.user).bulk_create(dataset_locations)
-    DatasetSource.objects.using(ingestion_request.user).bulk_create(dataset_sources)
+    Dataset.objects.using(ingestion_request.get_database_name()).bulk_create(datasets)
+    DatasetLocation.objects.using(ingestion_request.get_database_name()).bulk_create(dataset_locations)
+    DatasetSource.objects.using(ingestion_request.get_database_name()).bulk_create(dataset_sources)
 
-    close_db(ingestion_request.user)
+    cmd = "psql -U dc_user {} -c \"ALTER SEQUENCE agdc.dataset_type_id_seq RESTART WITH {};\"".format(
+        ingestion_request.get_database_name(), dataset_type_index + 1)
+    os.system(cmd)
+
+    close_db(ingestion_request.get_database_name())
     index.close()
 
 
-@task(name="data_cube_manager.ingest_subset", base=IngestionBase)
+@task(name="data_cube_manager.ingest_subset", base=IngestionBase, throws=(SystemExit))
 def ingest_subset(ingestion_request_id=None):
     """Run the ingestion process on the new database
 
@@ -209,22 +250,27 @@ def ingest_subset(ingestion_request_id=None):
 
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
 
-    config = get_config(ingestion_request.user)
-    index = index_connect(local_config=config, validate_connection=False)
+    config = get_config(ingestion_request.get_database_name())
+    index = index_connect(local_config=config, validate_connection=True)
 
     # Thisis done because of something that the agdc guys do in ingest: https://github.com/opendatacube/datacube-core/blob/develop/datacube/scripts/ingest.py#L168
     ingestion_request.ingestion_definition['filename'] = "ceos_data_cube_sample.yaml"
-
     try:
-        source_type, output_type = ingest.make_output_type(index, ingestion_request.ingestion_definition)
+        # source_type, output_type = ingest.make_output_type(index, ingestion_request.ingestion_definition)
+
+        source_type = index.products.get_by_name(ingestion_request.ingestion_definition['source_type'])
+        output_type = index.products.add(
+            ingest.morph_dataset_type(source_type, ingestion_request.ingestion_definition), allow_table_lock=True)
+
         tasks = list(
             ingest.create_task_list(index, output_type, None, source_type, ingestion_request.ingestion_definition))
 
         ingestion_request.total_storage_units = len(tasks)
         ingestion_request.update_status("WAIT", "Starting the ingestion process...")
 
+        executor = SerialExecutor()
         successful, failed = ingest.process_tasks(index, ingestion_request.ingestion_definition, source_type,
-                                                  output_type, tasks, 3200, get_executor(None, None))
+                                                  output_type, tasks, 3200, executor)
     except:
         index.close()
         raise
@@ -243,14 +289,10 @@ def prepare_output(ingestion_request_id=None):
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     ingestion_request.update_status("WAIT", "Creating output products...")
 
-    config = get_config(ingestion_request.user)
-    index = index_connect(local_config=config, validate_connection=False)
-
-    cmd = "pg_dump -U dc_user -n agdc {} > {}".format(ingestion_request.user,
+    cmd = "pg_dump -U dc_user -n agdc {} > {}".format(ingestion_request.get_database_name(),
                                                       ingestion_request.get_database_dump_path())
     os.system(cmd)
-    index.close()
-    cmd = "dropdb -U dc_user {}".format(ingestion_request.user)
+    cmd = "dropdb -U dc_user {}".format(ingestion_request.get_database_name())
     os.system(cmd)
 
     ingestion_request.download_script_path = ingestion_request.get_base_data_path() + "/bulk_downloader.py"
@@ -272,6 +314,8 @@ def delete_ingestion_request(ingestion_request_id=None):
     """Delete an existing ingestion request before proceeding with a new one"""
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     try:
+        cmd = "dropdb -U dc_user {}".format(ingestion_request.get_database_name())
+        os.system(cmd)
         shutil.rmtree(ingestion_request.get_base_data_path())
     except:
         pass

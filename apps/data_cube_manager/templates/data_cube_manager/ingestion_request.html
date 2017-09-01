@@ -111,7 +111,7 @@
         yearRange: "-30:+0"
     });
     get_dataset_count();
-    jQuery(".onchange_filter").change(get_dataset_count)
+    jQuery(".onchange_filter").change(get_dataset_count);
   });
 
   function get_dataset_count() {
@@ -141,6 +141,10 @@
           return;
         } else {
           jQuery("#existing_measurement_container").html(result.html);
+          jQuery.each(Object.keys(result.product_details), function(index, value) {
+            jQuery("#id_" + value).val(result.product_details[value]);
+          });
+          get_dataset_count();
         }
     });
   }

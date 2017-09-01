@@ -1,0 +1,25 @@
+[{
+    "model": "spectral_indices.toolinfo",
+    "pk": 1,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_1.png",
+        "image_title": "Run Band Math Analyses on Mosaics",
+        "image_description": "Calculate any common spectral index on time series data"
+    }
+}, {
+    "model": "spectral_indices.toolinfo",
+    "pk": 2,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_2.png",
+        "image_title": "Pixel Preference",
+        "image_description": "Choose how the 'best' pixel will be chosen: Most recent, least recent, median, or min/max NDVI value pixel."
+    }
+}, {
+    "model": "spectral_indices.toolinfo",
+    "pk": 3,
+    "fields": {
+        "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_3.png",
+        "image_title": "Time Series",
+        "image_description": "Run powerful time series analyses that composites a series of acquisitions to produce a single image then calculates the selected spectral index."
+    }
+}]

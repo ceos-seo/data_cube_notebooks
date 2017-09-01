@@ -11,12 +11,13 @@ import os
 import imageio
 from collections import OrderedDict
 
-from utils.data_access_api import DataAccessApi
-from utils.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
-                                write_single_band_png_from_xr, add_timestamp_data_to_xr, clear_attrs,
-                                perform_timeseries_analysis, nan_to_num)
-from utils.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
-from utils.dc_tsm import tsm, mask_tsm
+from utils.data_cube_utilities.data_access_api import DataAccessApi
+from utils.data_cube_utilities.dc_utilities import (
+    create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr, write_single_band_png_from_xr,
+    add_timestamp_data_to_xr, clear_attrs, perform_timeseries_analysis, nan_to_num)
+from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, create_time_chunks,
+                                                  combine_geographic_chunks)
+from utils.data_cube_utilities.dc_water_quality import tsm, mask_water_quality
 from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import TsmTask
@@ -249,8 +250,9 @@ def processing_task(task_id=None,
         clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
                                                                                                       [1, 2])
 
-        wofs_data = task.get_processing_method()(data, clean_mask=clear_mask, enforce_float64=True)
-        water_analysis = perform_timeseries_analysis(wofs_data, 'wofs', intermediate_product=water_analysis)
+        wofs_data = task.get_processing_method()(data, clean_mask=clear_mask, enforce_float64=True, no_data=-9999)
+        water_analysis = perform_timeseries_analysis(
+            wofs_data, 'wofs', intermediate_product=water_analysis, no_data=-9999)
 
         clear_mask[(data.swir2.values > 100) | (wofs_data.wofs.values == 0)] = False
         tsm_data = tsm(data, clean_mask=clear_mask, no_data=-9999)
@@ -362,12 +364,19 @@ def recombine_time_chunks(chunks, task_id=None):
         functions used to combine time sliced data after being combined geographically.
         This compounds the results of the time slice and recomputes the normalized data.
         """
+        # total data/clean refers to tsm
         dataset_intermediate['total_data'] += dataset.total_data
         dataset_intermediate['total_clean'] += dataset.total_clean
-        dataset_intermediate['wofs'] += dataset.wofs
-        dataset_intermediate['wofs_total_clean'] += dataset.wofs_total_clean
         dataset_intermediate['normalized_data'] = dataset_intermediate['total_data'] / dataset_intermediate[
             'total_clean']
+        dataset_intermediate['min'] = xr.concat(
+            [dataset_intermediate['min'], dataset['min']], dim='time').min(
+                dim='time', skipna=True)
+        dataset_intermediate['max'] = xr.concat(
+            [dataset_intermediate['max'], dataset['max']], dim='time').max(
+                dim='time', skipna=True)
+        dataset_intermediate['wofs'] += dataset.wofs
+        dataset_intermediate['wofs_total_clean'] += dataset.wofs_total_clean
 
     def generate_animation(index, combined_data):
         base_index = (task.get_chunk_size()['time'] if task.get_chunk_size()['time'] is not None else 1) * index
@@ -417,13 +426,14 @@ def create_output_products(data, task_id=None):
     logger.info("CREATE_OUTPUT")
     full_metadata = data[1]
     dataset = xr.open_dataset(data[0], autoclose=True).astype('float64')
+    dataset['variability'] = dataset['max'] - dataset['normalized_data']
     dataset['wofs'] = dataset.wofs / dataset.wofs_total_clean
     nan_to_num(dataset, 0)
-    dataset_masked = mask_tsm(dataset, dataset.wofs)
+    dataset_masked = mask_water_quality(dataset, dataset.wofs)
 
     task = TsmTask.objects.get(pk=task_id)
 
-    task.result_path = os.path.join(task.get_result_path(), "average_tsm.png")
+    task.result_path = os.path.join(task.get_result_path(), "tsm.png")
     task.clear_observations_path = os.path.join(task.get_result_path(), "clear_observations.png")
     task.water_percentage_path = os.path.join(task.get_result_path(), "water_percentage.png")
     task.data_path = os.path.join(task.get_result_path(), "data_tif.tif")
@@ -433,7 +443,7 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset_masked)
     task.metadata_from_dict(full_metadata)
 
-    bands = ['normalized_data', 'total_clean', 'wofs']
+    bands = [task.query_type.data_variable, 'total_clean', 'wofs']
     band_paths = [task.result_path, task.clear_observations_path, task.water_percentage_path]
 
     dataset_masked.to_netcdf(task.data_netcdf_path)
@@ -441,7 +451,7 @@ def create_output_products(data, task_id=None):
 
     for band, band_path in zip(bands, band_paths):
         write_single_band_png_from_xr(
-            band_path, dataset_masked, band, color_scale=task.color_scales[band], fill_color=task.query_type.fill)
+            band_path, dataset_masked, band, color_scale=task.color_scales[band], fill_color='black', interpolate=False)
 
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
@@ -450,7 +460,7 @@ def create_output_products(data, task_id=None):
                 path = os.path.join(task.get_temp_path(), "animation_final_{}.nc".format(index))
                 if os.path.exists(path):
                     png_path = os.path.join(task.get_temp_path(), "animation_{}.png".format(index))
-                    animated_data = mask_tsm(
+                    animated_data = mask_water_quality(
                         xr.open_dataset(path, autoclose=True).astype('float64'),
                         dataset.wofs) if task.animated_product.animation_id != "scene" else xr.open_dataset(
                             path, autoclose=True)
@@ -459,7 +469,8 @@ def create_output_products(data, task_id=None):
                         animated_data,
                         task.animated_product.data_variable,
                         color_scale=task.color_scales[task.animated_product.data_variable],
-                        fill_color=task.query_type.fill)
+                        fill_color='black',
+                        interpolate=False)
                     image = imageio.imread(png_path)
                     writer.append_data(image)
 

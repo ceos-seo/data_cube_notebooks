@@ -8,6 +8,7 @@ from django.conf import settings
 from dateutil.parser import parse
 from collections import Iterable
 from glob import glob
+import uuid
 
 
 class Dataset(models.Model):
@@ -167,6 +168,7 @@ class IngestionRequest(models.Model):
     """
 
     user = models.CharField(max_length=50)
+    db_name = models.CharField(max_length=50, default=uuid.uuid4)
 
     # this can't be a fk since the agdc schema isn't managed by Django
     dataset_type_ref = models.SmallIntegerField()
@@ -194,6 +196,9 @@ class IngestionRequest(models.Model):
         self.message = message
         self.save()
 
+    def get_database_name(self):
+        return self.user + str(self.pk)
+
     def get_database_dump_path(self):
         return "{}/datacube_dump".format(self.ingestion_definition['location'])
 
@@ -212,7 +217,7 @@ class IngestionDetails(models.Model):
     as a json response.
 
     """
-    datase_type_ref = models.IntegerField(primary_key=True)
+    dataset_type_ref = models.IntegerField(primary_key=True)
     product = models.CharField(max_length=100)
     platform = models.CharField(max_length=100, default="")
     global_dataset = models.BooleanField(default=False)
@@ -245,7 +250,7 @@ class IngestionDetails(models.Model):
         """
 
         return {
-            'dataset_type_ref': self.datase_type_ref,
+            'dataset_type_ref': self.dataset_type_ref,
             'product': self.product,
             'start_date': self.start_date,
             'end_date': self.end_date,

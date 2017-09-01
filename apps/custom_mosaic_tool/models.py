@@ -26,7 +26,8 @@ from apps.dc_algorithm.models import Area, Compositor, Satellite
 from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as
                                       BaseResultType, UserHistory as BaseUserHistory, AnimationType as
                                       BaseAnimationType, ToolInfo as BaseToolInfo)
-from utils.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
+from utils.data_cube_utilities.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic,
+                                                 create_min_ndvi_mosaic)
 
 import datetime
 import numpy as np
@@ -101,7 +102,7 @@ class Query(BaseQuery):
         See the base query class docstring for more information.
 
         """
-        if self.compositor.id == "median_pixel":
+        if not self.compositor.is_iterative():
             return {'time': None, 'geographic': 0.01}
         return {'time': 25, 'geographic': 0.5}
 
@@ -111,7 +112,7 @@ class Query(BaseQuery):
         See the base query class docstring for more information.
 
         """
-        return self.compositor.id != "median_pixel"
+        return self.compositor.is_iterative()
 
     def get_reverse_time(self):
         """implements get_reverse_time as required by the base class

@@ -68,14 +68,18 @@ under the License.
       <td>Animated Product:</td>
       <td class="right_aligned_text">{{ task.animated_product }}</td>
     </tr>
+    <tr>
+      <td>Query Type:</td>
+      <td class="right_aligned_text">{{ task.query_type }}</td>
+    </tr>
   </tbody>
 </table>
 {% endblock %}
 {% block data_guide_rows %}
 <tr>
   <td>1</td>
-  <td>Average TSM</td>
-  <td>0+ <div class="helper tooltipped" title="Contains the average TSM value over the specified time period in grams per liter."><a> ?</a></div></td>
+  <td>TSM Product</td>
+  <td>0+ <div class="helper tooltipped" title="Contains the TSM average/min/max/variability value over the specified time period in grams per liter."><a> ?</a></div></td>
 </tr>
 <tr>
   <td>2</td>
@@ -92,7 +96,7 @@ under the License.
 https://landsat.usgs.gov/landsat-surface-reflectance-high-level-data-products
 {% endblock %}
 {% block download_options %}
-<option value="result_path">Average TSM</option>
+<option value="result_path">TSM Product</option>
 <option value="clear_observations_path">Clear Observations</option>
 <option value="animation_path">TSM Animation</option>
 <option value="data_netcdf_path">TSM netCDF</option>
