@@ -14,6 +14,7 @@ from datacube.executor import SerialExecutor
 from datacube.config import LocalConfig
 from datacube.scripts import ingest
 
+import uuid
 import os
 import configparser
 from glob import glob
@@ -44,7 +45,7 @@ class IngestionBase(celery.Task):
                 "ERROR",
                 "There was an unhandled exception during ingestion. Did you change the src_varname of any measurement?")
             delete_ingestion_request.delay(ingestion_request_id=request_id)
-            cmd = "dropdb -U dc_user {}".format(request.user)
+            cmd = "dropdb -U dc_user {}".format(request.get_database_name())
             os.system(cmd)
         except IngestionRequest.DoesNotExist:
             pass
@@ -150,14 +151,14 @@ def init_db(ingestion_request_id=None):
     """
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
 
-    cmd = "createdb -U dc_user {}".format(ingestion_request.user)
+    cmd = "createdb -U dc_user {}".format(ingestion_request.get_database_name())
     os.system(cmd)
 
-    config = get_config(ingestion_request.user)
+    config = get_config(ingestion_request.get_database_name())
     index = index_connect(local_config=config, validate_connection=False)
     try:
         index.init_db(with_default_types=True, with_permissions=True)
-        index.metadata_types.check_field_indexes(allow_table_lock=True, rebuild_indexes=False, rebuild_views=True)
+        index.metadata_types.check_field_indexes(allow_table_lock=True, rebuild_indexes=True, rebuild_views=True)
     except:
         index.close()
         raise
@@ -179,7 +180,7 @@ def add_source_datasets(ingestion_request_id=None):
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     ingestion_request.update_status("WAIT", "Populating database with source datasets...")
 
-    config = get_config(ingestion_request.user)
+    config = get_config(ingestion_request.get_database_name())
     index = index_connect(local_config=config, validate_connection=True)
 
     dataset_type = DatasetType.objects.using('agdc').get(id=ingestion_request.dataset_type_ref)
@@ -205,36 +206,36 @@ def add_source_datasets(ingestion_request_id=None):
             dataset_type_index = create_source_dataset_models(source_dataset_sources, index=dataset_type_index)
 
         source_dataset_type.id = dataset_type_index
-        source_dataset_type.save(using=ingestion_request.user)
+        source_dataset_type.save(using=ingestion_request.get_database_name())
 
         for dataset in source_datasets:
             dataset.dataset_type_ref_id = source_dataset_type.id
 
-        Dataset.objects.using(ingestion_request.user).bulk_create(source_datasets)
-        DatasetLocation.objects.using(ingestion_request.user).bulk_create(source_dataset_locations)
-        DatasetSource.objects.using(ingestion_request.user).bulk_create(source_dataset_sources)
+        Dataset.objects.using(ingestion_request.get_database_name()).bulk_create(source_datasets)
+        DatasetLocation.objects.using(ingestion_request.get_database_name()).bulk_create(source_dataset_locations)
+        DatasetSource.objects.using(ingestion_request.get_database_name()).bulk_create(source_dataset_sources)
 
         return dataset_type_index + 1
 
-    create_db(ingestion_request.user)
+    create_db(ingestion_request.get_database_name())
 
     dataset_type_index = create_source_dataset_models(dataset_sources) if dataset_sources else 0
 
     dataset_type.id = dataset_type_index
-    dataset_type.save(using=ingestion_request.user)
+    dataset_type.save(using=ingestion_request.get_database_name())
 
     for dataset in datasets:
         dataset.dataset_type_ref_id = dataset_type.id
 
-    Dataset.objects.using(ingestion_request.user).bulk_create(datasets)
-    DatasetLocation.objects.using(ingestion_request.user).bulk_create(dataset_locations)
-    DatasetSource.objects.using(ingestion_request.user).bulk_create(dataset_sources)
+    Dataset.objects.using(ingestion_request.get_database_name()).bulk_create(datasets)
+    DatasetLocation.objects.using(ingestion_request.get_database_name()).bulk_create(dataset_locations)
+    DatasetSource.objects.using(ingestion_request.get_database_name()).bulk_create(dataset_sources)
 
     cmd = "psql -U dc_user {} -c \"ALTER SEQUENCE agdc.dataset_type_id_seq RESTART WITH {};\"".format(
-        ingestion_request.user, dataset_type_index + 1)
+        ingestion_request.get_database_name(), dataset_type_index + 1)
     os.system(cmd)
 
-    close_db(ingestion_request.user)
+    close_db(ingestion_request.get_database_name())
     index.close()
 
 
@@ -249,7 +250,7 @@ def ingest_subset(ingestion_request_id=None):
 
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
 
-    config = get_config(ingestion_request.user)
+    config = get_config(ingestion_request.get_database_name())
     index = index_connect(local_config=config, validate_connection=True)
 
     # Thisis done because of something that the agdc guys do in ingest: https://github.com/opendatacube/datacube-core/blob/develop/datacube/scripts/ingest.py#L168
@@ -288,10 +289,10 @@ def prepare_output(ingestion_request_id=None):
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     ingestion_request.update_status("WAIT", "Creating output products...")
 
-    cmd = "pg_dump -U dc_user -n agdc {} > {}".format(ingestion_request.user,
+    cmd = "pg_dump -U dc_user -n agdc {} > {}".format(ingestion_request.get_database_name(),
                                                       ingestion_request.get_database_dump_path())
     os.system(cmd)
-    cmd = "dropdb -U dc_user {}".format(ingestion_request.user)
+    cmd = "dropdb -U dc_user {}".format(ingestion_request.get_database_name())
     os.system(cmd)
 
     ingestion_request.download_script_path = ingestion_request.get_base_data_path() + "/bulk_downloader.py"
@@ -313,7 +314,7 @@ def delete_ingestion_request(ingestion_request_id=None):
     """Delete an existing ingestion request before proceeding with a new one"""
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     try:
-        cmd = "dropdb -U dc_user {}".format(ingestion_request.user)
+        cmd = "dropdb -U dc_user {}".format(ingestion_request.get_database_name())
         os.system(cmd)
         shutil.rmtree(ingestion_request.get_base_data_path())
     except:

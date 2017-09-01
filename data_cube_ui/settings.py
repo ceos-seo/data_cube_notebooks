@@ -201,8 +201,11 @@ CELERY_ACCEPT_CONTENT = ['pickle']
 CELERY_TASK_SERIALIZER = 'pickle'
 CELERY_RESULT_SERIALIZER = 'pickle'
 CELERYD_PREFETCH_MULTIPLIER = 1
-CELERY_ACKS_LATE = True
+CELERY_TASK_ACKS_LATE = True
 CELERY_TIMEZONE = 'UTC'
+# this is done to prevent weird mem issues as well as to force
+# close db connections for dc on demand.
+CELERYD_MAX_TASKS_PER_CHILD = 1
 
 BOOTSTRAP3 = {
     # The URL to the jQuery JavaScript file
