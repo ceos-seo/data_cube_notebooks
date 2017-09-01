@@ -319,7 +319,7 @@ class CreateDataCubeSubset(View):
         existing_requests = models.IngestionRequest.objects.filter(user=request.user.username)
 
         if existing_requests.exists():
-            if existing_requests[0].status in ['OK']:
+            if existing_requests[0].status in ['OK', 'ERROR']:
                 tasks.delete_ingestion_request.delay(ingestion_request_id=existing_requests[0].pk).get()
                 existing_requests.delete()
             else:

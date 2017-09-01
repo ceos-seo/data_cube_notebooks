@@ -10,7 +10,7 @@ from celery.utils.log import get_task_logger
 from celery.decorators import periodic_task
 from celery.task.schedules import crontab
 from datacube.index import index_connect
-from datacube.executor import get_executor
+from datacube.executor import SerialExecutor
 from datacube.config import LocalConfig
 from datacube.scripts import ingest
 
@@ -48,6 +48,10 @@ class IngestionBase(celery.Task):
             os.system(cmd)
         except IngestionRequest.DoesNotExist:
             pass
+
+    def on_success(self, retval, task_id, args, kwargs):
+        """"""
+        pass
 
 
 @periodic_task(
@@ -151,9 +155,13 @@ def init_db(ingestion_request_id=None):
 
     config = get_config(ingestion_request.user)
     index = index_connect(local_config=config, validate_connection=False)
+    try:
+        index.init_db(with_default_types=True, with_permissions=True)
+        index.metadata_types.check_field_indexes(allow_table_lock=True, rebuild_indexes=False, rebuild_views=True)
+    except:
+        index.close()
+        raise
 
-    index.init_db(with_default_types=True, with_permissions=True)
-    index.metadata_types.check_field_indexes(allow_table_lock=False, rebuild_indexes=False, rebuild_views=True)
     index.close()
 
 
@@ -172,7 +180,7 @@ def add_source_datasets(ingestion_request_id=None):
     ingestion_request.update_status("WAIT", "Populating database with source datasets...")
 
     config = get_config(ingestion_request.user)
-    index = index_connect(local_config=config, validate_connection=False)
+    index = index_connect(local_config=config, validate_connection=True)
 
     dataset_type = DatasetType.objects.using('agdc').get(id=ingestion_request.dataset_type_ref)
     filtering_options = {
@@ -230,7 +238,7 @@ def add_source_datasets(ingestion_request_id=None):
     index.close()
 
 
-@task(name="data_cube_manager.ingest_subset", base=IngestionBase)
+@task(name="data_cube_manager.ingest_subset", base=IngestionBase, throws=(SystemExit))
 def ingest_subset(ingestion_request_id=None):
     """Run the ingestion process on the new database
 
@@ -242,21 +250,26 @@ def ingest_subset(ingestion_request_id=None):
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
 
     config = get_config(ingestion_request.user)
-    index = index_connect(local_config=config, validate_connection=False)
+    index = index_connect(local_config=config, validate_connection=True)
 
     # Thisis done because of something that the agdc guys do in ingest: https://github.com/opendatacube/datacube-core/blob/develop/datacube/scripts/ingest.py#L168
     ingestion_request.ingestion_definition['filename'] = "ceos_data_cube_sample.yaml"
-
     try:
-        source_type, output_type = ingest.make_output_type(index, ingestion_request.ingestion_definition)
+        # source_type, output_type = ingest.make_output_type(index, ingestion_request.ingestion_definition)
+
+        source_type = index.products.get_by_name(ingestion_request.ingestion_definition['source_type'])
+        output_type = index.products.add(
+            ingest.morph_dataset_type(source_type, ingestion_request.ingestion_definition), allow_table_lock=True)
+
         tasks = list(
             ingest.create_task_list(index, output_type, None, source_type, ingestion_request.ingestion_definition))
 
         ingestion_request.total_storage_units = len(tasks)
         ingestion_request.update_status("WAIT", "Starting the ingestion process...")
 
+        executor = SerialExecutor()
         successful, failed = ingest.process_tasks(index, ingestion_request.ingestion_definition, source_type,
-                                                  output_type, tasks, 3200, get_executor(None, None))
+                                                  output_type, tasks, 3200, executor)
     except:
         index.close()
         raise
@@ -275,13 +288,9 @@ def prepare_output(ingestion_request_id=None):
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     ingestion_request.update_status("WAIT", "Creating output products...")
 
-    config = get_config(ingestion_request.user)
-    index = index_connect(local_config=config, validate_connection=False)
-
     cmd = "pg_dump -U dc_user -n agdc {} > {}".format(ingestion_request.user,
                                                       ingestion_request.get_database_dump_path())
     os.system(cmd)
-    index.close()
     cmd = "dropdb -U dc_user {}".format(ingestion_request.user)
     os.system(cmd)
 
@@ -297,7 +306,6 @@ def prepare_output(ingestion_request_id=None):
         downloader.write(download_script)
 
     ingestion_request.update_status("OK", "Please follow the directions on the right side panel to download your cube.")
-    index.close()
 
 
 @task(name="data_cube_manager.delete_ingestion_request", base=IngestionBase)
@@ -305,6 +313,8 @@ def delete_ingestion_request(ingestion_request_id=None):
     """Delete an existing ingestion request before proceeding with a new one"""
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     try:
+        cmd = "dropdb -U dc_user {}".format(ingestion_request.user)
+        os.system(cmd)
         shutil.rmtree(ingestion_request.get_base_data_path())
     except:
         pass
