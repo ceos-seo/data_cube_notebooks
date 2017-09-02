@@ -231,8 +231,8 @@ def add_source_datasets(ingestion_request_id=None):
     DatasetLocation.objects.using(ingestion_request.get_database_name()).bulk_create(dataset_locations)
     DatasetSource.objects.using(ingestion_request.get_database_name()).bulk_create(dataset_sources)
 
-    cmd = "psql -U dc_user {} -c \"ALTER SEQUENCE agdc.dataset_type_id_seq RESTART WITH {};\"".format(
-        ingestion_request.get_database_name(), dataset_type_index + 1)
+    cmd = "psql -U dc_user -h {} {} -c \"ALTER SEQUENCE agdc.dataset_type_id_seq RESTART WITH {};\"".format(
+        settings.MASTER_NODE, ingestion_request.get_database_name(), dataset_type_index + 1)
     os.system(cmd)
 
     close_db(ingestion_request.get_database_name())
