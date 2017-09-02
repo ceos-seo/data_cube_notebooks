@@ -1,4 +1,4 @@
-CELERYD_NODES="worker1"
+CELERYD_NODES="task_processing data_cube_manager"
 
 CELERY_BIN="/home/localuser/Datacube/datacube_env/bin/celery"
 
@@ -8,7 +8,7 @@ DJANGO_SETTINGS_MODULE="data_cube_ui.settings"
 CELERYD_CHDIR="/home/localuser/Datacube/data_cube_ui/"
 
 # Extra command-line arguments to the worker
-CELERYD_OPTS="-c 10 -Ofair"
+CELERYD_OPTS="-c:task_processing 10 -c:data_cube_manager 2 --max-tasks-per-child:data_cube_manager=1  -Q:data_cube_manager data_cube_manager -Ofair"
 
 CELERYD_LOG_LEVEL="INFO"
 

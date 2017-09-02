@@ -205,7 +205,7 @@ CELERY_TASK_ACKS_LATE = True
 CELERY_TIMEZONE = 'UTC'
 # this is done to prevent weird mem issues as well as to force
 # close db connections for dc on demand.
-CELERYD_MAX_TASKS_PER_CHILD = 1
+# CELERYD_MAX_TASKS_PER_CHILD = 1
 
 BOOTSTRAP3 = {
     # The URL to the jQuery JavaScript file

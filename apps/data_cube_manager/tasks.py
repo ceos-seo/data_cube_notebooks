@@ -121,7 +121,7 @@ def ingestion_work(output_type, source_type, ingestion_definition):
     return 0
 
 
-@task(name="data_cube_manager.ingestion_on_demand", base=IngestionBase)
+@task(name="data_cube_manager.ingestion_on_demand", base=IngestionBase, queue="data_cube_manager")
 def ingestion_on_demand(ingestion_request_id=None):
     """Kick off the ingestion on demand/active subset process
 
@@ -141,7 +141,7 @@ def ingestion_on_demand(ingestion_request_id=None):
                           prepare_output.si(ingestion_request_id=ingestion_request_id))()
 
 
-@task(name="data_cube_manager.init_db", base=IngestionBase)
+@task(name="data_cube_manager.init_db", base=IngestionBase, queue="data_cube_manager")
 def init_db(ingestion_request_id=None):
     """Creates a new database and initializes it with the standard agdc schema
 
@@ -166,7 +166,7 @@ def init_db(ingestion_request_id=None):
     index.close()
 
 
-@task(name="data_cube_manager.add_source_datasets", base=IngestionBase)
+@task(name="data_cube_manager.add_source_datasets", base=IngestionBase, queue="data_cube_manager")
 def add_source_datasets(ingestion_request_id=None):
     """Populate the newly created database with source datasets that match the criteria
 
@@ -239,7 +239,7 @@ def add_source_datasets(ingestion_request_id=None):
     index.close()
 
 
-@task(name="data_cube_manager.ingest_subset", base=IngestionBase, throws=(SystemExit))
+@task(name="data_cube_manager.ingest_subset", base=IngestionBase, queue="data_cube_manager", throws=(SystemExit))
 def ingest_subset(ingestion_request_id=None):
     """Run the ingestion process on the new database
 
@@ -278,7 +278,7 @@ def ingest_subset(ingestion_request_id=None):
     index.close()
 
 
-@task(name="data_cube_manager.prepare_output", base=IngestionBase)
+@task(name="data_cube_manager.prepare_output", base=IngestionBase, queue="data_cube_manager")
 def prepare_output(ingestion_request_id=None):
     """Dump the database and perform cleanup functions
 
@@ -309,7 +309,7 @@ def prepare_output(ingestion_request_id=None):
     ingestion_request.update_status("OK", "Please follow the directions on the right side panel to download your cube.")
 
 
-@task(name="data_cube_manager.delete_ingestion_request", base=IngestionBase)
+@task(name="data_cube_manager.delete_ingestion_request", base=IngestionBase, queue="data_cube_manager")
 def delete_ingestion_request(ingestion_request_id=None):
     """Delete an existing ingestion request before proceeding with a new one"""
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
