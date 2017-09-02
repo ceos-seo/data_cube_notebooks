@@ -294,9 +294,9 @@ Visit the administration panel by going to either {ip}/admin or localhost/admin.
 <a name="starting_workers"></a> Starting Workers
 =================
 
-We use Celery workers in our application to handle the asynchronous task processing. We use tmux to handle multiple detached windows to run things in the background. In the future, we will be moving to daemon processes, but for now we like to be able to see the debugging output.
+We use Celery workers in our application to handle the asynchronous task processing. We use tmux to handle multiple detached windows to run things in the background. In the future, we will be moving to daemon processes, but for now we like to be able to see the debugging output. For the current implementation, we use multiple worker instances - one for general task processing and one for the Data Cube manager functionality. The Data Cube manager worker has a few specific parameters that make some of the database creation and deletion operations work a little more smoothly.
 
-Open a new terminal sessions and activate the virtual environment in both:
+Open two new terminal sessions and activate the virtual environment in both:
 
 ```
 source ~/Datacube/datacube_env/bin/activate
@@ -307,6 +307,18 @@ In the first terminal, run the celery process with:
 
 ```
 celery -A data_cube_ui worker -l info -c 4
+```
+
+In the second terminal, run the single use Data Cube Manager queue.
+
+```
+celery -A data_cube_ui worker -l info -c 2 -Q data_cube_manager --max-tasks-per-child 1 -Ofair
+```
+
+Additionally, you can run both simultaneously using Celery multi:
+
+```
+celery multi start -A data_cube_ui task_processing data_cube_manager -c:task_processing 10 -c:data_cube_manager 2 --max-tasks-per-child:data_cube_manager=1  -Q:data_cube_manager data_cube_manager -Ofair
 ```
 
 To start the task scheduler, run the folliwng command:
@@ -410,7 +422,7 @@ Occasionally there may be some issues that need to be debugged. Some of the comm
 * If there is a 500 http error or a Django error page, ensure that DEBUG is set to True in settings.py and observe the error message in the logs or the error page.
 * Fix the error described by the message, restart apache, restart workers
 
-If you are having trouble diagnosing issues with the UI, feel free to contact us with a description of the issue and all relevant logs or screenshots. To ensure that we are able to assist you quickly and efficiently, please verify that your server is running with DEBUG = True and your Celery worker process is running in the terminal with loglevel info. 
+If you are having trouble diagnosing issues with the UI, feel free to contact us with a description of the issue and all relevant logs or screenshots. To ensure that we are able to assist you quickly and efficiently, please verify that your server is running with DEBUG = True and your Celery worker process is running in the terminal with loglevel info.
 
 <a name="faqs"></a> Common problems/FAQs
 ========  
