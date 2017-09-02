@@ -524,6 +524,70 @@
     "data_variable": "None"
   }
 }, {
+  "model": "coastal_change.toolinfo",
+  "pk": 18,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/coastal_change_1.png",
+    "image_title": "Coastline Identification",
+    "image_description": "Identify the coastline of a yearly mosaic and compare it to a baseline year."
+  }
+}, {
+  "model": "coastal_change.toolinfo",
+  "pk": 19,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/coastal_change_2.png",
+    "image_title": "Coastal Change",
+    "image_description": "Compute the area covered by receding coastline over a user defined period."
+  }
+}, {
+  "model": "coastal_change.animationtype",
+  "pk": 0,
+  "fields": {
+    "animation_id": "none",
+    "name": "None",
+    "data_variable": "None"
+  }
+}, {
+  "model": "coastal_change.animationtype",
+  "pk": 1,
+  "fields": {
+    "animation_id": "coastline_change",
+    "name": "Coastline Change",
+    "data_variable": "None"
+  }
+}, {
+  "model": "coastal_change.animationtype",
+  "pk": 2,
+  "fields": {
+    "animation_id": "coastal_change",
+    "name": "Coastal Change",
+    "data_variable": "None"
+  }
+}, {
+  "model": "fractional_cover.toolinfo",
+  "pk": 4,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/fractional_cover_1.png",
+    "image_title": "Fractional Coverage",
+    "image_description": "The Fractional Coverage tool allows users to create a three band output product used to visualize the sub pixel composition of selected areas. Pixels are classified as a percentage of photosynthetic vegetation, non-photosynthetic vegetation, and bare soil."
+  }
+}, {
+  "model": "fractional_cover.toolinfo",
+  "pk": 5,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/fractional_cover_2.png",
+    "image_title": "Pixel Preference",
+    "image_description": "Pick a compositing algorithm (most recent, least recent, median, min/max NDVI pixel) that will produce the desired mosaic for the fractional cover application."
+  }
+}, {
+  "model": "fractional_cover.toolinfo",
+  "pk": 6,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/fractional_cover_3.png",
+    "image_title": "Downloads",
+    "image_description": "All products (both data and images) are available for download in various formats, including GeoTIFF, NetCDF, and PNG."
+  }
+}, {
   "model": "ndvi_anomaly.toolinfo",
   "pk": 9,
   "fields": {
@@ -734,6 +798,30 @@
     "animation_id": "cumulative_observations",
     "name": "Cumulative Observations",
     "data_variable": "total_data"
+  }
+}, {
+  "model": "cloud_coverage.toolinfo",
+  "pk": 1,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_1.png",
+    "image_title": "Run Band Math Analyses on Mosaics",
+    "image_description": "Run arbitrary band math calculations on mosaics that are generated automatically."
+  }
+}, {
+  "model": "cloud_coverage.toolinfo",
+  "pk": 2,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_2.png",
+    "image_title": "Pixel Preference",
+    "image_description": "Choose how the 'best' pixel will be chosen: Most recent, least recent, median, or min/max cloud_coverage value pixel."
+  }
+}, {
+  "model": "cloud_coverage.toolinfo",
+  "pk": 3,
+  "fields": {
+    "image_path": "/static/assets/images/thumbnails/custom_mosaic_tool_3.png",
+    "image_title": "Time Series",
+    "image_description": "Run powerful time series analyses that composites a series of acquisitions to produce a single image then calculates some band math equation."
   }
 }, {
   "model": "urbanization.toolinfo",

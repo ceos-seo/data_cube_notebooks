@@ -45,7 +45,7 @@ class IngestionBase(celery.Task):
                 "ERROR",
                 "There was an unhandled exception during ingestion. Did you change the src_varname of any measurement?")
             delete_ingestion_request.delay(ingestion_request_id=request_id)
-            cmd = "dropdb -U dc_user {}".format(request.get_database_name())
+            cmd = "dropdb -U dc_user -h {} {}".format(settings.MASTER_NODE, request.get_database_name())
             os.system(cmd)
         except IngestionRequest.DoesNotExist:
             pass
@@ -151,7 +151,7 @@ def init_db(ingestion_request_id=None):
     """
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
 
-    cmd = "createdb -U dc_user {}".format(ingestion_request.get_database_name())
+    cmd = "createdb -U dc_user -h {} {}".format(settings.MASTER_NODE, ingestion_request.get_database_name())
     os.system(cmd)
 
     config = get_config(ingestion_request.get_database_name())
@@ -292,7 +292,7 @@ def prepare_output(ingestion_request_id=None):
     cmd = "pg_dump -U dc_user -n agdc {} > {}".format(ingestion_request.get_database_name(),
                                                       ingestion_request.get_database_dump_path())
     os.system(cmd)
-    cmd = "dropdb -U dc_user {}".format(ingestion_request.get_database_name())
+    cmd = "dropdb -U dc_user -h {} {}".format(settings.MASTER_NODE, ingestion_request.get_database_name())
     os.system(cmd)
 
     ingestion_request.download_script_path = ingestion_request.get_base_data_path() + "/bulk_downloader.py"
@@ -314,7 +314,7 @@ def delete_ingestion_request(ingestion_request_id=None):
     """Delete an existing ingestion request before proceeding with a new one"""
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     try:
-        cmd = "dropdb -U dc_user {}".format(ingestion_request.get_database_name())
+        cmd = "dropdb -U dc_user -h {} {}".format(settings.MASTER_NODE, ingestion_request.get_database_name())
         os.system(cmd)
         shutil.rmtree(ingestion_request.get_base_data_path())
     except:
