@@ -24,6 +24,9 @@ from django.core.exceptions import ValidationError
 
 import datetime
 import uuid
+import numpy as np
+
+from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask)
 
 
 class Satellite(models.Model):
@@ -65,6 +68,8 @@ class Satellite(models.Model):
         help_text="Comma seperated list (no spaces) representing the list of measurements. e.g. 'red,green,blue,nir'",
         default="blue,green,red,nir,swir1,swir2,pixel_qa")
 
+    requires_masking = models.BooleanField(default=True)
+
     class Meta:
         unique_together = (('datacube_platform', 'product_prefix'))
 
@@ -78,7 +83,19 @@ class Satellite(models.Model):
         return self.measurements.split(",")
 
     def get_clean_mask_func(self):
-        pass
+
+        def return_all_true(ds):
+            return np.full(ds[self.get_measurements()[0]].shape(), True)
+
+        options = {
+            'bit_mask': lambda ds: create_bit_mask(ds.pixel_qa, [1, 2]),
+            'cf_mask': lambda ds: create_cfmask_clean_mask(ds.cf_mask),
+            'default': lambda ds: return_all_true
+        }
+        key = 'bit_mask' if 'pixel_qa' in self.get_measurements() else 'cf_mask' if 'cf_mask' in self.get_measurements(
+        ) else 'default'
+
+        return options.get(key, return_all_true)
 
 
 class Area(models.Model):
