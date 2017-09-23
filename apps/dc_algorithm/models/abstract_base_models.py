@@ -65,7 +65,7 @@ class Query(models.Model):
 
     area_id = models.CharField(max_length=100)
 
-    platform = models.CharField(max_length=50)
+    satellite = models.ForeignKey('dc_algorithm.Satellite')
 
     time_start = models.DateField('time_start')
     time_end = models.DateField('time_end')

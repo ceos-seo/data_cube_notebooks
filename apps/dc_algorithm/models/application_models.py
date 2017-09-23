@@ -47,6 +47,9 @@ class Satellite(models.Model):
             You should be able to concat the product prefix and an area id to get a valid dataset query.
         date_min and date_max: Satellite valid data date range.
             e.g. If you have LS7 data from 2000-2016, you should use that as the date range.
+        data_min/data_max: min/max values for your dataset. Used for scaling of pngs
+        measurements: comma seperated list of measurements with all spaces omitted.
+        no_data_value: No data value to be used for all outputs/masking functionality.
 
     """
 
@@ -68,7 +71,8 @@ class Satellite(models.Model):
         help_text="Comma seperated list (no spaces) representing the list of measurements. e.g. 'red,green,blue,nir'",
         default="blue,green,red,nir,swir1,swir2,pixel_qa")
 
-    requires_masking = models.BooleanField(default=True)
+    no_data_value = models.FloatField(
+        default=-9999, help_text='No data value to be used for all outputs/masking functionality.')
 
     class Meta:
         unique_together = (('datacube_platform', 'product_prefix'))
