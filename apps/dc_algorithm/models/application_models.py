@@ -54,11 +54,31 @@ class Satellite(models.Model):
     date_min = models.DateField('date_min', default=datetime.date.today)
     date_max = models.DateField('date_min', default=datetime.date.today)
 
+    data_min = models.FloatField(
+        help_text="Define the minimum of the valid range of this dataset. This is used for image creation/scaling.",
+        default=0)
+    data_max = models.FloatField(
+        help_text="Define the maximum of the valid range of this dataset. This is used for image creation/scaling.",
+        default=4096)
+
+    measurements = models.CharField(
+        help_text="Comma seperated list (no spaces) representing the list of measurements. e.g. 'red,green,blue,nir'",
+        default="blue,green,red,nir,swir1,swir2,pixel_qa")
+
     class Meta:
         unique_together = (('datacube_platform', 'product_prefix'))
 
     def __str__(self):
         return self.datacube_platform
+
+    def get_scale(self):
+        return (self.data_min, self.data_max)
+
+    def get_measurements(self):
+        return self.measurements.split(",")
+
+    def get_clean_mask_func(self):
+        pass
 
 
 class Area(models.Model):
