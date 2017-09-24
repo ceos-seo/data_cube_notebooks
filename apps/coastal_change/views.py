@@ -65,7 +65,7 @@ class CoastalChangeTool(ToolView):
     def generate_form_dict(self, satellites, area):
         forms = {}
         for satellite in satellites:
-            forms[satellite.datacube_platform] = {
+            forms[satellite.pk] = {
                 'Data Selection':
                 AdditionalOptionsForm(
                     datacube_platform=satellite.datacube_platform, auto_id=satellite.pk + "_%s"),
