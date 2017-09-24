@@ -272,7 +272,8 @@ def processing_task(task_id=None,
         iteration_data = task.get_processing_method()(data,
                                                       clean_mask=clear_mask,
                                                       intermediate_product=iteration_data,
-                                                      nodata=task.satellite.no_data_value)
+                                                      nodata=task.satellite.no_data_value,
+                                                      reverse_time=task.get_reverse_time())
 
         # TODO: If there is no animation you can remove this block. Otherwise, save off the data that you need.
         if task.animated_product.animation_id != "none":
@@ -392,7 +393,8 @@ def recombine_time_chunks(chunks, task_id=None):
                     animated_data = task.get_processing_method()(animated_data,
                                                                  clean_mask=clear_mask,
                                                                  intermediate_product=combined_data,
-                                                                 nodata=task.satellite.no_data_value)
+                                                                 nodata=task.satellite.no_data_value,
+                                                                 reverse_time=task.get_reverse_time())
                 path = os.path.join(task.get_temp_path(), "animation_{}.png".format(base_index + index))
                 write_png_from_xr(
                     path,
@@ -418,7 +420,8 @@ def recombine_time_chunks(chunks, task_id=None):
         combined_data = task.get_processing_method()(data,
                                                      clean_mask=clear_mask,
                                                      intermediate_product=combined_data,
-                                                     nodata=task.satellite.no_data_value)
+                                                     nodata=task.satellite.no_data_value,
+                                                     reverse_time=task.get_reverse_time())
         # if we're animating, combine it all and save to disk.
         # TODO: If there is no animation, remove this.
         if task.animated_product.animation_id != "none":

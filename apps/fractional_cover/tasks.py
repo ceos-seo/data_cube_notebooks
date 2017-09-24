@@ -264,7 +264,8 @@ def processing_task(task_id=None,
         iteration_data = task.get_processing_method()(data,
                                                       clean_mask=clear_mask,
                                                       intermediate_product=iteration_data,
-                                                      nodata=task.satellite.no_data_value)
+                                                      nodata=task.satellite.no_data_value,
+                                                      reverse_time=task.get_reverse_time())
 
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
@@ -322,7 +323,8 @@ def recombine_time_chunks(chunks, task_id=None):
         combined_data = task.get_processing_method()(data,
                                                      clean_mask=clear_mask,
                                                      intermediate_product=combined_data,
-                                                     nodata=task.satellite.no_data_value)
+                                                     nodata=task.satellite.no_data_value,
+                                                     reverse_time=task.get_reverse_time())
 
     if combined_data is None:
         return None

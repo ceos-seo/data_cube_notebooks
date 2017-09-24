@@ -269,7 +269,8 @@ def processing_task(task_id=None,
         iteration_data = task.get_processing_method()(data,
                                                       clean_mask=clear_mask,
                                                       intermediate_product=iteration_data,
-                                                      nodata=task.satellite.no_data_value)
+                                                      nodata=task.satellite.no_data_value,
+                                                      reverse_time=task.get_reverse_time())
 
         if task.animated_product.animation_id != "none":
             path = os.path.join(task.get_temp_path(),

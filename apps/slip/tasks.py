@@ -283,9 +283,14 @@ def processing_task(task_id=None,
     baseline_clear_mask = task.satellite.get_clean_mask_func()(baseline_data)
     combined_baseline = task.get_processing_method()(baseline_data,
                                                      clean_mask=baseline_clear_mask,
-                                                     nodata=task.satellite.no_data_value)
+                                                     nodata=task.satellite.no_data_value,
+                                                     reverse_time=task.get_reverse_time())
 
-    target_data = create_mosaic(target_data, clean_mask=target_clear_mask, nodata=task.satellite.no_data_value)
+    target_data = create_mosaic(
+        target_data,
+        clean_mask=target_clear_mask,
+        nodata=task.satellite.no_data_value,
+        reverse_time=task.get_reverse_time())
 
     slip_data = compute_slip(combined_baseline, target_data, dem_data, nodata=task.satellite.no_data_value)
     target_data['slip'] = slip_data
@@ -352,7 +357,8 @@ def recombine_time_chunks(chunks, task_id=None):
             data.drop('slip'),
             clean_mask=clear_mask,
             intermediate_product=combined_data,
-            nodata=task.satellite.no_data_value)
+            nodata=task.satellite.no_data_value,
+            reverse_time=task.get_reverse_time())
         combined_slip.values[combined_slip.values == 0] = data.slip.values[combined_slip.values == 0]
 
     # Since we added a time dim to combined_slip, we need to remove it here.

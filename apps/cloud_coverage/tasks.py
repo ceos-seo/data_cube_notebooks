@@ -255,7 +255,11 @@ def processing_task(task_id=None,
 
         mosaic, cloud_coverage = task.get_processing_method()
         iteration_data = mosaic(
-            data, clean_mask=clear_mask, intermediate_product=iteration_data, nodata=task.satellite.no_data_value)
+            data,
+            clean_mask=clear_mask,
+            intermediate_product=iteration_data,
+            nodata=task.satellite.no_data_value,
+            reverse_time=task.get_reverse_time())
         cloud_cover = cloud_coverage(
             data, clean_mask=clear_mask, intermediate_product=cloud_cover, nodata=task.satellite.no_data_value)
         task.scenes_processed = F('scenes_processed') + 1
