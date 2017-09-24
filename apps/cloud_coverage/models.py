@@ -105,7 +105,7 @@ class Query(BaseQuery):
 
         """
 
-        def clear_percentage(dataset_in, clean_mask, intermediate_product=None, nodata=-9999):
+        def clear_percentage(dataset_in, clean_mask, intermediate_product=None, no_data=-9999):
             """Calculate the total number of clear pixels and the total number of pixels
 
             Args:
