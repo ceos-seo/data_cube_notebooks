@@ -54,9 +54,15 @@ class Satellite(models.Model):
 
     """
 
-    datacube_platform = models.CharField(max_length=50)
+    datacube_platform = models.CharField(
+        help_text="This should correspond with a Data Cube platform. Combinations should be comma seperated with no spaces, e.g. LANDSAT_7,LANDSAT_8",
+        max_length=50)
     name = models.CharField(max_length=25)
-    product_prefix = models.CharField(max_length=100)
+    product_prefix = models.CharField(
+        max_length=250,
+        help_text="Products are loaded by name with the naming convention product_prefix+area_id, e.g. ls5_ledaps_{vietnam,colombia,australia}, \
+                   s1a_gamma0_vietnam. For combined products, prefixes should be comma seperated with no spaces in the order of the datacube_platform."
+    )
 
     date_min = models.DateField('date_min', default=datetime.date.today)
     date_max = models.DateField('date_min', default=datetime.date.today)
@@ -114,6 +120,9 @@ class Satellite(models.Model):
 
     def get_products(self, area_id):
         return [prefix + area_id for prefix in self.product_prefix.split(",")]
+
+    def get_measurements(self):
+        return self.measurements.split(",")
 
 
 class Area(models.Model):
