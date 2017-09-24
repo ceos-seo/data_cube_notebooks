@@ -263,8 +263,7 @@ def processing_task(task_id=None,
             continue
 
         # TODO: Replace anything here with your processing - do you need to create additional masks? Apply bandmaths? etc.
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
         add_timestamp_data_to_xr(data)
 
         metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
@@ -386,9 +385,7 @@ def recombine_time_chunks(chunks, task_id=None):
                 if task.animated_product.animation_id == "cumulative":
                     animated_data = xr.concat([animated_data], 'time')
                     animated_data['time'] = [0]
-                    clear_mask = create_cfmask_clean_mask(
-                        animated_data.cf_mask) if 'cf_mask' in animated_data else create_bit_mask(
-                            animated_data.pixel_qa, [1, 2])
+                    clear_mask = task.satellite.get_clean_mask_func()(animated_data)
                     animated_data = task.get_processing_method()(animated_data,
                                                                  clean_mask=clear_mask,
                                                                  intermediate_product=combined_data)
@@ -412,8 +409,7 @@ def recombine_time_chunks(chunks, task_id=None):
         #give time an indice to keep mosaicking from breaking.
         data = xr.concat([data], 'time')
         data['time'] = [0]
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
         combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
         # if we're animating, combine it all and save to disk.
         # TODO: If there is no animation, remove this.

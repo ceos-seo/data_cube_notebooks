@@ -250,8 +250,7 @@ def processing_task(task_id=None,
             logger.info("Invalid chunk.")
             continue
 
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
         metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
 
         mosaic, cloud_coverage = task.get_processing_method()

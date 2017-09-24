@@ -284,19 +284,16 @@ def processing_task(task_id=None,
 
     #concat individual slices over time, compute metadata + mosaic
     baseline_data = xr.concat(full_dataset, 'time')
-    baseline_clear_mask = create_cfmask_clean_mask(
-        baseline_data.cf_mask) if 'cf_mask' in baseline_data else create_bit_mask(baseline_data.pixel_qa, [1, 2])
+    baseline_clear_mask = task.satellite.get_clean_mask_func()(baseline_data)
     metadata = task.metadata_from_dataset(metadata, baseline_data, baseline_clear_mask, parameters)
 
-    selected_scene_clear_mask = create_cfmask_clean_mask(
-        selected_scene.cf_mask) if 'cf_mask' in selected_scene else create_bit_mask(selected_scene.pixel_qa, [1, 2])
+    selected_scene_clear_mask = task.satellite.get_clean_mask_func()(selected_scene)
     metadata = task.metadata_from_dataset(metadata, selected_scene, selected_scene_clear_mask, parameters)
     selected_scene = task.get_processing_method()(selected_scene,
                                                   clean_mask=selected_scene_clear_mask,
                                                   intermediate_product=None)
     # we need to re generate the clear mask using the mosaic now.
-    selected_scene_clear_mask = create_cfmask_clean_mask(
-        selected_scene.cf_mask) if 'cf_mask' in selected_scene else create_bit_mask(selected_scene.pixel_qa, [1, 2])
+    selected_scene_clear_mask = task.satellite.get_clean_mask_func()(selected_scene)
 
     ndvi_products = compute_ndvi_anomaly(
         baseline_data,

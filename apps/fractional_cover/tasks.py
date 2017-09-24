@@ -256,8 +256,7 @@ def processing_task(task_id=None,
             logger.info("Invalid chunk.")
             continue
 
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
         add_timestamp_data_to_xr(data)
 
         metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
@@ -315,8 +314,7 @@ def recombine_time_chunks(chunks, task_id=None):
         #give time an indice to keep mosaicking from breaking.
         data = xr.concat([data], 'time')
         data['time'] = [0]
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
 
         combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
 
@@ -340,8 +338,7 @@ def process_band_math(chunk, task_id=None):
     """
 
     def _apply_band_math(dataset):
-        clear_mask = create_cfmask_clean_mask(dataset.cf_mask) if 'cf_mask' in dataset else create_bit_mask(
-            dataset.pixel_qa, [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(dataset)
         # mask out water manually. Necessary for frac. cover.
         wofs = wofs_classify(dataset, clean_mask=clear_mask, mosaic=True)
         clear_mask[wofs.wofs.values == 1] = False

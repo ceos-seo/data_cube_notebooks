@@ -279,10 +279,8 @@ def processing_task(task_id=None,
     target_data = xr.concat([data.isel(time=-1)], 'time')
     baseline_data = data.isel(time=slice(None, -1))
 
-    target_clear_mask = create_cfmask_clean_mask(target_data.cf_mask) if 'cf_mask' in target_data else create_bit_mask(
-        target_data.pixel_qa, [1, 2])
-    baseline_clear_mask = create_cfmask_clean_mask(
-        baseline_data.cf_mask) if 'cf_mask' in baseline_data else create_bit_mask(baseline_data.pixel_qa, [1, 2])
+    target_clear_mask = task.satellite.get_clean_mask_func()(target_data)
+    baseline_clear_mask = task.satellite.get_clean_mask_func()(baseline_data)
     combined_baseline = task.get_processing_method()(baseline_data, clean_mask=baseline_clear_mask)
 
     target_data = create_mosaic(target_data, clean_mask=target_clear_mask)
@@ -345,8 +343,7 @@ def recombine_time_chunks(chunks, task_id=None):
         #give time an indice to keep mosaicking from breaking.
         data = xr.concat([data], 'time')
         data['time'] = [0]
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
         # modify clean mask so that only slip pixels that are still zero will be used. This will show all the pixels that caused the flag.
         clear_mask[xr.concat([combined_slip], 'time').values == 1] = False
         combined_data = create_mosaic(data.drop('slip'), clean_mask=clear_mask, intermediate_product=combined_data)
