@@ -412,7 +412,7 @@ def create_output_products(data, task_id=None):
 
     dataset.to_netcdf(task.data_netcdf_path)
     write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands)
-    write_png_from_xr(task.mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
+    write_png_from_xr(task.mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=task.satellite.get_scale())
     write_png_from_xr(task.result_path, dataset, ["ndbi", "ndvi", "ndwi"], scale=[(-1, 1), (0, 1), (0, 1)])
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))

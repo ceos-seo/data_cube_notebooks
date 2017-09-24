@@ -395,7 +395,7 @@ def create_output_products(data, task_id=None):
     write_single_band_png_from_xr(
         task.baseline_ndvi_path, dataset, 'baseline_ndvi', color_scale=task.color_scales['baseline_ndvi'])
 
-    write_png_from_xr(task.result_mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
+    write_png_from_xr(task.result_mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=task.satellite.get_scale())
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
     if len(dates) > 1:

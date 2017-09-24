@@ -394,7 +394,7 @@ def recombine_time_chunks(chunks, task_id=None):
                     path,
                     animated_data,
                     bands=[task.query_type.red, task.query_type.green, task.query_type.blue],
-                    scale=(0, 4096))
+                    scale=task.satellite.get_scale())
 
     combined_data = None
     for index, chunk in enumerate(total_chunks):
@@ -463,7 +463,7 @@ def create_output_products(data, task_id=None):
         bands=png_bands,
         png_filled_path=task.result_filled_path,
         fill_color=task.query_type.fill,
-        scale=(0, 4096))
+        scale=task.satellite.get_scale())
 
     # TODO: if there is no animation, remove this. Otherwise, open each time iteration slice and write to disk.
     if task.animated_product.animation_id != "none":

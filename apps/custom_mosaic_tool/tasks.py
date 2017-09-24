@@ -386,7 +386,7 @@ def recombine_time_chunks(chunks, task_id=None):
                     path,
                     animated_data,
                     bands=[task.query_type.red, task.query_type.green, task.query_type.blue],
-                    scale=(0, 4096))
+                    scale=task.satellite.get_scale())
 
     combined_data = None
     for index, chunk in enumerate(total_chunks):
@@ -449,7 +449,7 @@ def create_output_products(data, task_id=None):
         bands=png_bands,
         png_filled_path=task.result_filled_path,
         fill_color=task.query_type.fill,
-        scale=(0, 4096),
+        scale=task.satellite.get_scale(),
         low_res=True)
 
     if task.animated_product.animation_id != "none":
