@@ -95,6 +95,12 @@ class Satellite(models.Model):
         return self.measurements.split(",")
 
     def get_clean_mask_func(self):
+        """Get the func required to generate a clear mask for a dataset. Defaults to returning all True
+
+        The returned func will be specific to the measurements or product/platform and will take a single xr dataset
+        argument, returning a boolean np array of the same shape as ds.
+        
+        """
 
         def return_all_true(ds):
             return np.full(ds[self.get_measurements()[0]].shape(), True)
