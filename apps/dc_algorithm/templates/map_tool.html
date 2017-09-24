@@ -92,14 +92,14 @@
     //Handles the actual panel - hides satellite forms not being used.
     function refresh_input_panel(sel) {
         $(".satellite_dependent").hide();
-        id = $('#platform_sel').val();
+        id = $('#satellite_id').val();
         $("." + id).show();
         //set the hidden fields now
         update_hidden_fields(id);
     }
 
-    function update_hidden_fields(platform) {
-      $(".hidden_form_platform").val(platform)
+    function update_hidden_fields(satellite) {
+      $(".hidden_form_satellite").val(satellite)
       $(".hidden_form_id").val("{{ area.id }}")
     }
 
@@ -235,7 +235,7 @@
     }
 
     function process_form(form) {
-      request = $(form).serialize()// + "&platform=" + $('#platform_sel').val() + "&id={{ area.id }}";
+      request = $(form).serialize()// + "&platform=" + $('#satellite_id').val() + "&id={{ area.id }}";
       //console.log(request)
       //worker init w/ the serialized data.
       if (typeof(Worker) !== undefined) {
@@ -332,8 +332,8 @@
                     {% endfor %}
                 </ul>
                 <div id="filters_panel" class="tab-pane fade in active">
-                    <label for="platform_sel">Satellite</label>
-                    <select class="form-control" id="satellite_id" name="platform_sel" tabindex="1" data-native-menu="false" onchange="refresh_input_panel();">
+                    <label for="satellite_id">Satellite</label>
+                    <select class="form-control" id="satellite_id" name="satellite_id" tabindex="1" data-native-menu="false" onchange="refresh_input_panel();">
                         {% for satellite in satellites %}
                         <option value="{{ satellite.pk }}">{{satellite.name}}</option>
                         {% endfor %}

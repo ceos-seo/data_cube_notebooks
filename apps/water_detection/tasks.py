@@ -61,7 +61,7 @@ def parse_parameters_from_task(task_id=None):
     task = WaterDetectionTask.objects.get(pk=task_id)
 
     parameters = {
-        'platforms': sorted(task.platform.split(",")),
+        'platforms': sorted(task.satellite.datacube_platform.split(",")),
         'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),

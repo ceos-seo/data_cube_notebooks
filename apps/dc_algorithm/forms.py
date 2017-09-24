@@ -10,7 +10,7 @@ class DataSelectionForm(forms.Form):
 
     title = forms.CharField(required=False, widget=forms.HiddenInput(attrs={'class': 'hidden_form_title'}))
     description = forms.CharField(required=False, widget=forms.HiddenInput(attrs={'class': 'hidden_form_description'}))
-    platform = forms.CharField(widget=forms.HiddenInput(attrs={'class': 'hidden_form_platform'}))
+    satellite_id = forms.CharField(widget=forms.HiddenInput(attrs={'class': 'hidden_form_satellite'}))
     area_id = forms.CharField(widget=forms.HiddenInput(attrs={'class': 'hidden_form_id'}))
 
     latitude_min = forms.FloatField(

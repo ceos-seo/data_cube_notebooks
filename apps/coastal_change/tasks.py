@@ -59,7 +59,7 @@ def parse_parameters_from_task(task_id=None):
     task = CoastalChangeTask.objects.get(pk=task_id)
 
     parameters = {
-        'platform': task.platform,
+        'platform': task.satellite.datacube_platform,
         'time': (datetime(task.time_start, 1, 1), datetime(task.time_end, 12, 31)),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),

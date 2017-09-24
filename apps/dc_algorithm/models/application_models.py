@@ -102,6 +102,9 @@ class Satellite(models.Model):
 
         return options.get(key, return_all_true)
 
+    def get_product(self, area_id):
+        return self.product_prefix + area_id
+
 
 class Area(models.Model):
     """Stores an area corresponding to an area that has been ingested into the Data Cube.
