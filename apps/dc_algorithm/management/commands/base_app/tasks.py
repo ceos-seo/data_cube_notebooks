@@ -112,10 +112,14 @@ def validate_parameters(parameters, task_id=None):
 
     task.update_status("WAIT", "Validated parameters.")
 
-    # TODO: Check that the measurements exist - for Landsat, we're making sure that cf_mask/pixel_qa are interchangable.
-    # replace ['products'][0] with ['products'] if this is not a multisensory app.
+    # TODO: Check that the measurements exist - replace ['products'][0] with ['products'] if this is not a multisensory app.
     if not dc.validate_measurements(parameters['products'][0], parameters['measurements']):
-        parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+        task.complete = True
+        task.update_status(
+            "ERROR",
+            "The provided Satellite model measurements aren't valid for the product. Please check the measurements listed in the {} model.".
+            format(task.satellite.name))
+        return None
 
     dc.close()
     return parameters
