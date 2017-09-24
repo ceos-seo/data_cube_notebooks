@@ -38,13 +38,14 @@ class Satellite(models.Model):
 
     Attributes:
         datacube_platform: This should correspond with a Data Cube platform.
-            e.g. LANDSAT_5, LANDSAT_7, SENTINEL_1A, etc.
+            e.g. LANDSAT_5, LANDSAT_7, SENTINEL_1A, etc. Combinations should be comma seperated with no spaces.
         name: Used to display forms to users
             e.g. Landsat 5, Landsat 7, Sentinel-1A
         product_prefix: In our Data Cube setup, we use product prefixes combined with an area.
             e.g. ls5_ledaps_{vietnam,colombia,australia}, s1a_gamma0_vietnam
             This should be the 'ls5_ledaps_' and 's1a_gamma0_' part of the above examples.
-            You should be able to concat the product prefix and an area id to get a valid dataset query.
+            You should be able to concat the product prefix and an area id to get a valid dataset query. In the case of
+            combinations, you should have comma seperated strings with no spaces.
         date_min and date_max: Satellite valid data date range.
             e.g. If you have LS7 data from 2000-2016, you should use that as the date range.
         data_min/data_max: min/max values for your dataset. Used for scaling of pngs
@@ -104,6 +105,15 @@ class Satellite(models.Model):
 
     def get_product(self, area_id):
         return self.product_prefix + area_id
+
+    def is_combined_product(self):
+        return len(self.datacube_platform.split(",")) > 1
+
+    def get_platforms(self):
+        return self.datacube_platform.split(",")
+
+    def get_products(self, area_id):
+        return [prefix + area_id for prefix in self.product_prefix.split(",")]
 
 
 class Area(models.Model):
