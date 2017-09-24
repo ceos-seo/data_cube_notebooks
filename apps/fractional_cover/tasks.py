@@ -264,7 +264,7 @@ def processing_task(task_id=None,
         iteration_data = task.get_processing_method()(data,
                                                       clean_mask=clear_mask,
                                                       intermediate_product=iteration_data,
-                                                      nodata=task.satellite.no_data_value,
+                                                      no_data=task.satellite.no_data_value,
                                                       reverse_time=task.get_reverse_time())
 
         task.scenes_processed = F('scenes_processed') + 1
@@ -323,7 +323,7 @@ def recombine_time_chunks(chunks, task_id=None):
         combined_data = task.get_processing_method()(data,
                                                      clean_mask=clear_mask,
                                                      intermediate_product=combined_data,
-                                                     nodata=task.satellite.no_data_value,
+                                                     no_data=task.satellite.no_data_value,
                                                      reverse_time=task.get_reverse_time())
 
     if combined_data is None:
@@ -353,7 +353,7 @@ def process_band_math(chunk, task_id=None):
         wofs = wofs_classify(dataset, clean_mask=clear_mask, mosaic=True)
         clear_mask[wofs.wofs.values == 1] = False
 
-        return frac_coverage_classify(dataset, clean_mask=clear_mask, nodata=task.satellite.no_data_value)
+        return frac_coverage_classify(dataset, clean_mask=clear_mask, no_data=task.satellite.no_data_value)
 
     if chunk is None:
         return None
@@ -429,13 +429,13 @@ def create_output_products(data, task_id=None):
     bands = task.satellite.get_measurements() + ['pv', 'npv', 'bs']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, nodata=task.satellite.no_data_value)
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, no_data=task.satellite.no_data_value)
     write_png_from_xr(
         task.mosaic_path,
         dataset,
         bands=['red', 'green', 'blue'],
         scale=task.satellite.get_scale(),
-        nodata=task.satellite.no_data_value)
+        no_data=task.satellite.no_data_value)
     write_png_from_xr(task.result_path, dataset, bands=['bs', 'pv', 'npv'])
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))

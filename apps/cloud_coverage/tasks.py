@@ -258,10 +258,10 @@ def processing_task(task_id=None,
             data,
             clean_mask=clear_mask,
             intermediate_product=iteration_data,
-            nodata=task.satellite.no_data_value,
+            no_data=task.satellite.no_data_value,
             reverse_time=task.get_reverse_time())
         cloud_cover = cloud_coverage(
-            data, clean_mask=clear_mask, intermediate_product=cloud_cover, nodata=task.satellite.no_data_value)
+            data, clean_mask=clear_mask, intermediate_product=cloud_cover, no_data=task.satellite.no_data_value)
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
 
@@ -342,19 +342,19 @@ def create_output_products(data, task_id=None):
     png_bands = ['red', 'green', 'blue']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands, nodata=task.satellite.no_data_value)
+    write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands, no_data=task.satellite.no_data_value)
     write_png_from_xr(
         task.mosaic_path,
         dataset,
         bands=png_bands,
         scale=task.satellite.get_scale(),
-        nodata=task.satellite.no_data_value)
+        no_data=task.satellite.no_data_value)
     write_single_band_png_from_xr(
         task.result_path,
         dataset,
         band='clear_percentage',
         color_scale=task.color_scale_path,
-        nodata=task.satellite.no_data_value)
+        no_data=task.satellite.no_data_value)
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
     if len(dates) > 1:

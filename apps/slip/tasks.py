@@ -283,16 +283,16 @@ def processing_task(task_id=None,
     baseline_clear_mask = task.satellite.get_clean_mask_func()(baseline_data)
     combined_baseline = task.get_processing_method()(baseline_data,
                                                      clean_mask=baseline_clear_mask,
-                                                     nodata=task.satellite.no_data_value,
+                                                     no_data=task.satellite.no_data_value,
                                                      reverse_time=task.get_reverse_time())
 
     target_data = create_mosaic(
         target_data,
         clean_mask=target_clear_mask,
-        nodata=task.satellite.no_data_value,
+        no_data=task.satellite.no_data_value,
         reverse_time=task.get_reverse_time())
 
-    slip_data = compute_slip(combined_baseline, target_data, dem_data, nodata=task.satellite.no_data_value)
+    slip_data = compute_slip(combined_baseline, target_data, dem_data, no_data=task.satellite.no_data_value)
     target_data['slip'] = slip_data
 
     metadata = task.metadata_from_dataset(
@@ -357,7 +357,7 @@ def recombine_time_chunks(chunks, task_id=None):
             data.drop('slip'),
             clean_mask=clear_mask,
             intermediate_product=combined_data,
-            nodata=task.satellite.no_data_value,
+            no_data=task.satellite.no_data_value,
             reverse_time=task.get_reverse_time())
         combined_slip.values[combined_slip.values == 0] = data.slip.values[combined_slip.values == 0]
 
@@ -432,20 +432,20 @@ def create_output_products(data, task_id=None):
     bands = task.satellite.get_measurements() + ['slip']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, nodata=task.satellite.no_data_value)
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, no_data=task.satellite.no_data_value)
 
     write_png_from_xr(
         task.result_path,
         mask_mosaic_with_slip(dataset),
         bands=['red', 'green', 'blue'],
         scale=task.satellite.get_scale(),
-        nodata=task.satellite.no_data_value)
+        no_data=task.satellite.no_data_value)
     write_png_from_xr(
         task.result_mosaic_path,
         dataset,
         bands=['red', 'green', 'blue'],
         scale=task.satellite.get_scale(),
-        nodata=task.satellite.no_data_value)
+        no_data=task.satellite.no_data_value)
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
     if len(dates) > 1:

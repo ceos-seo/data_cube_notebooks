@@ -272,7 +272,7 @@ def processing_task(task_id=None,
         iteration_data = task.get_processing_method()(data,
                                                       clean_mask=clear_mask,
                                                       intermediate_product=iteration_data,
-                                                      nodata=task.satellite.no_data_value,
+                                                      no_data=task.satellite.no_data_value,
                                                       reverse_time=task.get_reverse_time())
 
         # TODO: If there is no animation you can remove this block. Otherwise, save off the data that you need.
@@ -393,7 +393,7 @@ def recombine_time_chunks(chunks, task_id=None):
                     animated_data = task.get_processing_method()(animated_data,
                                                                  clean_mask=clear_mask,
                                                                  intermediate_product=combined_data,
-                                                                 nodata=task.satellite.no_data_value,
+                                                                 no_data=task.satellite.no_data_value,
                                                                  reverse_time=task.get_reverse_time())
                 path = os.path.join(task.get_temp_path(), "animation_{}.png".format(base_index + index))
                 write_png_from_xr(
@@ -401,7 +401,7 @@ def recombine_time_chunks(chunks, task_id=None):
                     animated_data,
                     bands=[task.query_type.red, task.query_type.green, task.query_type.blue],
                     scale=task.satellite.get_scale(),
-                    nodata=task.satellite.no_data_value)
+                    no_data=task.satellite.no_data_value)
 
     combined_data = None
     for index, chunk in enumerate(total_chunks):
@@ -420,7 +420,7 @@ def recombine_time_chunks(chunks, task_id=None):
         combined_data = task.get_processing_method()(data,
                                                      clean_mask=clear_mask,
                                                      intermediate_product=combined_data,
-                                                     nodata=task.satellite.no_data_value,
+                                                     no_data=task.satellite.no_data_value,
                                                      reverse_time=task.get_reverse_time())
         # if we're animating, combine it all and save to disk.
         # TODO: If there is no animation, remove this.
@@ -467,7 +467,7 @@ def create_output_products(data, task_id=None):
     png_bands = [task.query_type.red, task.query_type.green, task.query_type.blue]
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, nodata=task.satellite.no_data_value)
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, no_data=task.satellite.no_data_value)
     write_png_from_xr(
         task.result_path,
         dataset,
@@ -475,7 +475,7 @@ def create_output_products(data, task_id=None):
         png_filled_path=task.result_filled_path,
         fill_color=task.query_type.fill,
         scale=task.satellite.get_scale(),
-        nodata=task.satellite.no_data_value)
+        no_data=task.satellite.no_data_value)
 
     # TODO: if there is no animation, remove this. Otherwise, open each time iteration slice and write to disk.
     if task.animated_product.animation_id != "none":

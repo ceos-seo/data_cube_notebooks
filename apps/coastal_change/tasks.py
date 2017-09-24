@@ -257,7 +257,7 @@ def processing_task(task_id=None,
 
         clear_mask = task.satellite.get_clean_mask_func()(data)
         metadata = task.metadata_from_dataset({}, data, clear_mask, updated_params)
-        return task.get_processing_method()(data, clean_mask=clear_mask, nodata=task.satellite.no_data_value), metadata
+        return task.get_processing_method()(data, clean_mask=clear_mask, no_data=task.satellite.no_data_value), metadata
 
     old_mosaic, old_metadata = _compute_mosaic(starting_year)
     new_mosaic, new_metadata = _compute_mosaic(comparison_year)
@@ -267,7 +267,7 @@ def processing_task(task_id=None,
 
     metadata = {**old_metadata, **new_metadata}
 
-    output_product = compute_coastal_change(old_mosaic, new_mosaic, nodata=task.satellite.no_data_value)
+    output_product = compute_coastal_change(old_mosaic, new_mosaic, no_data=task.satellite.no_data_value)
 
     task.scenes_processed = F('scenes_processed') + 1
     task.save()
@@ -320,7 +320,7 @@ def recombine_geographic_chunks(chunks, task_id=None):
             animated_data,
             bands=['red', 'green', 'blue'],
             scale=task.satellite.get_scale(),
-            nodata=task.satellite.no_data_value)
+            no_data=task.satellite.no_data_value)
 
     path = os.path.join(task.get_temp_path(), "recombined_geo_{}.nc".format(time_chunk_id))
     combined_data.to_netcdf(path)
@@ -393,25 +393,25 @@ def create_output_products(data, task_id=None):
     png_bands = ['red', 'green', 'blue']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, nodata=task.satellite.no_data_value)
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, no_data=task.satellite.no_data_value)
     write_png_from_xr(
         task.result_path,
         mask_mosaic_with_coastlines(dataset),
         bands=png_bands,
         scale=task.satellite.get_scale(),
-        nodata=task.satellite.no_data_value)
+        no_data=task.satellite.no_data_value)
     write_png_from_xr(
         task.result_coastal_change_path,
         mask_mosaic_with_coastal_change(dataset),
         bands=png_bands,
         scale=task.satellite.get_scale(),
-        nodata=task.satellite.no_data_value)
+        no_data=task.satellite.no_data_value)
     write_png_from_xr(
         task.result_mosaic_path,
         dataset,
         bands=png_bands,
         scale=task.satellite.get_scale(),
-        nodata=task.satellite.no_data_value)
+        no_data=task.satellite.no_data_value)
 
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
