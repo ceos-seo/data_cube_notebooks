@@ -222,9 +222,6 @@ class Query(models.Model):
         def get_or_create_query_from_post(cls, form_data):
             query_data = form_data
 
-            query_data['product'] = Satellite.objects.get(
-                datacube_platform=query_data['platform']).product_prefix + Area.objects.get(
-                    id=query_data['id']).id
             query_data['title'] = "Base Query" if 'title' not in form_data or form_data['title'] == '' else form_data[
                 'title']
             query_data['description'] = "None" if 'description' not in form_data or form_data[

@@ -73,15 +73,15 @@
 
         {% for satellite in satellites %}
           //jquery to set the end date equal to the start date when its changed.
-          $("#{{ satellite.datacube_platform }}_time_start.datepicker").on("input change", function(e) {
-              date = $("#{{ satellite.datacube_platform }}_time_start").datepicker('getDate');
+          $("#{{ satellite.pk }}_time_start.datepicker").on("input change", function(e) {
+              date = $("#{{ satellite.pk }}_time_start").datepicker('getDate');
               date.setFullYear(date.getFullYear() + 1);
-              $("#{{ satellite.datacube_platform }}_time_end").datepicker('setDate', date);
+              $("#{{ satellite.pk }}_time_end").datepicker('setDate', date);
           })
-          map.set_bb_listeners({min_lat: "{{ satellite.datacube_platform }}_latitude_min", max_lat: "{{ satellite.datacube_platform }}_latitude_max", min_lon: "{{ satellite.datacube_platform }}_longitude_min", max_lon: "{{ satellite.datacube_platform }}_longitude_max"})
-          $("#{{ satellite.datacube_platform }}_latitude_min, #{{ satellite.datacube_platform }}_latitude_max, #{{ satellite.datacube_platform }}_longitude_min, #{{ satellite.datacube_platform }}_longitude_max").change(function() {
-              map.bounding_box_from_form($("#{{ satellite.datacube_platform }}_latitude_min").val(), $("#{{ satellite.datacube_platform }}_latitude_max").val(), $("#{{ satellite.datacube_platform }}_longitude_min").val(), $(
-                  "#{{ satellite.datacube_platform }}_longitude_max").val());
+          map.set_bb_listeners({min_lat: "{{ satellite.pk }}_latitude_min", max_lat: "{{ satellite.pk }}_latitude_max", min_lon: "{{ satellite.pk }}_longitude_min", max_lon: "{{ satellite.pk }}_longitude_max"})
+          $("#{{ satellite.pk }}_latitude_min, #{{ satellite.pk }}_latitude_max, #{{ satellite.pk }}_longitude_min, #{{ satellite.pk }}_longitude_max").change(function() {
+              map.bounding_box_from_form($("#{{ satellite.pk }}_latitude_min").val(), $("#{{ satellite.pk }}_latitude_max").val(), $("#{{ satellite.pk }}_longitude_min").val(), $(
+                  "#{{ satellite.pk }}_longitude_max").val());
           });
         {% endfor %}
 

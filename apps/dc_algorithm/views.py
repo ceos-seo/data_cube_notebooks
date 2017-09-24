@@ -217,7 +217,7 @@ class ToolView(View, ToolClass):
         forms = {}
         for satellite in satellites:
             forms[satellite.pk] = {
-                'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.pk + "_%s")
+                'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id="{}_%s".format(satellite.pk))
             }
         return forms
         """
