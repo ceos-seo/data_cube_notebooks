@@ -376,12 +376,8 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = [
-        'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'scene_ndvi', 'baseline_ndvi', 'ndvi_difference',
-        'ndvi_percentage_change'
-    ] if 'cf_mask' in dataset else [
-        'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa', 'scene_ndvi', 'baseline_ndvi', 'ndvi_difference',
-        'ndvi_percentage_change'
+    bands = task.satellite.get_measurements() + [
+        'scene_ndvi', 'baseline_ndvi', 'ndvi_difference', 'ndvi_percentage_change'
     ]
 
     dataset.to_netcdf(task.data_netcdf_path)

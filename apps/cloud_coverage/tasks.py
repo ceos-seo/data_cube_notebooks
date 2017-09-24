@@ -331,10 +331,7 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = ['blue', 'green', 'red', 'cf_mask', 'total_pixels', 'total_clear',
-             'clear_percentage'] if 'cf_mask' in dataset else [
-                 'blue', 'green', 'red', 'pixel_qa', 'total_pixels', 'total_clear', 'clear_percentage'
-             ]
+    bands = task.satellite.get_measurements() + ['total_pixels', 'total_clear', 'clear_percentage']
 
     png_bands = ['red', 'green', 'blue']
 

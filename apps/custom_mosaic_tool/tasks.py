@@ -438,8 +438,7 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2',
-             'cf_mask'] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+    bands = task.satellite.get_measurements()
     png_bands = [task.query_type.red, task.query_type.green, task.query_type.blue]
 
     dataset.to_netcdf(task.data_netcdf_path)

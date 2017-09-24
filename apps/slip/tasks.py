@@ -417,8 +417,7 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask',
-             'slip'] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa', 'slip']
+    bands = task.satellite.get_measurements() + ['slip']
 
     dataset.to_netcdf(task.data_netcdf_path)
     write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)

@@ -450,8 +450,7 @@ def create_output_products(data, task_id=None):
     task.metadata_from_dict(full_metadata)
 
     # TODO: Set the bands that should be written to the final products
-    bands = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2',
-             'cf_mask'] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+    bands = task.satellite.get_measurements() + []
 
     # TODO: If you're creating pngs, specify the RGB bands
     png_bands = [task.query_type.red, task.query_type.green, task.query_type.blue]
