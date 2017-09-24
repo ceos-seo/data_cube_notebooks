@@ -291,7 +291,8 @@ def processing_task(task_id=None,
     metadata = task.metadata_from_dataset(metadata, selected_scene, selected_scene_clear_mask, parameters)
     selected_scene = task.get_processing_method()(selected_scene,
                                                   clean_mask=selected_scene_clear_mask,
-                                                  intermediate_product=None)
+                                                  intermediate_product=None,
+                                                  nodata=task.satellite.no_data_value)
     # we need to re generate the clear mask using the mosaic now.
     selected_scene_clear_mask = task.satellite.get_clean_mask_func()(selected_scene)
 
@@ -299,7 +300,8 @@ def processing_task(task_id=None,
         baseline_data,
         selected_scene,
         baseline_clear_mask=baseline_clear_mask,
-        selected_scene_clear_mask=selected_scene_clear_mask)
+        selected_scene_clear_mask=selected_scene_clear_mask,
+        nodata=task.satellite.no_data_value)
 
     full_product = xr.merge([ndvi_products, selected_scene])
 
@@ -382,20 +384,38 @@ def create_output_products(data, task_id=None):
 
     dataset.to_netcdf(task.data_netcdf_path)
 
-    write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands)
+    write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands, nodata=task.satellite.no_data_value)
     write_single_band_png_from_xr(
-        task.result_path, dataset, 'ndvi_difference', color_scale=task.color_scales['ndvi_difference'])
+        task.result_path,
+        dataset,
+        'ndvi_difference',
+        color_scale=task.color_scales['ndvi_difference'],
+        nodata=task.satellite.no_data_value)
     write_single_band_png_from_xr(
         task.ndvi_percentage_change_path,
         dataset,
         'ndvi_percentage_change',
-        color_scale=task.color_scales['ndvi_percentage_change'])
+        color_scale=task.color_scales['ndvi_percentage_change'],
+        nodata=task.satellite.no_data_value)
     write_single_band_png_from_xr(
-        task.scene_ndvi_path, dataset, 'scene_ndvi', color_scale=task.color_scales['scene_ndvi'])
+        task.scene_ndvi_path,
+        dataset,
+        'scene_ndvi',
+        color_scale=task.color_scales['scene_ndvi'],
+        nodata=task.satellite.no_data_value)
     write_single_band_png_from_xr(
-        task.baseline_ndvi_path, dataset, 'baseline_ndvi', color_scale=task.color_scales['baseline_ndvi'])
+        task.baseline_ndvi_path,
+        dataset,
+        'baseline_ndvi',
+        color_scale=task.color_scales['baseline_ndvi'],
+        nodata=task.satellite.no_data_value)
 
-    write_png_from_xr(task.result_mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=task.satellite.get_scale())
+    write_png_from_xr(
+        task.result_mosaic_path,
+        dataset,
+        bands=['red', 'green', 'blue'],
+        scale=task.satellite.get_scale(),
+        nodata=task.satellite.no_data_value)
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
     if len(dates) > 1:

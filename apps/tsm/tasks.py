@@ -250,13 +250,17 @@ def processing_task(task_id=None,
 
         clear_mask = task.satellite.get_clean_mask_func()(data)
 
-        wofs_data = task.get_processing_method()(data, clean_mask=clear_mask, enforce_float64=True, no_data=-9999)
+        wofs_data = task.get_processing_method()(data,
+                                                 clean_mask=clear_mask,
+                                                 enforce_float64=True,
+                                                 nodata=task.satellite.no_data_value)
         water_analysis = perform_timeseries_analysis(
-            wofs_data, 'wofs', intermediate_product=water_analysis, no_data=-9999)
+            wofs_data, 'wofs', intermediate_product=water_analysis, nodata=task.satellite.no_data_value)
 
         clear_mask[(data.swir2.values > 100) | (wofs_data.wofs.values == 0)] = False
-        tsm_data = tsm(data, clean_mask=clear_mask, no_data=-9999)
-        tsm_analysis = perform_timeseries_analysis(tsm_data, 'tsm', intermediate_product=tsm_analysis, no_data=-9999)
+        tsm_data = tsm(data, clean_mask=clear_mask, nodata=task.satellite.no_data_value)
+        tsm_analysis = perform_timeseries_analysis(
+            tsm_data, 'tsm', intermediate_product=tsm_analysis, nodata=task.satellite.no_data_value)
 
         combined_data = tsm_analysis
         combined_data['wofs'] = water_analysis.total_data
@@ -447,11 +451,17 @@ def create_output_products(data, task_id=None):
     band_paths = [task.result_path, task.clear_observations_path, task.water_percentage_path]
 
     dataset_masked.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset_masked, bands=bands)
+    write_geotiff_from_xr(task.data_path, dataset_masked, bands=bands, nodata=task.satellite.no_data_value)
 
     for band, band_path in zip(bands, band_paths):
         write_single_band_png_from_xr(
-            band_path, dataset_masked, band, color_scale=task.color_scales[band], fill_color='black', interpolate=False)
+            band_path,
+            dataset_masked,
+            band,
+            color_scale=task.color_scales[band],
+            fill_color='black',
+            interpolate=False,
+            nodata=task.satellite.no_data_value)
 
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
@@ -470,7 +480,8 @@ def create_output_products(data, task_id=None):
                         task.animated_product.data_variable,
                         color_scale=task.color_scales[task.animated_product.data_variable],
                         fill_color='black',
-                        interpolate=False)
+                        interpolate=False,
+                        nodata=task.satellite.no_data_value)
                     image = imageio.imread(png_path)
                     writer.append_data(image)
 

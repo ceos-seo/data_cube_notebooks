@@ -248,9 +248,12 @@ def processing_task(task_id=None,
 
         clear_mask = task.satellite.get_clean_mask_func()(data)
 
-        wofs_data = task.get_processing_method()(data, clean_mask=clear_mask, enforce_float64=True)
+        wofs_data = task.get_processing_method()(data,
+                                                 clean_mask=clear_mask,
+                                                 enforce_float64=True,
+                                                 nodata=task.satellite.no_data_value)
         water_analysis = perform_timeseries_analysis(
-            wofs_data, 'wofs', intermediate_product=water_analysis, no_data=-9999)
+            wofs_data, 'wofs', intermediate_product=water_analysis, nodata=task.satellite.no_data_value)
 
         metadata = task.metadata_from_dataset(metadata, wofs_data, clear_mask, updated_params)
         if task.animated_product.animation_id != "none":
@@ -375,7 +378,8 @@ def recombine_time_chunks(chunks, task_id=None):
                     task.animated_product.data_variable,
                     color_scale=task.color_scales[task.animated_product.data_variable],
                     fill_color=task.query_type.fill,
-                    interpolate=False)
+                    interpolate=False,
+                    nodata=task.satellite.no_data_value)
 
     combined_data = None
     for index, chunk in enumerate(total_chunks):
@@ -428,7 +432,7 @@ def create_output_products(data, task_id=None):
     band_paths = [task.result_path, task.water_observations_path, task.clear_observations_path]
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset, bands=bands)
+    write_geotiff_from_xr(task.data_path, dataset, bands=bands, nodata=task.satellite.no_data_value)
 
     for band, band_path in zip(bands, band_paths):
         write_single_band_png_from_xr(
@@ -437,7 +441,8 @@ def create_output_products(data, task_id=None):
             band,
             color_scale=task.color_scales[band],
             fill_color=task.query_type.fill,
-            interpolate=False)
+            interpolate=False,
+            nodata=task.satellite.no_data_value)
 
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:

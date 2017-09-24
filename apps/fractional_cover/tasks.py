@@ -261,7 +261,10 @@ def processing_task(task_id=None,
 
         metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
 
-        iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
+        iteration_data = task.get_processing_method()(data,
+                                                      clean_mask=clear_mask,
+                                                      intermediate_product=iteration_data,
+                                                      nodata=task.satellite.no_data_value)
 
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
@@ -316,7 +319,10 @@ def recombine_time_chunks(chunks, task_id=None):
         data['time'] = [0]
         clear_mask = task.satellite.get_clean_mask_func()(data)
 
-        combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
+        combined_data = task.get_processing_method()(data,
+                                                     clean_mask=clear_mask,
+                                                     intermediate_product=combined_data,
+                                                     nodata=task.satellite.no_data_value)
 
     if combined_data is None:
         return None
@@ -337,13 +343,15 @@ def process_band_math(chunk, task_id=None):
     result to disk in the same path as the nc file already exists.
     """
 
+    task = FractionalCoverTask.objects.get(pk=task_id)
+
     def _apply_band_math(dataset):
         clear_mask = task.satellite.get_clean_mask_func()(dataset)
         # mask out water manually. Necessary for frac. cover.
         wofs = wofs_classify(dataset, clean_mask=clear_mask, mosaic=True)
         clear_mask[wofs.wofs.values == 1] = False
 
-        return frac_coverage_classify(dataset, clean_mask=clear_mask)
+        return frac_coverage_classify(dataset, clean_mask=clear_mask, nodata=task.satellite.no_data_value)
 
     if chunk is None:
         return None
@@ -419,8 +427,13 @@ def create_output_products(data, task_id=None):
     bands = task.satellite.get_measurements() + ['pv', 'npv', 'bs']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
-    write_png_from_xr(task.mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=task.satellite.get_scale())
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, nodata=task.satellite.no_data_value)
+    write_png_from_xr(
+        task.mosaic_path,
+        dataset,
+        bands=['red', 'green', 'blue'],
+        scale=task.satellite.get_scale(),
+        nodata=task.satellite.no_data_value)
     write_png_from_xr(task.result_path, dataset, bands=['bs', 'pv', 'npv'])
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))

@@ -259,7 +259,10 @@ def processing_task(task_id=None,
 
         metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
 
-        iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
+        iteration_data = task.get_processing_method()(data,
+                                                      clean_mask=clear_mask,
+                                                      intermediate_product=iteration_data,
+                                                      nodata=task.satellite.no_data_value)
 
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
@@ -313,7 +316,10 @@ def recombine_time_chunks(chunks, task_id=None):
         data = xr.concat([data], 'time')
         data['time'] = [0]
         clear_mask = task.satellite.get_clean_mask_func()(data)
-        combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
+        combined_data = task.get_processing_method()(data,
+                                                     clean_mask=clear_mask,
+                                                     intermediate_product=combined_data,
+                                                     nodata=task.satellite.no_data_value)
 
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
     combined_data.to_netcdf(path)
@@ -421,10 +427,19 @@ def create_output_products(data, task_id=None):
     bands = task.satellite.get_measurements() + ['band_math']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
-    write_png_from_xr(task.mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=task.satellite.get_scale())
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, nodata=task.satellite.no_data_value)
+    write_png_from_xr(
+        task.mosaic_path,
+        dataset,
+        bands=['red', 'green', 'blue'],
+        scale=task.satellite.get_scale(),
+        nodata=task.satellite.no_data_value)
     write_single_band_png_from_xr(
-        task.result_path, dataset, band='band_math', color_scale=task.color_scale_path.get(task.query_type.result_id))
+        task.result_path,
+        dataset,
+        band='band_math',
+        color_scale=task.color_scale_path.get(task.query_type.result_id),
+        nodata=task.satellite.no_data_value)
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
     if len(dates) > 1:
