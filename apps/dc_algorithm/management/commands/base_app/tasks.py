@@ -12,9 +12,10 @@ import imageio
 from collections import OrderedDict
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
-from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
-                                add_timestamp_data_to_xr, clear_attrs)
-from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
+from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
+                                                    write_png_from_xr, add_timestamp_data_to_xr, clear_attrs)
+from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, create_time_chunks,
+                                                  combine_geographic_chunks)
 from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import AppNameTask
@@ -63,18 +64,14 @@ def parse_parameters_from_task(task_id=None):
         # TODO: If this is not a multisensory app, uncomment 'platform' and remove 'platforms'
         # 'platform': task.satellite.datacube_platform,
         'platforms': task.satellite.get_platforms(),
+        # TODO: If this is not a multisensory app, remove 'products' and uncomment the line below.
+        # 'product': task.satellite.get_product(task.area_id),
+        'products': task.satellite.get_products(task.area_id),
         'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
         'measurements': task.measurements
     }
-
-    # TODO: If this is not a multisensory app, remove 'products' and uncomment the line below.
-    # parameters['product'] = Satellite.objects.get(datacube_platform=parameters['platform']).product_prefix + task.area_id
-    parameters['products'] = [
-        Satellite.objects.get(datacube_platform=platform).product_prefix + task.area_id
-        for platform in parameters['platforms']
-    ]
 
     task.execution_start = datetime.now()
     task.update_status("WAIT", "Parsed out parameters.")

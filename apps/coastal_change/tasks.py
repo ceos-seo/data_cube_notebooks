@@ -13,9 +13,10 @@ from collections import OrderedDict
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
 from utils.data_cube_utilities.dc_coastal_change import compute_coastal_change, mask_mosaic_with_coastal_change, mask_mosaic_with_coastlines
-from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
-                                add_timestamp_data_to_xr, clear_attrs)
-from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, group_datetimes_by_year, combine_geographic_chunks)
+from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
+                                                    write_png_from_xr, add_timestamp_data_to_xr, clear_attrs)
+from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, group_datetimes_by_year,
+                                                  combine_geographic_chunks)
 
 from .models import CoastalChangeTask
 from apps.dc_algorithm.models import Satellite
@@ -60,14 +61,12 @@ def parse_parameters_from_task(task_id=None):
 
     parameters = {
         'platform': task.satellite.datacube_platform,
+        'product': task.satellite.get_product(task.area_id),
         'time': (datetime(task.time_start, 1, 1), datetime(task.time_end, 12, 31)),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
         'measurements': task.measurements
     }
-
-    parameters['product'] = Satellite.objects.get(
-        datacube_platform=parameters['platform']).product_prefix + task.area_id
 
     task.execution_start = datetime.now()
     task.update_status("WAIT", "Parsed out parameters.")
