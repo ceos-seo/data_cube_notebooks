@@ -74,7 +74,6 @@ class Query(BaseQuery):
 
     animated_product = models.ForeignKey(AnimationType)
 
-    measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/coastal_change'
 
     class Meta(BaseQuery.Meta):

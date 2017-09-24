@@ -28,7 +28,8 @@ from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetada
                                       BaseAnimationType, ToolInfo as BaseToolInfo)
 
 # TODO: Fill in any required algorithm imports here. Remove mosaic if unused
-from utils.data_cube_utilities.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
+from utils.data_cube_utilities.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic,
+                                                 create_min_ndvi_mosaic)
 
 import datetime
 import numpy as np
@@ -90,9 +91,7 @@ class Query(BaseQuery):
     animated_product = models.ForeignKey(AnimationType)
     compositor = models.ForeignKey(Compositor)
 
-    # TODO: Fill out there configuration paths - What measurements should be loaded? Where do you want your results stored?
-
-    measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
+    # TODO: Fill out the configuration paths
     base_result_dir = '/datacube/ui_results/app_name'
 
     class Meta(BaseQuery.Meta):

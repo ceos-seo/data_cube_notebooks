@@ -62,7 +62,6 @@ class Query(BaseQuery):
     """
 
     color_scale_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/cloud_coverage'
-    measurements = ['blue', 'green', 'red', 'cf_mask']
     base_result_dir = '/datacube/ui_results/cloud_coverage'
 
     class Meta(BaseQuery.Meta):

@@ -79,7 +79,7 @@ class Query(BaseQuery):
         'ndwi': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ryg',
         'ndbi': '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/ryg',
     }
-    measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
+
     base_result_dir = '/datacube/ui_results/spectral_indices'
 
     class Meta(BaseQuery.Meta):

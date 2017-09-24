@@ -74,7 +74,6 @@ class Query(BaseQuery):
     baseline_method = models.ForeignKey(BaselineMethod)
     baseline_length = models.IntegerField(default=10)
 
-    measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/slip'
 
     class Meta(BaseQuery.Meta):

@@ -61,7 +61,6 @@ class Query(BaseQuery):
     """
     baseline_selection = models.CharField(max_length=100, default="1,2,3,4,5,6,7,8,9,10,11,12")
 
-    measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/ndvi_anomaly'
     color_scales = {
         'baseline_ndvi':
