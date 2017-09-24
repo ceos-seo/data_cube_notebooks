@@ -217,7 +217,7 @@ class ToolView(View, ToolClass):
         forms = {}
         for satellite in satellites:
             forms[satellite.datacube_platform] = {
-                'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.datacube_platform + "_%s")
+                'Geospatial Bounds': GeospatialForm(satellite=satellite, auto_id=satellite.pk + "_%s")
             }
         return forms
         """

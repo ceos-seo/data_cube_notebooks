@@ -333,9 +333,9 @@
                 </ul>
                 <div id="filters_panel" class="tab-pane fade in active">
                     <label for="platform_sel">Satellite</label>
-                    <select class="form-control" id="platform_sel" name="platform_sel" tabindex="1" data-native-menu="false" onchange="refresh_input_panel();">
+                    <select class="form-control" id="satellite_id" name="platform_sel" tabindex="1" data-native-menu="false" onchange="refresh_input_panel();">
                         {% for satellite in satellites %}
-                        <option value="{{ satellite.datacube_platform }}">{{satellite.name}}</option>
+                        <option value="{{ satellite.pk }}">{{satellite.name}}</option>
                         {% endfor %}
                     </select>
                     {% for satellite, form_collection in forms.items %}

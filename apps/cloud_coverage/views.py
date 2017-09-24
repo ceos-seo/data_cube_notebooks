@@ -71,7 +71,7 @@ class CloudCoverageTool(ToolView):
                     area=area,
                     time_start=satellite.date_min,
                     time_end=satellite.date_max,
-                    auto_id=satellite.datacube_platform + "_%s")
+                    auto_id=satellite.pk + "_%s")
             }
         return forms
 

@@ -69,7 +69,8 @@ class Satellite(models.Model):
 
     measurements = models.CharField(
         help_text="Comma seperated list (no spaces) representing the list of measurements. e.g. 'red,green,blue,nir'",
-        default="blue,green,red,nir,swir1,swir2,pixel_qa")
+        default="blue,green,red,nir,swir1,swir2,pixel_qa",
+        max_length=250)
 
     no_data_value = models.FloatField(
         default=-9999, help_text='No data value to be used for all outputs/masking functionality.')

@@ -69,13 +69,13 @@ class WaterDetectionTool(ToolView):
             forms[satellite.datacube_platform] = {
                 'Data Selection':
                 AdditionalOptionsForm(
-                    datacube_platform=satellite.datacube_platform, auto_id=satellite.datacube_platform + "_%s"),
+                    datacube_platform=satellite.datacube_platform, auto_id=satellite.pk + "_%s"),
                 'Geospatial Bounds':
                 DataSelectionForm(
                     area=area,
                     time_start=satellite.date_min,
                     time_end=satellite.date_max,
-                    auto_id=satellite.datacube_platform + "_%s")
+                    auto_id=satellite.pk + "_%s")
             }
         return forms
 
