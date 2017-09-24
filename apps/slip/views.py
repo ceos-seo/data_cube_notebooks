@@ -72,7 +72,8 @@ class SlipTool(ToolView):
                 AdditionalOptionsForm(
                     datacube_platform=satellite.datacube_platform, auto_id="{}_%s".format(satellite.pk)),
                 'Geospatial Bounds':
-                DataSelectionForm(area=area,
+                DataSelectionForm(
+                    area=area,
                     time_start=satellite.date_min,
                     time_end=satellite.date_max,
                     auto_id="{}_%s".format(satellite.pk))
@@ -131,7 +132,7 @@ class SubmitNewSubsetRequest(SubmitNewSubsetRequest):
         """
         date = kwargs.get('date')[0]
         date_datetime_format = datetime.strptime(date, '%m/%d/%Y') + timedelta(days=1)
-        acquisition_dates = get_acquisition_list(task_model, task_model.area_id, task_model.platform,
+        acquisition_dates = get_acquisition_list(task_model, task_model.area_id, task_model.satellite,
                                                  date_datetime_format)
         task_model.time_start = acquisition_dates[-1 * (task_model.baseline_length + 1)]
         task_model.time_end = date_datetime_format

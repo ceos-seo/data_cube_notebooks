@@ -32,11 +32,11 @@ class BaseTask(DCAlgorithmBase):
 
 
 @task(name="slip.get_acquisition_list")
-def get_acquisition_list(task, area_id, platform, date):
+def get_acquisition_list(task, area_id, satellite, date):
     dc = DataAccessApi(config=task.config_path)
     # lists all acquisition dates for use in single tmeslice queries.
-    product = Satellite.objects.get(datacube_platform=platform).product_prefix + area_id
-    acquisitions = dc.list_acquisition_dates(product, platform, time=(datetime(1900, 1, 1), date))
+    product = satellite.product_prefix + area_id
+    acquisitions = dc.list_acquisition_dates(product, satellite.datacube_platform, time=(datetime(1900, 1, 1), date))
     return acquisitions
 
 
