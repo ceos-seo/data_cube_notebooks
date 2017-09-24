@@ -93,7 +93,7 @@ class Query(BaseQuery):
     }
 
     class Meta(BaseQuery.Meta):
-        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+        unique_together = (('satellite', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
                             'longitude_max', 'longitude_min', 'title', 'description', 'query_type', 'animated_product'))
         abstract = True
 

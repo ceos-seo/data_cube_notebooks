@@ -49,7 +49,7 @@ class Query(models.Model):
                 sample_field = models.CharField(max_length=100)
 
                 class Meta(Query.Meta):
-                    unique_together = (('platform', 'area_id', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+                    unique_together = (('satellite', 'area_id', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
                                         'longitude_max', 'longitude_min', 'sample_field'))
 
 
@@ -81,7 +81,7 @@ class Query(models.Model):
 
     class Meta:
         abstract = True
-        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+        unique_together = (('satellite', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
                             'longitude_max', 'longitude_min', 'title', 'description'))
 
     def __str__(self):
