@@ -62,7 +62,7 @@ def parse_parameters_from_task(task_id=None):
     parameters = {
         # TODO: If this is not a multisensory app, uncomment 'platform' and remove 'platforms'
         # 'platform': task.satellite.datacube_platform,
-        'platforms': sorted(task.satellite.datacube_platform.split(",")),
+        'platforms': task.satellite.get_platforms(),
         'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
