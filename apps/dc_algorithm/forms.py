@@ -74,6 +74,9 @@ class DataSelectionForm(forms.Form):
 
     def clean(self):
         cleaned_data = super(DataSelectionForm, self).clean()
+
+        if not self.is_valid():
+            return
         #self.add_error('region', _("Selected region does not exist."))
         if cleaned_data.get('latitude_min') >= cleaned_data.get('latitude_max'):
             self.add_error(

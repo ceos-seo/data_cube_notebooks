@@ -231,13 +231,13 @@ class Query(models.Model):
 
             valid_query_fields = [field.name for field in cls._meta.get_fields()]
             query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
-            query = cls(**query_data)
+            query = cls(pixel_drill_task=pixel_drill, **query_data)
 
             try:
-                query = cls.objects.get(**query_data)
+                query = cls.objects.get(pixel_drill_task=pixel_drill, **query_data)
                 return query, False
             except cls.DoesNotExist:
-                query = cls(**query_data)
+                query = cls(pixel_drill_task=pixel_drill, **query_data)
                 query.save()
                 return query, True
         """

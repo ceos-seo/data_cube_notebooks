@@ -82,9 +82,11 @@
         {% for satellite in satellites %}
           //jquery to set the end date equal to the start date when its changed.
           $("#{{ satellite.pk }}_time_start.datepicker").on("input change", function(e) {
-              date = $("#{{ satellite.pk }}_time_start").datepicker('getDate');
-              date.setFullYear(date.getFullYear() + 1);
-              $("#{{ satellite.pk }}_time_end").datepicker('setDate', date);
+              var date = $("#{{ satellite.pk }}_time_start").datepicker('getDate');
+              if(date != null) {
+                date.setFullYear(date.getFullYear() + 1);
+                $("#{{ satellite.pk }}_time_end").datepicker('setDate', date);
+              }
           })
           map.set_bb_listeners({min_lat: "{{ satellite.pk }}_latitude_min", max_lat: "{{ satellite.pk }}_latitude_max", min_lon: "{{ satellite.pk }}_longitude_min", max_lon: "{{ satellite.pk }}_longitude_max"})
           $("#{{ satellite.pk }}_latitude_min, #{{ satellite.pk }}_latitude_max, #{{ satellite.pk }}_longitude_min, #{{ satellite.pk }}_longitude_max").change(function() {
@@ -106,7 +108,9 @@
       {% endfor %}
       var data = jQuery("#filters_panel form:visible:first").serialize();
       jQuery.post('/{{ tool_name }}/submit_pixel_drill_request', data, function(response) {
-        console.log(response)
+        if(response.status == "ERROR") {
+          set_dialog_modal_content("Alert", response.message)
+        }
       });
     }
 
