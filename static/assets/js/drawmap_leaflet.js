@@ -132,7 +132,7 @@ DrawMap.prototype.set_rectangle_draw = function() {
       polygon: false,
       circle: false,
       rectangle: false,
-      marker: true
+      marker: this.pixel_drill_callback != undefined
     },
     edit: false
   };

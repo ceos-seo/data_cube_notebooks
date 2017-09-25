@@ -500,6 +500,104 @@ class SubmitNewRequest(View, ToolClass):
         return self.form_list
 
 
+class SubmitPixelDrillRequest(View, ToolClass):
+    """Submit a new request for pixel drilling using a task created with form data
+
+    REST API Endpoint for submitting a new pixel drill request for processing. This is a POST only view,
+    so only the post function is defined. Form data is used to create a Task model which is
+    then submitted for processing via celery.
+
+    Abstract properties and methods are used to define the required attributes for an implementation.
+    Inheriting SubmitNewRequest without defining the required abstracted elements will throw an error.
+    Due to some complications with django and ABC, NotImplementedErrors are manually raised.
+
+    Required Attributes:
+        tool_name: Descriptive string name for the tool - used to identify the tool in the database.
+        celery_task_func: A celery task called with .delay() with the only parameter being the pk of a task model
+        task_model_name: Name of the model that represents your task - see models.Task for more information
+        form_list: list [] of form classes (e.g. AdditionalOptionsForm, GeospatialForm) to be used to validate all provided input.
+
+    """
+
+    celery_task_func = None
+    form_list = None
+
+    @method_decorator(login_required)
+    def post(self, request):
+        """Generate a task object and start a celery task using POST form data
+
+        Decorated as login_required so the username is fetched without checking.
+        A full form set is submitted in one POST request including all of the forms
+        associated with a satellite. This formset is generated using the
+        ToolView.generate_form_dict function and should be the forms for a single satellite.
+        using the form_list, each form is validated and any errors are returned.
+
+        Args:
+            POST data including a full form set described above
+
+        Returns:
+            JsonResponse containing:
+                A 'status' with either OK or ERROR
+                A Json representation of the task object created from form data.
+        """
+
+        user_id = request.user.id
+
+        response = {'status': "OK"}
+        task_model = self._get_tool_model(self._get_task_model_name())
+        forms = [form(request.POST) for form in self._get_form_list()]
+        #validate all forms, print any/all errors
+        full_parameter_set = {}
+        for form in forms:
+            if form.is_valid():
+                full_parameter_set.update(form.cleaned_data)
+            else:
+                for error in form.errors:
+                    return JsonResponse({'status': "ERROR", 'message': form.errors[error][0]})
+
+        task, new_task = task_model.get_or_create_query_from_post(full_parameter_set)
+        #associate task w/ history
+        history_model, __ = self._get_tool_model('userhistory').objects.get_or_create(user_id=user_id, task_id=task.pk)
+        try:
+            png_path = self._get_celery_task_func().delay(task_id=task.pk).get()
+            return JsonResponse({'status': "OK", 'message': "Your plots have been generated.", 'png_path': png_path})
+        except:
+            return JsonResponse({
+                'status': "ERROR",
+                'message': "There was an unhandled exception while performing your pixel drilling task."
+            })
+
+        return JsonResponse(response)
+
+    def _get_celery_task_func(self):
+        """Gets the celery task function and raises an error if it is not defined.
+
+        Checks if celery_task_func property is None, otherwise return the function.
+        The celery_task_func must be a function callable with .delay() with the only
+        parameters being the pk of a task model.
+
+        """
+        if self.celery_task_func is None:
+            raise NotImplementedError(
+                "You must specify a celery_task_func in classes that inherit SubmitNewRequest. See the SubmitNewRequest docstring for more details."
+            )
+        return self.celery_task_func
+
+    def _get_form_list(self):
+        """Gets the list of forms used to validate post data and raises an error if it is not defined.
+
+        Checks if form_list property is None, otherwise return the function.
+        The celery_task_func must be a function callable with .delay() with the only
+        parameters being the pk of a task model.
+
+        """
+        if self.form_list is None:
+            raise NotImplementedError(
+                "You must specify a form_list in classes that inherit SubmitNewRequest. See the SubmitNewRequest docstring for more details."
+            )
+        return self.form_list
+
+
 class GetTaskResult(View, ToolClass):
     """Check the status and fetch the results of a task submitted with Submit*Request
 

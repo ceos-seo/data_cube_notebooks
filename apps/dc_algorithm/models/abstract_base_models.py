@@ -74,6 +74,8 @@ class Query(models.Model):
     longitude_min = models.FloatField()
     longitude_max = models.FloatField()
 
+    pixel_drill_task = BooleanField(default=False)
+
     #false by default, only change is false-> true
     complete = models.BooleanField(default=False)
 
