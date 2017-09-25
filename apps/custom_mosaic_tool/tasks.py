@@ -59,6 +59,7 @@ def pixel_drill(task_id=None):
     task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
     create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles)
 
+    task.complete = True
     task.update_status("OK", "Done processing pixel drill.")
 
 

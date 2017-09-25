@@ -10,6 +10,7 @@ import numpy as np
 import os
 import imageio
 from collections import OrderedDict
+import stringcase
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
 from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
@@ -30,6 +31,59 @@ logger = get_task_logger(__name__)
 
 class BaseTask(DCAlgorithmBase):
     app_name = 'fractional_cover'
+
+
+@task(name="fractional_cover.pixel_drill", base=BaseTask)
+def pixel_drill(task_id=None):
+    parameters = parse_parameters_from_task(task_id=task_id)
+    validate_parameters(parameters, task_id=task_id)
+    task = FractionalCoverTask.objects.get(pk=task_id)
+
+    if task.status == "ERROR":
+        return None
+
+    dc = DataAccessApi(config=task.config_path)
+    single_pixel = dc.get_stacked_datasets_by_extent(**parameters)
+    clear_mask = task.satellite.get_clean_mask_func()(single_pixel.isel(latitude=0, longitude=0))
+    single_pixel = single_pixel.where(single_pixel != task.satellite.no_data_value)
+
+    dates = single_pixel.time.values
+    if len(dates) < 2:
+        task.update_status("ERROR", "There is only a single acquisition for your parameter set.")
+        return None
+
+    def _apply_band_math(ds, idx):
+        # mask out water manually. Necessary for frac. cover.
+        wofs = wofs_classify(ds, clean_mask=clear_mask[idx], mosaic=True)
+        clear_mask[idx] = False if wofs.wofs.values[0] == 1 else clear_mask[idx]
+        fractional_cover = frac_coverage_classify(ds, clean_mask=clear_mask[idx], no_data=task.satellite.no_data_value)
+        return fractional_cover
+
+    fractional_cover = xr.concat(
+        [
+            _apply_band_math(single_pixel.isel(time=data_point, drop=True), data_point)
+            for data_point in range(len(dates))
+        ],
+        dim='time')
+
+    fractional_cover = fractional_cover.where(fractional_cover != task.satellite.no_data_value).isel(
+        latitude=0, longitude=0)
+
+    exclusion_list = []
+    plot_measurements = [band for band in fractional_cover.data_vars if band not in exclusion_list]
+
+    datasets = [fractional_cover[band].values.transpose() for band in plot_measurements] + [clear_mask]
+    data_labels = [stringcase.titlecase("%{}".format(band)) for band in plot_measurements] + ["Clear"]
+    titles = [
+        'Bare Soil Percentage', 'Photosynthetic Vegetation Percentage', 'Non-Photosynthetic Vegetation Percentage',
+        'Clear Mask'
+    ]
+
+    task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles)
+
+    task.complete = True
+    task.update_status("OK", "Done processing pixel drill.")
 
 
 @task(name="fractional_cover.run", base=BaseTask)
