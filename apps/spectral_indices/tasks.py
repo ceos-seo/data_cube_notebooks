@@ -10,6 +10,7 @@ import numpy as np
 import os
 import imageio
 from collections import OrderedDict
+import stringcase
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
 from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
@@ -28,6 +29,52 @@ logger = get_task_logger(__name__)
 
 class BaseTask(DCAlgorithmBase):
     app_name = 'spectral_indices'
+
+
+@task(name="spectral_indices.pixel_drill", base=BaseTask)
+def pixel_drill(task_id=None):
+    parameters = parse_parameters_from_task(task_id=task_id)
+    validate_parameters(parameters, task_id=task_id)
+    task = SpectralIndicesTask.objects.get(pk=task_id)
+
+    if task.status == "ERROR":
+        return None
+
+    dc = DataAccessApi(config=task.config_path)
+    single_pixel = dc.get_dataset_by_extent(**parameters).isel(latitude=0, longitude=0)
+    clear_mask = task.satellite.get_clean_mask_func()(single_pixel)
+    single_pixel = single_pixel.where(single_pixel != task.satellite.no_data_value)
+
+    dates = single_pixel.time.values
+    if len(dates) < 2:
+        task.update_status("ERROR", "There is only a single acquisition for your parameter set.")
+        return None
+
+    spectral_indices_map = {
+        'ndvi': lambda ds: (ds.nir - ds.red) / (ds.nir + ds.red),
+        'evi': lambda ds: 2.5 * (ds.nir - ds.red) / (ds.nir + 6 * ds.red - 7.5 * ds.blue + 1),
+        'savi': lambda ds: (ds.nir - ds.red) / (ds.nir + ds.red + 0.5) * (1.5),
+        'nbr': lambda ds: (ds.nir - ds.swir2) / (ds.nir + ds.swir2),
+        'nbr2': lambda ds: (ds.swir1 - ds.swir2) / (ds.swir1 + ds.swir2),
+        'ndwi': lambda ds: (ds.nir - ds.swir1) / (ds.nir + ds.swir1),
+        'ndbi': lambda ds: (ds.swir1 - ds.nir) / (ds.nir + ds.swir1),
+    }
+
+    for spectral_index in spectral_indices_map:
+        single_pixel[spectral_index] = spectral_indices_map[spectral_index](single_pixel)
+
+    exclusion_list = ['red', 'green', 'blue', 'nir', 'swir1', 'swir2', 'satellite', 'pixel_qa']
+    plot_measurements = [band for band in single_pixel.data_vars if band not in exclusion_list]
+
+    datasets = [single_pixel[band].values.transpose() for band in plot_measurements] + [clear_mask]
+    data_labels = [stringcase.uppercase("{}".format(band)) for band in plot_measurements] + ["Clear"]
+    titles = [stringcase.uppercase("{}".format(band)) for band in plot_measurements] + ["Clear Mask"]
+
+    task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles)
+
+    task.complete = True
+    task.update_status("OK", "Done processing pixel drill.")
 
 
 @task(name="spectral_indices.run", base=BaseTask)
