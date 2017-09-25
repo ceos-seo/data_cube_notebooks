@@ -133,6 +133,7 @@ class ToolView(View, ToolClass):
     }]
 
     map_tool_template = 'map_tool.html'
+    allow_pixel_drilling = False
 
     @method_decorator(login_required)
     def get(self, request, area_id):
@@ -179,7 +180,8 @@ class ToolView(View, ToolClass):
             'running_tasks': running_tasks,
             'area': area,
             'application': app,
-            'panels': self.panels
+            'panels': self.panels,
+            'allow_pixel_drilling': self.allow_pixel_drilling
         }
 
         return render(request, self.map_tool_template, context)

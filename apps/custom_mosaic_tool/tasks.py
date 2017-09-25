@@ -31,7 +31,7 @@ class BaseTask(DCAlgorithmBase):
 
 @task(name="custom_mosaic_tool.pixel_drill", base=BaseTask)
 def pixel_drill(task_id=None):
-    pass
+    return "hi"
 
 
 @task(name="custom_mosaic_tool.run", base=BaseTask)

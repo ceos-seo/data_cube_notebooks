@@ -68,7 +68,15 @@
         }
 
         //container id, min lat, max lat, min lon, max lon
-        map = new DrawMap("map",  {min_lat: {{ area.latitude_min }}, max_lat: {{ area.latitude_max }}, min_lon: {{ area.longitude_min }}, max_lon: {{ area.longitude_max }}, lat_lon_indicator: true, {% if application.color_scale %}color_scale: "{{application.color_scale}}",{% endif %}});
+        map = new DrawMap("map",  {
+          min_lat: {{ area.latitude_min }},
+          max_lat: {{ area.latitude_max }},
+          min_lon: {{ area.longitude_min }},
+          max_lon: {{ area.longitude_max }},
+          lat_lon_indicator: true,
+          {% if application.color_scale %}color_scale: "{{application.color_scale}}",{% endif %}
+          {% if allow_pixel_drilling %}pixel_drill_callback: submit_pixel_drill{% endif %}
+        });
         map.set_rectangle_draw();
 
         {% for satellite in satellites %}
@@ -87,6 +95,20 @@
 
         $(".options").on('submit', handleFormSubmission);
     });
+
+    function submit_pixel_drill(lon, lat) {
+      console.log(lon, lat)
+      {% for satellite in satellites %}
+          jQuery("#{{ satellite.pk }}_latitude_min").val(lat)
+          jQuery("#{{ satellite.pk }}_latitude_max").val(lat+.000001)
+          jQuery("#{{ satellite.pk }}_longitude_min").val(lon)
+          jQuery("#{{ satellite.pk }}_longitude_max").val(lon+.000001)
+      {% endfor %}
+      var data = jQuery("#filters_panel form:visible:first").serialize();
+      jQuery.post('/{{ tool_name }}/submit_pixel_drill_request', data, function(response) {
+        console.log(response)
+      });
+    }
 
 
     //Handles the actual panel - hides satellite forms not being used.

@@ -195,8 +195,8 @@ DrawMap.prototype.set_bb_listeners = function(options) {
 
   this.map.on("draw:created", function(e) {
     if(e.layerType == "marker") {
-      latlng = layer.getLatLng();
-      lon_lat = clamp_input(latlng.lng, latlng.lat);
+      var latlng = e.layer.getLatLng();
+      var lon_lat = clamp_input(self.bounding_box, latlng.lng, latlng.lat);
       if(self.pixel_drill_callback) {
         self.pixel_drill_callback(lon_lat[0], lon_lat[1]);
       }
@@ -504,6 +504,6 @@ function constrain_bounds(constraint_bounds, bounds) {
 }
 
 //returns a bounded cartographic.
-function clamp_input(lon, lat) {
-  return [lon.clamp(window._MIN_LON_DATA_BOUNDS_, window._MAX_LON_DATA_BOUNDS_), lat.clamp(window._MIN_LAT_DATA_BOUNDS_, window._MAX_LAT_DATA_BOUNDS_)];
+function clamp_input(constraint_bounds, lon, lat) {
+  return [lon.clamp(constraint_bounds.getWest(), constraint_bounds.getEast()), lat.clamp(constraint_bounds.getSouth(), constraint_bounds.getNorth())]
 }

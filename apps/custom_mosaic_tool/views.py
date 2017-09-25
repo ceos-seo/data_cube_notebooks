@@ -63,6 +63,7 @@ class CustomMosaicTool(ToolView):
 
     tool_name = 'custom_mosaic_tool'
     task_model_name = 'CustomMosaicToolTask'
+    allow_pixel_drilling = True
 
     def generate_form_dict(self, satellites, area):
         forms = {}
@@ -101,7 +102,7 @@ class SubmitNewRequest(SubmitNewRequest):
 
 class SubmitPixelDrillRequest(SubmitPixelDrillRequest):
     """
-    Submit new request REST API Endpoint
+    Submit pixel_drill request REST API Endpoint
     Extends the SubmitNewRequest abstract class - required attributes are the tool_name,
     task_model_name, form_list, and celery_task_func
 
