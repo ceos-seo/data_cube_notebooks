@@ -2,6 +2,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import numpy as np
 from collections import Iterable
 
 
@@ -16,7 +17,7 @@ def create_2d_plot(path, dates=None, datasets=None, data_labels=None, titles=Non
         title: string or list of strings of the same len as datasets, used as plot titles.
 
     """
-    _iterable = isinstance(datasets[0], list)
+    _iterable = isinstance(datasets[0], list) or isinstance(datasets[0], np.ndarray)
 
     datasets = datasets if _iterable else [datasets]
     data_labels = data_labels if _iterable else [data_labels]

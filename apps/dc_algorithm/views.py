@@ -561,8 +561,10 @@ class SubmitPixelDrillRequest(View, ToolClass):
         #associate task w/ history
         history_model, __ = self._get_tool_model('userhistory').objects.get_or_create(user_id=user_id, task_id=task.pk)
         try:
-            png_path = self._get_celery_task_func().delay(task_id=task.pk).get()
-            return JsonResponse({'status': "OK", 'message': "Your plots have been generated.", 'png_path': png_path})
+            response['png_path'] = self._get_celery_task_func().delay(task_id=task.pk).get()
+            task.refresh_from_db()
+            response.update(model_to_dict(task))
+            return JsonResponse(response)
         except:
             return JsonResponse({
                 'status': "ERROR",

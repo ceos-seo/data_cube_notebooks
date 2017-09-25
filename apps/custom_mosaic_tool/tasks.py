@@ -10,6 +10,7 @@ import numpy as np
 import os
 import imageio
 from collections import OrderedDict
+import stringcase
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
 from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
@@ -31,7 +32,34 @@ class BaseTask(DCAlgorithmBase):
 
 @task(name="custom_mosaic_tool.pixel_drill", base=BaseTask)
 def pixel_drill(task_id=None):
-    return "hi"
+    parameters = parse_parameters_from_task(task_id=task_id)
+    validate_parameters(parameters, task_id=task_id)
+    task = CustomMosaicToolTask.objects.get(pk=task_id)
+
+    if task.status == "ERROR":
+        return None
+
+    dc = DataAccessApi(config=task.config_path)
+    single_pixel = dc.get_stacked_datasets_by_extent(**parameters).isel(latitude=0, longitude=0)
+    clear_mask = task.satellite.get_clean_mask_func()(single_pixel)
+    single_pixel = single_pixel.where(single_pixel != task.satellite.no_data_value)
+
+    dates = single_pixel.time.values
+    if len(dates) < 2:
+        task.update_status("ERROR", "There is only a single acquisition for your parameter set.")
+        return None
+
+    exclusion_list = ['satellite', 'pixel_qa']
+    plot_measurements = [band for band in single_pixel.data_vars if band not in exclusion_list]
+
+    datasets = [single_pixel[band].values.transpose() for band in plot_measurements] + [clear_mask]
+    data_labels = [stringcase.titlecase("{} Units".format(band)) for band in plot_measurements] + ["Clear"]
+    titles = [stringcase.titlecase("{} Band".format(band)) for band in plot_measurements] + ["Clear Mask"]
+
+    task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles)
+
+    task.update_status("OK", "Done processing pixel drill.")
 
 
 @task(name="custom_mosaic_tool.run", base=BaseTask)
@@ -108,7 +136,7 @@ def validate_parameters(parameters, task_id=None):
         task.update_status("ERROR", "Animations cannot be generated for median pixel operations.")
         return None
 
-    if not task.compositor.is_iterative() and (task.time_end - task.time_start).days > 367:
+    if not (task.compositor.is_iterative() or task.pixel_drill_task) and (task.time_end - task.time_start).days > 367:
         task.complete = True
         task.update_status("ERROR", "Median pixel operations are only supported for single year time periods.")
         return None
