@@ -204,7 +204,7 @@ class Query(models.Model):
         return cls.objects.filter(pk__in=queryset_pks, **kwargs)
 
     @classmethod
-    def get_or_create_query_from_post(cls, form_data):
+    def get_or_create_query_from_post(cls, form_data, pixel_drill=False):
         """Get or create a query obj from post form data
 
         Using a python dict formatted with post_data_to_dict, form a set of query parameters.
@@ -221,7 +221,7 @@ class Query(models.Model):
 
         """
         """
-        def get_or_create_query_from_post(cls, form_data):
+        def get_or_create_query_from_post(cls, form_data, pixel_drill=False):
             query_data = form_data
 
             query_data['title'] = "Base Query" if 'title' not in form_data or form_data['title'] == '' else form_data[

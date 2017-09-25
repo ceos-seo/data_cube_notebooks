@@ -115,7 +115,7 @@ class Query(BaseQuery):
         return processing_methods.get(self.compositor.id, create_mosaic)
 
     @classmethod
-    def get_or_create_query_from_post(cls, form_data):
+    def get_or_create_query_from_post(cls, form_data, pixel_drill=False):
         """Implements the get_or_create_query_from_post func required by base class
 
         See the get_or_create_query_from_post docstring for more information.

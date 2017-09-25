@@ -555,7 +555,7 @@ class SubmitPixelDrillRequest(View, ToolClass):
                 for error in form.errors:
                     return JsonResponse({'status': "ERROR", 'message': form.errors[error][0]})
 
-        task, new_task = task_model.get_or_create_query_from_post(full_parameter_set)
+        task, new_task = task_model.get_or_create_query_from_post(full_parameter_set, pixel_drill=True)
         #associate task w/ history
         history_model, __ = self._get_tool_model('userhistory').objects.get_or_create(user_id=user_id, task_id=task.pk)
         try:
