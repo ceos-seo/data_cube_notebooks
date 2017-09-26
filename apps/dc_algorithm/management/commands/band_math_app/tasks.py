@@ -30,6 +30,41 @@ class BaseTask(DCAlgorithmBase):
     app_name = 'band_math_app'
 
 
+@task(name="band_math_app.pixel_drill", base=BaseTask)
+def pixel_drill(task_id=None):
+    parameters = parse_parameters_from_task(task_id=task_id)
+    validate_parameters(parameters, task_id=task_id)
+    task = BandMathTask.objects.get(pk=task_id)
+
+    if task.status == "ERROR":
+        return None
+
+    dc = DataAccessApi(config=task.config_path)
+    single_pixel = dc.get_dataset_by_extent(**parameters).isel(latitude=0, longitude=0)
+    clear_mask = task.satellite.get_clean_mask_func()(single_pixel)
+    single_pixel = single_pixel.where(single_pixel != task.satellite.no_data_value)
+
+    dates = single_pixel.time.values
+    if len(dates) < 2:
+        task.update_status("ERROR", "There is only a single acquisition for your parameter set.")
+        return None
+
+    def _apply_band_math(dataset):
+        #TODO: apply your band math here!
+        return (dataset.nir - dataset.red) / (dataset.nir + dataset.red)
+
+    datasets = [_apply_band_math(single_pixel).values.transpose()] + [clear_mask]
+    data_labels = ["Band Math Result"] + ["Clear"]
+    titles = ["Band Math"] + ["Clear Mask"]
+    style = ['r-o', '.']
+
+    task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles, style=style)
+
+    task.complete = True
+    task.update_status("OK", "Done processing pixel drill.")
+
+
 @task(name="band_math_app.run", base=BaseTask)
 def run(task_id=None):
     """Responsible for launching task processing using celery asynchronous processes

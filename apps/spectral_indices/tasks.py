@@ -63,7 +63,7 @@ def pixel_drill(task_id=None):
     for spectral_index in spectral_indices_map:
         single_pixel[spectral_index] = spectral_indices_map[spectral_index](single_pixel)
 
-    exclusion_list = ['red', 'green', 'blue', 'nir', 'swir1', 'swir2', 'satellite', 'pixel_qa']
+    exclusion_list = task.satellite.get_measurements()
     plot_measurements = [band for band in single_pixel.data_vars if band not in exclusion_list]
 
     datasets = [single_pixel[band].values.transpose() for band in plot_measurements] + [clear_mask]
