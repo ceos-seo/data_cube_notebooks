@@ -58,9 +58,10 @@ def pixel_drill(task_id=None):
     datasets = [wofs_data.wofs.values.transpose()] + [clear_mask]
     data_labels = ["Water/Non Water"] + ["Clear"]
     titles = ["Water/Non Water"] + ["Clear Mask"]
+    style = ['.', '.']
 
     task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
-    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles)
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles, style=style)
 
     task.complete = True
     task.update_status("OK", "Done processing pixel drill.")

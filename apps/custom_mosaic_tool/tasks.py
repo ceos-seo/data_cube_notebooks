@@ -55,9 +55,10 @@ def pixel_drill(task_id=None):
     datasets = [single_pixel[band].values.transpose() for band in plot_measurements] + [clear_mask]
     data_labels = [stringcase.titlecase("{} Units".format(band)) for band in plot_measurements] + ["Clear"]
     titles = [stringcase.titlecase("{} Band".format(band)) for band in plot_measurements] + ["Clear Mask"]
+    style = ['r-o', 'g-o', 'b-o', 'c-o', 'm-o', 'y-o', '.']
 
     task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
-    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles)
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles, style=style)
 
     task.complete = True
     task.update_status("OK", "Done processing pixel drill.")

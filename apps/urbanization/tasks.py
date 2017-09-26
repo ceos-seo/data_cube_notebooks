@@ -58,9 +58,10 @@ def pixel_drill(task_id=None):
     datasets = [data_array.values.transpose() for data_array in _apply_band_math(single_pixel)] + [clear_mask]
     data_labels = ["NDVI", "NDWI", "NDBI"] + ["Clear"]
     titles = ["Dense Vegetatin (NDVI)", "Water Concentration (NDWI)", "Urbanization (NDBI)", 'Clear Mask']
+    style = ['g-o', 'b-o', 'r-o', '.']
 
     task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
-    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles)
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles, style=style)
 
     task.complete = True
     task.update_status("OK", "Done processing pixel drill.")
