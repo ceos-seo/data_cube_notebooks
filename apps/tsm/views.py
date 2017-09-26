@@ -32,12 +32,13 @@ from datetime import datetime, timedelta
 from apps.dc_algorithm.models import Satellite, Area, Application
 from apps.dc_algorithm.forms import DataSelectionForm
 from .forms import AdditionalOptionsForm
-from .tasks import run
+from .tasks import run, pixel_drill
 
 from collections import OrderedDict
 
-from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, GetTaskResult, SubmitNewSubsetRequest, CancelRequest,
-                                     UserHistory, ResultList, OutputList, RegionSelection, TaskDetails)
+from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, SubmitPixelDrillRequest, GetTaskResult,
+                                     SubmitNewSubsetRequest, CancelRequest, UserHistory, ResultList, OutputList,
+                                     RegionSelection, TaskDetails)
 
 
 class RegionSelection(RegionSelection):
@@ -62,8 +63,8 @@ class TsmTool(ToolView):
 
     tool_name = 'tsm'
     task_model_name = 'TsmTask'
+    allow_pixel_drilling = True
 
-    # TODO: Ensure that this function creates all the forms required for your model.
     def generate_form_dict(self, satellites, area):
         forms = {}
         for satellite in satellites:
@@ -72,7 +73,8 @@ class TsmTool(ToolView):
                 AdditionalOptionsForm(
                     datacube_platform=satellite.datacube_platform, auto_id="{}_%s".format(satellite.pk)),
                 'Geospatial Bounds':
-                DataSelectionForm(area=area,
+                DataSelectionForm(
+                    area=area,
                     time_start=satellite.date_min,
                     time_end=satellite.date_max,
                     auto_id="{}_%s".format(satellite.pk))
@@ -96,6 +98,24 @@ class SubmitNewRequest(SubmitNewRequest):
     #celery_task_func = create_cloudfree_mosaic
     celery_task_func = run
     # TODO: Ensure that this list contains all the forms used to create your model
+    form_list = [DataSelectionForm, AdditionalOptionsForm]
+
+
+class SubmitPixelDrillRequest(SubmitPixelDrillRequest):
+    """
+    Submit pixel_drill request REST API Endpoint
+    Extends the SubmitNewRequest abstract class - required attributes are the tool_name,
+    task_model_name, form_list, and celery_task_func
+
+    Note:
+        celery_task_func should be callable with .delay() and take a single argument of a TaskModel pk.
+
+    See the dc_algorithm.views docstrings for more information.
+    """
+    tool_name = 'tsm'
+    task_model_name = 'TsmTask'
+    #celery_task_func = create_cloudfree_mosaic
+    celery_task_func = pixel_drill
     form_list = [DataSelectionForm, AdditionalOptionsForm]
 
 
