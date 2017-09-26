@@ -30,6 +30,47 @@ class BaseTask(DCAlgorithmBase):
     __app__name = 'app_name'
 
 
+# TODO: If pixel drilling is enabled, uncomment this block and fill in the remaining TODOs
+"""@task(name="app_name.pixel_drill", base=BaseTask)
+def pixel_drill(task_id=None):
+    parameters = parse_parameters_from_task(task_id=task_id)
+    validate_parameters(parameters, task_id=task_id)
+    task = AppNameTask.objects.get(pk=task_id)
+
+    if task.status == "ERROR":
+        return None
+
+    dc = DataAccessApi(config=task.config_path)
+    single_pixel = dc.get_stacked_datasets_by_extent(**parameters)
+    clear_mask = task.satellite.get_clean_mask_func()(single_pixel.isel(latitude=0, longitude=0))
+    single_pixel = single_pixel.where(single_pixel != task.satellite.no_data_value)
+
+    dates = single_pixel.time.values
+    if len(dates) < 2:
+        task.update_status("ERROR", "There is only a single acquisition for your parameter set.")
+        return None
+    # TODO: This is an example of how this is normally done. Change it to do what this app does, just on a time
+    # series of single pixels.
+    wofs_data = task.get_processing_method()(single_pixel,
+                                             clean_mask=clear_mask,
+                                             enforce_float64=True,
+                                             no_data=task.satellite.no_data_value)
+    wofs_data = wofs_data.where(wofs_data != task.satellite.no_data_value).isel(latitude=0, longitude=0)
+
+    # transpose flattens it into a 1xn array - TODO: add any bands in the first array that you want to.
+    # data_labels, titles, style should all be the same length as datasets. Style refers to matplotlib styling.
+    datasets = [wofs_data.wofs.values.transpose()] + [clear_mask]
+    data_labels = ["Water/Non Water"] + ["Clear"]
+    titles = ["Water/Non Water"] + ["Clear Mask"]
+    style = ['.', '.']
+
+    task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles, style=style)
+
+    task.complete = True
+    task.update_status("OK", "Done processing pixel drill.")"""
+
+
 @task(name="app_name.run", base=BaseTask)
 def run(task_id=None):
     """Responsible for launching task processing using celery asynchronous processes

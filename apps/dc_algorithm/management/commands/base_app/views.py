@@ -32,12 +32,13 @@ from datetime import datetime, timedelta
 from apps.dc_algorithm.models import Satellite, Area, Application
 from apps.dc_algorithm.forms import DataSelectionForm
 from .forms import AdditionalOptionsForm
-from .tasks import run
+from .tasks import run  # TODO: Is pixel drilling enabled? if so, import pixel_drill
 
 from collections import OrderedDict
 
-from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, GetTaskResult, SubmitNewSubsetRequest, CancelRequest,
-                                     UserHistory, ResultList, OutputList, RegionSelection, TaskDetails)
+from apps.dc_algorithm.views import (ToolView, SubmitNewRequest, SubmitPixelDrillRequest, SubmitPixelDrillRequest,
+                                     GetTaskResult, SubmitNewSubsetRequest, CancelRequest, UserHistory, ResultList,
+                                     OutputList, RegionSelection, TaskDetails)
 
 
 class RegionSelection(RegionSelection):
@@ -72,7 +73,8 @@ class AppNameTool(ToolView):
                 AdditionalOptionsForm(
                     datacube_platform=satellite.datacube_platform, auto_id="{}_%s".format(satellite.pk)),
                 'Geospatial Bounds':
-                DataSelectionForm(area=area,
+                DataSelectionForm(
+                    area=area,
                     time_start=satellite.date_min,
                     time_end=satellite.date_max,
                     auto_id="{}_%s".format(satellite.pk))
@@ -97,6 +99,26 @@ class SubmitNewRequest(SubmitNewRequest):
     celery_task_func = run
     # TODO: Ensure that this list contains all the forms used to create your model
     form_list = [DataSelectionForm, AdditionalOptionsForm]
+
+
+# TODO: Is pixel drilling enabled? If so uncomment this block and fill in the rest of the TODOs.
+# class SubmitPixelDrillRequest(SubmitPixelDrillRequest):
+#     """
+#     Submit pixel_drill request REST API Endpoint
+#     Extends the SubmitNewRequest abstract class - required attributes are the tool_name,
+#     task_model_name, form_list, and celery_task_func
+#
+#     Note:
+#         celery_task_func should be callable with .delay() and take a single argument of a TaskModel pk.
+#
+#     See the dc_algorithm.views docstrings for more information.
+#     """
+#     tool_name = 'app_name'
+#     task_model_name = 'AppNameTask'
+#     #celery_task_func = create_cloudfree_mosaic
+#     celery_task_func = pixel_drill
+#     # TODO: Ensure that this list contains all the forms used to create your model
+#     form_list = [DataSelectionForm, AdditionalOptionsForm]
 
 
 class GetTaskResult(GetTaskResult):
