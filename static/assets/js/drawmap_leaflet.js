@@ -154,6 +154,8 @@ DrawMap.prototype.set_rect_draw_handlers = function() {
       layer = e.layer;
     if(type=="marker") {
       // console.log(layer.getLatLng())
+      self.marker = layer;
+      self.map.addLayer(self.marker);
     } else {
       var bounds = layer.getBounds();
       self.bb_rectangle = L.rectangle(constrain_bounds(self.bounding_box, bounds));
@@ -167,6 +169,9 @@ DrawMap.prototype.set_rect_draw_handlers = function() {
     }
     if (self.bb_rectangle != undefined) {
       self.map.removeLayer(self.bb_rectangle);
+    }
+    if (self.marker != undefined) {
+      self.map.removeLayer(self.marker);
     }
   });
 
