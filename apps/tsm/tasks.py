@@ -60,8 +60,6 @@ def pixel_drill(task_id=None):
     tsm_data = tsm_data.where(tsm_data != task.satellite.no_data_value).isel(
         latitude=0, longitude=0).where((wofs_data.wofs.values == 1))
 
-    print(wofs_data, tsm_data)
-
     datasets = [wofs_data.wofs.values.transpose(), tsm_data.tsm.values.transpose()] + [clear_mask]
     data_labels = ["Water/Non Water", "TSM (g/L)"] + ["Clear"]
     titles = ["Water/Non Water", "TSM Values"] + ["Clear Mask"]
