@@ -301,7 +301,7 @@ class UserHistory(View, ToolClass):
         user_history = self._get_tool_model('userhistory').objects.filter(user_id=user_id)
 
         task_history = task_model_class.get_queryset_from_history(
-            user_history, complete=True, area_id=area_id).exclude(status="ERROR")
+            user_history, complete=True, area_id=area_id).exclude(status="ERROR").exclude(pixel_drill_task=True)
 
         context = {'task_history': task_history}
         return render(request, "/".join([self._get_tool_name(), 'task_history_list.html']), context)

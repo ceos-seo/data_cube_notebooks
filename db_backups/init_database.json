@@ -46,7 +46,7 @@
   "fields": {
     "datacube_platform": "LANDSAT_5,LANDSAT_7,LANDSAT_8",
     "name": "Landsat 5/7/8",
-    "product_prefix": "all",
+    "product_prefix": "ls5_leaps_,ls7_ledaps_,ls8_lasrc_",
     "date_min": "1984-03-01",
     "date_max": "2016-12-26",
     "data_min": 0.0,
@@ -74,7 +74,7 @@
   "fields": {
     "datacube_platform": "LANDSAT_7,LANDSAT_8",
     "name": "Landsat 7/8",
-    "product_prefix": "all",
+    "product_prefix": "ls7_ledaps_,ls8_lasrc_",
     "date_min": "1999-04-15",
     "date_max": "2016-12-26",
     "data_min": 0.0,

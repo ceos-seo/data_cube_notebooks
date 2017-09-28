@@ -89,6 +89,7 @@ pip install redis
 pip install imageio
 pip install django-bootstrap3
 pip install matplotlib
+pip install stringcase
 ```
 
 The UI relies on a slightly newer version of Celery that has not yet been pushed to Pypi - This is due to a bug that was fixed a few days after their latest release.

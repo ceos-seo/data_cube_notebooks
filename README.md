@@ -39,5 +39,6 @@ Requirements
 * imageio
 * django-bootstrap3
 * matplotlib
+* stringcase
 
 For more detailed instructions, please read the [documentation](docs/ui_install.md). If you want to add a new algorithm to the UI, you can follow our [adding a new algorithm](docs/adding_new_pages.md) documentation.
