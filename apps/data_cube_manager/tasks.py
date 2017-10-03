@@ -289,8 +289,9 @@ def prepare_output(ingestion_request_id=None):
     ingestion_request = IngestionRequest.objects.get(pk=ingestion_request_id)
     ingestion_request.update_status("WAIT", "Creating output products...")
 
-    cmd = "pg_dump -U dc_user -n agdc {} > {}".format(ingestion_request.get_database_name(),
-                                                      ingestion_request.get_database_dump_path())
+    cmd = "pg_dump -U dc_user -h {} -n agdc {} > {}".format(settings.MASTER_NODE,
+                                                            ingestion_request.get_database_name(),
+                                                            ingestion_request.get_database_dump_path())
     os.system(cmd)
     cmd = "dropdb -U dc_user -h {} {}".format(settings.MASTER_NODE, ingestion_request.get_database_name())
     os.system(cmd)
