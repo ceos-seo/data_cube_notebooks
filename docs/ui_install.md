@@ -267,6 +267,14 @@ sudo a2ensite dc_ui.conf
 sudo service apache2 restart
 ```
 
+Additionally, a .pgpass is required for the Data Cube On Demand functionality. Edit the .pgpass in the config directory with your database username and password from above and copy it into the home directory of your local user.
+
+```
+# assumes you're logged in as your local user - if not, replace ~ with /home/{username}
+sudo cp config/.pgpass ~/.pgpass
+sudo chmod 600 ~/.pgpass
+```
+
 <a name="database_initialization"></a> Initializing the Database
 =================
 
@@ -278,7 +286,7 @@ Run the following commands:
 
 ```
 cd ~/Datacube/data_cube_ui
-python manage.py makemigrations {data_cube_ui,accounts,coastal_change,custom_mosaic_tool,fractional_cover,ndvi_anomaly,slip,task_manager,tsm,water_detection,dc_algorithm,data_cube_manager,cloud_coverage,urbanization}
+python manage.py makemigrations {data_cube_ui,accounts,coastal_change,custom_mosaic_tool,fractional_cover,ndvi_anomaly,slip,task_manager,tsm,water_detection,dc_algorithm,data_cube_manager,cloud_coverage,urbanization,spectral_indices}
 python manage.py makemigrations
 python manage.py migrate
 
