@@ -203,7 +203,8 @@ def add_source_datasets(ingestion_request_id=None):
         source_dataset_sources = DatasetSource.objects.using('agdc').filter(dataset_ref__in=source_datasets)
 
         if source_dataset_sources.exists():
-            dataset_type_index = create_source_dataset_models(source_dataset_sources, index=dataset_type_index)
+            dataset_type_index = create_source_dataset_models(
+                source_dataset_sources, dataset_type_index=dataset_type_index)
 
         source_dataset_type.id = dataset_type_index
         source_dataset_type.save(using=ingestion_request.get_database_name())
@@ -325,9 +326,9 @@ def delete_ingestion_request(ingestion_request_id=None):
 def get_config(username):
     config = configparser.ConfigParser()
     config['datacube'] = {
-        'db_password': 'dcuser1',
+        'db_password': settings.DATABASES['default']['PASSWORD'],
         'db_connection_timeout': '60',
-        'db_username': 'dc_user',
+        'db_username': settings.DATABASES['default']['USER'],
         'db_database': username,
         'db_hostname': settings.MASTER_NODE
     }
@@ -342,8 +343,8 @@ def create_db(username):
             'options': '-c search_path=agdc'
         },
         'NAME': username,
-        'USER': 'dc_user',
-        'PASSWORD': 'dcuser1',
+        'USER': settings.DATABASES['default']['USER'],
+        'PASSWORD': settings.DATABASES['default']['PASSWORD'],
         'HOST': settings.MASTER_NODE
     }
 

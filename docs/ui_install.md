@@ -77,8 +77,14 @@ sudo apt-get install -y apache2
 sudo apt-get install -y libapache2-mod-wsgi-py3
 sudo apt-get install -y redis-server
 sudo apt-get install -y libfreeimage3
-sudo apt-get install -y tmux
 sudo apt-get install -y imagemagick
+```
+
+There are also a few system level packages that are 'nice to have' or helpful if you are a new user/using Ubuntu desktop rather than server.
+
+```
+# Additional/helpful packages can be installed if you intend on installing on Ubuntu desktop
+sudo apt-get install -y tmux
 ```
 
 Next, you'll need various Python packages responsible for the entire application:

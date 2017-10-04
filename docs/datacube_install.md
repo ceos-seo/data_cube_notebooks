@@ -96,8 +96,14 @@ There are a few system level dependencies that must be satisfied before the agdc
 sudo apt-get install -y postgresql-9.5 postgresql-client-9.5 postgresql-contrib-9.5
 sudo apt-get install -y libhdf5-serial-dev libnetcdf-dev
 sudo apt-get install -y libgdal1-dev
-sudo apt-get install -y postgresql-doc-9.5 libhdf5-doc netcdf-doc libgdal-doc
-sudo apt-get install -y hdf5-tools netcdf-bin gdal-bin pgadmin3
+sudo apt-get install -y hdf5-tools netcdf-bin gdal-bin
+```
+
+There are also a few system level packages that are 'nice to have' or helpful if you are a new user/using Ubuntu desktop rather than server.
+
+```
+# Additional/helpful packages can be installed if you intend on installing on Ubuntu desktop
+sudo apt-get install -y postgresql-doc-9.5 libhdf5-doc netcdf-doc libgdal-doc pgadmin3 tmux
 ```
 
 Now that all of the system level dependencies have been satisfied, there are some Python packages that must be installed before running the setup script. Ensure that you have your virtual environment activated and ready for use - You should see (datacube_env) on your terminal window.
