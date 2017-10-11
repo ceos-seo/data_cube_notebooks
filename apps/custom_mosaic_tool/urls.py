@@ -26,6 +26,7 @@ from . import views
 urlpatterns = [
     url(r'^region_selection', views.RegionSelection.as_view(), name='region_selection'),
     url(r'^submit$', views.SubmitNewRequest.as_view(), name='submit_new_request'),
+    url(r'^submit_pixel_drill_request$', views.SubmitPixelDrillRequest.as_view(), name='submit_pixel_drill_request'),
     url(r'^submit_single$', views.SubmitNewSubsetRequest.as_view(), name='submit_new_single_request'),
     url(r'^cancel$', views.CancelRequest.as_view(), name='cancel_request'),
     url(r'^result$', views.GetTaskResult.as_view(), name='get_result'),

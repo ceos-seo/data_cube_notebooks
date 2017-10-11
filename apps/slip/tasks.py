@@ -32,11 +32,11 @@ class BaseTask(DCAlgorithmBase):
 
 
 @task(name="slip.get_acquisition_list")
-def get_acquisition_list(task, area_id, platform, date):
+def get_acquisition_list(task, area_id, satellite, date):
     dc = DataAccessApi(config=task.config_path)
     # lists all acquisition dates for use in single tmeslice queries.
-    product = Satellite.objects.get(datacube_platform=platform).product_prefix + area_id
-    acquisitions = dc.list_acquisition_dates(product, platform, time=(datetime(1900, 1, 1), date))
+    product = satellite.product_prefix + area_id
+    acquisitions = dc.list_acquisition_dates(product, satellite.datacube_platform, time=(datetime(1900, 1, 1), date))
     return acquisitions
 
 
@@ -71,15 +71,13 @@ def parse_parameters_from_task(task_id=None):
     task = SlipTask.objects.get(pk=task_id)
 
     parameters = {
-        'platform': task.platform,
+        'platform': task.satellite.datacube_platform,
+        'product': task.satellite.get_product(task.area_id),
         'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
-        'measurements': task.measurements
+        'measurements': task.satellite.get_measurements()
     }
-
-    parameters['product'] = Satellite.objects.get(
-        datacube_platform=parameters['platform']).product_prefix + task.area_id
 
     task.execution_start = datetime.now()
     task.update_status("WAIT", "Parsed out parameters.")
@@ -127,7 +125,12 @@ def validate_parameters(parameters, task_id=None):
     task.update_status("WAIT", "Validated parameters.")
 
     if not dc.validate_measurements(parameters['product'], parameters['measurements']):
-        parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+        task.complete = True
+        task.update_status(
+            "ERROR",
+            "The provided Satellite model measurements aren't valid for the product. Please check the measurements listed in the {} model.".
+            format(task.satellite.name))
+        return None
 
     dc.close()
     return parameters
@@ -276,15 +279,20 @@ def processing_task(task_id=None,
     target_data = xr.concat([data.isel(time=-1)], 'time')
     baseline_data = data.isel(time=slice(None, -1))
 
-    target_clear_mask = create_cfmask_clean_mask(target_data.cf_mask) if 'cf_mask' in target_data else create_bit_mask(
-        target_data.pixel_qa, [1, 2])
-    baseline_clear_mask = create_cfmask_clean_mask(
-        baseline_data.cf_mask) if 'cf_mask' in baseline_data else create_bit_mask(baseline_data.pixel_qa, [1, 2])
-    combined_baseline = task.get_processing_method()(baseline_data, clean_mask=baseline_clear_mask)
+    target_clear_mask = task.satellite.get_clean_mask_func()(target_data)
+    baseline_clear_mask = task.satellite.get_clean_mask_func()(baseline_data)
+    combined_baseline = task.get_processing_method()(baseline_data,
+                                                     clean_mask=baseline_clear_mask,
+                                                     no_data=task.satellite.no_data_value,
+                                                     reverse_time=task.get_reverse_time())
 
-    target_data = create_mosaic(target_data, clean_mask=target_clear_mask)
+    target_data = create_mosaic(
+        target_data,
+        clean_mask=target_clear_mask,
+        no_data=task.satellite.no_data_value,
+        reverse_time=task.get_reverse_time())
 
-    slip_data = compute_slip(combined_baseline, target_data, dem_data)
+    slip_data = compute_slip(combined_baseline, target_data, dem_data, no_data=task.satellite.no_data_value)
     target_data['slip'] = slip_data
 
     metadata = task.metadata_from_dataset(
@@ -342,11 +350,15 @@ def recombine_time_chunks(chunks, task_id=None):
         #give time an indice to keep mosaicking from breaking.
         data = xr.concat([data], 'time')
         data['time'] = [0]
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
         # modify clean mask so that only slip pixels that are still zero will be used. This will show all the pixels that caused the flag.
         clear_mask[xr.concat([combined_slip], 'time').values == 1] = False
-        combined_data = create_mosaic(data.drop('slip'), clean_mask=clear_mask, intermediate_product=combined_data)
+        combined_data = create_mosaic(
+            data.drop('slip'),
+            clean_mask=clear_mask,
+            intermediate_product=combined_data,
+            no_data=task.satellite.no_data_value,
+            reverse_time=task.get_reverse_time())
         combined_slip.values[combined_slip.values == 0] = data.slip.values[combined_slip.values == 0]
 
     # Since we added a time dim to combined_slip, we need to remove it here.
@@ -417,14 +429,23 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask',
-             'slip'] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa', 'slip']
+    bands = task.satellite.get_measurements() + ['slip']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, no_data=task.satellite.no_data_value)
 
-    write_png_from_xr(task.result_path, mask_mosaic_with_slip(dataset), bands=['red', 'green', 'blue'], scale=(0, 4096))
-    write_png_from_xr(task.result_mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
+    write_png_from_xr(
+        task.result_path,
+        mask_mosaic_with_slip(dataset),
+        bands=['red', 'green', 'blue'],
+        scale=task.satellite.get_scale(),
+        no_data=task.satellite.no_data_value)
+    write_png_from_xr(
+        task.result_mosaic_path,
+        dataset,
+        bands=['red', 'green', 'blue'],
+        scale=task.satellite.get_scale(),
+        no_data=task.satellite.no_data_value)
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
     if len(dates) > 1:

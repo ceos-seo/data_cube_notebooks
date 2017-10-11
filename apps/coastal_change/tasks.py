@@ -13,9 +13,10 @@ from collections import OrderedDict
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
 from utils.data_cube_utilities.dc_coastal_change import compute_coastal_change, mask_mosaic_with_coastal_change, mask_mosaic_with_coastlines
-from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
-                                add_timestamp_data_to_xr, clear_attrs)
-from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, group_datetimes_by_year, combine_geographic_chunks)
+from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
+                                                    write_png_from_xr, add_timestamp_data_to_xr, clear_attrs)
+from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, group_datetimes_by_year,
+                                                  combine_geographic_chunks)
 
 from .models import CoastalChangeTask
 from apps.dc_algorithm.models import Satellite
@@ -59,15 +60,13 @@ def parse_parameters_from_task(task_id=None):
     task = CoastalChangeTask.objects.get(pk=task_id)
 
     parameters = {
-        'platform': task.platform,
+        'platform': task.satellite.datacube_platform,
+        'product': task.satellite.get_product(task.area_id),
         'time': (datetime(task.time_start, 1, 1), datetime(task.time_end, 12, 31)),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
-        'measurements': task.measurements
+        'measurements': task.satellite.get_measurements()
     }
-
-    parameters['product'] = Satellite.objects.get(
-        datacube_platform=parameters['platform']).product_prefix + task.area_id
 
     task.execution_start = datetime.now()
     task.update_status("WAIT", "Parsed out parameters.")
@@ -104,7 +103,12 @@ def validate_parameters(parameters, task_id=None):
     task.update_status("WAIT", "Validated parameters.")
 
     if not dc.validate_measurements(parameters['product'], parameters['measurements']):
-        parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+        task.complete = True
+        task.update_status(
+            "ERROR",
+            "The provided Satellite model measurements aren't valid for the product. Please check the measurements listed in the {} model.".
+            format(task.satellite.name))
+        return None
 
     dc.close()
     return parameters
@@ -251,10 +255,9 @@ def processing_task(task_id=None,
             logger.info("Invalid chunk.")
             return None, None
 
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
         metadata = task.metadata_from_dataset({}, data, clear_mask, updated_params)
-        return task.get_processing_method()(data, clean_mask=clear_mask), metadata
+        return task.get_processing_method()(data, clean_mask=clear_mask, no_data=task.satellite.no_data_value), metadata
 
     old_mosaic, old_metadata = _compute_mosaic(starting_year)
     new_mosaic, new_metadata = _compute_mosaic(comparison_year)
@@ -264,7 +267,7 @@ def processing_task(task_id=None,
 
     metadata = {**old_metadata, **new_metadata}
 
-    output_product = compute_coastal_change(old_mosaic, new_mosaic)
+    output_product = compute_coastal_change(old_mosaic, new_mosaic, no_data=task.satellite.no_data_value)
 
     task.scenes_processed = F('scenes_processed') + 1
     task.save()
@@ -312,7 +315,12 @@ def recombine_geographic_chunks(chunks, task_id=None):
             combined_data
         ) if task.animated_product.animation_id == "coastline_change" else mask_mosaic_with_coastal_change(
             combined_data)
-        write_png_from_xr(path, animated_data, bands=['red', 'green', 'blue'], scale=(0, 4096))
+        write_png_from_xr(
+            path,
+            animated_data,
+            bands=['red', 'green', 'blue'],
+            scale=task.satellite.get_scale(),
+            no_data=task.satellite.no_data_value)
 
     path = os.path.join(task.get_temp_path(), "recombined_geo_{}.nc".format(time_chunk_id))
     combined_data.to_netcdf(path)
@@ -380,20 +388,30 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = [
-        'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'coastal_change', 'coastline_old', 'coastline_new'
-    ] if 'cf_mask' in dataset else [
-        'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa', 'coastal_change', 'coastline_old', 'coastline_new'
-    ]
+    bands = task.satellite.get_measurements() + ['coastal_change', 'coastline_old', 'coastline_new']
 
     png_bands = ['red', 'green', 'blue']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
-    write_png_from_xr(task.result_path, mask_mosaic_with_coastlines(dataset), bands=png_bands, scale=(0, 4096))
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, no_data=task.satellite.no_data_value)
     write_png_from_xr(
-        task.result_coastal_change_path, mask_mosaic_with_coastal_change(dataset), bands=png_bands, scale=(0, 4096))
-    write_png_from_xr(task.result_mosaic_path, dataset, bands=png_bands, scale=(0, 4096))
+        task.result_path,
+        mask_mosaic_with_coastlines(dataset),
+        bands=png_bands,
+        scale=task.satellite.get_scale(),
+        no_data=task.satellite.no_data_value)
+    write_png_from_xr(
+        task.result_coastal_change_path,
+        mask_mosaic_with_coastal_change(dataset),
+        bands=png_bands,
+        scale=task.satellite.get_scale(),
+        no_data=task.satellite.no_data_value)
+    write_png_from_xr(
+        task.result_mosaic_path,
+        dataset,
+        bands=png_bands,
+        scale=task.satellite.get_scale(),
+        no_data=task.satellite.no_data_value)
 
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:

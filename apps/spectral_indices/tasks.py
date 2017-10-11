@@ -10,6 +10,7 @@ import numpy as np
 import os
 import imageio
 from collections import OrderedDict
+import stringcase
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
 from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
@@ -28,6 +29,53 @@ logger = get_task_logger(__name__)
 
 class BaseTask(DCAlgorithmBase):
     app_name = 'spectral_indices'
+
+
+@task(name="spectral_indices.pixel_drill", base=BaseTask)
+def pixel_drill(task_id=None):
+    parameters = parse_parameters_from_task(task_id=task_id)
+    validate_parameters(parameters, task_id=task_id)
+    task = SpectralIndicesTask.objects.get(pk=task_id)
+
+    if task.status == "ERROR":
+        return None
+
+    dc = DataAccessApi(config=task.config_path)
+    single_pixel = dc.get_dataset_by_extent(**parameters).isel(latitude=0, longitude=0)
+    clear_mask = task.satellite.get_clean_mask_func()(single_pixel)
+    single_pixel = single_pixel.where(single_pixel != task.satellite.no_data_value)
+
+    dates = single_pixel.time.values
+    if len(dates) < 2:
+        task.update_status("ERROR", "There is only a single acquisition for your parameter set.")
+        return None
+
+    spectral_indices_map = {
+        'ndvi': lambda ds: (ds.nir - ds.red) / (ds.nir + ds.red),
+        'evi': lambda ds: 2.5 * (ds.nir - ds.red) / (ds.nir + 6 * ds.red - 7.5 * ds.blue + 1),
+        'savi': lambda ds: (ds.nir - ds.red) / (ds.nir + ds.red + 0.5) * (1.5),
+        'nbr': lambda ds: (ds.nir - ds.swir2) / (ds.nir + ds.swir2),
+        'nbr2': lambda ds: (ds.swir1 - ds.swir2) / (ds.swir1 + ds.swir2),
+        'ndwi': lambda ds: (ds.nir - ds.swir1) / (ds.nir + ds.swir1),
+        'ndbi': lambda ds: (ds.swir1 - ds.nir) / (ds.nir + ds.swir1),
+    }
+
+    for spectral_index in spectral_indices_map:
+        single_pixel[spectral_index] = spectral_indices_map[spectral_index](single_pixel)
+
+    exclusion_list = task.satellite.get_measurements()
+    plot_measurements = [band for band in single_pixel.data_vars if band not in exclusion_list]
+
+    datasets = [single_pixel[band].values.transpose() for band in plot_measurements] + [clear_mask]
+    data_labels = [stringcase.uppercase("{}".format(band)) for band in plot_measurements] + ["Clear"]
+    titles = [stringcase.uppercase("{}".format(band)) for band in plot_measurements] + ["Clear Mask"]
+    style = ['r-o', 'g-o', 'b-o', 'c-o', 'm-o', 'y-o', 'k-o', '.']
+
+    task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles, style=style)
+
+    task.complete = True
+    task.update_status("OK", "Done processing pixel drill.")
 
 
 @task(name="spectral_indices.run", base=BaseTask)
@@ -61,15 +109,13 @@ def parse_parameters_from_task(task_id=None):
     task = SpectralIndicesTask.objects.get(pk=task_id)
 
     parameters = {
-        'platform': task.platform,
+        'platform': task.satellite.datacube_platform,
+        'product': task.satellite.get_product(task.area_id),
         'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
-        'measurements': task.measurements
+        'measurements': task.satellite.get_measurements()
     }
-
-    parameters['product'] = Satellite.objects.get(
-        datacube_platform=parameters['platform']).product_prefix + task.area_id
 
     task.execution_start = datetime.now()
     task.update_status("WAIT", "Parsed out parameters.")
@@ -109,7 +155,12 @@ def validate_parameters(parameters, task_id=None):
     task.update_status("WAIT", "Validated parameters.")
 
     if not dc.validate_measurements(parameters['product'], parameters['measurements']):
-        parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+        task.complete = True
+        task.update_status(
+            "ERROR",
+            "The provided Satellite model measurements aren't valid for the product. Please check the measurements listed in the {} model.".
+            format(task.satellite.name))
+        return None
 
     dc.close()
     return parameters
@@ -251,13 +302,16 @@ def processing_task(task_id=None,
             logger.info("Invalid chunk.")
             continue
 
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
         add_timestamp_data_to_xr(data)
 
         metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
 
-        iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
+        iteration_data = task.get_processing_method()(data,
+                                                      clean_mask=clear_mask,
+                                                      intermediate_product=iteration_data,
+                                                      no_data=task.satellite.no_data_value,
+                                                      reverse_time=task.get_reverse_time())
 
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
@@ -310,9 +364,12 @@ def recombine_time_chunks(chunks, task_id=None):
         #give time an indice to keep mosaicking from breaking.
         data = xr.concat([data], 'time')
         data['time'] = [0]
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
-        combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
+        clear_mask = task.satellite.get_clean_mask_func()(data)
+        combined_data = task.get_processing_method()(data,
+                                                     clean_mask=clear_mask,
+                                                     intermediate_product=combined_data,
+                                                     no_data=task.satellite.no_data_value,
+                                                     reverse_time=task.get_reverse_time())
 
     path = os.path.join(task.get_temp_path(), "recombined_time_{}.nc".format(geo_chunk_id))
     combined_data.to_netcdf(path)
@@ -417,14 +474,22 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'band_math'
-            ] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa', 'band_math']
+    bands = task.satellite.get_measurements() + ['band_math']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
-    write_png_from_xr(task.mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, no_data=task.satellite.no_data_value)
+    write_png_from_xr(
+        task.mosaic_path,
+        dataset,
+        bands=['red', 'green', 'blue'],
+        scale=task.satellite.get_scale(),
+        no_data=task.satellite.no_data_value)
     write_single_band_png_from_xr(
-        task.result_path, dataset, band='band_math', color_scale=task.color_scale_path.get(task.query_type.result_id))
+        task.result_path,
+        dataset,
+        band='band_math',
+        color_scale=task.color_scale_path.get(task.query_type.result_id),
+        no_data=task.satellite.no_data_value)
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
     if len(dates) > 1:

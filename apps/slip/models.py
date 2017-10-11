@@ -74,12 +74,11 @@ class Query(BaseQuery):
     baseline_method = models.ForeignKey(BaselineMethod)
     baseline_length = models.IntegerField(default=10)
 
-    measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/slip'
 
     class Meta(BaseQuery.Meta):
         unique_together = (
-            ('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
+            ('satellite', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
              'longitude_min', 'title', 'description', 'baseline_method', 'baseline_length'))
         abstract = True
 
@@ -122,7 +121,7 @@ class Query(BaseQuery):
         return processing_methods.get(self.baseline_method.id, create_mosaic)
 
     @classmethod
-    def get_or_create_query_from_post(cls, form_data):
+    def get_or_create_query_from_post(cls, form_data, pixel_drill=False):
         """Implements the get_or_create_query_from_post func required by base class
 
         See the get_or_create_query_from_post docstring for more information.
@@ -145,10 +144,10 @@ class Query(BaseQuery):
         query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
 
         try:
-            query = cls.objects.get(**query_data)
+            query = cls.objects.get(pixel_drill_task=pixel_drill, **query_data)
             return query, False
         except cls.DoesNotExist:
-            query = cls(**query_data)
+            query = cls(pixel_drill_task=pixel_drill, **query_data)
             query.save()
             return query, True
 

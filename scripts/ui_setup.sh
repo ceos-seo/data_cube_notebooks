@@ -18,3 +18,6 @@ sudo cp config/celerybeat_conf /etc/default/celerybeat && sudo cp config/celeryb
 sudo chmod 777 /etc/init.d/celerybeat
 sudo chmod 644 /etc/default/celerybeat
 sudo /etc/init.d/celerybeat start
+
+sudo cp config/.pgpass ~/.pgpass
+sudo chmod 600 ~/.pgpass 

@@ -6,7 +6,11 @@
     "name": "Landsat 7",
     "product_prefix": "ls7_ledaps_",
     "date_min": "1999-04-15",
-    "date_max": "2016-12-26"
+    "date_max": "2016-12-26",
+    "data_min": 0.0,
+    "data_max": 4096.0,
+    "measurements": "blue,green,red,nir,swir1,swir2,pixel_qa",
+    "no_data_value": -9999.0
   }
 }, {
   "model": "dc_algorithm.satellite",
@@ -16,7 +20,11 @@
     "name": "Landsat 8",
     "product_prefix": "ls8_lasrc_",
     "date_min": "2013-02-11",
-    "date_max": "2016-12-26"
+    "date_max": "2016-12-26",
+    "data_min": 0.0,
+    "data_max": 4096.0,
+    "measurements": "blue,green,red,nir,swir1,swir2,pixel_qa",
+    "no_data_value": -9999.0
   }
 }, {
   "model": "dc_algorithm.satellite",
@@ -26,7 +34,11 @@
     "name": "Landsat 5",
     "product_prefix": "ls5_ledaps_",
     "date_min": "1984-03-01",
-    "date_max": "1999-02-08"
+    "date_max": "1999-02-08",
+    "data_min": 0.0,
+    "data_max": 4096.0,
+    "measurements": "blue,green,red,nir,swir1,swir2,pixel_qa",
+    "no_data_value": -9999.0
   }
 }, {
   "model": "dc_algorithm.satellite",
@@ -34,9 +46,13 @@
   "fields": {
     "datacube_platform": "LANDSAT_5,LANDSAT_7,LANDSAT_8",
     "name": "Landsat 5/7/8",
-    "product_prefix": "all",
+    "product_prefix": "ls5_leaps_,ls7_ledaps_,ls8_lasrc_",
     "date_min": "1984-03-01",
-    "date_max": "2016-12-26"
+    "date_max": "2016-12-26",
+    "data_min": 0.0,
+    "data_max": 4096.0,
+    "measurements": "blue,green,red,nir,swir1,swir2,pixel_qa",
+    "no_data_value": -9999.0
   }
 }, {
   "model": "dc_algorithm.satellite",
@@ -44,9 +60,13 @@
   "fields": {
     "datacube_platform": "SENTINEL_1A",
     "name": "Sentinel-1A",
-    "product_prefix": "s1a_gamma0_",
+    "product_prefix": "s1_gamma0_",
     "date_min": "2015-01-01",
-    "date_max": "2017-03-16"
+    "date_max": "2017-03-16",
+    "data_min": 0.0,
+    "data_max": 100.0,
+    "measurements": "vv,vh",
+    "no_data_value": 0.0
   }
 }, {
   "model": "dc_algorithm.satellite",
@@ -54,9 +74,13 @@
   "fields": {
     "datacube_platform": "LANDSAT_7,LANDSAT_8",
     "name": "Landsat 7/8",
-    "product_prefix": "all",
+    "product_prefix": "ls7_ledaps_,ls8_lasrc_",
     "date_min": "1999-04-15",
-    "date_max": "2016-12-26"
+    "date_max": "2016-12-26",
+    "data_min": 0.0,
+    "data_max": 4096.0,
+    "measurements": "blue,green,red,nir,swir1,swir2,pixel_qa",
+    "no_data_value": -9999.0
   }
 }, {
   "model": "dc_algorithm.area",

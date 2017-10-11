@@ -105,6 +105,10 @@ function DrawMap(container_id, options) {
     this.color_scale_collapsed.addTo(this.map);
   }
 
+  if('pixel_drill_callback' in options) {
+    this.pixel_drill_callback = options.pixel_drill_callback
+  }
+
   this.images = {};
   this.map_plot = undefined;
   this.map_plot_collapsed = undefined;
@@ -128,7 +132,7 @@ DrawMap.prototype.set_rectangle_draw = function() {
       polygon: false,
       circle: false,
       rectangle: false,
-      marker: false
+      marker: this.pixel_drill_callback != undefined
     },
     edit: false
   };
@@ -136,6 +140,8 @@ DrawMap.prototype.set_rectangle_draw = function() {
   var drawControl = new L.Control.Draw(draw_options);
   this.map.addControl(drawControl);
   this.set_rect_draw_handlers();
+
+  this.current_draw = undefined;
 }
 
 /**
@@ -146,23 +152,36 @@ DrawMap.prototype.set_rect_draw_handlers = function() {
   this.map.on(L.Draw.Event.CREATED, function(e) {
     var type = e.layerType,
       layer = e.layer;
-    var bounds = layer.getBounds();
-    self.bb_rectangle = L.rectangle(constrain_bounds(self.bounding_box, bounds));
-    self.map.addLayer(self.bb_rectangle)
+    if(type=="marker") {
+      // console.log(layer.getLatLng())
+      self.marker = layer;
+      self.map.addLayer(self.marker);
+    } else {
+      var bounds = layer.getBounds();
+      self.bb_rectangle = L.rectangle(constrain_bounds(self.bounding_box, bounds));
+      self.map.addLayer(self.bb_rectangle)
+    }
   });
 
   this.map.on(L.Draw.Event.DRAWSTART, function(e) {
+    if(e.layerType == "marker" && self.current_draw) {
+      self.current_draw.disable();
+    }
     if (self.bb_rectangle != undefined) {
       self.map.removeLayer(self.bb_rectangle);
+    }
+    if (self.marker != undefined) {
+      self.map.removeLayer(self.marker);
     }
   });
 
   this.map.on('click', function(e) {
-    new L.Draw.Rectangle(self.map, {
+    self.current_draw = new L.Draw.Rectangle(self.map, {
       shapeOptions: {
         clickable: false
       }
-    }).enable();
+    });
+    self.current_draw.enable();
   });
 }
 
@@ -180,8 +199,16 @@ DrawMap.prototype.set_bb_listeners = function(options) {
   }
 
   this.map.on("draw:created", function(e) {
-    var bounds = e.layer.getBounds();
-    set_input_bounds(constrain_bounds(self.bounding_box, bounds));
+    if(e.layerType == "marker") {
+      var latlng = e.layer.getLatLng();
+      var lon_lat = clamp_input(self.bounding_box, latlng.lng, latlng.lat);
+      if(self.pixel_drill_callback) {
+        self.pixel_drill_callback(lon_lat[0], lon_lat[1]);
+      }
+    } else {
+      var bounds = e.layer.getBounds();
+      set_input_bounds(constrain_bounds(self.bounding_box, bounds));
+    }
   })
 }
 
@@ -482,6 +509,6 @@ function constrain_bounds(constraint_bounds, bounds) {
 }
 
 //returns a bounded cartographic.
-function clamp_input(lon, lat) {
-  return [lon.clamp(window._MIN_LON_DATA_BOUNDS_, window._MAX_LON_DATA_BOUNDS_), lat.clamp(window._MIN_LAT_DATA_BOUNDS_, window._MAX_LAT_DATA_BOUNDS_)];
+function clamp_input(constraint_bounds, lon, lat) {
+  return [lon.clamp(constraint_bounds.getWest(), constraint_bounds.getEast()), lat.clamp(constraint_bounds.getSouth(), constraint_bounds.getNorth())]
 }

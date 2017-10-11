@@ -10,6 +10,7 @@ import numpy as np
 import os
 import imageio
 from collections import OrderedDict
+import stringcase
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
 from utils.data_cube_utilities.dc_utilities import (
@@ -29,6 +30,46 @@ logger = get_task_logger(__name__)
 
 class BaseTask(DCAlgorithmBase):
     app_name = 'tsm'
+
+
+@task(name="tsm.pixel_drill", base=BaseTask)
+def pixel_drill(task_id=None):
+    parameters = parse_parameters_from_task(task_id=task_id)
+    validate_parameters(parameters, task_id=task_id)
+    task = TsmTask.objects.get(pk=task_id)
+
+    if task.status == "ERROR":
+        return None
+
+    dc = DataAccessApi(config=task.config_path)
+    single_pixel = dc.get_stacked_datasets_by_extent(**parameters)
+    clear_mask = task.satellite.get_clean_mask_func()(single_pixel.isel(latitude=0, longitude=0))
+    single_pixel = single_pixel.where(single_pixel != task.satellite.no_data_value)
+
+    dates = single_pixel.time.values
+    if len(dates) < 2:
+        task.update_status("ERROR", "There is only a single acquisition for your parameter set.")
+        return None
+
+    wofs_data = task.get_processing_method()(single_pixel,
+                                             clean_mask=clear_mask,
+                                             enforce_float64=True,
+                                             no_data=task.satellite.no_data_value)
+    wofs_data = wofs_data.where(wofs_data != task.satellite.no_data_value).isel(latitude=0, longitude=0)
+    tsm_data = tsm(single_pixel, clean_mask=clear_mask, no_data=task.satellite.no_data_value)
+    tsm_data = tsm_data.where(tsm_data != task.satellite.no_data_value).isel(
+        latitude=0, longitude=0).where((wofs_data.wofs.values == 1))
+
+    datasets = [wofs_data.wofs.values.transpose(), tsm_data.tsm.values.transpose()] + [clear_mask]
+    data_labels = ["Water/Non Water", "TSM (g/L)"] + ["Clear"]
+    titles = ["Water/Non Water", "TSM Values"] + ["Clear Mask"]
+    style = ['.', 'r-o', '.']
+
+    task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles, style=style)
+
+    task.complete = True
+    task.update_status("OK", "Done processing pixel drill.")
 
 
 @task(name="tsm.run", base=BaseTask)
@@ -62,17 +103,13 @@ def parse_parameters_from_task(task_id=None):
     task = TsmTask.objects.get(pk=task_id)
 
     parameters = {
-        'platforms': sorted(task.platform.split(",")),
+        'platforms': task.satellite.get_platforms(),
+        'products': task.satellite.get_products(task.area_id),
         'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
-        'measurements': task.measurements
+        'measurements': task.satellite.get_measurements()
     }
-
-    parameters['products'] = [
-        Satellite.objects.get(datacube_platform=platform).product_prefix + task.area_id
-        for platform in parameters['platforms']
-    ]
 
     task.execution_start = datetime.now()
     task.update_status("WAIT", "Parsed out parameters.")
@@ -106,7 +143,12 @@ def validate_parameters(parameters, task_id=None):
     task.update_status("WAIT", "Validated parameters.")
 
     if not dc.validate_measurements(parameters['products'][0], parameters['measurements']):
-        parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+        task.complete = True
+        task.update_status(
+            "ERROR",
+            "The provided Satellite model measurements aren't valid for the product. Please check the measurements listed in the {} model.".
+            format(task.satellite.name))
+        return None
 
     dc.close()
     return parameters
@@ -247,16 +289,19 @@ def processing_task(task_id=None,
             logger.info("Invalid chunk.")
             continue
 
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
 
-        wofs_data = task.get_processing_method()(data, clean_mask=clear_mask, enforce_float64=True, no_data=-9999)
+        wofs_data = task.get_processing_method()(data,
+                                                 clean_mask=clear_mask,
+                                                 enforce_float64=True,
+                                                 no_data=task.satellite.no_data_value)
         water_analysis = perform_timeseries_analysis(
-            wofs_data, 'wofs', intermediate_product=water_analysis, no_data=-9999)
+            wofs_data, 'wofs', intermediate_product=water_analysis, no_data=task.satellite.no_data_value)
 
         clear_mask[(data.swir2.values > 100) | (wofs_data.wofs.values == 0)] = False
-        tsm_data = tsm(data, clean_mask=clear_mask, no_data=-9999)
-        tsm_analysis = perform_timeseries_analysis(tsm_data, 'tsm', intermediate_product=tsm_analysis, no_data=-9999)
+        tsm_data = tsm(data, clean_mask=clear_mask, no_data=task.satellite.no_data_value)
+        tsm_analysis = perform_timeseries_analysis(
+            tsm_data, 'tsm', intermediate_product=tsm_analysis, no_data=task.satellite.no_data_value)
 
         combined_data = tsm_analysis
         combined_data['wofs'] = water_analysis.total_data
@@ -447,11 +492,17 @@ def create_output_products(data, task_id=None):
     band_paths = [task.result_path, task.clear_observations_path, task.water_percentage_path]
 
     dataset_masked.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset_masked, bands=bands)
+    write_geotiff_from_xr(task.data_path, dataset_masked, bands=bands, no_data=task.satellite.no_data_value)
 
     for band, band_path in zip(bands, band_paths):
         write_single_band_png_from_xr(
-            band_path, dataset_masked, band, color_scale=task.color_scales[band], fill_color='black', interpolate=False)
+            band_path,
+            dataset_masked,
+            band,
+            color_scale=task.color_scales[band],
+            fill_color='black',
+            interpolate=False,
+            no_data=task.satellite.no_data_value)
 
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:
@@ -470,7 +521,8 @@ def create_output_products(data, task_id=None):
                         task.animated_product.data_variable,
                         color_scale=task.color_scales[task.animated_product.data_variable],
                         fill_color='black',
-                        interpolate=False)
+                        interpolate=False,
+                        no_data=task.satellite.no_data_value)
                     image = imageio.imread(png_path)
                     writer.append_data(image)
 

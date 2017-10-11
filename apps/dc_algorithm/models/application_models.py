@@ -24,6 +24,9 @@ from django.core.exceptions import ValidationError
 
 import datetime
 import uuid
+import numpy as np
+
+from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask)
 
 
 class Satellite(models.Model):
@@ -35,30 +38,97 @@ class Satellite(models.Model):
 
     Attributes:
         datacube_platform: This should correspond with a Data Cube platform.
-            e.g. LANDSAT_5, LANDSAT_7, SENTINEL_1A, etc.
+            e.g. LANDSAT_5, LANDSAT_7, SENTINEL_1A, etc. Combinations should be comma seperated with no spaces.
         name: Used to display forms to users
             e.g. Landsat 5, Landsat 7, Sentinel-1A
         product_prefix: In our Data Cube setup, we use product prefixes combined with an area.
             e.g. ls5_ledaps_{vietnam,colombia,australia}, s1a_gamma0_vietnam
             This should be the 'ls5_ledaps_' and 's1a_gamma0_' part of the above examples.
-            You should be able to concat the product prefix and an area id to get a valid dataset query.
+            You should be able to concat the product prefix and an area id to get a valid dataset query. In the case of
+            combinations, you should have comma seperated strings with no spaces.
         date_min and date_max: Satellite valid data date range.
             e.g. If you have LS7 data from 2000-2016, you should use that as the date range.
+        data_min/data_max: min/max values for your dataset. Used for scaling of pngs
+        measurements: comma seperated list of measurements with all spaces omitted.
+        no_data_value: No data value to be used for all outputs/masking functionality.
 
     """
 
-    datacube_platform = models.CharField(max_length=50)
+    datacube_platform = models.CharField(
+        help_text="This should correspond with a Data Cube platform. Combinations should be comma seperated with no spaces, e.g. LANDSAT_7,LANDSAT_8",
+        max_length=50)
     name = models.CharField(max_length=25)
-    product_prefix = models.CharField(max_length=100)
+    product_prefix = models.CharField(
+        max_length=250,
+        help_text="Products are loaded by name with the naming convention product_prefix+area_id, e.g. ls5_ledaps_{vietnam,colombia,australia}, \
+                   s1a_gamma0_vietnam. For combined products, prefixes should be comma seperated with no spaces in the order of the datacube_platform."
+    )
 
     date_min = models.DateField('date_min', default=datetime.date.today)
     date_max = models.DateField('date_min', default=datetime.date.today)
+
+    data_min = models.FloatField(
+        help_text="Define the minimum of the valid range of this dataset. This is used for image creation/scaling.",
+        default=0)
+    data_max = models.FloatField(
+        help_text="Define the maximum of the valid range of this dataset. This is used for image creation/scaling.",
+        default=4096)
+
+    measurements = models.CharField(
+        help_text="Comma seperated list (no spaces) representing the list of measurements. e.g. 'red,green,blue,nir'",
+        default="blue,green,red,nir,swir1,swir2,pixel_qa",
+        max_length=250)
+
+    no_data_value = models.FloatField(
+        default=-9999, help_text='No data value to be used for all outputs/masking functionality.')
 
     class Meta:
         unique_together = (('datacube_platform', 'product_prefix'))
 
     def __str__(self):
         return self.datacube_platform
+
+    def get_scale(self):
+        return (self.data_min, self.data_max)
+
+    def get_measurements(self):
+        return self.measurements.split(",")
+
+    def get_clean_mask_func(self):
+        """Get the func required to generate a clear mask for a dataset. Defaults to returning all True
+
+        The returned func will be specific to the measurements or product/platform and will take a single xr dataset
+        argument, returning a boolean np array of the same shape as ds.
+        
+        """
+
+        def return_all_true(ds):
+            return np.full(ds[self.get_measurements()[0]].shape(), True)
+
+        options = {
+            'bit_mask': lambda ds: create_bit_mask(ds.pixel_qa, [1, 2]),
+            'cf_mask': lambda ds: create_cfmask_clean_mask(ds.cf_mask),
+            'default': lambda ds: return_all_true
+        }
+        key = 'bit_mask' if 'pixel_qa' in self.get_measurements() else 'cf_mask' if 'cf_mask' in self.get_measurements(
+        ) else 'default'
+
+        return options.get(key, return_all_true)
+
+    def get_product(self, area_id):
+        return self.product_prefix + area_id
+
+    def is_combined_product(self):
+        return len(self.datacube_platform.split(",")) > 1
+
+    def get_platforms(self):
+        return self.datacube_platform.split(",")
+
+    def get_products(self, area_id):
+        return [prefix + area_id for prefix in self.product_prefix.split(",")]
+
+    def get_measurements(self):
+        return self.measurements.split(",")
 
 
 class Area(models.Model):

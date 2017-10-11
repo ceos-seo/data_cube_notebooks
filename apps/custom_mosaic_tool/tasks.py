@@ -10,6 +10,7 @@ import numpy as np
 import os
 import imageio
 from collections import OrderedDict
+import stringcase
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
 from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
@@ -27,6 +28,40 @@ logger = get_task_logger(__name__)
 
 class BaseTask(DCAlgorithmBase):
     app_name = 'custom_mosaic_tool'
+
+
+@task(name="custom_mosaic_tool.pixel_drill", base=BaseTask)
+def pixel_drill(task_id=None):
+    parameters = parse_parameters_from_task(task_id=task_id)
+    validate_parameters(parameters, task_id=task_id)
+    task = CustomMosaicToolTask.objects.get(pk=task_id)
+
+    if task.status == "ERROR":
+        return None
+
+    dc = DataAccessApi(config=task.config_path)
+    single_pixel = dc.get_stacked_datasets_by_extent(**parameters).isel(latitude=0, longitude=0)
+    clear_mask = task.satellite.get_clean_mask_func()(single_pixel)
+    single_pixel = single_pixel.where(single_pixel != task.satellite.no_data_value)
+
+    dates = single_pixel.time.values
+    if len(dates) < 2:
+        task.update_status("ERROR", "There is only a single acquisition for your parameter set.")
+        return None
+
+    exclusion_list = ['satellite', 'pixel_qa']
+    plot_measurements = [band for band in single_pixel.data_vars if band not in exclusion_list]
+
+    datasets = [single_pixel[band].values.transpose() for band in plot_measurements] + [clear_mask]
+    data_labels = [stringcase.titlecase("{} Units".format(band)) for band in plot_measurements] + ["Clear"]
+    titles = [stringcase.titlecase("{} Band".format(band)) for band in plot_measurements] + ["Clear Mask"]
+    style = ['r-o', 'g-o', 'b-o', 'c-o', 'm-o', 'y-o', '.']
+
+    task.plot_path = os.path.join(task.get_result_path(), "plot_path.png")
+    create_2d_plot(task.plot_path, dates=dates, datasets=datasets, data_labels=data_labels, titles=titles, style=style)
+
+    task.complete = True
+    task.update_status("OK", "Done processing pixel drill.")
 
 
 @task(name="custom_mosaic_tool.run", base=BaseTask)
@@ -60,17 +95,13 @@ def parse_parameters_from_task(task_id=None):
     task = CustomMosaicToolTask.objects.get(pk=task_id)
 
     parameters = {
-        'platforms': sorted(task.platform.split(",")),
+        'platforms': task.satellite.get_platforms(),
+        'products': task.satellite.get_products(task.area_id),
         'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
-        'measurements': task.measurements
+        'measurements': task.satellite.get_measurements()
     }
-
-    parameters['products'] = [
-        Satellite.objects.get(datacube_platform=platform).product_prefix + task.area_id
-        for platform in parameters['platforms']
-    ]
 
     task.execution_start = datetime.now()
     task.update_status("WAIT", "Parsed out parameters.")
@@ -107,7 +138,7 @@ def validate_parameters(parameters, task_id=None):
         task.update_status("ERROR", "Animations cannot be generated for median pixel operations.")
         return None
 
-    if not task.compositor.is_iterative() and (task.time_end - task.time_start).days > 367:
+    if not (task.compositor.is_iterative() or task.pixel_drill_task) and (task.time_end - task.time_start).days > 367:
         task.complete = True
         task.update_status("ERROR", "Median pixel operations are only supported for single year time periods.")
         return None
@@ -115,7 +146,12 @@ def validate_parameters(parameters, task_id=None):
     task.update_status("WAIT", "Validated parameters.")
 
     if not dc.validate_measurements(parameters['products'][0], parameters['measurements']):
-        parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+        task.complete = True
+        task.update_status(
+            "ERROR",
+            "The provided Satellite model measurements aren't valid for the product. Please check the measurements listed in the {} model.".
+            format(task.satellite.name))
+        return None
 
     dc.close()
     return parameters
@@ -260,13 +296,16 @@ def processing_task(task_id=None,
             logger.info("Invalid chunk.")
             continue
 
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
         add_timestamp_data_to_xr(data)
 
         metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
 
-        iteration_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=iteration_data)
+        iteration_data = task.get_processing_method()(data,
+                                                      clean_mask=clear_mask,
+                                                      intermediate_product=iteration_data,
+                                                      no_data=task.satellite.no_data_value,
+                                                      reverse_time=task.get_reverse_time())
 
         if task.animated_product.animation_id != "none":
             path = os.path.join(task.get_temp_path(),
@@ -377,18 +416,18 @@ def recombine_time_chunks(chunks, task_id=None):
                 if task.animated_product.animation_id == "cumulative":
                     animated_data = xr.concat([animated_data], 'time')
                     animated_data['time'] = [0]
-                    clear_mask = create_cfmask_clean_mask(
-                        animated_data.cf_mask) if 'cf_mask' in animated_data else create_bit_mask(
-                            animated_data.pixel_qa, [1, 2])
+                    clear_mask = task.satellite.get_clean_mask_func()(animated_data)
                     animated_data = task.get_processing_method()(animated_data,
                                                                  clean_mask=clear_mask,
-                                                                 intermediate_product=combined_data)
+                                                                 intermediate_product=combined_data,
+                                                                 no_data=task.satellite.no_data_value)
                 path = os.path.join(task.get_temp_path(), "animation_{}.png".format(base_index + index))
                 write_png_from_xr(
                     path,
                     animated_data,
                     bands=[task.query_type.red, task.query_type.green, task.query_type.blue],
-                    scale=(0, 4096))
+                    scale=task.satellite.get_scale(),
+                    no_data=task.satellite.no_data_value)
 
     combined_data = None
     for index, chunk in enumerate(total_chunks):
@@ -402,9 +441,11 @@ def recombine_time_chunks(chunks, task_id=None):
         #give time an indice to keep mosaicking from breaking.
         data = xr.concat([data], 'time')
         data['time'] = [0]
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
-        combined_data = task.get_processing_method()(data, clean_mask=clear_mask, intermediate_product=combined_data)
+        clear_mask = task.satellite.get_clean_mask_func()(data)
+        combined_data = task.get_processing_method()(data,
+                                                     clean_mask=clear_mask,
+                                                     intermediate_product=combined_data,
+                                                     no_data=task.satellite.no_data_value)
         # if we're animating, combine it all and save to disk.
         if task.animated_product.animation_id != "none":
             generate_animation(index, combined_data)
@@ -441,20 +482,20 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2',
-             'cf_mask'] if 'cf_mask' in dataset else ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+    bands = task.satellite.get_measurements()
     png_bands = [task.query_type.red, task.query_type.green, task.query_type.blue]
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands)
+    write_geotiff_from_xr(task.data_path, dataset.astype('int32'), bands=bands, no_data=task.satellite.no_data_value)
     write_png_from_xr(
         task.result_path,
         dataset,
         bands=png_bands,
         png_filled_path=task.result_filled_path,
         fill_color=task.query_type.fill,
-        scale=(0, 4096),
-        low_res=True)
+        scale=task.satellite.get_scale(),
+        low_res=True,
+        no_data=task.satellite.no_data_value)
 
     if task.animated_product.animation_id != "none":
         with imageio.get_writer(task.animation_path, mode='I', duration=1.0) as writer:

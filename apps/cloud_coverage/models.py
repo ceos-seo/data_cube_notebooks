@@ -62,11 +62,10 @@ class Query(BaseQuery):
     """
 
     color_scale_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/cloud_coverage'
-    measurements = ['blue', 'green', 'red', 'cf_mask']
     base_result_dir = '/datacube/ui_results/cloud_coverage'
 
     class Meta(BaseQuery.Meta):
-        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+        unique_together = (('satellite', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
                             'longitude_max', 'longitude_min', 'title', 'description'))
         abstract = True
 
@@ -106,7 +105,7 @@ class Query(BaseQuery):
 
         """
 
-        def clear_percentage(dataset_in, clean_mask, intermediate_product=None):
+        def clear_percentage(dataset_in, clean_mask, intermediate_product=None, no_data=-9999):
             """Calculate the total number of clear pixels and the total number of pixels
 
             Args:
@@ -141,7 +140,7 @@ class Query(BaseQuery):
         return create_mosaic, clear_percentage
 
     @classmethod
-    def get_or_create_query_from_post(cls, form_data):
+    def get_or_create_query_from_post(cls, form_data, pixel_drill=False):
         """Implements the get_or_create_query_from_post func required by base class
 
         See the get_or_create_query_from_post docstring for more information.
@@ -164,10 +163,10 @@ class Query(BaseQuery):
         query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
 
         try:
-            query = cls.objects.get(**query_data)
+            query = cls.objects.get(pixel_drill_task=pixel_drill, **query_data)
             return query, False
         except cls.DoesNotExist:
-            query = cls(**query_data)
+            query = cls(pixel_drill_task=pixel_drill, **query_data)
             query.save()
             return query, True
 

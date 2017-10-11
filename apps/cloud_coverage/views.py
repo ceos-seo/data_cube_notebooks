@@ -65,13 +65,13 @@ class CloudCoverageTool(ToolView):
     def generate_form_dict(self, satellites, area):
         forms = {}
         for satellite in satellites:
-            forms[satellite.datacube_platform] = {
+            forms[satellite.pk] = {
                 'Geospatial Bounds':
                 DataSelectionForm(
                     area=area,
                     time_start=satellite.date_min,
                     time_end=satellite.date_max,
-                    auto_id=satellite.datacube_platform + "_%s")
+                    auto_id="{}_%s".format(satellite.pk))
             }
         return forms
 

@@ -3,6 +3,8 @@ from django.forms.forms import NON_FIELD_ERRORS
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
+from . import models
+
 
 class DataSelectionForm(forms.Form):
 
@@ -10,7 +12,8 @@ class DataSelectionForm(forms.Form):
 
     title = forms.CharField(required=False, widget=forms.HiddenInput(attrs={'class': 'hidden_form_title'}))
     description = forms.CharField(required=False, widget=forms.HiddenInput(attrs={'class': 'hidden_form_description'}))
-    platform = forms.CharField(widget=forms.HiddenInput(attrs={'class': 'hidden_form_platform'}))
+    satellite = forms.ModelChoiceField(
+        queryset=models.Satellite.objects.all(), widget=forms.HiddenInput(attrs={'class': 'hidden_form_satellite'}))
     area_id = forms.CharField(widget=forms.HiddenInput(attrs={'class': 'hidden_form_id'}))
 
     latitude_min = forms.FloatField(
@@ -71,6 +74,9 @@ class DataSelectionForm(forms.Form):
 
     def clean(self):
         cleaned_data = super(DataSelectionForm, self).clean()
+
+        if not self.is_valid():
+            return
         #self.add_error('region', _("Selected region does not exist."))
         if cleaned_data.get('latitude_min') >= cleaned_data.get('latitude_max'):
             self.add_error(

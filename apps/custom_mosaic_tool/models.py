@@ -83,12 +83,11 @@ class Query(BaseQuery):
     animated_product = models.ForeignKey(AnimationType)
     compositor = models.ForeignKey(Compositor)
 
-    measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/custom_mosaic_tool'
 
     class Meta(BaseQuery.Meta):
         unique_together = (
-            ('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
+            ('satellite', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min', 'longitude_max',
              'longitude_min', 'title', 'description', 'query_type', 'animated_product', 'compositor'))
         abstract = True
 
@@ -139,7 +138,7 @@ class Query(BaseQuery):
         return processing_methods.get(self.compositor.id, create_mosaic)
 
     @classmethod
-    def get_or_create_query_from_post(cls, form_data):
+    def get_or_create_query_from_post(cls, form_data, pixel_drill=False):
         """Implements the get_or_create_query_from_post func required by base class
 
         See the get_or_create_query_from_post docstring for more information.
@@ -162,10 +161,10 @@ class Query(BaseQuery):
         query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
 
         try:
-            query = cls.objects.get(**query_data)
+            query = cls.objects.get(pixel_drill_task=pixel_drill, **query_data)
             return query, False
         except cls.DoesNotExist:
-            query = cls(**query_data)
+            query = cls(pixel_drill_task=pixel_drill, **query_data)
             query.save()
             return query, True
 

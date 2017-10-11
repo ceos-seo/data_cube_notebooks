@@ -229,8 +229,8 @@ class IngestionDetails(models.Model):
     longitude_min = models.FloatField(default=0)
     longitude_max = models.FloatField(default=0)
 
-    pixel_count = models.IntegerField(default=0)
-    scene_count = models.IntegerField(default=0)
+    pixel_count = models.BigIntegerField(default=0)
+    scene_count = models.BigIntegerField(default=0)
 
     def __str__(self):
         return "{} - {}".format(self.product, self.platform)

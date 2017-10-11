@@ -27,7 +27,8 @@ from apps.dc_algorithm.models import Area, Compositor, Satellite
 from apps.dc_algorithm.models import (Query as BaseQuery, Metadata as BaseMetadata, Result as BaseResult, ResultType as
                                       BaseResultType, UserHistory as BaseUserHistory, AnimationType as
                                       BaseAnimationType, ToolInfo as BaseToolInfo)
-from utils.data_cube_utilities.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic, create_min_ndvi_mosaic)
+from utils.data_cube_utilities.dc_mosaic import (create_mosaic, create_median_mosaic, create_max_ndvi_mosaic,
+                                                 create_min_ndvi_mosaic)
 
 import datetime
 import numpy as np
@@ -62,11 +63,10 @@ class Query(BaseQuery):
 
     #TODO: add color scale here
     color_scale_path = '/home/' + settings.LOCAL_USER + '/Datacube/data_cube_ui/utils/color_scales/default_color_scale'
-    measurements = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask']
     base_result_dir = '/datacube/ui_results/band_math_app'
 
     class Meta(BaseQuery.Meta):
-        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+        unique_together = (('satellite', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
                             'longitude_max', 'longitude_min', 'title', 'description', 'compositor'))
         abstract = True
 
@@ -117,7 +117,7 @@ class Query(BaseQuery):
         return processing_methods.get(self.compositor.id, create_mosaic)
 
     @classmethod
-    def get_or_create_query_from_post(cls, form_data):
+    def get_or_create_query_from_post(cls, form_data, pixel_drill=False):
         """Implements the get_or_create_query_from_post func required by base class
 
         See the get_or_create_query_from_post docstring for more information.
@@ -140,10 +140,10 @@ class Query(BaseQuery):
         query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
 
         try:
-            query = cls.objects.get(**query_data)
+            query = cls.objects.get(pixel_drill_task=pixel_drill, **query_data)
             return query, False
         except cls.DoesNotExist:
-            query = cls(**query_data)
+            query = cls(pixel_drill_task=pixel_drill, **query_data)
             query.save()
             return query, True
 

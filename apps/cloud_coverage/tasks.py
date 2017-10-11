@@ -12,9 +12,11 @@ import imageio
 from collections import OrderedDict
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
-from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
-                                write_single_band_png_from_xr, add_timestamp_data_to_xr, clear_attrs)
-from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, create_time_chunks, combine_geographic_chunks)
+from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
+                                                    write_png_from_xr, write_single_band_png_from_xr,
+                                                    add_timestamp_data_to_xr, clear_attrs)
+from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, create_time_chunks,
+                                                  combine_geographic_chunks)
 from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import CloudCoverageTask
@@ -59,15 +61,13 @@ def parse_parameters_from_task(task_id=None):
     task = CloudCoverageTask.objects.get(pk=task_id)
 
     parameters = {
-        'platform': task.platform,
+        'platform': task.satellite.datacube_platform,
+        'product': task.satellite.get_product(task.area_id),
         'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
-        'measurements': task.measurements
+        'measurements': task.satellite.get_measurements()
     }
-
-    parameters['product'] = Satellite.objects.get(
-        datacube_platform=parameters['platform']).product_prefix + task.area_id
 
     task.execution_start = datetime.now()
     task.update_status("WAIT", "Parsed out parameters.")
@@ -102,7 +102,12 @@ def validate_parameters(parameters, task_id=None):
     task.update_status("WAIT", "Validated parameters.")
 
     if not dc.validate_measurements(parameters['product'], parameters['measurements']):
-        parameters['measurements'] = ['blue', 'green', 'red', 'pixel_qa']
+        task.complete = True
+        task.update_status(
+            "ERROR",
+            "The provided Satellite model measurements aren't valid for the product. Please check the measurements listed in the {} model.".
+            format(task.satellite.name))
+        return None
 
     dc.close()
     return parameters
@@ -245,13 +250,18 @@ def processing_task(task_id=None,
             logger.info("Invalid chunk.")
             continue
 
-        clear_mask = create_cfmask_clean_mask(data.cf_mask) if 'cf_mask' in data else create_bit_mask(data.pixel_qa,
-                                                                                                      [1, 2])
+        clear_mask = task.satellite.get_clean_mask_func()(data)
         metadata = task.metadata_from_dataset(metadata, data, clear_mask, updated_params)
 
         mosaic, cloud_coverage = task.get_processing_method()
-        iteration_data = mosaic(data, clean_mask=clear_mask, intermediate_product=iteration_data)
-        cloud_cover = cloud_coverage(data, clean_mask=clear_mask, intermediate_product=cloud_cover)
+        iteration_data = mosaic(
+            data,
+            clean_mask=clear_mask,
+            intermediate_product=iteration_data,
+            no_data=task.satellite.no_data_value,
+            reverse_time=task.get_reverse_time())
+        cloud_cover = cloud_coverage(
+            data, clean_mask=clear_mask, intermediate_product=cloud_cover, no_data=task.satellite.no_data_value)
         task.scenes_processed = F('scenes_processed') + 1
         task.save()
 
@@ -327,17 +337,24 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = ['blue', 'green', 'red', 'cf_mask', 'total_pixels', 'total_clear',
-             'clear_percentage'] if 'cf_mask' in dataset else [
-                 'blue', 'green', 'red', 'pixel_qa', 'total_pixels', 'total_clear', 'clear_percentage'
-             ]
+    bands = task.satellite.get_measurements() + ['total_pixels', 'total_clear', 'clear_percentage']
 
     png_bands = ['red', 'green', 'blue']
 
     dataset.to_netcdf(task.data_netcdf_path)
-    write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands)
-    write_png_from_xr(task.mosaic_path, dataset, bands=png_bands, scale=(0, 4096))
-    write_single_band_png_from_xr(task.result_path, dataset, band='clear_percentage', color_scale=task.color_scale_path)
+    write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands, no_data=task.satellite.no_data_value)
+    write_png_from_xr(
+        task.mosaic_path,
+        dataset,
+        bands=png_bands,
+        scale=task.satellite.get_scale(),
+        no_data=task.satellite.no_data_value)
+    write_single_band_png_from_xr(
+        task.result_path,
+        dataset,
+        band='clear_percentage',
+        color_scale=task.color_scale_path,
+        no_data=task.satellite.no_data_value)
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
     if len(dates) > 1:

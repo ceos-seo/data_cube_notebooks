@@ -2,10 +2,11 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import numpy as np
 from collections import Iterable
 
 
-def create_2d_plot(path, dates=None, datasets=None, data_labels=None, titles=None, vertical=True):
+def create_2d_plot(path, dates=None, datasets=None, data_labels=None, style='', titles=None, vertical=True):
     """Create a 2d image and save it to disk
 
     Args:
@@ -16,7 +17,7 @@ def create_2d_plot(path, dates=None, datasets=None, data_labels=None, titles=Non
         title: string or list of strings of the same len as datasets, used as plot titles.
 
     """
-    _iterable = isinstance(datasets[0], list)
+    _iterable = isinstance(datasets[0], list) or isinstance(datasets[0], np.ndarray)
 
     datasets = datasets if _iterable else [datasets]
     data_labels = data_labels if _iterable else [data_labels]
@@ -27,7 +28,7 @@ def create_2d_plot(path, dates=None, datasets=None, data_labels=None, titles=Non
     for index, dataset in enumerate(datasets):
         axes = figure.add_subplot(plot_count, 1, index + 1) if vertical else figure.add_subplot(1, plot_count,
                                                                                                 index + 1)
-        axes.plot(dates, datasets[index])
+        axes.plot(dates, datasets[index], style if isinstance(style, str) else style[index])
         axes.set_title(titles[index])
         axes.set_xlabel('Acquisition Date')
         axes.set_ylabel(data_labels[index])

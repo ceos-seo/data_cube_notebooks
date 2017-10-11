@@ -49,7 +49,7 @@ class Query(models.Model):
                 sample_field = models.CharField(max_length=100)
 
                 class Meta(Query.Meta):
-                    unique_together = (('platform', 'area_id', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+                    unique_together = (('satellite', 'area_id', 'product', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
                                         'longitude_max', 'longitude_min', 'sample_field'))
 
 
@@ -65,7 +65,7 @@ class Query(models.Model):
 
     area_id = models.CharField(max_length=100)
 
-    platform = models.CharField(max_length=50)
+    satellite = models.ForeignKey('dc_algorithm.Satellite')
 
     time_start = models.DateField('time_start')
     time_end = models.DateField('time_end')
@@ -74,6 +74,8 @@ class Query(models.Model):
     longitude_min = models.FloatField()
     longitude_max = models.FloatField()
 
+    pixel_drill_task = models.BooleanField(default=False)
+
     #false by default, only change is false-> true
     complete = models.BooleanField(default=False)
 
@@ -81,7 +83,7 @@ class Query(models.Model):
 
     class Meta:
         abstract = True
-        unique_together = (('platform', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
+        unique_together = (('satellite', 'area_id', 'time_start', 'time_end', 'latitude_max', 'latitude_min',
                             'longitude_max', 'longitude_min', 'title', 'description'))
 
     def __str__(self):
@@ -202,7 +204,7 @@ class Query(models.Model):
         return cls.objects.filter(pk__in=queryset_pks, **kwargs)
 
     @classmethod
-    def get_or_create_query_from_post(cls, form_data):
+    def get_or_create_query_from_post(cls, form_data, pixel_drill=False):
         """Get or create a query obj from post form data
 
         Using a python dict formatted with post_data_to_dict, form a set of query parameters.
@@ -219,12 +221,9 @@ class Query(models.Model):
 
         """
         """
-        def get_or_create_query_from_post(cls, form_data):
+        def get_or_create_query_from_post(cls, form_data, pixel_drill=False):
             query_data = form_data
 
-            query_data['product'] = Satellite.objects.get(
-                datacube_platform=query_data['platform']).product_prefix + Area.objects.get(
-                    id=query_data['id']).id
             query_data['title'] = "Base Query" if 'title' not in form_data or form_data['title'] == '' else form_data[
                 'title']
             query_data['description'] = "None" if 'description' not in form_data or form_data[
@@ -232,13 +231,13 @@ class Query(models.Model):
 
             valid_query_fields = [field.name for field in cls._meta.get_fields()]
             query_data = {key: query_data[key] for key in valid_query_fields if key in query_data}
-            query = cls(**query_data)
+            query = cls(pixel_drill_task=pixel_drill, **query_data)
 
             try:
-                query = cls.objects.get(**query_data)
+                query = cls.objects.get(pixel_drill_task=pixel_drill, **query_data)
                 return query, False
             except cls.DoesNotExist:
-                query = cls(**query_data)
+                query = cls(pixel_drill_task=pixel_drill, **query_data)
                 query.save()
                 return query, True
         """

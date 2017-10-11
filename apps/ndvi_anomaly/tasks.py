@@ -13,9 +13,11 @@ import imageio
 from collections import OrderedDict
 
 from utils.data_cube_utilities.data_access_api import DataAccessApi
-from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr, write_png_from_xr,
-                                write_single_band_png_from_xr, add_timestamp_data_to_xr, clear_attrs)
-from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, group_datetimes_by_month, combine_geographic_chunks)
+from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, create_bit_mask, write_geotiff_from_xr,
+                                                    write_png_from_xr, write_single_band_png_from_xr,
+                                                    add_timestamp_data_to_xr, clear_attrs)
+from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, group_datetimes_by_month,
+                                                  combine_geographic_chunks)
 from utils.data_cube_utilities.dc_ndvi_anomaly import compute_ndvi_anomaly
 from apps.dc_algorithm.utils import create_2d_plot
 
@@ -61,15 +63,13 @@ def parse_parameters_from_task(task_id=None):
     task = NdviAnomalyTask.objects.get(pk=task_id)
 
     parameters = {
-        'platform': task.platform,
+        'platform': task.satellite.datacube_platform,
+        'product': task.satellite.get_product(task.area_id),
         'time': (task.time_start, task.time_end),
         'longitude': (task.longitude_min, task.longitude_max),
         'latitude': (task.latitude_min, task.latitude_max),
-        'measurements': task.measurements
+        'measurements': task.satellite.get_measurements()
     }
-
-    parameters['product'] = Satellite.objects.get(
-        datacube_platform=parameters['platform']).product_prefix + task.area_id
 
     task.execution_start = datetime.now()
     task.update_status("WAIT", "Parsed out parameters.")
@@ -118,7 +118,12 @@ def validate_parameters(parameters, task_id=None):
     task.update_status("WAIT", "Validated parameters.")
 
     if not dc.validate_measurements(parameters['product'], parameters['measurements']):
-        parameters['measurements'] = ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa']
+        task.complete = True
+        task.update_status(
+            "ERROR",
+            "The provided Satellite model measurements aren't valid for the product. Please check the measurements listed in the {} model.".
+            format(task.satellite.name))
+        return None
 
     dc.close()
     return parameters
@@ -279,25 +284,24 @@ def processing_task(task_id=None,
 
     #concat individual slices over time, compute metadata + mosaic
     baseline_data = xr.concat(full_dataset, 'time')
-    baseline_clear_mask = create_cfmask_clean_mask(
-        baseline_data.cf_mask) if 'cf_mask' in baseline_data else create_bit_mask(baseline_data.pixel_qa, [1, 2])
+    baseline_clear_mask = task.satellite.get_clean_mask_func()(baseline_data)
     metadata = task.metadata_from_dataset(metadata, baseline_data, baseline_clear_mask, parameters)
 
-    selected_scene_clear_mask = create_cfmask_clean_mask(
-        selected_scene.cf_mask) if 'cf_mask' in selected_scene else create_bit_mask(selected_scene.pixel_qa, [1, 2])
+    selected_scene_clear_mask = task.satellite.get_clean_mask_func()(selected_scene)
     metadata = task.metadata_from_dataset(metadata, selected_scene, selected_scene_clear_mask, parameters)
     selected_scene = task.get_processing_method()(selected_scene,
                                                   clean_mask=selected_scene_clear_mask,
-                                                  intermediate_product=None)
+                                                  intermediate_product=None,
+                                                  no_data=task.satellite.no_data_value)
     # we need to re generate the clear mask using the mosaic now.
-    selected_scene_clear_mask = create_cfmask_clean_mask(
-        selected_scene.cf_mask) if 'cf_mask' in selected_scene else create_bit_mask(selected_scene.pixel_qa, [1, 2])
+    selected_scene_clear_mask = task.satellite.get_clean_mask_func()(selected_scene)
 
     ndvi_products = compute_ndvi_anomaly(
         baseline_data,
         selected_scene,
         baseline_clear_mask=baseline_clear_mask,
-        selected_scene_clear_mask=selected_scene_clear_mask)
+        selected_scene_clear_mask=selected_scene_clear_mask,
+        no_data=task.satellite.no_data_value)
 
     full_product = xr.merge([ndvi_products, selected_scene])
 
@@ -374,30 +378,44 @@ def create_output_products(data, task_id=None):
     task.final_metadata_from_dataset(dataset)
     task.metadata_from_dict(full_metadata)
 
-    bands = [
-        'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'cf_mask', 'scene_ndvi', 'baseline_ndvi', 'ndvi_difference',
-        'ndvi_percentage_change'
-    ] if 'cf_mask' in dataset else [
-        'blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'pixel_qa', 'scene_ndvi', 'baseline_ndvi', 'ndvi_difference',
-        'ndvi_percentage_change'
+    bands = task.satellite.get_measurements() + [
+        'scene_ndvi', 'baseline_ndvi', 'ndvi_difference', 'ndvi_percentage_change'
     ]
 
     dataset.to_netcdf(task.data_netcdf_path)
 
-    write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands)
+    write_geotiff_from_xr(task.data_path, dataset.astype('float64'), bands=bands, no_data=task.satellite.no_data_value)
     write_single_band_png_from_xr(
-        task.result_path, dataset, 'ndvi_difference', color_scale=task.color_scales['ndvi_difference'])
+        task.result_path,
+        dataset,
+        'ndvi_difference',
+        color_scale=task.color_scales['ndvi_difference'],
+        no_data=task.satellite.no_data_value)
     write_single_band_png_from_xr(
         task.ndvi_percentage_change_path,
         dataset,
         'ndvi_percentage_change',
-        color_scale=task.color_scales['ndvi_percentage_change'])
+        color_scale=task.color_scales['ndvi_percentage_change'],
+        no_data=task.satellite.no_data_value)
     write_single_band_png_from_xr(
-        task.scene_ndvi_path, dataset, 'scene_ndvi', color_scale=task.color_scales['scene_ndvi'])
+        task.scene_ndvi_path,
+        dataset,
+        'scene_ndvi',
+        color_scale=task.color_scales['scene_ndvi'],
+        no_data=task.satellite.no_data_value)
     write_single_band_png_from_xr(
-        task.baseline_ndvi_path, dataset, 'baseline_ndvi', color_scale=task.color_scales['baseline_ndvi'])
+        task.baseline_ndvi_path,
+        dataset,
+        'baseline_ndvi',
+        color_scale=task.color_scales['baseline_ndvi'],
+        no_data=task.satellite.no_data_value)
 
-    write_png_from_xr(task.result_mosaic_path, dataset, bands=['red', 'green', 'blue'], scale=(0, 4096))
+    write_png_from_xr(
+        task.result_mosaic_path,
+        dataset,
+        bands=['red', 'green', 'blue'],
+        scale=task.satellite.get_scale(),
+        no_data=task.satellite.no_data_value)
 
     dates = list(map(lambda x: datetime.strptime(x, "%m/%d/%Y"), task._get_field_as_list('acquisition_list')))
     if len(dates) > 1:
