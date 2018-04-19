@@ -57,8 +57,8 @@ def create_extents_gui(min_date, max_date, min_lon, max_lon, min_lat, max_lat):
     """
     
     # Create widgets 
-    start_date_text = widgets.Text() 
-    end_date_text = widgets.Text() 
+    start_date_text = widgets.Text(min_date) 
+    end_date_text = widgets.Text(max_date) 
 
     min_lon_text = widgets.BoundedFloatText(min=min_lon, 
                                             max=max_lon)
