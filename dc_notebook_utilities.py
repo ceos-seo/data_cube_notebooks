@@ -2,8 +2,11 @@ from ipywidgets import widgets
 from IPython.display import display, HTML
 
 #Please refactor this
-from mpl_toolkits.basemap import Basemap
-    
+try:
+    from mpl_toolkits.basemap import Basemap
+except:
+    print("'{0}' was not found in '{1}'.  It is likely that '{1}' is not present".format("Basemap", "mpl_toolkits.basemap"))
+    pass
 import matplotlib.pyplot as plt
 import math # ceil
 
@@ -157,5 +160,5 @@ try:
         plt.show()
         
 except:
-    print("Basemap is no longer in use. Please refactor.")
+    print("Basemap is no longer in use. Please install or refactor.")
     pass
