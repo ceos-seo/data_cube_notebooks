@@ -1,7 +1,14 @@
 from ipywidgets import widgets
 from IPython.display import display, HTML
+import warnings
 
-from mpl_toolkits.basemap import Basemap
+#Please refactor this
+try:
+    from mpl_toolkits.basemap import Basemap
+except:
+    print("could not find '{0}' in '{1}'.  '{1}' is likely not present".format("mpl_toolkits.basemap","Basemap"))
+    pass
+    
 import matplotlib.pyplot as plt
 import math # ceil
 
@@ -96,58 +103,63 @@ def generate_metadata_report(min_date, max_date, min_lon, max_lon, lon_dist, min
     display(HTML('<h2>Metadata Report: </h2>'))
     display(HTML(metadata_report))
 
+try: 
+    from mpl_toolkits.basemap import Basemap
 
-def show_map_extents(min_lon, max_lon, min_lat, max_lat):
-    extents=(
-        min_lat,
-        min_lon,
-        max_lat,
-        max_lon,
-    )
+    def show_map_extents(min_lon, max_lon, min_lat, max_lat):
+        extents=(
+            min_lat,
+            min_lon,
+            max_lat,
+            max_lon,
+        )
 
-    margin = max( math.ceil(extents[3]-extents[1]), math.ceil(extents[2]-extents[0]) )+0.5
-    center = ( (extents[2]-extents[0])/2.0+extents[0], (extents[3]-extents[1])/2.0+extents[1] )
+        margin = max( math.ceil(extents[3]-extents[1]), math.ceil(extents[2]-extents[0]) )+0.5
+        center = ( (extents[2]-extents[0])/2.0+extents[0], (extents[3]-extents[1])/2.0+extents[1] )
 
-    map = Basemap(
-        llcrnrlon=extents[1]-margin,
-        llcrnrlat=extents[0]-margin,
-        urcrnrlon=extents[3]+margin,
-        urcrnrlat=extents[2]+margin,
-        resolution='i',
-        projection='tmerc',
-        lat_0 = center[0],
-        lon_0 = center[1],
-    )
+        map = Basemap(
+            llcrnrlon=extents[1]-margin,
+            llcrnrlat=extents[0]-margin,
+            urcrnrlon=extents[3]+margin,
+            urcrnrlat=extents[2]+margin,
+            resolution='i',
+            projection='tmerc',
+            lat_0 = center[0],
+            lon_0 = center[1],
+        )
 
-    map.drawmapboundary(fill_color='aqua')
-    map.fillcontinents(color='coral',lake_color='aqua')
-    map.drawcoastlines()
-    map.drawstates()
-    map.drawcountries()
-    # eh... just draw the whole globe's worth of lines
-    map.drawparallels(range( -90,  90, 1))
-    map.drawmeridians(range(-180, 180, 1))
+        map.drawmapboundary(fill_color='aqua')
+        map.fillcontinents(color='coral',lake_color='aqua')
+        map.drawcoastlines()
+        map.drawstates()
+        map.drawcountries()
+        # eh... just draw the whole globe's worth of lines
+        map.drawparallels(range( -90,  90, 1))
+        map.drawmeridians(range(-180, 180, 1))
 
-    # Draw region of interest
-    #map.plot((34,34,37,37,34),(-1,1,1,-1,-1),latlon=True, linewidth=2, color='yellow')
-    map.plot(( # Lat
-            extents[1],
-            extents[1],
-            extents[3],
-            extents[3],
-            extents[1]
-        ),( # Lon
-            extents[0],
-            extents[2],
-            extents[2],
-            extents[0],
-            extents[0]
-        ),latlon=True, linewidth=2, color='yellow')
+        # Draw region of interest
+        #map.plot((34,34,37,37,34),(-1,1,1,-1,-1),latlon=True, linewidth=2, color='yellow')
+        map.plot(( # Lat
+                extents[1],
+                extents[1],
+                extents[3],
+                extents[3],
+                extents[1]
+            ),( # Lon
+                extents[0],
+                extents[2],
+                extents[2],
+                extents[0],
+                extents[0]
+            ),latlon=True, linewidth=2, color='yellow')
 
-    # Add some annotation
-    x, y = map(center[1], extents[2])
-    plt.text(x, y, 'Region of\nInterest',fontsize=13,fontweight='bold',ha='center',va='bottom',color='k')
+        # Add some annotation
+        x, y = map(center[1], extents[2])
+        plt.text(x, y, 'Region of\nInterest',fontsize=13,fontweight='bold',ha='center',va='bottom',color='k')
 
-    # map.nightshade(datetime.now(), delta=0.2) # Draw day/night areas
+        # map.nightshade(datetime.now(), delta=0.2) # Draw day/night areas
 
-    plt.show()
+        plt.show()
+        
+except:
+    pass
