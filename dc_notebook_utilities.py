@@ -1,16 +1,15 @@
 from ipywidgets import widgets
 from IPython.display import display, HTML
-import warnings
 
 #Please refactor this
 try:
     from mpl_toolkits.basemap import Basemap
 except:
-    print("could not find '{0}' in '{1}'.  '{1}' is likely not present".format("mpl_toolkits.basemap","Basemap"))
+    print("'{0}' was not found in '{1}'.  It is likely that '{1}' is not present".format("Basemap", "mpl_toolkits.basemap"))
     pass
-    
 import matplotlib.pyplot as plt
 import math # ceil
+from utils.data_cube_utilities.dc_display_map import display_map
 
 def create_acq_date_gui(acq_dates):
     """
@@ -29,26 +28,56 @@ def create_acq_date_gui(acq_dates):
     return acq_date_sel
     
 
-def create_platform_product_gui(platforms, products):
+    
+def create_platform_product_gui(platforms, products, datacube):
     """
     Description:
       
     -----
     """
+    prod_selected = list(" ")
+    plat_selected = list(" ")
     
+    def parse_widget(x):
+        var = datacube.list_products()
+        return var["name"][var["platform"] == x]
+    
+    def get_keys(platform):
+        temp = [x for x in parse_widget(platform)]
+        j = widgets.interactive(get_product, prod=temp, continuous_update=True)
+        display(j)
+        plat_selected[0] = (platform)
+        return temp
+        
+    def get_product(prod):
+        prod_selected[0] = (prod)
+        return prod
+    
+    option_selected = widgets.Select(options=platforms)
+    init = option_selected.value
+    i = widgets.interactive(get_keys, platform=option_selected, continuous_update=True)
+    display(i)
+       
+    ##old code:
     # Create widgets
-    platform_sel = widgets.Dropdown(options=platforms, 
-                                    values=platforms)
-    product_sel = widgets.Dropdown(options=products,
-                                   values=products)
+#     platform_sel = widgets.Dropdown(options=platforms, 
+#                                     values=platforms)
+#     print(type(platform_sel))
+#     # Display form
+#     display(widgets.Label('Platform: '), platform_sel)
     
-    # Display form
-    display(widgets.Label('Platform: '), platform_sel)
-    display(widgets.Label('Product: '), product_sel)
+#     val = platform_sel.value
+#     products = [k for k in products if parse_widget(val) in k]
+# #     print(products)
     
-    return [platform_sel, 
-            product_sel]
+#     product_sel = widgets.Dropdown(options=products,
+#                                    values=products)
+#     display(widgets.Label('Product: '), product_sel)
+    
+    return [plat_selected, prod_selected]
 
+        
+        
 def create_extents_gui(min_date, max_date, min_lon, max_lon, min_lat, max_lat):
     """
     Description:
@@ -57,8 +86,8 @@ def create_extents_gui(min_date, max_date, min_lon, max_lon, min_lat, max_lat):
     """
     
     # Create widgets 
-    start_date_text = widgets.Text(min_date) 
-    end_date_text = widgets.Text(max_date) 
+    start_date_text = widgets.Text() 
+    end_date_text = widgets.Text() 
 
     min_lon_text = widgets.BoundedFloatText(min=min_lon, 
                                             max=max_lon)
@@ -103,63 +132,61 @@ def generate_metadata_report(min_date, max_date, min_lon, max_lon, lon_dist, min
     display(HTML('<h2>Metadata Report: </h2>'))
     display(HTML(metadata_report))
 
-try: 
-    from mpl_toolkits.basemap import Basemap
 
-    def show_map_extents(min_lon, max_lon, min_lat, max_lat):
-        extents=(
-            min_lat,
-            min_lon,
-            max_lat,
-            max_lon,
-        )
 
-        margin = max( math.ceil(extents[3]-extents[1]), math.ceil(extents[2]-extents[0]) )+0.5
-        center = ( (extents[2]-extents[0])/2.0+extents[0], (extents[3]-extents[1])/2.0+extents[1] )
+def show_map_extents(min_lon, max_lon, min_lat, max_lat):
+    extents=(
+        min_lat,
+        min_lon,
+        max_lat,
+        max_lon,
+    )
 
-        map = Basemap(
-            llcrnrlon=extents[1]-margin,
-            llcrnrlat=extents[0]-margin,
-            urcrnrlon=extents[3]+margin,
-            urcrnrlat=extents[2]+margin,
-            resolution='i',
-            projection='tmerc',
-            lat_0 = center[0],
-            lon_0 = center[1],
-        )
+    margin = max( math.ceil(extents[3]-extents[1]), math.ceil(extents[2]-extents[0]) )+0.5
+    center = ( (extents[2]-extents[0])/2.0+extents[0], (extents[3]-extents[1])/2.0+extents[1] )
 
-        map.drawmapboundary(fill_color='aqua')
-        map.fillcontinents(color='coral',lake_color='aqua')
-        map.drawcoastlines()
-        map.drawstates()
-        map.drawcountries()
-        # eh... just draw the whole globe's worth of lines
-        map.drawparallels(range( -90,  90, 1))
-        map.drawmeridians(range(-180, 180, 1))
 
-        # Draw region of interest
-        #map.plot((34,34,37,37,34),(-1,1,1,-1,-1),latlon=True, linewidth=2, color='yellow')
-        map.plot(( # Lat
-                extents[1],
-                extents[1],
-                extents[3],
-                extents[3],
-                extents[1]
-            ),( # Lon
-                extents[0],
-                extents[2],
-                extents[2],
-                extents[0],
-                extents[0]
-            ),latlon=True, linewidth=2, color='yellow')
+    map = Basemap(
+        llcrnrlon=extents[1]-margin,
+        llcrnrlat=extents[0]-margin,
+        urcrnrlon=extents[3]+margin,
+        urcrnrlat=extents[2]+margin,
+        resolution='i',
+        projection='tmerc',
+        lat_0 = center[0],
+        lon_0 = center[1],
+    )
 
-        # Add some annotation
-        x, y = map(center[1], extents[2])
-        plt.text(x, y, 'Region of\nInterest',fontsize=13,fontweight='bold',ha='center',va='bottom',color='k')
+    map.drawmapboundary(fill_color='aqua')
+    map.fillcontinents(color='coral',lake_color='aqua')
+    map.drawcoastlines()
+    map.drawstates()
+    map.drawcountries()
+    # eh... just draw the whole globe's worth of lines
+    map.drawparallels(range( -90,  90, 1))
+    map.drawmeridians(range(-180, 180, 1))
 
-        # map.nightshade(datetime.now(), delta=0.2) # Draw day/night areas
+    # Draw region of interest
+    #map.plot((34,34,37,37,34),(-1,1,1,-1,-1),latlon=True, linewidth=2, color='yellow')
+    map.plot(( # Lat
+            extents[1],
+            extents[1],
+            extents[3],
+            extents[3],
+            extents[1]
+        ),( # Lon
+            extents[0],
+            extents[2],
+            extents[2],
+            extents[0],
+            extents[0]
+        ),latlon=True, linewidth=2, color='yellow')
 
-        plt.show()
-        
-except:
-    pass
+    # Add some annotation
+    x, y = map(center[1], extents[2])
+    plt.text(x, y, 'Region of\nInterest',fontsize=13,fontweight='bold',ha='center',va='bottom',color='k')
+
+    # map.nightshade(datetime.now(), delta=0.2) # Draw day/night areas
+
+    plt.show()
+
