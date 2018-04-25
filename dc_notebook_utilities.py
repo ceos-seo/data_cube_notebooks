@@ -1,5 +1,6 @@
 from ipywidgets import widgets
 from IPython.display import display, HTML
+from typing import List
 
 #Please refactor this
 try:
@@ -9,7 +10,8 @@ except:
     pass
 import matplotlib.pyplot as plt
 import math # ceil
-from utils.data_cube_utilities.dc_display_map import display_map
+
+import datacube
 
 def create_acq_date_gui(acq_dates):
     """
@@ -29,34 +31,40 @@ def create_acq_date_gui(acq_dates):
     
 
     
-def create_platform_product_gui(platforms, products, datacube):
+def create_platform_product_gui(platforms: List[str],
+                                products:  List[str],
+                                datacube:  datacube.Datacube,
+                                default_platform:str = None,
+                                default_product:str  = None,):
     """
     Description:
       
     -----
     """
-    prod_selected = list(" ")
-    plat_selected = list(" ")
+    plat_selected = [None]
+    prod_selected = [None]
     
     def parse_widget(x):
         var = datacube.list_products()
         return var["name"][var["platform"] == x]
     
     def get_keys(platform):
-        temp = [x for x in parse_widget(platform)]
-        j = widgets.interactive(get_product, prod=temp, continuous_update=True)
-        display(j)
+        products = [x for x in parse_widget(platform)]
+        product = default_product if default_product in products else products[0]
+        product_widget = widgets.Select(options=products, value=product)
+        product_field = widgets.interactive(get_product, prod=product_widget, continuous_update=True)
+        display(product_field)
         plat_selected[0] = (platform)
-        return temp
-        
-    def get_product(prod):
-        prod_selected[0] = (prod)
-        return prod
+        return platform
     
-    option_selected = widgets.Select(options=platforms)
-    init = option_selected.value
-    i = widgets.interactive(get_keys, platform=option_selected, continuous_update=True)
-    display(i)
+    def get_product(prod):
+            prod_selected[0] = (prod)
+            return prod
+    
+    platform = default_platform if default_platform in platforms else platforms[0]
+    platform_widget = widgets.Select(options=platforms, value=platform)
+    platform_field = widgets.interactive(get_keys, platform=platform_widget, continuous_update=True)
+    display(platform_field)
        
     ##old code:
     # Create widgets
@@ -73,7 +81,6 @@ def create_platform_product_gui(platforms, products, datacube):
 #     product_sel = widgets.Dropdown(options=products,
 #                                    values=products)
 #     display(widgets.Label('Product: '), product_sel)
-    
     return [plat_selected, prod_selected]
 
         
@@ -86,19 +93,21 @@ def create_extents_gui(min_date, max_date, min_lon, max_lon, min_lat, max_lat):
     """
     
     # Create widgets 
-    start_date_text = widgets.Text() 
-    end_date_text = widgets.Text() 
+    start_date_text = widgets.Text(min_date) 
+    end_date_text = widgets.Text(max_date) 
 
     min_lon_text = widgets.BoundedFloatText(min=min_lon, 
-                                            max=max_lon)
+                                            max=max_lon,
+                                            value=min_lon)
     max_lon_text = widgets.BoundedFloatText(min=min_lon, 
                                             max=max_lon, 
-                                            value=min_lon_text.value + 1)
+                                            value=max_lon)
     min_lat_text = widgets.BoundedFloatText(min=min_lat, 
-                                            max=max_lat)
+                                            max=max_lat,
+                                            value=min_lat)
     max_lat_text = widgets.BoundedFloatText(min=min_lat, 
                                             max=max_lat, 
-                                            value=min_lat_text.value + 1)
+                                            value=max_lat)
 
     # Display form
     display(widgets.Label('Start date: '), start_date_text)
