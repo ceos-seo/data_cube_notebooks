@@ -1,6 +1,7 @@
 from ipywidgets import widgets
 from IPython.display import display, HTML
 from typing import List
+import numpy as np
 
 #Please refactor this
 try:
@@ -198,4 +199,29 @@ def show_map_extents(min_lon, max_lon, min_lat, max_lat):
     # map.nightshade(datetime.now(), delta=0.2) # Draw day/night areas
 
     plt.show()
+
+
+def rgb(dataset, at_index = 0, bands = ['red', 'green', 'blue'], paint_on_mask = []):
+    rgb = np.stack([dataset[bands[0]], dataset[bands[1]], dataset[bands[2]]], axis = -1)
+    max_possible = 3500
+    rgb = rgb.astype(np.float32)
+    rgb[rgb<0] = 0
+    rgb[rgb > max_possible] = max_possible
+    rgb *= 255.0/rgb.max()
+
+    rgb = rgb.astype(int)
+    rgb = rgb.astype(np.float32)
+    rgb = 255-rgb
+    
+    rgb[rgb > 254] = 254
+    rgb[rgb < 1]   = 1
+    
+    
+    for mask, color in paint_on_mask:        
+        rgb[mask] = np.array([256,256,256]) - np.array(color).astype(np.int16)
+    
+    if 'time' in dataset:
+        plt.imshow((rgb[at_index]))
+    else:
+        plt.imshow(rgb)
 
