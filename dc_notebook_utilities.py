@@ -201,7 +201,7 @@ def show_map_extents(min_lon, max_lon, min_lat, max_lat):
     plt.show()
 
 
-def rgb(dataset, at_index = 0, bands = ['red', 'green', 'blue'], paint_on_mask = []):
+def rgb(dataset, at_index = 0, bands = ['red', 'green', 'blue'], paint_on_mask = [], figsize = (20,20)):
     rgb = np.stack([dataset[bands[0]], dataset[bands[1]], dataset[bands[2]]], axis = -1)
     max_possible = 3500
     rgb = rgb.astype(np.float32)
@@ -216,10 +216,10 @@ def rgb(dataset, at_index = 0, bands = ['red', 'green', 'blue'], paint_on_mask =
     rgb[rgb > 254] = 254
     rgb[rgb < 1]   = 1
     
-    
     for mask, color in paint_on_mask:        
         rgb[mask] = np.array([256,256,256]) - np.array(color).astype(np.int16)
     
+    plt.figure(figsize = figsize)
     if 'time' in dataset:
         plt.imshow((rgb[at_index]))
     else:
