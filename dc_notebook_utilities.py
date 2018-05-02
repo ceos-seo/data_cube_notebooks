@@ -225,3 +225,4 @@ def rgb(dataset, at_index = 0, bands = ['red', 'green', 'blue'], paint_on_mask =
     else:
         plt.imshow(rgb)
 
+
