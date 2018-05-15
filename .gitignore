@@ -1,4 +1,4 @@
 .ipynb_checkpoints
+*.nc
 *.tif
-*.png
 __pycache__
