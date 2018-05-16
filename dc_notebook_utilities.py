@@ -3,11 +3,6 @@ from IPython.display import display, HTML
 from typing import List
 import numpy as np
 
-#Please refactor this
-# try:
-#     from mpl_toolkits.basemap import Basemap
-# except:
-#     print("'{0}' was not found in '{1}'.  It is likely that '{1}' is not present".format("Basemap", "mpl_toolkits.basemap"))
 import matplotlib.pyplot as plt
 import math # ceil
 
@@ -65,22 +60,6 @@ def create_platform_product_gui(platforms: List[str],
     platform_widget = widgets.Select(options=platforms, value=platform)
     platform_field = widgets.interactive(get_keys, platform=platform_widget, continuous_update=True)
     display(platform_field)
-       
-    ##old code:
-    # Create widgets
-#     platform_sel = widgets.Dropdown(options=platforms, 
-#                                     values=platforms)
-#     print(type(platform_sel))
-#     # Display form
-#     display(widgets.Label('Platform: '), platform_sel)
-    
-#     val = platform_sel.value
-#     products = [k for k in products if parse_widget(val) in k]
-# #     print(products)
-    
-#     product_sel = widgets.Dropdown(options=products,
-#                                    values=products)
-#     display(widgets.Label('Product: '), product_sel)
     return [plat_selected, prod_selected]
 
         
