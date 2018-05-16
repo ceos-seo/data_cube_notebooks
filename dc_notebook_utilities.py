@@ -4,11 +4,10 @@ from typing import List
 import numpy as np
 
 #Please refactor this
-try:
-    from mpl_toolkits.basemap import Basemap
-except:
-    print("'{0}' was not found in '{1}'.  It is likely that '{1}' is not present".format("Basemap", "mpl_toolkits.basemap"))
-    pass
+# try:
+#     from mpl_toolkits.basemap import Basemap
+# except:
+#     print("'{0}' was not found in '{1}'.  It is likely that '{1}' is not present".format("Basemap", "mpl_toolkits.basemap"))
 import matplotlib.pyplot as plt
 import math # ceil
 
