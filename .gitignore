@@ -1,4 +1,6 @@
 .ipynb_checkpoints
+wofs_compare.png
+nohup.out
+__pycache__
 *.nc
 *.tif
-__pycache__
