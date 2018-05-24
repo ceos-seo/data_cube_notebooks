@@ -191,7 +191,8 @@ def rgb(dataset,
         bands = ['red', 'green', 'blue'],
         paint_on_mask = [],
         max_possible = 3500,
-        width = 10
+        width = 10,
+        figsize=None
        ):
 
     def aspect_ratio_helper(x,y, fixed_width = 20):
@@ -216,8 +217,9 @@ def rgb(dataset,
         rgb[mask] = np.array(color)/ 255.0
     ### > 
     
-    
-    fig, ax = plt.subplots(figsize = aspect_ratio_helper(*rgb.shape[:2], fixed_width = width))
+    if figsize is None:
+        figsize = aspect_ratio_helper(*rgb.shape[:2], fixed_width = width)
+    fig, ax = plt.subplots(figsize = figsize)
 
     lat_formatter = FuncFormatter(lambda x, pos: round(dataset.latitude.values[pos] ,4) )
     lon_formatter = FuncFormatter(lambda x, pos: round(dataset.longitude.values[pos],4) )
