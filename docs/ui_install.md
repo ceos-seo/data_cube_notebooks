@@ -90,7 +90,7 @@ sudo apt-get install -y tmux
 Next, you'll need various Python packages responsible for the entire application:
 
 ```
-pip install django
+pip install django==1.11.13
 pip install redis
 pip install imageio
 pip install django-bootstrap3
@@ -211,8 +211,8 @@ In this configuration file, note that all of the paths are absolute. If you used
 We'll now copy the configuration files where they need to be. The '.datacube.conf' file is copied to the home directory for consistency.
 
 ```
-cp config/.datacube.conf ~/.datacube.conf
-sudo cp config/dc_ui.conf /etc/apache2/sites-available/dc_ui.conf
+cp ~/Datacube/data_cube_ui/config/.datacube.conf ~/.datacube.conf
+sudo cp ~/Datacube/data_cube_ui/config/dc_ui.conf /etc/apache2/sites-available/dc_ui.conf
 ```
 
 The next step is to edit the credentials found in the Django settings. Open the 'settings.py' found at `~/Datacube/data_cube_ui/data_cube_ui/settings.py`:
@@ -393,7 +393,7 @@ source ~/Datacube/datacube_env/bin/activate
 cd ~/Datacube/data_cube_ui
 python manage.py shell
 
-from utils import data_access_api
+from utils.data_cube_utilities import data_access_api
 
 dc = data_access_api.DataAccessApi()
 
@@ -401,6 +401,9 @@ dc.get_datacube_metadata('ls7_ledaps_general','LANDSAT_7')
 ```
 
 Record the latitude and longitude extents.
+They should be:
+lat=(7.745543874267876, 9.617183768731897)
+lon=(-3.5136704023069685, -1.4288602909212722)
 
 Go back to the admin page, select dc_algorithm->Areas, delete all of the initial areas, then click the 'Add Area' button.
 
@@ -408,7 +411,7 @@ For the Area Id, enter 'general', or whatever area you've named that is prepende
 
 Enter the latitude and longitude bounds in all of the latitude/longitude min/max fields for both the top and the detail fields.
 
-For all of the imagery fields, enter '/static/assets/images/black.png'/static/assets/images/black.png' - this will give a black area, but will still highlight our area.
+For all of the imagery fields, enter '/static/assets/images/black.png' - this will give a black area, but will still highlight our area.
 
 Select LANDSAT_7 in the satellites field and save your new area.
 
@@ -472,4 +475,18 @@ Q:
 
 A:  
 >	Run the Django migrations to ensure that you have the latest database schemas. If you have updated recently, ensure that you have a database table for each app - if any are missing, run 'python manage.py makemigrations {app_name}' followed by 'python manage.py migrate'.
+
+Q:
+ > How do I refresh the Data Cube Visualization tool?<br/>
+ > My regions are not showing up in the Data Cube Visualization tool.
+ 
+A:
+ > Activate the Data Cube virtual environment:<br/>
+ > `source ~/Datacube/datacube_env/bin/activate`<br/>
+ > enter the Django console:<br/>
+ > `cd ~/Datacube/data_cube_ui`<br/>
+ > `python manage.py shell`<br/>
+ > then run this function, which should update the cache:<br/>
+ > `import apps.data_cube_manager.tasks as dcmt`<br/>
+ > `dcmt.update_data_cube_details()`
 ---  
