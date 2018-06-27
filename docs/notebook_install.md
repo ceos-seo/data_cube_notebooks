@@ -112,7 +112,9 @@ c.NotebookApp.open_browser = False
 c.NotebookApp.port = 8888
 ```
 
-Save the file and then run the notebook server with:
+Save the file and then run the notebook server with the following command.
+If this fails with a permissions error (`OSError: [...] Permission denied [...]`),
+run the command `export XDG_RUNTIME_DIR=""`.
 
 ```
 cd ~/Datacube/data_cube_notebooks
