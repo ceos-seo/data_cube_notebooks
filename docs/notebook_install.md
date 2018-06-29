@@ -52,37 +52,6 @@ pip install lcmap-pyccd
 pip install folium
 ```
 
-We'll now need to manually download and install Basemap from source. Create a temporary directory in your home directory with the following commands and download the required .tar.gz
-
-```
-mkdir ~/temp
-cd ~/temp
-wget 'http://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz'
-```
-
-Now that we have the .tar.gz in the correct location, run the following commands to uncompress Basemap, install GEOS (included with Basemap) and install Basemap. This will produce a considerable amount of console output, but unless there are errors there is nothing to worry about.
-
-```
-#ensure that you're in the virtual environment. If not, activate with 'source ~/Datacube/datacube_env/bin/activate'
-
-#this uncompresses basemap and moves into the correct dir.
-tar -xvf basemap-*
-cd basemap-*
-
-#now we need to install geos - included in basemap.
-cd geos-*
-export GEOS_DIR=~/
-./configure --prefix=$GEOS_DIR
-make
-make install  
-
-#now install basemap
-cd ..
-python setup.py install
-```
-
-Now that Basemap has been successfully installed, we can move on to configuring our notebook server.
-
 <a name="configuration"></a> Configuration
 ========  
 
