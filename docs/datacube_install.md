@@ -118,7 +118,8 @@ pip install Cython
 pip install netcdf4
 ```
 
-Please note that the installed gdal version should be as close to your system gdal version as possible, printed with:
+Please note that the installed gdal version should be as close to your system gdal version as possible.
+We try to install a non-existent version (99999999999) to have pip print all available version.
 
 ```
 gdalinfo --version
