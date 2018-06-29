@@ -96,16 +96,7 @@ pip install imageio
 pip install django-bootstrap3
 pip install matplotlib
 pip install stringcase
-```
-
-The UI relies on a slightly newer version of Celery that has not yet been pushed to Pypi - This is due to a bug that was fixed a few days after their latest release.
-
-```
-source ~/Datacube/datacube_env/bin/activate
-cd ~/Datacube
-git clone https://github.com/celery/celery.git
-cd celery
-python setup.py install
+pip install celery
 ```
 
 You will also need to create a base directory structure for results:
@@ -371,8 +362,8 @@ The worker system can seem complex at first, but the basic workflow is shown bel
 * The Django view receives form data from the web page. This form data is processed into a Query model for the application
 * The main Celery worker receives a task with a Query model and pulls all of the required parameters from this model
 * Using predefined chunking options, the main Celery task splits the parameters (latitude, longitude, time) into smaller chunks
-* These smaller chunks of (latitude, longitude, time) are sent off to the Celery slave processes - there should be more slave processes than master processes
-* The Celery slave processes load in the data in the parameters they received and perform some analysis. The results are saved to disk and the paths are returned
+* These smaller chunks of (latitude, longitude, time) are sent off to the Celery worker processes - there should be more worker processes than master processes
+* The Celery worker processes load in the data in the parameters they received and perform some analysis. The results are saved to disk and the paths are returned
 * The master process waits until all chunks have been processed then loads all of the result chunks. The chunks are combined into a single product and saved to disk
 * The master process uses the data product to create images and data products and saves them to disk, deleting all the remnant chunk products
 * The master process creates a Result and Metadata model based on what was just created and returns the details to the browser
@@ -445,6 +436,10 @@ If you are having trouble diagnosing issues with the UI, feel free to contact us
 <a name="faqs"></a> Common problems/FAQs
 ========  
 ----  
+
+If you daemonized the UI, the first thing to try after any above advice when experiencing issues with the UI is 
+to restart the UI: `sudo service data_cube_ui restart`
+
 
 Q: 	
  >I’m getting a “Permission denied error.”  How do I fix this?  
