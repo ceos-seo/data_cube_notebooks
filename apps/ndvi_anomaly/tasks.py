@@ -18,7 +18,7 @@ from utils.data_cube_utilities.dc_utilities import (create_cfmask_clean_mask, cr
                                                     add_timestamp_data_to_xr, clear_attrs)
 from utils.data_cube_utilities.dc_chunker import (create_geographic_chunks, group_datetimes_by_month,
                                                   combine_geographic_chunks)
-from utils.data_cube_utilities.dc_ndvi_anomaly import compute_ndvi_anomaly
+from utils.data_cube_utilities.dc_ndvi import compute_ndvi_anomaly
 from apps.dc_algorithm.utils import create_2d_plot
 
 from .models import NdviAnomalyTask
