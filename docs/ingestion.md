@@ -39,6 +39,11 @@ To index and ingest data into the Data Cube, the following prerequisites must be
   * All code is checked out and you have a virtual environment in the correct directories: `~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}`
 * This guide will use a Landsat 7 SR product as an example. Please download a Landsat SR product from [our AWS site](http://ec2-52-201-154-0.compute-1.amazonaws.com/datacube/data/LE071950542015121201T1-SC20170427222707.tar.gz). We are providing a Landsat 7 Collection 1 scene over Ghana for our examples. This will ensure that the entire workflow can be completed by all users. Place the .tar.gz file in your `/datacube/original_data` directory.
 
+Note that the ingestion file hyperlinked above by "our AWS site" can be downloaded with the command:<br> 
+```
+wget http://ec2-52-201-154-0.compute-1.amazonaws.com/datacube/data/LE071950542015121201T1-SC20170427222707.tar.gz
+```
+ 
 If you have not yet completed our Data Cube Installation Guide, please do so before continuing.
 
 <a name="product_definition"></a> Product Definitions

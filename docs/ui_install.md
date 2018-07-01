@@ -90,22 +90,13 @@ sudo apt-get install -y tmux
 Next, you'll need various Python packages responsible for the entire application:
 
 ```
-pip install django
+pip install django==1.11.13
 pip install redis
 pip install imageio
 pip install django-bootstrap3
 pip install matplotlib
 pip install stringcase
-```
-
-The UI relies on a slightly newer version of Celery that has not yet been pushed to Pypi - This is due to a bug that was fixed a few days after their latest release.
-
-```
-source ~/Datacube/datacube_env/bin/activate
-cd ~/Datacube
-git clone https://github.com/celery/celery.git
-cd celery
-python setup.py install
+pip install celery
 ```
 
 You will also need to create a base directory structure for results:
@@ -211,8 +202,8 @@ In this configuration file, note that all of the paths are absolute. If you used
 We'll now copy the configuration files where they need to be. The '.datacube.conf' file is copied to the home directory for consistency.
 
 ```
-cp config/.datacube.conf ~/.datacube.conf
-sudo cp config/dc_ui.conf /etc/apache2/sites-available/dc_ui.conf
+cp ~/Datacube/data_cube_ui/config/.datacube.conf ~/.datacube.conf
+sudo cp ~/Datacube/data_cube_ui/config/dc_ui.conf /etc/apache2/sites-available/dc_ui.conf
 ```
 
 The next step is to edit the credentials found in the Django settings. Open the 'settings.py' found at `~/Datacube/data_cube_ui/data_cube_ui/settings.py`:
@@ -371,8 +362,8 @@ The worker system can seem complex at first, but the basic workflow is shown bel
 * The Django view receives form data from the web page. This form data is processed into a Query model for the application
 * The main Celery worker receives a task with a Query model and pulls all of the required parameters from this model
 * Using predefined chunking options, the main Celery task splits the parameters (latitude, longitude, time) into smaller chunks
-* These smaller chunks of (latitude, longitude, time) are sent off to the Celery slave processes - there should be more slave processes than master processes
-* The Celery slave processes load in the data in the parameters they received and perform some analysis. The results are saved to disk and the paths are returned
+* These smaller chunks of (latitude, longitude, time) are sent off to the Celery worker processes - there should be more worker processes than master processes
+* The Celery worker processes load in the data in the parameters they received and perform some analysis. The results are saved to disk and the paths are returned
 * The master process waits until all chunks have been processed then loads all of the result chunks. The chunks are combined into a single product and saved to disk
 * The master process uses the data product to create images and data products and saves them to disk, deleting all the remnant chunk products
 * The master process creates a Result and Metadata model based on what was just created and returns the details to the browser
@@ -393,7 +384,7 @@ source ~/Datacube/datacube_env/bin/activate
 cd ~/Datacube/data_cube_ui
 python manage.py shell
 
-from utils import data_access_api
+from utils.data_cube_utilities import data_access_api
 
 dc = data_access_api.DataAccessApi()
 
@@ -401,6 +392,9 @@ dc.get_datacube_metadata('ls7_ledaps_general','LANDSAT_7')
 ```
 
 Record the latitude and longitude extents.
+They should be:
+lat=(7.745543874267876, 9.617183768731897)
+lon=(-3.5136704023069685, -1.4288602909212722)
 
 Go back to the admin page, select dc_algorithm->Areas, delete all of the initial areas, then click the 'Add Area' button.
 
@@ -408,7 +402,7 @@ For the Area Id, enter 'general', or whatever area you've named that is prepende
 
 Enter the latitude and longitude bounds in all of the latitude/longitude min/max fields for both the top and the detail fields.
 
-For all of the imagery fields, enter '/static/assets/images/black.png'/static/assets/images/black.png' - this will give a black area, but will still highlight our area.
+For all of the imagery fields, enter '/static/assets/images/black.png' - this will give a black area, but will still highlight our area.
 
 Select LANDSAT_7 in the satellites field and save your new area.
 
@@ -443,6 +437,10 @@ If you are having trouble diagnosing issues with the UI, feel free to contact us
 ========  
 ----  
 
+If you daemonized the UI, the first thing to try after any above advice when experiencing issues with the UI is 
+to restart the UI: `sudo service data_cube_ui restart`
+
+
 Q: 	
  >I’m getting a “Permission denied error.”  How do I fix this?  
 
@@ -472,4 +470,18 @@ Q:
 
 A:  
 >	Run the Django migrations to ensure that you have the latest database schemas. If you have updated recently, ensure that you have a database table for each app - if any are missing, run 'python manage.py makemigrations {app_name}' followed by 'python manage.py migrate'.
+
+Q:
+ > How do I refresh the Data Cube Visualization tool?<br/>
+ > My regions are not showing up in the Data Cube Visualization tool.
+ 
+A:
+ > Activate the Data Cube virtual environment:<br/>
+ > `source ~/Datacube/datacube_env/bin/activate`<br/>
+ > enter the Django console:<br/>
+ > `cd ~/Datacube/data_cube_ui`<br/>
+ > `python manage.py shell`<br/>
+ > then run this function, which should update the cache:<br/>
+ > `import apps.data_cube_manager.tasks as dcmt`<br/>
+ > `dcmt.update_data_cube_details()`
 ---  
