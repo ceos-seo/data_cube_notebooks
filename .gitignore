@@ -1,0 +1,6 @@
+.ipynb_checkpoints
+nohup.out
+__pycache__
+*.nc
+*.tif
+*.tar.gz

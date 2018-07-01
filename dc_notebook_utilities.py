@@ -1,9 +1,12 @@
 from ipywidgets import widgets
 from IPython.display import display, HTML
+from typing import List
+import numpy as np
 
-from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
 import math # ceil
+
+import datacube
 
 def create_acq_date_gui(acq_dates):
     """
@@ -22,26 +25,45 @@ def create_acq_date_gui(acq_dates):
     return acq_date_sel
     
 
-def create_platform_product_gui(platforms, products):
+    
+def create_platform_product_gui(platforms: List[str],
+                                products:  List[str],
+                                datacube:  datacube.Datacube,
+                                default_platform:str = None,
+                                default_product:str  = None,):
     """
     Description:
       
     -----
     """
+    plat_selected = [None]
+    prod_selected = [None]
     
-    # Create widgets
-    platform_sel = widgets.Dropdown(options=platforms, 
-                                    values=platforms)
-    product_sel = widgets.Dropdown(options=products,
-                                   values=products)
+    def parse_widget(x):
+        var = datacube.list_products()
+        return var["name"][var["platform"] == x]
     
-    # Display form
-    display(widgets.Label('Platform: '), platform_sel)
-    display(widgets.Label('Product: '), product_sel)
+    def get_keys(platform):
+        products = [x for x in parse_widget(platform)]
+        product = default_product if default_product in products else products[0]
+        product_widget = widgets.Select(options=products, value=product)
+        product_field = widgets.interactive(get_product, prod=product_widget, continuous_update=True)
+        display(product_field)
+        plat_selected[0] = (platform)
+        return platform
     
-    return [platform_sel, 
-            product_sel]
+    def get_product(prod):
+            prod_selected[0] = (prod)
+            return prod
+    
+    platform = default_platform if default_platform in platforms else platforms[0]
+    platform_widget = widgets.Select(options=platforms, value=platform)
+    platform_field = widgets.interactive(get_keys, platform=platform_widget, continuous_update=True)
+    display(platform_field)
+    return [plat_selected, prod_selected]
 
+        
+        
 def create_extents_gui(min_date, max_date, min_lon, max_lon, min_lat, max_lat):
     """
     Description:
@@ -50,19 +72,21 @@ def create_extents_gui(min_date, max_date, min_lon, max_lon, min_lat, max_lat):
     """
     
     # Create widgets 
-    start_date_text = widgets.Text() 
-    end_date_text = widgets.Text() 
+    start_date_text = widgets.Text(min_date) 
+    end_date_text = widgets.Text(max_date) 
 
     min_lon_text = widgets.BoundedFloatText(min=min_lon, 
-                                            max=max_lon)
+                                            max=max_lon,
+                                            value=min_lon)
     max_lon_text = widgets.BoundedFloatText(min=min_lon, 
                                             max=max_lon, 
-                                            value=min_lon_text.value + 1)
+                                            value=max_lon)
     min_lat_text = widgets.BoundedFloatText(min=min_lat, 
-                                            max=max_lat)
+                                            max=max_lat,
+                                            value=min_lat)
     max_lat_text = widgets.BoundedFloatText(min=min_lat, 
                                             max=max_lat, 
-                                            value=min_lat_text.value + 1)
+                                            value=max_lat)
 
     # Display form
     display(widgets.Label('Start date: '), start_date_text)
@@ -97,6 +121,7 @@ def generate_metadata_report(min_date, max_date, min_lon, max_lon, lon_dist, min
     display(HTML(metadata_report))
 
 
+
 def show_map_extents(min_lon, max_lon, min_lat, max_lat):
     extents=(
         min_lat,
@@ -107,6 +132,7 @@ def show_map_extents(min_lon, max_lon, min_lat, max_lat):
 
     margin = max( math.ceil(extents[3]-extents[1]), math.ceil(extents[2]-extents[0]) )+0.5
     center = ( (extents[2]-extents[0])/2.0+extents[0], (extents[3]-extents[1])/2.0+extents[1] )
+
 
     map = Basemap(
         llcrnrlon=extents[1]-margin,
@@ -150,4 +176,62 @@ def show_map_extents(min_lon, max_lon, min_lat, max_lat):
 
     # map.nightshade(datetime.now(), delta=0.2) # Draw day/night areas
 
+    plt.show()
+
+
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
+from time import time
+import numpy as np
+
+
+# Change the bands (RGB) here if you want other false color combinations
+def rgb(dataset,
+        at_index = 0,
+        bands = ['red', 'green', 'blue'],
+        paint_on_mask = [],
+        max_possible = 3500,
+        width = 10,
+        figsize=None
+       ):
+
+    def aspect_ratio_helper(x,y, fixed_width = 20):
+        width = fixed_width
+        height = y * (fixed_width / x)
+        return (width, height)
+    
+    ### < Dataset to RGB Format, needs float values between 0-1 
+    rgb = np.stack([dataset[bands[0]],
+                    dataset[bands[1]],
+                    dataset[bands[2]]], axis = -1).astype(np.int16)
+    
+    rgb[rgb<0] = 0    
+    rgb[rgb > max_possible] = max_possible # Filter out saturation points at arbitrarily defined max_possible value
+    
+    rgb = rgb.astype(float)
+    rgb *= 1 / np.max(rgb)
+    ### > 
+    
+    ### < takes a T/F mask, apply a color to T areas  
+    for mask, color in paint_on_mask:        
+        rgb[mask] = np.array(color)/ 255.0
+    ### > 
+    
+    if figsize is None:
+        figsize = aspect_ratio_helper(*rgb.shape[:2], fixed_width = width)
+    fig, ax = plt.subplots(figsize = figsize)
+
+    lat_formatter = FuncFormatter(lambda x, pos: round(dataset.latitude.values[pos] ,4) )
+    lon_formatter = FuncFormatter(lambda x, pos: round(dataset.longitude.values[pos],4) )
+
+    plt.ylabel("Latitude")
+    ax.yaxis.set_major_formatter(lat_formatter)
+    plt.xlabel("Longitude")
+    ax.xaxis.set_major_formatter(lon_formatter)
+   
+    if 'time' in dataset:
+        plt.imshow((rgb[at_index]))
+    else:
+        plt.imshow(rgb)  
+    
     plt.show()
