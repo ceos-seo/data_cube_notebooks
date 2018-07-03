@@ -41,7 +41,7 @@ def create_platform_product_gui(platforms: List[str],
     
     def parse_widget(x):
         var = datacube.list_products()
-        return var["name"][var["platform"] == x]
+        return var["name"][(var["platform"] == x) & (var["name"].isin(products))]
     
     def get_keys(platform):
         products = [x for x in parse_widget(platform)]
