@@ -41,7 +41,7 @@ To index and ingest data into the Data Cube, the following prerequisites must be
 
 Note that the ingestion file hyperlinked above by "our AWS site" can be downloaded with the command:<br> 
 ```
-wget http://ec2-52-201-154-0.compute-1.amazonaws.com/datacube/data/LE071950542015121201T1-SC20170427222707.tar.gz
+wget -p /datacube/original_data http://ec2-52-201-154-0.compute-1.amazonaws.com/datacube/data/LE071950542015121201T1-SC20170427222707.tar.gz
 ```
  
 If you have not yet completed our Data Cube Installation Guide, please do so before continuing.
@@ -720,6 +720,7 @@ Q:
 
 A:  
  > If your dataset is already in an optimized format and you don't desire any projection or resampling changes, then you can simply index the data and then begin to use the Data Cube.
+   You will have to specify CRS when loading indexed data, since the ingestion process - which informs the Data Cube about the metadata - has not occurred. 
 
 ---  
 

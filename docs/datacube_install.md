@@ -119,6 +119,7 @@ pip install netcdf4
 ```
 
 Please note that the installed gdal version should be as close to your system gdal version as possible.
+At the time of this writing, the `gdalinfo` command below outputs 1.11.3, which means that version 1.11.2 is the closest version that satisfies our requirements.
 We try to install a non-existent version (99999999999) to have pip print all available version.
 
 ```
@@ -126,11 +127,9 @@ gdalinfo --version
 pip install gdal==99999999999
 ```
 
-At the time this is being written, the above command outputs 1.11.3, which means that version 1.11.2 is the closest version that satisfies our requirements.
-
 Now that all requirements have been satisfied, run the setup.py script in the agdc-v2 directory:
 
-**It has come to our attention that the setup.py script fails the first time it is run due to some NetCDF/Cython issues. Run the script a second time to install if this occurs.**
+**It has come to our attention that the setup.py script can fail the first time it is run due to some NetCDF/Cython issues. Run the script a second time to install if this occurs.**
 ```
 cd ~/Datacube/agdc-v2
 python setup.py develop
@@ -156,7 +155,7 @@ Open this file in your editor of choice and find the line that starts with 'time
 timezone = 'UTC'
 ```
 
-This will ensure that all of the datetime fields in the database are stored in UTC. Next, open the pg_hba.conf file found at:
+This will ensure that all of the datetime fields in the database are stored in UTC. Next, open the `pg_hba.conf` file found at:
 
 ```
 /etc/postgresql/9.5/main/pg_hba.conf
@@ -184,7 +183,7 @@ sudo service postgresql restart
 
 Data Cube Configuration file
 ---------------
-The Data Cube requires a configuration file that points to the correct database and provides credentials. The file's contents looks like below should be named '.datacube.conf':
+The Data Cube requires a configuration file that points to the correct database and provides credentials. The contents of the `.datacube.conf` file should appear as follows:
 
 ```
 [datacube]
@@ -208,9 +207,9 @@ gedit ~/Datacube/data_cube_ui/config/.datacube.conf
 cp ~/Datacube/data_cube_ui/config/.datacube.conf ~/.datacube.conf
 ```
 
-This will move the required .datacube.conf file to the home directory. The user's home directory is the default location for the configuration file and will be used for all command line based Data Cube operations. The next step is to create the database specified in the configuration file.
+This will copy the required `.datacube.conf` file to the home directory. The user's home directory is the default location for the configuration file and will be used for all command-line-based Data Cube operations. The next step is to create the database specified in the configuration file.
 
-To create the database use the following:
+To create the database run the following commands:
 
 ```
 sudo -u postgres createuser --superuser dc_user
@@ -244,9 +243,15 @@ Done.
 
 If you have PGAdmin3 installed, you can view the default schemas and relationships by connecting to the database named 'datacube' and viewing the tables, views, and indexes in the schema 'agdc'.
 
+Alternatively, you can do the same from the command line. First log in with the command `psql -U dc_user datacube`.
+To view schemas, run `psql \dn`. 
+View the full documentation of the `psql` command [here](https://www.postgresql.org/docs/9.5/static/app-psql.html).
+
 <a name="next_steps"></a> Next Steps
 ========  
-Now that the Data Cube system is installed and initialized, the next step is to ingest some sample data. Our focus is on ARD (Analysis Ready Data) - the best introduction to the ingestion/indexing process is to use a single Landsat 7 or Landsat 8 SR product. Download a sample dataset from [Earth Explorer](https://earthexplorer.usgs.gov/) and proceed to the next document in this series, [The ingestion process](ingestion.md). Please ensure that the dataset you download is an SR product - the L\*.tar.gz should contain .tif files with the file pattern `L**_sr_band*.tif` This will correspond to datasets labeled "Collection 1 Higher-Level".
+Now that the Data Cube system is installed and initialized, the next step is to ingest some sample data. Our focus is on ARD (Analysis Ready Data) - the best introduction to the ingestion/indexing process is to use a single Landsat 7 or Landsat 8 SR product. 
+There is a sample ingestion file provided in [the ingestion documentation](ingestion.md) in the "Prerequisites" section.
+More generally, download a sample dataset from [Earth Explorer](https://earthexplorer.usgs.gov/) and proceed to the next document in this series, [the ingestion process](ingestion.md). Please ensure that the dataset you download is an SR product - the L\*.tar.gz should contain .tif files with the file pattern `L**_sr_band*.tif` This will correspond to datasets labeled "Collection 1 Higher-Level".
 
 
 <a name="faqs"></a> Common problems/FAQs
@@ -281,7 +286,7 @@ Q:
  >Can the Data Cube be accessed from R/C++/IDL/etc.?
 
 A:  
->This is not currently directly supported, the Data Cube is a Python based API. The base technology managing data access PostgreSQL, so theoretically the functionality can be ported to any language that can interact with the database. An additional option is just shelling out from those languages, accessing data using the Python API, then passing the result back to the other program/language.
+>This is not currently directly supported. The Data Cube is a Python-based API. The technology managing data access is PostgreSQL, so theoretically the functionality can be ported to any language that can interact with the database. An additional option is just shelling out from those languages, accessing data using the Python API, then passing the result back to the other program/language.
 
 ---  
 
@@ -297,7 +302,7 @@ Q:
  >I want to store more metadata that isn't mentioned in the documentation. Is this possible?
 
 A:  
->This entire process is completely customizable. Users can configure exactly what metadata they want to capture for each dataset - we use the default for simplicities sake.
+>This entire process is completely customizable. Users can configure exactly what metadata they want to capture for each dataset - we use the default for simplicity's sake.
 
 ---  
 

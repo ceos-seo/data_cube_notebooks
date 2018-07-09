@@ -1,12 +1,13 @@
 Data Cube UI Installation Guide
 =================
 
-This document will guide users through the process of installing and configuring our Data Cube user interface. Our interface is a full Python web server stack using Django, Celery, PostreSQL, and Boostrap3. In this guide, both python and system packages will be installed and configured and users will learn how to start asynchronous task processing systems. While this guide provides a manual installation process, we have created scripts that do a lot of the initial setup - these can be found in the section title 'Automated Setup'
+This document will guide users through the process of installing and configuring our Data Cube user interface. Our interface is a full Python web server stack using Django, Celery, PostgreSQL, and Boostrap3. In this guide, both Python and system packages will be installed and configured and users will learn how to start asynchronous task processing systems. While this guide provides a manual installation process, we have created scripts that do a lot of the initial setup - these can be found in the section titled 'Automated Setup'.
 
 Contents
 =================
 
   * [Introduction](#introduction)
+  * [Previous Steps]
   * [Prerequisites](#prerequisites)
   * [Automated Setup](#automated_setup)
   * [Installation Process](#installation_process)
@@ -37,35 +38,23 @@ Using these common technologies provides a good starting platform for users who 
 * Generate both visual (image) and data products (GeoTiff/NetCDF)
 * Provide easy access to metadata and previously run analysis cases
 
-<a name="prerequisites"></a> Prerequisites
+<a name="prerequisites"></a> Previous Steps
 =================
 
-To set up and run our Data Cube UI, the following conditions must be met:
+The full Data Cube Installation Guide must have been followed and completed before proceeding. This includes:
+* You have a local user that is used to run the Data Cube commands/applications
+* You have a database user that is used to connect to your 'datacube' database 
+* The Data Cube is installed and you have successfully run `datacube system init`
+* All code is checked out and you have a virtual environment in the correct directories: `~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}`
 
-* The full Data Cube Installation Guide must have been followed and completed. This includes:
-  * You have a local user that is used to run the Data Cube commands/applications
-  * You have a database user that is used to connect to your 'datacube' database
-  * The Data Cube is installed and you have successfully run 'datacube system init'
-  * All code is checked out and you have a virtual environment in the correct directories: `~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}`
-* The full Ingestion guide must have been followed and completed. This includes:
-  * A sample Landsat 7 scene was downloaded and uncompressed in your '/datacube/original_data' directory
-  * The ingestion process was completed for that sample Landsat 7 scene
+If these requirements are not met, please see the associated documentation.
 
-If these requirements are not met, please see the associated documentation. Please take some time to get familiar with the documentation of our core technologies - most of this guide is concerning setup and configuration and is not geared towards teaching about our tools.
+If you want to analyze data from the UI, the ingestion guide must have been followed and completed. 
+The UI will work without any ingested data, but no analysis can occur. The steps include:
+* A sample Landsat 7 scene was downloaded and uncompressed in your `/datacube/original_data` directory
+* The ingestion process was completed for that sample Landsat 7 scene.
 
-<a name="automated_setup"></a> Automated Setup
-=================
-
-We have automated this setup process as much as we could - You will need to edit all the configurations manually, but the rest of the setup is automated. Edit the files in the `config` directory (.datacube.conf, dc_ui.conf) and the project `settings.py` to reflect the user that will be used to run the UI and the database credentials. Examples of this can be found in the later sections. After your credentials are entered and you have replaced instances of 'localuser' with your system user, run:
-
-```
-cd ~/Datacube/data_cube_ui
-bash scripts/ui_setup.sh
-```
-
-This will move the configuration files, do the migrations, and restart everything. This will also daemonize the celery workers. If you want more detail about the setup process or require some additional modifications, follow the entire process below.
-
-<a name="installation_process"></a> Installation Process
+<a name="installation_process"></a> Prerequisites
 =================
 
 The installation process includes both system level packages and python packages. You will need to have the virtual environment activated for this entire guide.
@@ -73,11 +62,7 @@ The installation process includes both system level packages and python packages
 Run the following commands to install Apache and Apache related packages, Redis, and an image processing library.
 
 ```
-sudo apt-get install -y apache2
-sudo apt-get install -y libapache2-mod-wsgi-py3
-sudo apt-get install -y redis-server
-sudo apt-get install -y libfreeimage3
-sudo apt-get install -y imagemagick
+sudo apt-get install -y apache2 libapache2-mod-wsgi-py3 redis-server libfreeimage3 imagemagick
 ```
 
 There are also a few system level packages that are 'nice to have' or helpful if you are a new user/using Ubuntu desktop rather than server.
@@ -91,12 +76,7 @@ Next, you'll need various Python packages responsible for the entire application
 
 ```
 pip install django==1.11.13
-pip install redis
-pip install imageio
-pip install django-bootstrap3
-pip install matplotlib
-pip install stringcase
-pip install celery
+pip install redis imageio django-bootstrap3 matplotlib stringcase celery
 ```
 
 You will also need to create a base directory structure for results:
@@ -107,11 +87,11 @@ chmod 777 /datacube/ui_results
 ```
 
 The Data Cube UI also sends admin mail, so a mail server is required:
+When prompted, choose to configure as an internet site. The rest of the defaults are fine.
 
 ```
 # https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-as-a-send-only-smtp-server-on-ubuntu-14-04
 sudo apt-get install mailutils
-# configure as an internet site.
 ```
 
 In /etc/postfix/main.cf:
@@ -126,16 +106,43 @@ and run `sudo service postfix restart`, then `echo "This is the body of the emai
 
 With all of the packages above installed, you can now move on to the configuration step.
 
+<a name="automated_setup"></a> Automated Setup
+=================
+
+We have created a script that automates as much of this process as possible.  
+
+Before running the automated setup script, you will still need to edit some files manually.
+
+In the "[Configuring the Server](#configuration)" section below, you will need to
+follow the instructions for editing `~/Datacube/data_cube_ui/config/.datacube.conf`, 
+`~/Datacube/data_cube_ui/config/dc_ui.conf`, and `~/Datacube/data_cube_ui/data_cube_ui/settings.py`. 
+The `sudo` commands at the end of that section may be ignored.
+
+Now the automated setup script can be run:
+```
+cd ~/Datacube/data_cube_ui
+bash scripts/ui_setup.sh
+```
+
+This will move the configuration files, do the migrations, and restart everything. This will also daemonize the celery workers.
+
+You will now need to create a Django superuser with the command `python manage.py createsuperuser`.
+
+Afterward, read the "[System Overview](#system_overview)" section and follow the instructions in the 
+"[Customize the UI](#customization)" section.
+
+
+
 <a name="configuration"></a> Configuring the Server
 =================
 
 The configuration of our application involves ensuring that all usernames and passwords are accurately listed in required configuration files, moving those configuration files to the correct locations, and enabling the entire system.
 
-The first step is to check the Data Cube and Apache configuration files. Open the '.datacube.conf' located in `~/Datacube/data_cube_ui/config/.datacube.conf` and ensure that your username, password, and database name all match. This should be the database and database username/password set **during the Data Cube installation process**. If these details are not correct, please set them and save the file.
+The first step is to check the Data Cube and Apache configuration files. Open `~/Datacube/data_cube_ui/config/.datacube.conf` and ensure that your username, password, and database name all match. This should be the database and database username/password set **during the Data Cube installation process**. If these details are not correct, please set them and save the file.
 
 **Please note that our UI application uses this configuration file for everything rather than the default.**
 
-Next, we'll need to update the Apache configuration file. Open the file found at `~/Datacube/data_cube_ui/config/dc_ui.conf`:
+Next, we'll need to update the Apache configuration file. Open the file `~/Datacube/data_cube_ui/config/dc_ui.conf`:
 
 ```
 <VirtualHost *:80>
@@ -197,16 +204,18 @@ Next, we'll need to update the Apache configuration file. Open the file found at
 
 In this configuration file, note that all of the paths are absolute. If you used a different username (other than 'localuser'), change all instance of 'localuser' to your username. For instance, if your username is 'datacube_user', replace all instance of 'localuser' to 'datacube_user'. This file assumes a standard installation with a virtual environment located in the location specified in the installation documentation.
 
-**This refers to the system user - the user that you use to log in to Ubuntu and run all processes with**
+**This refers to the system user - the user that you use to log in to Ubuntu and run all processes with.**
 
-We'll now copy the configuration files where they need to be. The '.datacube.conf' file is copied to the home directory for consistency.
+We'll now copy the configuration files where they need to be. The `.datacube.conf` file is copied to the home directory for consistency.
 
 ```
 cp ~/Datacube/data_cube_ui/config/.datacube.conf ~/.datacube.conf
 sudo cp ~/Datacube/data_cube_ui/config/dc_ui.conf /etc/apache2/sites-available/dc_ui.conf
 ```
 
-The next step is to edit the credentials found in the Django settings. Open the 'settings.py' found at `~/Datacube/data_cube_ui/data_cube_ui/settings.py`:
+The next step is to edit the credentials found in the Django settings. 
+Open `settings.py` found at `~/Datacube/data_cube_ui/data_cube_ui/settings.py`
+with your favorite text editor (here, `gedit`):
 
 ```
 gedit ~/Datacube/data_cube_ui/data_cube_ui/settings.py
@@ -236,7 +245,7 @@ Next, replace 'localuser' with whatever your local system user is. This correspo
 LOCAL_USER = "localuser"
 ```
 
-The database credentials need to be entered here as well - enter the database name, username, and password that you entered in your .datacube.conf file:
+The database credentials need to be entered here as well - enter the database name, username, and password that you entered in your `.datacube.conf` file:
 
 ```
 DATABASES = {
@@ -258,7 +267,7 @@ sudo a2ensite dc_ui.conf
 sudo service apache2 restart
 ```
 
-Additionally, a .pgpass is required for the Data Cube On Demand functionality. Edit the .pgpass in the config directory with your database username and password from above and copy it into the home directory of your local user.
+Additionally, a `.pgpass` is required for the Data Cube On Demand functionality. Edit the `.pgpass` in the config directory with your database username and password from above and copy it into the home directory of your local user.
 
 ```
 # assumes you're logged in as your local user - if not, replace ~ with /home/{username}
@@ -292,9 +301,9 @@ Next, create a super user account on the UI for personal use:
 python manage.py createsuperuser
 ```
 
-Now that we have everything initialized, we can view the site and see what we've been creating. Visit the site in your web browser - either by ip from an outside machine or at localhost within the machine. You should now see a introduction page. Log in using one of the buttons and view the Custom Mosaic Tool - You'll see all of our default areas. **This does not give access to all of these areas, they are examples. You will need to add your own areas and remove the defaults.**
+Now that we have everything initialized, we can view the site and see what we've been creating. Visit the site in your web browser - either by IP from an outside machine or at localhost within the machine. You should now see a introduction page. Log in using one of the buttons and view the Custom Mosaic Tool - You'll see all of our default areas. **This does not give access to all of these areas, they are examples. You will need to add your own areas and remove the defaults.**
 
-Visit the administration panel by going to either {ip}/admin or localhost/admin. You'll see a page that shows all of the various models and default values.
+Visit the administration panel by going to either {IP}/admin or localhost/admin. You'll see a page that shows all of the various models and default values.
 
 
 <a name="starting_workers"></a> Starting Workers
@@ -417,21 +426,23 @@ Go back to the main site and navigate back to the Custom Mosaic Tool. You will s
 Upgrades can be pulled directly from our GitHub releases using Git. There are a few steps that will need to be taken to complete an upgrade from an earlier release version:
 
 * Pull the code from our repository
-* Make and run the Django migrations with 'python manage.py makemigrations && python manage.py migrate'. We do not keep our migrations in Git so these are specific to your system.
-* If we have added any new applications (found in the apps directory) then you'll need to run the specific migration with 'python manage.py makemigrations {app_name} && python manage.py migrate'
-* If there are any new migrations, load the new initial values from our .json file with 'python manage.py loaddata db_backups/init_database.json'
-* Now that your database is working, stop your existing Celery workers (daemon and console) and run a test instance in the console with 'celery -A data_cube_ui worker -l info'.
-* To test the current codebase for functionality, run 'python manage.py runserver 0.0.0.0:8000'. Any errors will be printed to the console - make any required updates.
+* Make and run the Django migrations with `python manage.py makemigrations && python manage.py migrate`. We do not keep our migrations in Git so these are specific to your system.
+* If we have added any new applications (found in the apps directory) then you'll need to run the specific migration with `python manage.py makemigrations {app_name} && python manage.py migrate`
+* If there are any new migrations, load the new initial values from our .json file with `python manage.py loaddata db_backups/init_database.json`
+* Now that your database is working, stop your existing Celery workers (daemon and console) and run a test instance in the console with `celery -A data_cube_ui worker -l info`.
+* To test the current codebase for functionality, run `python manage.py runserver 0.0.0.0:8000`. Any errors will be printed to the console - make any required updates.
 * Restart apache2 for changes to appear on the live site and restart your Celery worker. Ensure that only one instance of the worker is running.
 
 Occasionally there may be some issues that need to be debugged. Some of the common scenarios have been enumerated below, but the general workflow is found below:
 
 * Stop the daemon Celery process and start a console instance
 * Run the task that is causing your error and observe the error message in the console
-* If there is a 500 http error or a Django error page, ensure that DEBUG is set to True in settings.py and observe the error message in the logs or the error page.
+* If there is a 500 http error or a Django error page, ensure that `DEBUG` is set to `True` in `settings.py` and observe the error message in the logs or the error page.
 * Fix the error described by the message, restart apache, restart workers
 
-If you are having trouble diagnosing issues with the UI, feel free to contact us with a description of the issue and all relevant logs or screenshots. To ensure that we are able to assist you quickly and efficiently, please verify that your server is running with DEBUG = True and your Celery worker process is running in the terminal with loglevel info.
+If you are having trouble diagnosing issues with the UI, feel free to contact us with a description of the issue and all relevant logs or screenshots. To ensure that we are able to assist you quickly and efficiently, please verify that your server is running with `DEBUG = True` and your Celery worker process is running in the terminal with loglevel info.
+
+It can be helpful when debugging to check the Celery logs, which by default are at `/var/log/celery`. 
 
 <a name="faqs"></a> Common problems/FAQs
 ========  
@@ -445,31 +456,34 @@ Q:
  >I’m getting a “Permission denied error.”  How do I fix this?  
 
 A:  
->	More often than not the issue is caused by a lack of permissions on the folder where the application is located.  Grant full access to the folder and its subfolders and files (this can be done by using the command “chmod -R 777 FOLDER_NAME”).  
+>	More often than not the issue is caused by a lack of permissions on the folder where the application is located.  Grant full access to the folder and its subfolders and files (this can be done by using the command `chmod -R 777 FOLDER_NAME`).  
 
 Q: 	
- >I'm getting a too many connections error when I visit a UI page
+ >I'm getting a "too many connections" error when I visit a UI page.
 
 A:  
->	The Celery worker processes have opened too many connections for your database setup. Edit the connection number allowed in your postgresql.conf file. If this number is already sufficient, that means that one of the celery workers is opening connections without closing them. To diagnose this issue, start the celery workers with a concurrency of 1 (e.g. -c 1) and check to see what tasks are opening postgres connections and not closing them. Ensure that you stop the daemon process before creating the console Celery worker process.
+>	The Celery worker processes have opened too many connections for your database setup. 
+    Edit the connection number allowed in your `postgresql.conf` file. If this number is already sufficient, that means that one of the celery workers is opening connections without closing them. To diagnose this issue, start the celery workers with a concurrency of 1 (e.g. -c 1) and check to see what tasks are opening postgres connections and not closing them. Ensure that you stop the daemon process before creating the console Celery worker process.
 
 Q: 	
- >My tasks won't run - there is an error produced and the UI creates an alert
+ >My tasks won't run - there is an error produced and the UI creates an alert.
 
 A:  
->	Start your celery worker in the terminal with debug mode turned on and loglevel=info. Stop the daemon process if it is started to ensure that all tasks will be visible. Run the task that is failing and observe any errors. The terminal output will tell you what task caused the error and what the general problem is.
+>	Start your celery worker in the terminal with debug mode turned on and `loglevel=info`. Stop the daemon process if it is started to ensure that all tasks will be visible. Run the task that is failing and observe any errors. The terminal output will tell you what task caused the error and what the general problem is.
 
 Q: 	
  >Tasks don't start - when submitted on the UI, a progress bar is created but there is never any progress.
 
 A:  
->	This state means that the Celery worker pool is not accepting your task. Check your server to ensure that a celery worker process is running with 'ps aux | grep celery'. If there is a Celery worker running, check that the MASTER_NODE setting is set in the settings.py file to point to your server and that Celery is able to connect - if you are currently using the daemon process, stop it and run the worker in the terminal.  
+>   This state means that the Celery worker pool is not accepting your task. Check your server to ensure that a celery worker process is running with `ps aux | grep celery`. 
+    If there is a Celery worker running, check that the `MASTER_NODE` setting is set in the `settings.py` file to point to your server and that Celery is able to connect - if you are currently using the daemon process, stop it and run the worker in the terminal.  
 
 Q: 	
- >I'm seeing some SQL related errors in the Celery logs that prevent tasks from running
+ >I'm seeing some SQL related errors in the Celery logs that prevent tasks from running.
 
 A:  
->	Run the Django migrations to ensure that you have the latest database schemas. If you have updated recently, ensure that you have a database table for each app - if any are missing, run 'python manage.py makemigrations {app_name}' followed by 'python manage.py migrate'.
+>	Run the Django migrations to ensure that you have the latest database schemas. If you have updated recently, ensure that you have a database table for each app. 
+    If any are missing, run `python manage.py makemigrations {app_name}` followed by `python manage.py migrate`.
 
 Q:
  > How do I refresh the Data Cube Visualization tool?<br/>

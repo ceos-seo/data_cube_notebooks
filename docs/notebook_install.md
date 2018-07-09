@@ -23,14 +23,18 @@ Jupyter notebooks are extremely useful as a learning tool and as an introductory
 
 To run our Jupyter notebook examples, the following prerequisites must be complete:
 
-* The full Data Cube Installation Guide must have been followed and completed. This includes:
-  * You have a local user that is used to run the Data Cube commands/applications
-  * You have a database user that is used to connect to your 'datacube' database
-  * The Data Cube is installed and you have successfully run 'datacube system init'
-  * All code is checked out and you have a virtual environment in the correct directories: `~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}`
-* The full Ingestion guide must have been followed and completed. This includes:
-  * A sample Landsat 7 scene was downloaded and uncompressed in your `/datacube/original_data` directory
-  * The ingestion process was completed for that sample Landsat 7 scene
+The full Data Cube Installation Guide must have been followed and completed before proceeding. This includes:
+* You have a local user that is used to run the Data Cube commands/applications
+* You have a database user that is used to connect to your 'datacube' database
+* The Data Cube is installed and you have successfully run 'datacube system init'
+* All code is checked out and you have a virtual environment in the correct directories: `~/Datacube/{data_cube_ui, data_cube_notebooks, datacube_env, agdc-v2}`
+
+If these requirements are not met, please see the associated documentation.
+
+You can view the notebooks without ingesting any data, but to be able to run notebooks with the sample ingested data, 
+the ingestion guide must have been followed and completed. The steps include:
+* A sample Landsat 7 scene was downloaded and uncompressed in your `/datacube/original_data` directory
+* The ingestion process was completed for that sample Landsat 7 scene
 
 <a name="installation_process"></a> Installation Process
 ========  
@@ -44,36 +48,32 @@ source ~/Datacube/datacube_env/bin/activate
 Now install the following Python packages:
 
 ```
-pip install jupyter
-pip install matplotlib
-pip install scipy
-pip install sklearn
-pip install lcmap-pyccd
-pip install folium
+pip install jupyter matplotlib scipy sklearn lcmap-pyccd folium
 ```
 
 <a name="configuration"></a> Configuration
 ========  
 
-The first step is to generate a notebook configuration file. Run the following commands:
-
+The first step is to generate a notebook configuration file. 
+Ensure that you're in the virtual environment. If not, activate with `source ~/Datacube/datacube_env/bin/activate`.
+Then run the following commands:
 ```
-#ensure that you're in the virtual environment. If not, activate with 'source ~/Datacube/datacube_env/bin/activate'
 cd ~/Datacube/data_cube_notebooks
 jupyter notebook --generate-config
 jupyter nbextension enable --py --sys-prefix widgetsnbextension
 ```
 
-Jupyter will create a configuration file in `~/.jupyter/jupyter_notebook_config.py`. Now set the password and edit the server details:
+Jupyter will create a configuration file in `~/.jupyter/jupyter_notebook_config.py`. 
+Now set the password and edit the server details. Remember this password for future reference.
 
 ```
-#enter a password - remember this for future reference.
 jupyter notebook password
-
-gedit ~/.jupyter/jupyter_notebook_config.py
 ```
 
-Edit the generated configuration file to include relevant details - You'll need to find the relevant entries in the file:
+Now edit the Jupyter notebook configuration file `~/.jupyter/jupyter_notebook_config.py` with your favorite text editor.
+
+Edit the generated configuration file to include relevant details. 
+You'll need to set the relevant entries in the file:
 
 ```
 c.NotebookApp.ip = '*'
@@ -90,16 +90,19 @@ cd ~/Datacube/data_cube_notebooks
 jupyter notebook
 ```
 
-Open a web browser and go to localhost:8888 if you're on the server, or use 'ifconfig' to list your ip address and go to {ip}:8888. You should be greeted with a password field - enter the password from the previous step.
+Open a web browser and navigate to the notebook URL. If you are running your browser from the same machine that is 
+hosting the notebooks, you can use `localhost:{jupyter_port_num}` as the URL, where `jupyter_port_num` is the port number set for `c.NotebookApp.port` in the configuration file.
+If you are connecting from another machine, you will need to enter the public IP address of the server in the URL (which can be determined by running the `ifconfig` command on the server) in place of `localhost`. 
+You should be greeted with a password field. Enter the password from the previous step.
 
 <a name="using_notebooks"></a> Using the Notebooks
 ========  
 
 Now that your notebook server is running and the Data Cube is set up, you can run any of our examples.
 
-Open the notebook titled 'Data_Cube_API_Demo' and run through all of the cells using either the button on the toolbar or CTRL+Enter.
+Open the notebook titled 'Data_Cube_Test' and run through all of the cells using either the "Run" button on the toolbar or `Shift+Enter`.
 
-You'll see that a connection to the Data Cube is established, some metadata is listed, and some data is loaded and plotted. Further down the page, you'll see that we are also demonstrating our API that includes getting acquisition dates, scene metadata, and data.
+You'll see that a connection to the Data Cube is established, some metadata is queried, and some data is loaded and plotted.
 
 <a name="next_steps"></a> Next Steps
 ========  
@@ -114,6 +117,10 @@ Q:
  >I’m having trouble connecting to my notebook server from another computer.
 
 A:  
->	There can be a variety of problems that can cause this issue. Check your notebook configuration file, your network settings, and your firewall settings.
+>	There can be a variety of problems that can cause this issue.<br><br>
+    First check the IP and port number in your notebook configuration file.
+    Be sure you are connecting to `localhost:<port>` if your browser is running on the same
+    machine as the Jupyter server, and `<IP>:<port>` otherwise. 
+    Also check that your firewall is not blocking the port that it is running on.
 
 ---  
