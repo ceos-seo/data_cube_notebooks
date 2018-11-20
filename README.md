@@ -21,4 +21,4 @@ Requirements
 * sklearn
 * lcmap-pyccd
 
-For more detailed instructions, please read the [documentation](docs/notebook_install).
+For more detailed instructions, please read the [documentation](https://github.com/ceos-seo/data_cube_ui/blob/master/docs/notebook_install.md).
