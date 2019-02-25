@@ -4,6 +4,7 @@ from typing import List
 import numpy as np
 
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 import math # ceil
 
 import datacube
@@ -235,3 +236,48 @@ def rgb(dataset,
         plt.imshow(rgb)  
     
     plt.show()
+    
+def create_discrete_color_map(data_range, th, colors, cmap_name='my_cmap'):
+    """
+    Creates a discrete matplotlib LinearSegmentedColormap with thresholds for color changes.
+    
+    Parameters
+    ----------
+    data_range: list-like
+        A 2-tuple of the minimum and maximum values the data may take.
+    th: list
+        Threshold values. Must be in the range of `data_range` - noninclusive.
+    colors: list
+        Colors to use between thresholds, so `len(colors) == len(th)+1`.
+        Colors can be string names of matplotlib colors or 3-tuples of rgb values in range [0,255].
+    cmap_name: str
+        The name of the colormap for matplotlib.
+    """
+    import matplotlib as mpl
+    # Normalize threshold values based on the data range.
+    th = list(map(lambda val: (val - data_range[0])/(data_range[1] - data_range[0]), th))
+    # Normalize color values.
+    for i, color in enumerate(colors):
+        if isinstance(color, tuple):
+            colors[i] = [rgb/255 for rgb in color]
+    th = [0.0] + th + [1.0]
+    cdict = {}
+    # These are fully-saturated red, green, and blue - not the matplotlib colors for 'red', 'green', and 'blue'.
+    primary_colors = ['red', 'green', 'blue']
+    # Get the 3-tuples of rgb values for the colors.
+    color_rgbs = [(mpl.colors.to_rgb(color) if isinstance(color,str) else color) for color in colors]
+    # For each color entry to go into the color dictionary...
+    for primary_color_ind, primary_color in enumerate(primary_colors):
+        cdict_entry = [None]*len(th)
+        # For each threshold (as well as 0.0 and 1.0), specify the values for this primary color.
+        for row_ind, th_ind in enumerate(range(len(th))):
+            # Get the two colors that this threshold corresponds to.
+            th_color_inds = [0,0] if th_ind==0 else \
+                            [len(colors)-1, len(colors)-1] if th_ind==len(th)-1 else \
+                            [th_ind-1, th_ind]
+            primary_color_vals = [color_rgbs[th_color_ind][primary_color_ind] for th_color_ind in th_color_inds]
+            cdict_entry[row_ind] = (th[th_ind],) + tuple(primary_color_vals)
+        cdict[primary_color] = cdict_entry
+    cmap = LinearSegmentedColormap(cmap_name, cdict)
+    return cmap
+
