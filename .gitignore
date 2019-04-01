@@ -1,6 +1,7 @@
 .idea
 .ipynb_checkpoints
 nohup.out
+output/*
 __pycache__
 *.nc
 *.tif
