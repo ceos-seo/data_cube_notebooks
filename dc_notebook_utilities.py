@@ -1,13 +1,12 @@
 from ipywidgets import widgets
 from IPython.display import display, HTML
 from typing import List
-import numpy as np
 
-import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import math # ceil
 
 import datacube
+
 
 def create_acq_date_gui(acq_dates):
     """
