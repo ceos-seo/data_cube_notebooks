@@ -1,0 +1,20 @@
+<PAMDataset>
+  <SRS>GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433],AUTHORITY["EPSG","4326"]]</SRS>
+  <GeoTransform> -1.7279166666804902e+00,  2.7742526790972097e-04,  0.0000000000000000e+00,  6.7818055556098100e+00,  0.0000000000000000e+00, -2.7735943775322231e-04</GeoTransform>
+  <Metadata domain="IMAGE_STRUCTURE">
+    <MDI key="INTERLEAVE">PIXEL</MDI>
+  </Metadata>
+  <Metadata>
+    <MDI key="AREA_OR_POINT">Area</MDI>
+  </Metadata>
+  <PAMRasterBand band="1">
+    <NoDataValue>-9.99900000000000E+03</NoDataValue>
+    <ColorInterp>Gray</ColorInterp>
+  </PAMRasterBand>
+  <PAMRasterBand band="2">
+    <NoDataValue>-9.99900000000000E+03</NoDataValue>
+  </PAMRasterBand>
+  <PAMRasterBand band="3">
+    <NoDataValue>-9.99900000000000E+03</NoDataValue>
+  </PAMRasterBand>
+</PAMDataset>

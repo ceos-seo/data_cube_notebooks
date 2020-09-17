@@ -1,0 +1,27 @@
+hdmedians==0.13
+lcmap-pyccd==2017.6.8
+shapely==1.6.4
+
+# rasterio
+# scipy
+# sklearn 
+# scikit-image
+# shapely 
+# cloudpickle 
+# Cython 
+# netcdf4
+# sqlalchemy 
+# psycopg2-binary
+# seaborn
+# jupyter 
+# folium 
+# rasterstats 
+# tqdm
+# bokeh 
+# geopandas 
+# descartes
+# python-dateutil==2.8.0
+# click
+# ruamel.yaml
+# packaging
+# gdal
