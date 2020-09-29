@@ -11,9 +11,9 @@ from .dc_water_classifier import wofs_classify
 import random
 import itertools
 from sklearn import svm
-from sklearn.externals import joblib
+# from sklearn.externals import joblib
+import joblib
 from sklearn.metrics import f1_score, recall_score, precision_score
-dc = datacube.Datacube(app = 'wasard_test', config = '/home/localuser/.datacube.conf')
 
 
 class wasard_classifier:
@@ -581,9 +581,6 @@ def _get_scores(sar_wasard_dataset, landsat_dataset, landsat_time_index):
     :param sar_time_index: int indicating which time index from the SAR dataset will be used
     :return: Ratio of pixels with the same predicted water value between the two scene_indexs to the total number of pixels 
     """
-    
-    
-#    assert 'wasard' in sar_dataset.variable_names.keys()
     assert 'wasard' in sar_wasard_dataset.data_vars, "sar_dataset must include ""wasard"" datavar"
     
     landsat_dataset_at_time       = landsat_dataset.isel(time=landsat_time_index)

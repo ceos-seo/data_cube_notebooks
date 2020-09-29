@@ -98,8 +98,8 @@ def export_xarray_to_multiple_geotiffs(ds, path, x_coord='longitude', y_coord='l
     def time_to_string(t):
         return time.strftime("%Y_%m_%d_%H_%M_%S", time.gmtime(t.astype(int) / 1000000000))
 
-    for t in ds.time:
-        time_slice_xarray = ds.sel(time=t)
+    for t_ind, t in enumerate(ds.time):
+        time_slice_xarray = ds.isel(time=t_ind)
         export_slice_to_geotiff(time_slice_xarray,
                                 path + "_" + time_to_string(t) + ".tif",
                                 x_coord=x_coord, y_coord=y_coord)

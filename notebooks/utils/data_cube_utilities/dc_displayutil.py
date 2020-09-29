@@ -11,18 +11,18 @@ def _is_list(var):
 
 
 def display_at_time(cubes, time = None, color = [238,17,17], width = 3, name = None, on_pixel = True, mode = None,h=4,w=10):
-	lop = []
-	for x in cubes:
-		if isinstance(x, tuple):
-			#Overlays the not-nan values of the 'subject' on the 'canvas'.
-			canvas  = x[0].sel(time = time, method = 'nearest')
-			subject = x[1].sel(time = time, method = 'nearest')
-			overlay = _overlayer(canvas, subject, color = color,on_pixel = on_pixel, mode = mode)
-			lop.append(overlay)		
-		else:
-			selection = x.sel(time = time, method = 'nearest')
-			lop.append(_to_image(selection))
-	_display_list_of_plottables(lop, maxwidth = width, name = name,h = h, w = w)
+    lop = []
+    for x in cubes:
+        if isinstance(x, tuple):
+            #Overlays the not-nan values of the 'subject' on the 'canvas'.
+            canvas  = x[0].sel(time = time, method = 'nearest').isel(time=0)
+            subject = x[1].sel(time = time, method = 'nearest').isel(time=0)
+            overlay = _overlayer(canvas, subject, color = color,on_pixel = on_pixel, mode = mode)
+            lop.append(overlay)
+        else:
+            selection = x.sel(time = time, method = 'nearest').isel(time=0)
+            lop.append(_to_image(selection))
+    _display_list_of_plottables(lop, maxwidth = width, name = name,h = h, w = w)
 
 def _to_image(cube,minval = 0, maxval = 2000, backfill = []):
 	red, green, blue =  [np.array(cube.red.values), np.array(cube.green.values), np.array(cube.blue.values)]
@@ -48,21 +48,16 @@ def _to_image(cube,minval = 0, maxval = 2000, backfill = []):
 	rgb = np.dstack([red,green,blue])
 	_reversedim(rgb, k = 0)
 	return rgb
-			
 
-def _encode(h,w,e):
-	return str(h) + str(w) + str(e)	 
 
 def _display_list_of_plottables(plotables, maxwidth = 3, name= 'figure', h=4,w=10):
-	if _is_list(plotables):	
-		height = math.ceil(len(plotables)/maxwidth)
-		plt.figure(name,figsize=(w, h))
-		for index, item in enumerate(plotables):
-			plt.subplot(_encode(height, maxwidth,index + 1))
-			plt.imshow(item)
-		plt.show()
-	else:
-		raise Execption("YOU NEED TO PASS A LIST")
+    assert _is_list(plotables), "the plotables argument must be a list"
+    height = math.ceil(len(plotables)/maxwidth)
+    plt.figure(name,figsize=(w, h))
+    for index, item in enumerate(plotables):
+        plt.subplot(height, maxwidth, index+1)
+        plt.imshow(item)
+    plt.show()
 
 
 def _reversedim(M,k=0):

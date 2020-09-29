@@ -3,17 +3,6 @@
 # at 'http://localhost' with password 'secretpassword'
 docker_compose = docker-compose --project-directory docker -f docker/docker-compose.yml
 
-sudo-ubuntu-install-docker:
-	sudo apt-get update
-	sudo apt install -y docker.io docker-compose
-	sudo systemctl start docker
-	sudo systemctl enable docker
-	# The following steps are for enabling use 
-	# of the `docker` command for the current user
-	# without using `sudo`
-	getent group docker || sudo groupadd docker
-	sudo usermod -aG docker ${USER}
-
 # 1. Start your Docker environment
 up:
 	$(docker_compose) up -d --build
@@ -30,6 +19,17 @@ down:
 
 ps:
 	$(docker_compose) ps
+
+sudo-ubuntu-install-docker:
+	sudo apt-get update
+	sudo apt install -y docker.io docker-compose
+	sudo systemctl start docker
+	sudo systemctl enable docker
+	# The following steps are for enabling use 
+	# of the `docker` command for the current user
+	# without using `sudo`
+	getent group docker || sudo groupadd docker
+	sudo usermod -aG docker ${USER}
 
 # Create the persistent volume for the ODC database.
 create-notebooks-odc-db-volume:

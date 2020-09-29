@@ -82,18 +82,18 @@ def kmeans_cluster_dataset(dataset_in, bands, n_clusters=4):
     """
     classified = AgglomerativeClustering(n_clusters=n_clusters).fit(np_array)
     classified = Birch(n_clusters=n_clusters).fit(np_array)
-    classified = DBSCAN(eps=0.005, min_samples=5, n_jobs=-1).fit(np_array)
+    classified = DBSCAN(eps=0.005, min_samples=5).fit(np_array)
     """
     from sklearn.cluster import KMeans
-    classified = KMeans(n_clusters=n_clusters, n_jobs=-1).fit(features)
+    classified = KMeans(n_clusters=n_clusters).fit(features)
     return clustering_post_processing(classified, dataset_in, bands, no_nan_mask)
 
 def birch_cluster_dataset(dataset_in, bands, n_clusters=4):
     features, no_nan_mask = clustering_pre_processing(dataset_in, bands)
     """
-    classified = AgglomerativeClustering(n_clusters=n_clusters, n_jobs=-1).fit(np_array)
-    classified = DBSCAN(eps=0.005, min_samples=5, n_jobs=-1).fit(np_array)
-    classified = KMeans(n_clusters=n_clusters, n_jobs=-1).fit(np_array)
+    classified = AgglomerativeClustering(n_clusters=n_clusters).fit(np_array)
+    classified = DBSCAN(eps=0.005, min_samples=5).fit(np_array)
+    classified = KMeans(n_clusters=n_clusters).fit(np_array)
     """
     from sklearn.cluster import Birch
     classified = Birch(n_clusters=n_clusters, threshold=0.00001).fit(features)

@@ -19,19 +19,28 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import os
+# old_cwd = os.getcwd()
+# os.chdir(os.path.dirname(__file__))
+
 import gc
 import numpy as np
 import xarray as xr
+import dask
 import datacube
-
-from . import dc_utilities as utilities
+import warnings
 
 # Command line tool imports
 import argparse
-import os
 import collections
 import gdal
 from datetime import datetime
+
+
+from . import dc_utilities as utilities
+from .dc_utilities import create_default_clean_mask
+
+# os.chdir(old_cwd)
 
 # Author: KMF
 # Creation date: 2016-06-13
@@ -107,8 +116,6 @@ def wofs_classify(dataset_in, clean_mask=None, x_coord='longitude', y_coord='lat
     Throws:
         ValueError - if dataset_in is an empty xarray.Dataset.
     """
-    import dask
-    from .dc_utilities import create_default_clean_mask
 
     def _band_ratio(a, b):
         """
@@ -131,7 +138,7 @@ def wofs_classify(dataset_in, clean_mask=None, x_coord='longitude', y_coord='lat
             classified = np.full_like(band1, no_data, dtype='uint8')
         elif isinstance(band1, dask.array.core.Array):
             classified = dask.array.full_like(band1, no_data, dtype='uint8',
-                                      chunks=band1.chunks)
+                                    chunks=band1.chunks)
     
         # Start with the tree's left branch, finishing nodes as needed
 
@@ -257,15 +264,16 @@ def wofs_classify(dataset_in, clean_mask=None, x_coord='longitude', y_coord='lat
     swir1 = dataset_in.swir1
     swir2 = dataset_in.swir2
 
+    # Ignore warnings about division by zero and NaNs.
     classified = _run_regression(blue.data, green.data, red.data, 
                                  nir.data, swir1.data, swir2.data)
+     
+    # classified_clean = classified - classified + no_data
     
-    classified_clean = classified - classified + no_data
-    
-    if isinstance(classified_clean, np.ndarray):
-        classified_clean = np.where(clean_mask, classified, classified_clean)
-    elif isinstance(classified_clean, dask.array.core.Array):
-        classified_clean = dask.array.where(clean_mask, classified, classified_clean)
+    if isinstance(blue.data, np.ndarray):
+        classified_clean = np.where(clean_mask, classified, no_data)
+    elif isinstance(blue.data, dask.array.core.Array):
+        classified_clean = dask.array.where(clean_mask, classified, no_data)
     
     # Create xarray of data
     x_coords = dataset_in[x_coord]

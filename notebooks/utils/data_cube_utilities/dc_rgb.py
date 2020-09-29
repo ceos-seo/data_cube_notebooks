@@ -4,11 +4,11 @@ import numpy as np
 
 
 # Change the bands (RGB) here if you want other false color combinations
-def rgb(dataset, at_index=0, x_coord='longitude', y_coord='latitude',
+def rgb(dataset, time_index=0, x_coord='longitude', y_coord='latitude',
         bands=['red', 'green', 'blue'], paint_on_mask = [],
-        min_possible=0, max_possible=10000, use_data_min=False,
-        use_data_max=False, min_inten=0.15, max_inten=1.0,
-        width=10, fig=None, ax=None, imshow_kwargs=None):
+        min_inten=0.0, max_inten=1.0,
+        width=10, fig=None, ax=None, imshow_kwargs=None, 
+        percentiles=(5, 95)):
     """
     Creates a figure showing an area, using three specified bands as the rgb componenets.
 
@@ -18,23 +18,17 @@ def rgb(dataset, at_index=0, x_coord='longitude', y_coord='latitude',
         A Dataset containing at least latitude and longitude coordinates and optionally time.
         The coordinate order should be time, latitude, and finally longitude.
         Must contain the data variables specified in the `bands` parameter.
-    at_index: int
-        The time index to show.
+    time_index:
+        The time index to show data for if `dataset` is not 2D.
     x_coord, y_coord, time_coord: str
         Names of DataArrays in `dataset_in` to use as x, y, and time coordinates.
     bands: list-like
         A list-like containing 3 names of data variables in `dataset` to use as the red, green, and blue
         bands, respectively.
-    min_possible, max_possible: int
-        The minimum and maximum valid values for the selected bands according to
-        the platform used to retrieve the data in `dataset`.
-        For example, for Landsat these are generally 0 and 10000, respectively.
-    use_data_min: bool
-        Whether to use `min_possible` or the minimum among all selected bands
-        as the band value which has a minimal intensity.
-    use_data_max: bool
-        Whether to use `max_possible` or the maximum among all selected bands
-        as the band value which has a maximal intensity.
+    paint_on_mask: tuple
+        A 2-tuple of a boolean NumPy array (a "mask") and a list-like of 3 numeric values
+        in the range [0, 255]. The array specifies where to "paint" over the RGB image with
+        the RGB color specified by the second element.
     min_inten, max_inten: float
         The min and max intensities for any band. These can be in range [0,1].
         These can be used to brighten or darken the image.
@@ -48,6 +42,10 @@ def rgb(dataset, at_index=0, x_coord='longitude', y_coord='latitude',
     imshow_kwargs: dict
         The dictionary of keyword arguments passed to `ax.imshow()`.
         You can pass a colormap here with the key 'cmap'.
+    percentiles: list-like, default (5, 95)
+        A 2-tuple of the lower and upper percentiles of the selected bands to set the min and max intensities
+        to. The lower or upper values are overridden by `vmin` and `vmax` in `imshow_kwargs`.
+        The range is [0, 100]. So `percentiles=(0,100)` would scale to the min and max of the selected bands.
 
     Returns
     -------
@@ -58,15 +56,19 @@ def rgb(dataset, at_index=0, x_coord='longitude', y_coord='latitude',
         xarray_set_axes_labels, retrieve_or_create_fig_ax
 
     imshow_kwargs = {} if imshow_kwargs is None else imshow_kwargs
+    vmin = imshow_kwargs.pop('vmin', None)
+    vmax = imshow_kwargs.pop('vmax', None)
 
     ### < Dataset to RGB Format, needs float values between 0-1 
     rgb = np.stack([dataset[bands[0]],
                     dataset[bands[1]],
                     dataset[bands[2]]], axis = -1)
     # Interpolate values to be in the range [0,1] for creating the image.
-    min_rgb = np.nanmin(rgb) if use_data_min else min_possible
-    max_rgb = np.nanmax(rgb) if use_data_max else max_possible
-    rgb = np.interp(rgb, (min_rgb, max_rgb), [min_inten,max_inten])
+    if vmin is None:
+        vmin = np.nanpercentile(rgb, percentiles[0])
+    if vmax is None:
+        vmax = np.nanpercentile(rgb, percentiles[1])
+    rgb = np.interp(rgb, (vmin, vmax), [min_inten,max_inten])
     rgb = rgb.astype(float)
     ### > 
     
@@ -80,8 +82,8 @@ def rgb(dataset, at_index=0, x_coord='longitude', y_coord='latitude',
     xarray_set_axes_labels(dataset, ax, x_coord, y_coord)
    
     if 'time' in dataset.dims:
-        ax.imshow(rgb[at_index], **imshow_kwargs)
+        ax.imshow(rgb[time_index], **imshow_kwargs)
     else:
-        ax.imshow(rgb, **imshow_kwargs)
+        ax.imshow(rgb, vmin=vmin, vmax=vmax, **imshow_kwargs)
     
     return fig, ax

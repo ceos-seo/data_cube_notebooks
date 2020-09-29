@@ -1,27 +1,22 @@
-hdmedians==0.13
-lcmap-pyccd==2017.6.8
+## Dependencies for this particular environment (CEOS) ##
+# TODO: Can this be removed if we use `odc.algo.xr_geomedian()`?
+hdmedians==0.14
+lcmap-pyccd==2018.10.17
 shapely==1.6.4
+fiona==1.8.17
+bokeh==2.2.1
+seaborn==0.11.0
+geopandas==0.8.1
+scikit-learn==0.23.2
+tqdm==4.49.0
+descartes==1.1.0
+python-dateutil==2.8.0
+holoviews==1.13.4
+joblib==0.16.0
+odc-algo # 0.1.dev610+g46c92a6
+datashader==0.11.1
+dask[dataframe] # 2.27.0
 
-# rasterio
-# scipy
-# sklearn 
-# scikit-image
-# shapely 
-# cloudpickle 
-# Cython 
-# netcdf4
-# sqlalchemy 
-# psycopg2-binary
-# seaborn
-# jupyter 
-# folium 
-# rasterstats 
-# tqdm
-# bokeh 
-# geopandas 
-# descartes
-# python-dateutil==2.8.0
-# click
-# ruamel.yaml
-# packaging
-# gdal
+# Previously used packages #
+# Provides masking - just mask with shapely and get stats with xarray.
+# rasterstats

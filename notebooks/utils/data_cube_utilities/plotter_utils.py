@@ -13,6 +13,8 @@ import time
 import warnings
 
 from .plotter_utils_consts import n_pts_smooth, default_fourier_n_harm
+from .scale import np_scale
+from .dc_time import _n64_to_datetime, _n64_datetime_to_scalar, _scalar_to_n64_datetime
 
 def impute_missing_data_1D(data1D):
     """
@@ -223,7 +225,7 @@ def xarray_plot_ndvi_boxplot_wofs_lineplot_over_time(dataset, resolution=None, c
     bp = ax.boxplot(filtered_formatted_data, widths=[box_width] * len(filtered_formatted_data),
                     positions=x_locs, patch_artist=True, boxprops=dict(facecolor=ndvi_box_color),
                     flierprops=dict(marker='o', markersize=0.25),
-                    manage_xticks=False)  # `manage_xticks=False` to avoid excessive padding on the x-axis.
+                    manage_ticks=False)  # `manage_ticks=False` to avoid excessive padding on the x-axis.
 
     # WOFS line
     wofs_formatted_data = xr.DataArray(np.full_like(plotting_data.wofs.values, np.nan))
@@ -339,9 +341,6 @@ def xarray_time_series_plot(dataset, plot_descs, x_coord='longitude',
     :Authors:
         John Rattz (john.c.rattz@ama-inc.com)
     """
-    from .scale import np_scale
-    from .dc_time import _n64_to_datetime, _n64_datetime_to_scalar, _scalar_to_n64_datetime
-
     fig_params = {} if fig_params is None else fig_params
 
     # Lists of plot types that can and cannot accept many-to-one aggregation
@@ -730,11 +729,11 @@ def xarray_time_series_plot(dataset, plot_descs, x_coord='longitude',
                                         filtered_formatted_data.append(d[m])
                                 box_width = 0.5 * np.min(np.diff(x_locs)) \
                                     if len(x_locs) > 1 else 0.5
-                                # `manage_xticks=False` to avoid excessive padding on x-axis.
+                                # `manage_ticks=False` to avoid excessive padding on x-axis.
                                 bp = ax.boxplot(filtered_formatted_data,
                                                 widths=[box_width] * len(filtered_formatted_data),
                                                 positions=x_locs, patch_artist=True,
-                                                manage_xticks=False, **plot_kwargs)
+                                                manage_ticks=False, **plot_kwargs)
                                 plot_obj = bp['boxes'][0]
                             return plot_obj
 
@@ -2041,7 +2040,7 @@ def retrieve_or_create_fig_ax(fig=None, ax=None, **subplots_kwargs):
             fig, ax = plt.subplots(**subplots_kwargs)
         else:
             if len(fig.axes) == 0:
-                fig.add_axes([1, 1, 1, 1])
+                fig.add_subplot(111)
             ax = fig.axes[0]
     return fig, ax
 
@@ -2074,6 +2073,7 @@ def remove_non_unique_ordered_list_str(ordered_list):
             ordered_list[i] = ""
     return ordered_list
 
+# Time #
 
 # For February, assume leap years are included.
 days_per_month = {1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30,
@@ -2152,6 +2152,12 @@ def naive_months_ticks_by_week(week_ints=None):
     week_ints = list(range(1, 55)) if week_ints is None else week_ints
     month_ticks_by_week = remove_non_unique_ordered_list_str(week_ints_to_month_names(week_ints))
     return month_ticks_by_week
+
+def n64_to_month_and_year(n64):
+    datetime_val = _n64_to_datetime(n64)
+    return month_names_long[datetime_val.month-1] + ' ' + str(datetime_val.year)
+
+# End Time #
 
 ## DEA Plotting Utils ##
 

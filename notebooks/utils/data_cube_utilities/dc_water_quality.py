@@ -1,23 +1,27 @@
 import gc
 import numpy as np
 import xarray as xr
+from xarray.ufuncs import sign as xr_sign
 
 from . import dc_utilities as utilities
 from .dc_utilities import create_default_clean_mask
 from datetime import datetime
-
+import warnings
 
 def _tsmi(dataset):
-    return (dataset.red.astype('float64') + dataset.green.astype('float64')) * 0.0001 / 2
-
+    out = (dataset.red + dataset.green) * 0.0001 / 2
+    return out.where(out>0, 0)
 
 def tsm(dataset_in, clean_mask=None, no_data=0):
     """
     Inputs:
-        dataset_in (xarray.Dataset) - dataset retrieved from the Data Cube.
+        dataset_in (xarray.Dataset)
+            Dataset retrieved from the Data Cube.
+            Must have 'red' and 'green' data variables.
     Optional Inputs:
-        clean_mask (numpy.ndarray with dtype boolean) - true for values user considers clean;
-            if user does not provide a clean mask, all values will be considered clean
+        clean_mask (numpy.ndarray with dtype boolean)
+            True for values considered clean;
+            if no clean mask is supplied, all values will be considered clean
         no_data (int/float) - no data pixel value; default: -9999
     Throws:
         ValueError - if dataset_in is an empty xarray.Dataset.
@@ -28,7 +32,7 @@ def tsm(dataset_in, clean_mask=None, no_data=0):
         clean_mask = create_default_clean_mask(dataset_in)
 
     tsm = 3983 * _tsmi(dataset_in)**1.6246
-    tsm.values[np.invert(clean_mask)] = no_data  # Contains data for clear pixels
+    tsm = tsm.where(clean_mask, no_data)
 
     # Create xarray of data
     _coords = { key:dataset_in[key] for key in dataset_in.dims.keys()}

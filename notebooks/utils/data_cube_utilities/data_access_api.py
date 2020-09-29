@@ -159,6 +159,50 @@ class DataAccessApi:
 
         return data
 
+#     def get_query_metadata(self, product, platform=None, longitude=None, latitude=None, time=None, **kwargs):
+#         """
+#         Gets a descriptor based on a request.
+
+#         Args:
+#             platform (string): Platform for which data is requested
+#             product (string): The name of the product associated with the desired dataset.
+#             longitude (tuple): Tuple of min,max floats for longitude
+#             latitude (tuple): Tuple of min,max floats for latitutde
+#             time (tuple): Tuple of start and end datetimes for requested data
+#             **kwargs (dict): Keyword arguments for `self.get_dataset_by_extent()`.
+
+#         Returns:
+#             scene_metadata (dict): Dictionary containing a variety of data that can later be
+#                                    accessed.
+#         """
+#         kwargs['measurements'] = []
+#         dataset = self.get_dataset_by_extent(
+#             platform=platform, product=product, longitude=longitude,
+#             latitude=latitude, time=time, **kwargs)
+
+#         if len(dataset.dims) == 0:
+#             return {
+#                 'lat_extents': (None, None),
+#                 'lon_extents': (None, None),
+#                 'time_extents': (None, None),
+#                 'scene_count': 0,
+#                 'pixel_count': 0,
+#                 'tile_count': 0,
+#                 'storage_units': {}
+#             }
+
+#         lon_min, lat_min, lon_max, lat_max = dataset.geobox.extent.envelope
+#         return {
+#             'lat_extents': (lat_min, lat_max),
+#             'lon_extents': (lon_min, lon_max),
+#             'time_extents': (dataset.time[0].values.astype('M8[ms]').tolist(),
+#                              dataset.time[-1].values.astype('M8[ms]').tolist()),
+#             'tile_count':
+#             dataset.time.size,
+#             'pixel_count':
+#             dataset.geobox.shape[0] * dataset.geobox.shape[1],
+#         }
+
     def get_query_metadata(self, product, platform=None, longitude=None, latitude=None, time=None, **kwargs):
         """
         Gets a descriptor based on a request.
@@ -191,17 +235,19 @@ class DataAccessApi:
                 'storage_units': {}
             }
 
-        lon_min, lat_min, lon_max, lat_max = dataset.geobox.extent.envelope
+        lon_min, lat_min, lon_max, lat_max = \
+            float(dataset.longitude.min().values), float(dataset.latitude.min().values), \
+            float(dataset.longitude.max().values), float(dataset.latitude.max().values)
         return {
-            'lat_extents': (lat_min, lat_max),
-            'lon_extents': (lon_min, lon_max),
-            'time_extents': (dataset.time[0].values.astype('M8[ms]').tolist(),
-                             dataset.time[-1].values.astype('M8[ms]').tolist()),
-            'tile_count':
-            dataset.time.size,
-            'pixel_count':
-            dataset.geobox.shape[0] * dataset.geobox.shape[1],
-        }
+                'lat_extents': (lat_min, lat_max),
+                'lon_extents': (lon_min, lon_max),
+                'time_extents': (dataset.time[0].values.astype('M8[ms]').tolist(),
+                                 dataset.time[-1].values.astype('M8[ms]').tolist()),
+                'tile_count':
+                dataset.time.size,
+                'pixel_count':
+                dataset.geobox.shape[0] * dataset.geobox.shape[1],
+            }
 
     def list_acquisition_dates(self, product, platform=None, longitude=None, latitude=None, time=None, **kwargs):
         """

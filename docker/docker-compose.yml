@@ -17,6 +17,8 @@ services:
     build:
       dockerfile: docker/Dockerfile
       context: ..
+      args:
+        - NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
     environment:
       - DB_HOSTNAME=postgres
       - DB_USERNAME=${DB_USERNAME}
@@ -26,7 +28,7 @@ services:
     ports:
       - "8080:8888"
     volumes:
-      - ../notebooks:/notebooks
+      - ../notebooks:${NOTEBOOK_ROOT}
       - /datacube:/datacube
     restart: always
     command: jupyter notebook --allow-root --ip="0.0.0.0" --NotebookApp.token=''
