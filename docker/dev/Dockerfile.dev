@@ -3,6 +3,7 @@ FROM opendatacube/geobase:wheels-3.0.4  as env_builder
 
 ARG py_env_path=/env
 
+# Install base dependencies (infrequently changing).
 RUN mkdir -p /conf
 COPY base_requirements.txt /conf/
 RUN env-build-tool new /conf/base_requirements.txt ${py_env_path} /wheels
@@ -27,8 +28,9 @@ RUN apt-get update -y \
   git \
   && rm -rf /var/lib/apt/lists/*
 
+# Install extra dependencies (dependencies for this
+# particular deployment).
 COPY extra_requirements.txt /conf/
-
 RUN . /env/bin/activate && pip3 install \
     # This Python packages index is Digital Earth Australia's package index.
     # Used for installing the odc-tools package (provides an `odc` module).
@@ -38,6 +40,26 @@ RUN . /env/bin/activate && pip3 install \
 RUN export GDAL_DATA=$(gdal-config --datadir)
 ENV LC_ALL=C.UTF-8 \
     PATH="/env/bin:$PATH"
+
+# Setup the Open Data Cube configuration.
+ARG ODC_DB_HOSTNAME="odc-db"
+ARG ODC_DB_DATABASE="datacube"
+ARG ODC_DB_USER="dc_user"
+ARG ODC_DB_PASSWORD="localuser1234"
+ARG ODC_DB_PORT="5432"
+ENV ODC_DB_HOSTNAME=${ODC_DB_HOSTNAME} \
+    ODC_DB_DATABASE=${ODC_DB_DATABASE} \
+    ODC_DB_USER=${ODC_DB_USER} \
+    ODC_DB_PASSWORD=${ODC_DB_PASSWORD} \
+    ODC_DB_PORT=${ODC_DB_PORT}
+RUN mkdir config && echo "\
+[datacube] \n\
+db_hostname: ${ODC_DB_HOSTNAME} \n\
+db_database: ${ODC_DB_DATABASE} \n\
+db_username: ${ODC_DB_USER} \n\
+db_password: ${ODC_DB_PASSWORD} \n" > /config/datacube.conf
+RUN cp /config/datacube.conf /etc/datacube.conf
+ENV DATACUBE_CONFIG_PATH=/config/datacube.conf
 
 ARG NOTEBOOK_ROOT
 ENV NOTEBOOK_ROOT=${NOTEBOOK_ROOT}

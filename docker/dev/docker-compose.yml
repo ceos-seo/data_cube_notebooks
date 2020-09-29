@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  # postgres:
+  #   image: kartoza/postgis:11.0-2.5
+  #   environment:
+  #     - POSTGRES_DB=${ODC_DB_DATABASE}
+  #     - POSTGRES_PASSWORD=${ODC_DB_PASSWORD}
+  #     - POSTGRES_USER=${ODC_DB_USERNAME}
+  #   ports:
+  #     - 5432:5432
+  #   volumes:
+  #     - notebooks-odc-db-vol:/var/lib/postgresql/data
+  #   restart: always
+  
+  jupyter:
+    build:
+      dockerfile: docker/dev/Dockerfile.dev
+      context: ../..
+      args:
+        - NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
+    environment:
+      ODC_DB_HOSTNAME: ${ODC_DB_HOSTNAME}
+      ODC_DB_DATABASE: ${ODC_DB_DATABASE}
+      ODC_DB_USER: ${ODC_DB_USER}
+      ODC_DB_PASSWORD: ${ODC_DB_PASSWORD}
+      AWS_NO_SIGN_REQUEST: "true"
+      # AWS env vars for loading data from S3.
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    ports:
+      # 8888 is the Jupyter notebook default port
+      - ${HOST_PORT}:8888
+    volumes:
+      - ../../notebooks:${NOTEBOOK_ROOT}
+    networks:
+      - odc
+    restart: always
+    command: jupyter notebook --allow-root --ip="0.0.0.0" --NotebookApp.token=''
+# volumes:
+#   notebooks-odc-db-vol:
+#     external: true
+networks:
+  odc:
+    external: true
