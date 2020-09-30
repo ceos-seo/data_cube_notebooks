@@ -16,7 +16,5 @@ joblib==0.16.0
 odc-algo # 0.1.dev610+g46c92a6
 datashader==0.11.1
 dask[dataframe] # 2.27.0
-
-# Previously used packages #
-# Provides masking - just mask with shapely and get stats with xarray.
-# rasterstats
+# only used by animations/3D/GA_Water_3DReservoir
+rasterstats==0.15.0
