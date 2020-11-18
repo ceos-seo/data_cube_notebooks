@@ -92,7 +92,7 @@ nbformat==5.0.7
 nest-asyncio==1.4.0
 netCDF4 @ file:///wheels/netCDF4-1.5.4-cp36-cp36m-linux_x86_64.whl
 networkx==2.5
-notebook==6.1.4
+notebook==6.1.5
 numba==0.51.2
 numexpr==2.7.1
 numpy==1.19.2
