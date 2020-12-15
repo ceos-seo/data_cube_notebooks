@@ -2,7 +2,7 @@ version: '3'
 
 services:
   # postgres:
-  #   image: kartoza/postgis:11.0-2.5
+  #   image: postgis/postgis:10-2.5
   #   environment:
   #     - POSTGRES_DB=${ODC_DB_DATABASE}
   #     - POSTGRES_PASSWORD=${ODC_DB_PASSWORD}
@@ -24,7 +24,7 @@ services:
       ODC_DB_DATABASE: ${ODC_DB_DATABASE}
       ODC_DB_USER: ${ODC_DB_USER}
       ODC_DB_PASSWORD: ${ODC_DB_PASSWORD}
-      AWS_NO_SIGN_REQUEST: "true"
+      # AWS_NO_SIGN_REQUEST: "true"
       # AWS env vars for loading data from S3.
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
