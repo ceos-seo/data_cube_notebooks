@@ -18,3 +18,6 @@ datashader==0.11.1
 dask[dataframe] # 2.27.0
 # only used by animations/3D/GA_Water_3DReservoir
 rasterstats==0.15.0
+# Testing #
+nbclient
+# End Testing #
