@@ -71,6 +71,8 @@ create-odc-db-volume:
 delete-odc-db-volume:
 	docker volume rm odc-db-vol
 
+recreate-odc-db-volume: delete-odc-db-volume create-odc-db-volume
+
 # Create the ODC database Docker container.
 create-odc-db:
 	docker run -d \
@@ -93,6 +95,9 @@ restart-odc-db: stop-odc-db start-odc-db
 delete-odc-db:
 	docker rm odc-db
 
+recreate-odc-db: stop-odc-db delete-odc-db create-odc-db
+
+recreate-odc-db-and-vol: stop-odc-db delete-odc-db recreate-odc-db-volume create-odc-db dev-odc-db-init
 ## End ODC DB ##
 
 ## Adding Data ##
