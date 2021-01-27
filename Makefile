@@ -1,6 +1,3 @@
-# You can follow the steps below in order to get yourself a local ODC.
-# Once running, you can access a Jupyter environment 
-# at 'http://localhost' with password 'secretpassword'
 SHELL:=/bin/bash
 docker_compose_dev = docker-compose --project-directory docker/dev -f docker/dev/docker-compose.yml
 
@@ -41,12 +38,6 @@ dev-ssh:
 dev-clear:
 	$(docker_compose_dev) stop
 	$(docker_compose_dev) rm -fs
-
-odc-db-ssh:
-	docker exec -it odc-db bash
-
-dev-odc-db-init:
-	$(docker_compose_dev) exec jupyter datacube system init
 
 ## End Common ##
 
@@ -89,6 +80,12 @@ start-odc-db:
 
 stop-odc-db:
 	docker stop odc-db
+
+odc-db-ssh:
+	docker exec -it odc-db bash
+
+dev-odc-db-init:
+	$(docker_compose_dev) exec jupyter datacube system init
 
 restart-odc-db: stop-odc-db start-odc-db
 
