@@ -1,5 +1,6 @@
+# This is used to correct a hopefully transient
+# issue in the opendatacube/cube-in-a-box image.
 FROM opendatacube/cube-in-a-box
-# jcrattzama/cube-in-a-box:odc1.8.3
 
 USER root
 

@@ -1,6 +1,8 @@
 import numpy as np
 import xarray as xr
 
+from .dc_utilities import get_range
+
 ## Utils ##
 
 def xarray_values_in(data, values, data_vars=None):
@@ -85,6 +87,15 @@ def landsat_clean_mask_invalid(dataset, platform, collection, level):
     ----------
     dataset: xarray.Dataset
         An `xarray.Dataset` containing bands such as 'red', 'green', or 'blue'.
+    platform: str
+        A string denoting the platform to be used. Can be 
+        "LANDSAT_5", "LANDSAT_7", or "LANDSAT_8".
+    collection: string
+        The Landsat collection of the data. 
+        Can be any of ['c1', 'c2'] for Collection 1 or 2, respectively.
+    level: string
+        The processing level of the Landsat data. 
+        Currently only 'l2' (Level 2) is supported.
 
     Returns
     -------
@@ -95,25 +106,15 @@ def landsat_clean_mask_invalid(dataset, platform, collection, level):
     invalid_mask = None
     data_arr_names = [arr_name for arr_name in list(dataset.data_vars)
                       if arr_name not in ['pixel_qa', 'radsat_qa', 'cloud_qa']]
-    
-    def get_range(platform, collection, level, data_var):
-        """
-        Obtain the "valid" value range for a given combination of Landsat platform, 
-        collection, level, and data_var (does vary by data variable for some products).
-        """
-        if (platform, collection, level) in \
-            [('LANDSAT_5', 'c1', 'l2'), ('LANDSAT_7', 'c1', 'l2'),
-             ('LANDSAT_8', 'c1', 'l2')]:
-            return [0, 10000]
-        elif (platform, collection, level) in \
-            [('LANDSAT_5', 'c2', 'l2'), ('LANDSAT_7', 'c2', 'l2'),
-             ('LANDSAT_8', 'c2', 'l2')]:
-            return [1, 65455]
-    
+    rng = get_range(platform, collection, level)
+    if rng is None:
+        raise ValueError(
+            f'The range is not recorded '\
+            f'(platform: {platform}, collection: {collection}, level: {level}).')
     # Only keep data where all bands are in their valid ranges.
-    for i, data_arr_name in enumerate(data_arr_names):
-        rng = get_range(platform, collection, level, data_arr_name)
-        invalid_mask_arr = (rng[0] < dataset[data_arr_name]) & (dataset[data_arr_name] < rng[1])
+    for i, data_arr_name in enumerate(rng.keys()):
+        rng_cur = rng[data_arr_name]
+        invalid_mask_arr = (rng_cur[0] < dataset[data_arr_name]) & (dataset[data_arr_name] < rng_cur[1])
         invalid_mask = invalid_mask_arr if i == 0 else (invalid_mask & invalid_mask_arr)
     return invalid_mask
 
@@ -134,8 +135,8 @@ def landsat_qa_clean_mask(dataset, platform, cover_types=['clear', 'water'],
         An xarray (usually produced by `datacube.load()`) that contains a `pixel_qa` data
         variable.
     platform: str
-        A string denoting the platform to be used. Can be "LANDSAT_5", "LANDSAT_7", or
-        "LANDSAT_8", which are for Level 2 (surface reflectance) data.
+        A string denoting the platform to be used. Can be 
+        "LANDSAT_5", "LANDSAT_7", or "LANDSAT_8".
     cover_types: list
         A list of the cover types to include. 
         Adding a cover type allows it to remain in the masked data.
