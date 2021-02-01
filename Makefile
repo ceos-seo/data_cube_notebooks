@@ -1,6 +1,3 @@
-# You can follow the steps below in order to get yourself a local ODC.
-# Once running, you can access a Jupyter environment 
-# at 'http://localhost' with password 'secretpassword'
 SHELL:=/bin/bash
 docker_compose_dev = docker-compose --project-directory docker/dev -f docker/dev/docker-compose.yml
 
@@ -42,12 +39,6 @@ dev-clear:
 	$(docker_compose_dev) stop
 	$(docker_compose_dev) rm -fs
 
-odc-db-ssh:
-	docker exec -it odc-db bash
-
-dev-odc-db-init:
-	$(docker_compose_dev) exec jupyter datacube system init
-
 ## End Common ##
 
 ## ODC Docker Network ##
@@ -71,6 +62,8 @@ create-odc-db-volume:
 delete-odc-db-volume:
 	docker volume rm odc-db-vol
 
+recreate-odc-db-volume: delete-odc-db-volume create-odc-db-volume
+
 # Create the ODC database Docker container.
 create-odc-db:
 	docker run -d \
@@ -88,11 +81,20 @@ start-odc-db:
 stop-odc-db:
 	docker stop odc-db
 
+odc-db-ssh:
+	docker exec -it odc-db bash
+
+dev-odc-db-init:
+	$(docker_compose_dev) exec jupyter datacube system init
+
 restart-odc-db: stop-odc-db start-odc-db
 
 delete-odc-db:
 	docker rm odc-db
 
+recreate-odc-db: stop-odc-db delete-odc-db create-odc-db
+
+recreate-odc-db-and-vol: stop-odc-db delete-odc-db recreate-odc-db-volume create-odc-db dev-odc-db-init
 ## End ODC DB ##
 
 ## Adding Data ##
@@ -114,7 +116,9 @@ dev-index:
 
 sudo-ubuntu-install-docker:
 	sudo apt-get update
-	sudo apt install -y docker.io docker-compose
+	sudo apt install -y docker.io
+	sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+	sudo chmod +x /usr/local/bin/docker-compose
 	sudo systemctl start docker
 	sudo systemctl enable docker
 	# The following steps are for enabling use 

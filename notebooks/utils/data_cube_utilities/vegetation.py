@@ -82,7 +82,7 @@ def EVI2(ds, G=2.5, C=2.4, L=1, normalize=True):
         evi.values[pos_vals_mask] = np.interp(evi.values[pos_vals_mask], (0, 2.5), (0, 1))
     return evi
 
-def NBR(ds):
+def NBR(ds, band_pair=0):
     """
     Computes the Normalized Burn Ratio for an `xarray.Dataset`.
     The formula is (NIR - SWIR2) / (NIR + SWIR2).
@@ -99,7 +99,15 @@ def NBR(ds):
         An `xarray.DataArray` with the same shape as `ds` - the same coordinates in
         the same order.
     """
-    return (ds.nir - ds.swir2) / (ds.nir + ds.swir2)
+    bands = [None] * 2
+    if band_pair == 0:
+        bands = ['nir', 'swir2']
+    elif band_pair == 1:
+        bands = ['swir1', 'swir2']
+    else:
+        raise AssertionError('The band_pair parameter must be in [0,1]')
+
+    return (ds[bands[0]] - ds[bands[1]]) / (ds[bands[0]] + ds[bands[1]])
 
 def NDVI(ds):
     """

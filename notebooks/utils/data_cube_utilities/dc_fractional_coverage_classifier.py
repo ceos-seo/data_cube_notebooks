@@ -4,7 +4,7 @@ import scipy.optimize as opt
 
 import datacube
 
-from .dc_utilities import create_default_clean_mask
+from .dc_utilities import create_default_clean_mask, convert_range
 from . import dc_utilities as utilities
 
 # Command line tool imports
@@ -20,37 +20,66 @@ from datetime import datetime
 csv_file_path = os.path.join(os.path.dirname(__file__), 'endmembers_landsat.csv')
 
 
-def frac_coverage_classify(dataset_in, clean_mask=None, no_data=-9999):
+def frac_coverage_classify(dataset_in, clean_mask=None, no_data=-9999,
+                           platform='LANDSAT_8', collection='c1'):
     """
-    Description:
-      Performs fractional coverage algorithm on given dataset. If no clean mask is given, the 'cf_mask'
-      variable must be included in the input dataset, as it will be used to create a
-      clean mask
-    Assumption:
-      - The implemented algqorithm is defined for Landsat 5/Landsat 7; in order for it to
-        be used for Landsat 8, the bands will need to be adjusted
+    Performs fractional coverage algorithm on given dataset. 
+    For Landsat, level 2 (surface reflectance) data must be used.
+    If no clean mask is given, the 'cf_mask' variable must be included 
+    in the input dataset, as it will be used to create a clean mask.
+
+    The implemented algorithm is defined for Landsat 5/Landsat 7; for 
+    Landsat 8, the bands should be adjusted to match Landsat 7 value ranges.
+    
     References:
       - Guerschman, Juan P., et al. "Assessing the effects of site heterogeneity and soil
         properties when unmixing photosynthetic vegetation, non-photosynthetic vegetation
         and bare soil fractions from Landsat and MODIS data." Remote Sensing of Environment
         161 (2015): 12-26.
-    -----
-    Inputs:
-      dataset_in (xarray.Dataset) - dataset retrieved from the Data Cube (can be a derived
+    
+    Parameters
+    ----------
+    dataset_in: xarray.Dataset 
+        dataset retrieved from the Data Cube (can be a derived
         product, such as a cloudfree mosaic; should contain
           coordinates: latitude, longitude
           variables: blue, green, red, nir, swir1, swir2
-        If user does not provide a clean_mask, dataset_in must also include the cf_mask
-        variable
-    Optional Inputs:
-      clean_mask (nd numpy array with dtype boolean) - true for values user considers clean;
+    clean_mask: np.ndarray (optional)
+        True for values user considers clean.
         If none is provided, one will be created which considers all values to be clean.
-    Output:
-      dataset_out (xarray.Dataset) - fractional coverage results with no data = -9999; containing
+        If user does not provide a clean_mask, 
+        `dataset_in` must also include the cf_mask variable.
+    platform: str
+        A string denoting the platform to be used. Can be "LANDSAT_5", "LANDSAT_7", or
+        "LANDSAT_8", which are for Level 2 (surface reflectance) data.
+    collection: string
+        The Landsat collection of the data. 
+        Can be any of ['c1', 'c2'] for Collection 1 or 2, respectively.
+    
+    Returns
+    -------
+    dataset_out: xarray.Dataset
+        Fractional coverage results with no_data = -9999; containing
           coordinates: latitude, longitude
           variables: bs, pv, npv
         where bs -> bare soil, pv -> photosynthetic vegetation, npv -> non-photosynthetic vegetation
     """
+    # Ensure data variables have the range of Landsat 7 Collection 1 Level 2
+    # since this function is tailored for that dataset.
+    # from celery.utils.log import get_task_logger
+    # logger = get_task_logger(__name__)
+    # logger.info(f'dataset_in.min() before scaling: {dataset_in.min()}')
+    # logger.info(f'dataset_in.mean() before scaling: {dataset_in.mean()}')
+    # logger.info(f'dataset_in.max() before scaling: {dataset_in.max()}\n')
+    if (platform, collection) != ('LANDSAT_7', 'c1'):
+        dataset_in = \
+            convert_range(dataset_in, from_platform=platform, 
+                        from_collection=collection, from_level='l2',
+                        to_platform='LANDSAT_7', to_collection='c1', to_level='l2')
+    # logger.info(f'dataset_in.min() after scaling: {dataset_in.min()}')
+    # logger.info(f'dataset_in.mean() after scaling: {dataset_in.mean()}')
+    # logger.info(f'dataset_in.max() after scaling: {dataset_in.max()}\n')
+
     # Default to masking nothing.
     if clean_mask is None:
         clean_mask = create_default_clean_mask(dataset_in)
@@ -132,6 +161,8 @@ def frac_coverage_classify(dataset_in, clean_mask=None, no_data=-9999):
                                           ('npv', (['latitude', 'longitude'], npv_band))])
 
     rapp_dataset = xr.Dataset(rapp_bands, coords={'latitude': latitude, 'longitude': longitude})
+
+    logger.info(f'fractional_cover_output: {rapp_dataset}')
 
     return rapp_dataset
 

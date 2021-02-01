@@ -31,6 +31,98 @@ import functools
 import operator
 import warnings
 
+def get_range(platform, collection, level):
+    """
+    Obtain the "valid" value range for a given combination of platform, 
+    collection, level, and data_var (does vary by data variable for some products).
+
+    Parameters
+    ----------
+    platform: str
+        A string denoting the platform to be used. Can be 
+        "LANDSAT_5", "LANDSAT_7", or "LANDSAT_8".
+    collection: string
+        The Landsat collection of the data. 
+        Can be any of ['c1', 'c2'] for Collection 1 or 2, respectively.
+    level: string
+        The processing level of the Landsat data. 
+        Currently only 'l2' (Level 2) is supported.
+
+    Returns
+    -------
+    range: dict or list or None
+        A dict of 2-tuples (lists) denoting the range for each data variable with a recorded range.
+        `None` otherwise.
+    """
+    # if (platform, collection, level) in \
+    #     [('LANDSAT_5', 'c1', 'l2'), ('LANDSAT_7', 'c1', 'l2'),
+    #         ('LANDSAT_8', 'c1', 'l2')]:
+    #     return [0, 20000]
+    # elif (platform, collection, level) in \
+    #     [('LANDSAT_5', 'c2', 'l2'), ('LANDSAT_7', 'c2', 'l2'),
+    #         ('LANDSAT_8', 'c2', 'l2')]:
+    #     return [1, 65455]
+    range_dict = None
+    if (platform, collection, level) in \
+        [('LANDSAT_5', 'c1', 'l2'), ('LANDSAT_7', 'c1', 'l2'),
+            ('LANDSAT_8', 'c1', 'l2')]:
+        range_dict = {'red': [0, 20000], 'green': [0, 20000], 'blue': [0, 20000],
+                      'nir': [0, 20000], 'swir1': [0, 20000], 'swir2': [0, 20000]}
+    elif (platform, collection, level) in \
+        [('LANDSAT_5', 'c2', 'l2'), ('LANDSAT_7', 'c2', 'l2'),
+            ('LANDSAT_8', 'c2', 'l2')]:
+        range_dict = {'red': [1, 65455], 'green': [1, 65455], 'blue': [1, 65455],
+                      'nir': [1, 65455], 'swir1': [1, 65455], 'swir2': [1, 65455]}
+    return range_dict
+
+
+def convert_range(dataset, from_platform, from_collection, from_level,
+                  to_platform, to_collection, to_level):
+    """
+    Converts an xarray.Dataset's range from its product's range 
+    to that of another product's range.
+
+    Parameters
+    ----------
+    dataset: xarray.Dataset
+        The dataset to convert to another range.
+    from_platform, from_collection, from_level: string
+        The dataset's product's platform, collection, and level.
+        For example, ('LANDSAT_8', 'c2', 'l2').
+    to_platform, to_collection, to_level: string
+        The platform, collection, and level to convert the 
+        dataset's range to.
+        For example, ('LANDSAT_7', 'c1', 'l2').
+    """
+    # Get the original and destination ranges.
+    from_rng = get_range(from_platform, from_collection, from_level)
+    if from_rng is None:
+        raise ValueError(
+            f'The original range is not recorded '\
+            f'(platform: {from_platform}, collection: {from_collection}, level: {from_level}).')
+    to_rng = get_range(to_platform, to_collection, to_level)
+    if to_rng is None:
+        raise ValueError(
+            f'The destination range is not recorded '\
+            f'(platform: {to_platform}, collection: {to_collection}, level: {to_level}).')
+    
+    # Determine the data variables with ranges in both 
+    # the original and destination range information.
+    data_vars_both = list(set(from_rng.keys()) & set(to_rng.keys()))
+    out_dataset = dataset.copy(deep=True)
+    for data_var_name in data_vars_both:
+        from_rng_cur = from_rng[data_var_name]
+        to_rng_cur = to_rng[data_var_name]
+        out_dataset[data_var_name].data = np.interp(out_dataset[data_var_name], from_rng_cur, to_rng_cur)
+
+        # Temporary approximate corrections - range scaling is often very inaccurate.
+        if (from_platform, from_collection, from_level) == ('LANDSAT_8', 'c2', 'l2') and \
+           to_platform in ['LANDSAT_7', 'LANDSAT_8'] and \
+           (to_collection, to_level) == ('c1', 'l2'):
+            out_dataset[data_var_name] = out_dataset[data_var_name] * 0.1
+    
+    return out_dataset
+
 def reverse_array_dict(dictionary):
     """
     Returns a reversed version a dictionary of keys to list-like objects. Each value in each list-like
@@ -308,11 +400,23 @@ def write_png_from_xr(png_path, dataset, bands, png_filled_path=None, fill_color
         scale: desired scale - tuple like (0, 4000) for the upper and lower bounds
 
     """
+    # from celery.utils.log import get_task_logger
+    # logger = get_task_logger(__name__)
+    # logger.info(f'png_path: {png_path}')
+    # logger.info(f'dataset: {dataset}')
+    # logger.info(f'dataset: {dataset.mean()}')
+    # logger.info(f'scale: {scale}')
+    # logger.info(f'low_res: {low_res}')
+
     assert isinstance(bands, list), "Bands must a list of strings"
     assert len(bands) == 3 and isinstance(bands[0], str), "You must supply three string bands for a PNG."
 
-    tif_path = os.path.join(os.path.dirname(png_path), str(uuid.uuid4()) + ".png")
+    tif_path = os.path.join(os.path.dirname(png_path), str(uuid.uuid4()) + ".tif")
+    # logger.info(f'tif_path: {tif_path}')
     write_geotiff_from_xr(tif_path, dataset, bands, no_data=no_data, crs=crs)
+    
+    # import subprocess
+    # logger.info(subprocess.run(['ls', f'{tif_path}']))
 
     scale_string = ""
     if scale is not None and len(scale) == 2:
@@ -320,17 +424,27 @@ def write_png_from_xr(png_path, dataset, bands, png_filled_path=None, fill_color
     elif scale is not None and len(scale) == 3:
         for index, scale_member in enumerate(scale):
             scale_string += " -scale_{} {} {} 0 255".format(index + 1, scale_member[0], scale_member[1])
+    # logger.info(f'scale_string: {scale_string}')
     outsize_string = "-outsize 25% 25%" if low_res else ""
+    # logger.info(f'outsize_string: {outsize_string}')
     cmd = "gdal_translate -ot Byte " + outsize_string + " " + scale_string + " -of PNG -b 1 -b 2 -b 3 " + tif_path + ' ' + png_path
+    # logger.info('whoami:', subprocess.check_output(['whoami']))
+    # logger.info('PATH:', subprocess.check_output(['echo', os.environ.get('PATH')]))
+    # logger.info(f'cmd1: {cmd}')
 
     os.system(cmd)
+    # logger.info('content of result dir:', subprocess.check_output(['ls', os.path.dirname(png_path)]))
 
     if png_filled_path is not None and fill_color is not None:
         cmd = "convert -transparent \"#000000\" " + png_path + " " + png_path
+        # logger.info(f'cmd2: {cmd}')
         os.system(cmd)
+        # logger.info('content of result dir:', subprocess.check_output(['ls', os.path.dirname(png_path)]))
         cmd = "convert " + png_path + " -background " + \
             fill_color + " -alpha remove " + png_filled_path
+        # logger.info(f'cmd3: {cmd}')
         os.system(cmd)
+        # logger.info('content of result dir:', subprocess.check_output(['ls', os.path.dirname(png_path)]))
 
     os.remove(tif_path)
 

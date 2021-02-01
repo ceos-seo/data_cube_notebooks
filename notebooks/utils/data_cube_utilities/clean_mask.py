@@ -1,6 +1,8 @@
 import numpy as np
 import xarray as xr
 
+from .dc_utilities import get_range
+
 ## Utils ##
 
 def xarray_values_in(data, values, data_vars=None):
@@ -75,7 +77,7 @@ def create_circular_mask(h, w, center=None, radius=None):
 
 ## Landsat ##
 
-def landsat_clean_mask_invalid(dataset):
+def landsat_clean_mask_invalid(dataset, platform, collection, level):
     """
     Masks out invalid data according to the LANDSAT
     surface reflectance specifications. See this document:
@@ -85,6 +87,15 @@ def landsat_clean_mask_invalid(dataset):
     ----------
     dataset: xarray.Dataset
         An `xarray.Dataset` containing bands such as 'red', 'green', or 'blue'.
+    platform: str
+        A string denoting the platform to be used. Can be 
+        "LANDSAT_5", "LANDSAT_7", or "LANDSAT_8".
+    collection: string
+        The Landsat collection of the data. 
+        Can be any of ['c1', 'c2'] for Collection 1 or 2, respectively.
+    level: string
+        The processing level of the Landsat data. 
+        Currently only 'l2' (Level 2) is supported.
 
     Returns
     -------
@@ -95,14 +106,21 @@ def landsat_clean_mask_invalid(dataset):
     invalid_mask = None
     data_arr_names = [arr_name for arr_name in list(dataset.data_vars)
                       if arr_name not in ['pixel_qa', 'radsat_qa', 'cloud_qa']]
-    # Only keep data where all bands are in the valid range.
-    for i, data_arr_name in enumerate(data_arr_names):
-        invalid_mask_arr = (0 < dataset[data_arr_name]) & (dataset[data_arr_name] < 10000)
+    rng = get_range(platform, collection, level)
+    if rng is None:
+        raise ValueError(
+            f'The range is not recorded '\
+            f'(platform: {platform}, collection: {collection}, level: {level}).')
+    # Only keep data where all bands are in their valid ranges.
+    for i, data_arr_name in enumerate(rng.keys()):
+        rng_cur = rng[data_arr_name]
+        invalid_mask_arr = (rng_cur[0] < dataset[data_arr_name]) & (dataset[data_arr_name] < rng_cur[1])
         invalid_mask = invalid_mask_arr if i == 0 else (invalid_mask & invalid_mask_arr)
     return invalid_mask
 
 
-def landsat_qa_clean_mask(dataset, platform, cover_types=['clear', 'water']):
+def landsat_qa_clean_mask(dataset, platform, cover_types=['clear', 'water'], 
+                          collection=None, level=None):
     """
     Returns a clean_mask for `dataset` that masks out various types of terrain cover using the
     Landsat pixel_qa band. Note that Landsat masks specify what to keep, not what to remove.
@@ -117,44 +135,149 @@ def landsat_qa_clean_mask(dataset, platform, cover_types=['clear', 'water']):
         An xarray (usually produced by `datacube.load()`) that contains a `pixel_qa` data
         variable.
     platform: str
-        A string denoting the platform to be used. Can be "LANDSAT_5", "LANDSAT_7", or
-        "LANDSAT_8".
+        A string denoting the platform to be used. Can be 
+        "LANDSAT_5", "LANDSAT_7", or "LANDSAT_8".
     cover_types: list
-        A list of the cover types to include. Adding a cover type allows it to remain in the masked data.
-        Cover types for all Landsat platforms include:
-        ['fill', 'clear', 'water', 'shadow', 'snow', 'cloud', 'low_conf_cl', 'med_conf_cl', 'high_conf_cl'].
+        A list of the cover types to include. 
+        Adding a cover type allows it to remain in the masked data.
+        
+        Here are a list of cover types, of which each combination of 
+        satellite, collection, and level supports only some:
+        'fill': Removes "no_data" values, which indicates an absense of data.
+                This value is -9999 for Landsat platforms.
+        'cloud': Allows only clouds, but note that it may only select cloud boundaries.
+        'cld_shd': Allows only cloud shadows.
+        'snow': Allows only snow.
+        'clear': Allows only clear terrain. 
+        'water': Allows only water. 
+        'cld_conf_low':  Low cloud coverage confidence. Useful on its own for only removing clouds, 
+                         however, 'clear' is usually better suited for this.
+        'cld_conf_med':  Medium cloud coverage confidence. Useful in combination with 'low_conf_cl' 
+                         to allow slightly heavier cloud coverage.
+                         Note that 'med_conf_cl' and 'cloud' are very similar.
+        'cld_conf_high': High cloud coverage confidence. Useful in combination with both 'low_conf_cl' 
+                         and 'med_conf_cl'.
+        'cld_shd_conf_low':  Low cloud shadow confidence.
+        'cld_shd_conf_med':  Medium cloud shadow confidence.
+        'cld_shd_conf_high': High cloud shadow confidence.
+        'snw_ice_conf_low':  Low snow/ice confidence.
+        'snw_ice_conf_high': High snow/ice confidence.
+        'cir_conf_low':  Low cirrus confidence.
+        'cir_conf_med':  Medium cirrus confidence.
+        'cir_conf_high': High cirrus confidence.
+        'terrain_occ': Allows only occluded terrain.
+        'dilated_cloud': Allows dilated clouds.
+        
+        Cover types for Landsat 5 and 7 Collection 1 Level 2 include:
+        ['fill', 'cloud', 'cld_shd', 'snow', 'clear', 'water', 'cld_conf_low', 'cld_conf_med', 
+         'cld_conf_high'].
 
-        'fill' removes "no_data" values, which indicates an absense of data. This value is -9999 for Landsat platforms.
-        Generally, don't use 'fill'.
-        'clear' allows only clear terrain. 'water' allows only water. 'shadow' allows only cloud shadows.
-        'snow' allows only snow. 'cloud' allows only clouds, but note that it often only selects cloud boundaries.
-        'low_conf_cl', 'med_conf_cl', and 'high_conf_cl' denote low, medium, and high confidence in cloud coverage.
-        'low_conf_cl' is useful on its own for only removing clouds, however, 'clear' is usually better suited for this.
-        'med_conf_cl' is useful in combination with 'low_conf_cl' to allow slightly heavier cloud coverage.
-        Note that 'med_conf_cl' and 'cloud' are very similar.
-        'high_conf_cl' is useful in combination with both 'low_conf_cl' and 'med_conf_cl'.
+        Cover types for Landsat 8 Collection 1 Level 2 include: 
+        ['fill', 'cloud', 'cld_shd', 'snow', 'clear', 'water', 'cld_conf_low', 'cld_conf_med',
+         'cld_conf_high', 'cir_conf_low', 'cir_conf_med', 'cir_conf_high', 'terrain_occ']
 
-        For Landsat 8, there are more cover types: ['low_conf_cir', 'high_conf_cir', 'terrain_occ'].
-        'low_conf_cir' and 'high_conf_cir' denote low and high confidence in cirrus clouds.
-        'terrain_occ' allows only occluded terrain.
+        Cover types for Landsat 8 Collection 2 Level 2 include: 
+        ['fill', 'cloud', 'cld_shd', 'snow', 'clear', 'water', 'cld_conf_low', 'cld_conf_med', 
+         'cld_conf_high', 'cld_shd_conf_low', 'cld_shd_conf_high', 'snw_ice_conf_low', 
+         'snw_ice_conf_high', 'cir_conf_low', 'cir_conf_high'].
+        
+    collection: string
+        The Landsat collection of the data. 
+        Can be any of ['c1', 'c2'] for Collection 1 or 2, respectively.
+    level: string
+        The processing level of the Landsat data. 
+        Currently only 'l2' (Level 2) is supported.
 
     Returns
     -------
     clean_mask: xarray.DataArray
         An xarray DataArray with the same number and order of coordinates as in `dataset`.
     """
-    from .dc_mosaic import (ls7_unpack_qa, ls8_unpack_qa, ls5_unpack_qa)
+    def ls_unpack_qa(data_array, cover_type, platform, collection, level):
+        # A map of 3-tuples of (platform, collection, level).
+        # The `platform` value can be any of ['LANDSAT_5','LANDSAT_7','LANDSAT_8'].
+        # The `collection` value can be any of ['c1', 'c2'].
+        # The `level` value can be any of ['l1', 'l2'].
+        landsat_qa_cover_types_map = {
+            ('LANDSAT_5', 'c1', 'l2'): 
+                dict(fill      = 1,   # 2**0 
+                     clear     = 2,   # 2**1 
+                     water     = 4,   # 2**2 
+                     cld_shd   = 8,   # 2**3 
+                     snow      = 16,  # 2**4 
+                     cloud     = 32,  # 2**5 
+                     low_conf  = 64,  # 2**6 
+                     med_conf  = 128, # 2**7 
+                     high_conf = 192  # 2**6 + 2**7
+                    ),
+            ('LANDSAT_7', 'c1', 'l2'): # Same as LS 5 C1 L2. 
+                dict(fill      = 1, # 2**0 
+                     clear     = 2, # 2**1 
+                     water     = 4, # 2**2 
+                     cld_shd   = 8, # 2**3 
+                     snow      = 16, # 2**4 
+                     cloud     = 32, # 2**5 
+                     low_conf  = 64, # 2**6 
+                     med_conf  = 128, # 2**7 
+                     high_conf = 192 # 2**6 + 2**7 
+                    ),
+            ('LANDSAT_8', 'c1', 'l2'):
+                dict(fill               = 1,   # 2**0
+                     clear              = 2,   # 2**1
+                     water              = 4,   # 2**2
+                     cld_shd            = 8,   # 2**3
+                     snow               = 16,  # 2**4
+                     cloud              = 32,  # 2**5
+                     cld_conf_low       = 64,  # 2**6
+                     cld_conf_med       = 128, # 2**7
+                     cld_conf_high      = 192, # 2**6 + 2**7
+                     cir_conf_low       = 256, # 2**8
+                     cir_conf_med       = 512, # 2**9
+                     cir_conf_high      = 768, # 2**8 + 2**9
+                     terrain_occ        = 1024 # 2**10
+                    ),
+            ('LANDSAT_8', 'c2', 'l2'):
+                dict(fill               = 1,     # 2**0
+                     dilated_cloud      = 2,     # 2**1
+                     cirrus             = 4,     # 2**2
+                     cloud              = 8,     # 2**3
+                     cld_shd            = 16, # Should be same as cld_shd_conf_high.
+                     snow               = 32,    # 2**5
+                     clear              = 64,    # 2**6
+                     water              = 128,   # 2**7
+                     cld_conf_low       = 256,   # 2**8
+                     cld_conf_med       = 512,   # 2**9
+                     cld_conf_high      = 768,   # 2**8 + 2**9
+                     cld_shd_conf_low   = 1024,  # 2**10
+                     cld_shd_conf_high  = 3072,  # 2**10 + 2**11
+                     snw_ice_conf_low   = 4096,  # 2**12
+                     snw_ice_conf_high  = 12288, # 2**12 + 2**13
+                     cir_conf_low       = 16384, # 2**14
+                     cir_conf_high      = 49152  # 2**14 + 2**15
+                    )
+        }
+        cover_type_encoding = landsat_qa_cover_types_map.get((platform, collection, level))
+        if cover_type_encoding is None:
+            raise ValueError('The platform, collection, level combination '\
+                             f'{(platform, collection, level)} is not supported.\n'\
+                             f'The supported combinations are: {list(landsat_qa_cover_types_map.keys())}')
+        return (data_array & cover_type_encoding[cover_type]).astype(bool).rename(cover_type + "_mask")
 
-    processing_options = {
-        "LANDSAT_5": ls5_unpack_qa,
-        "LANDSAT_7": ls7_unpack_qa,
-        "LANDSAT_8": ls8_unpack_qa
-    }
-
+    if collection is None:
+        warnings.warn('Please specify a value for `collection`. Assuming data is collection 1.')
+        collection = 'c1'
+    assert collection in ['c1', 'c2'], "The `collection` parameter must be one of ['c1', 'c2']."
+    
+    if level is None:
+        warnings.warn('Please specify a value for `level`. Assuming data is level 2.')
+        level = 'l2'
+    assert level in ['l2'], "The `level` parameter must be one of ['l2']."
+    
     clean_mask = None
     # Keep all specified cover types (e.g. 'clear', 'water'), so logically or the separate masks.
     for i, cover_type in enumerate(cover_types):
-        cover_type_clean_mask = processing_options[platform](dataset.pixel_qa, cover_type)
+        cover_type_clean_mask = ls_unpack_qa(dataset.pixel_qa, cover_type, 
+                                             platform, collection, level)
         clean_mask = cover_type_clean_mask if i == 0 else (clean_mask | cover_type_clean_mask)
     return clean_mask
 

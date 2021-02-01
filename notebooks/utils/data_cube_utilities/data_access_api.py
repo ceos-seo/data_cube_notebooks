@@ -85,7 +85,7 @@ class DataAccessApi:
         if longitude is not None and latitude is not None:
             query['longitude'] = longitude
             query['latitude'] = latitude
-
+        
         data = self.dc.load(
             product=product,
             measurements=measurements,
