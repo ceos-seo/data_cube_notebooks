@@ -1,12 +1,28 @@
 FROM jcrattzama/cube-in-a-box:odc1.8.3
+# jcrattzama/datacube-base:odc1.8.3
 
 USER root
 
 # Let jovyan run sudo without a password.
-# RUN echo "jovyan ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-# RUN chown -R jovyan /env
+RUN echo "jovyan ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-RUN pip3 install --upgrade pip
+ARG UID
+ENV UID=${UID}
+RUN usermod -u ${UID} jovyan
+RUN chown -R jovyan /env
+# RUN find /env/* | xargs chown jovyan
+
+# RUN apt-get install git tini -y
+
+# RUN pip3 install --upgrade pip
+COPY requirements.txt requirements.txt
+RUN chown jovyan requirements.txt
+
+USER jovyan
+RUN pip3 install -r requirements.txt
+RUN pip3 install --no-binary=rasterio rasterio==1.1.8 GDAL==$(gdal-config --version)
+
+USER root
 
 # Setup the Open Data Cube configuration.
 ARG ODC_DB_HOSTNAME="odc-db"
@@ -31,7 +47,10 @@ ENV DATACUBE_CONFIG_PATH=/config/datacube.conf
 ARG NOTEBOOK_ROOT
 ENV NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
 WORKDIR ${NOTEBOOK_ROOT}
+RUN chown -R jovyan ${NOTEBOOK_ROOT}
 
 USER jovyan
 ENTRYPOINT ["/bin/tini", "--"]
+# ENTRYPOINT ["tail", "-f", "/dev/null"]
+# CMD ["tail", "-f", "/dev/null"]
 CMD ["jupyter", "notebook", "--allow-root", "--ip='0.0.0.0'" "--NotebookApp.token='secretpassword'"]

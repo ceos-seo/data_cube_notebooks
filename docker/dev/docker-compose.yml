@@ -7,6 +7,7 @@ services:
       dockerfile: docker/dev/Dockerfile
       context: ../..
       args:
+        - UID=${UID}
         - NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
         - ODC_DB_HOSTNAME=${ODC_DB_HOSTNAME}
         - ODC_DB_DATABASE=${ODC_DB_DATABASE}
@@ -24,7 +25,8 @@ services:
       # - /Datacube/data:/Datacube/data
     networks:
       - odc
-    restart: always
+    restart: "no"
+    entrypoint: /bin/tini --
     command: jupyter notebook --allow-root --ip="0.0.0.0" --NotebookApp.token=''
   # postgres:
   #   image: postgis/postgis:10-2.5

@@ -8,7 +8,7 @@ dev-build:
 
 # Start the notebooks environment
 dev-up:
-	$(docker_compose_dev) up -d --build
+	(export UID=$(id -u); $(docker_compose_dev) up -d --build)
 
 # Start without rebuilding the Docker image
 # (use when dependencies have not changed for faster starts).
