@@ -1,4 +1,7 @@
 notebooks/AMA
+notebooks/experimental
+notebooks/indexing
+land_change/SAR
 .idea
 .ipynb_checkpoints
 nohup.out
