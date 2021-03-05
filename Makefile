@@ -1,6 +1,12 @@
 SHELL:=/bin/bash
 docker_compose_dev = docker-compose --project-directory docker/dev -f docker/dev/docker-compose.yml
 
+IMG_REPO?=jcrattzama/data_cube_notebooks
+IMG_VER?=
+ODC_VER?=1.8.3
+
+DEV_OUT_IMG?="${IMG_REPO}:odc${ODC_VER}${IMG_VER}_dev"
+
 ## Common ##
 
 dev-build:
@@ -39,6 +45,9 @@ dev-clear:
 	$(docker_compose_dev) stop
 	$(docker_compose_dev) rm -fs
 
+dev-push:
+	docker push ${DEV_OUT_IMG}
+
 ## End Common ##
 
 ## ODC Docker Network ##
@@ -65,6 +74,8 @@ delete-odc-db-volume:
 recreate-odc-db-volume: delete-odc-db-volume create-odc-db-volume
 
 # Create the ODC database Docker container.
+# The `-N` argument sets the maximum number of concurrent connections (`max_connections`).
+# The `-B` argument sets the shared buffer size (`shared_buffers`).
 create-odc-db:
 	docker run -d \
 	-e POSTGRES_DB=datacube \
@@ -73,7 +84,9 @@ create-odc-db:
 	--name=odc-db \
 	--network="odc" \
 	-v odc-db-vol:/var/lib/postgresql/data \
-	postgres:10-alpine
+	postgres:10-alpine \
+	-N 1000 \
+	-B 2048MB
 
 start-odc-db:
 	docker start odc-db
@@ -94,7 +107,7 @@ delete-odc-db:
 
 recreate-odc-db: stop-odc-db delete-odc-db create-odc-db
 
-recreate-odc-db-and-vol: stop-odc-db delete-odc-db recreate-odc-db-volume create-odc-db dev-odc-db-init
+recreate-odc-db-and-vol: stop-odc-db delete-odc-db recreate-odc-db-volume create-odc-db
 ## End ODC DB ##
 
 ## Adding Data ##

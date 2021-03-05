@@ -15,14 +15,14 @@ RUN chown -R jovyan /env
 # RUN apt-get install git tini -y
 
 # RUN pip3 install --upgrade pip
-COPY requirements.txt requirements.txt
-RUN chown jovyan requirements.txt
 
 # Install graphviz for Dask (installing through Python has
 # failed previously).
 RUN apt-get update && apt-get install graphviz -y && \
     rm -rf /var/lib/apt/lists/*
 
+COPY requirements.txt requirements.txt
+RUN chown jovyan requirements.txt
 USER jovyan
 RUN pip3 install -r requirements.txt
 RUN pip3 install --no-binary=rasterio rasterio==1.1.8 GDAL==$(gdal-config --version)

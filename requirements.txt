@@ -11,11 +11,14 @@ sat-search==0.2.2
 # sat-stac
 lcmap-pyccd==2018.10.17
 tqdm==4.49.0
-joblib==0.16.0
-dask[dataframe]==2.27.0
 pyzmq
 rsa
 pyasn==1.6.1
+
+# Scalability #
+dask[dataframe]==2.27.0
+# graphviz==0.16 # Handled by `apt-get install`.
+joblib==0.16.0
 
 # Testing #
 nbclient==0.5.1
