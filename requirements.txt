@@ -7,7 +7,9 @@ ruamel.yaml==0.16.12
 # jupyter==1.0.0
 packaging==20.4
 # git+git://github.com/sat-utils/sat-search@0.3.0-b2
-sat-search==0.2.2
+sat-search==0.3.0
+#==0.2.3
+#==0.2.2
 # sat-stac
 lcmap-pyccd==2018.10.17
 tqdm==4.49.0
@@ -17,7 +19,8 @@ pyasn==1.6.1
 
 # Scalability #
 dask[dataframe]==2.27.0
-# graphviz==0.16 # Handled by `apt-get install`.
+dask-ml==1.8.0
+graphviz==0.16 # Handled by `apt-get install`.
 joblib==0.16.0
 
 # Testing #
@@ -38,20 +41,26 @@ rasterstats==0.15.0
 hdmedians==0.14
 # hdstats
 # rasterio==1.1.8
+rioxarray==0.3.1
 
 # Visualization #
 matplotlib==3.3.2
 descartes==1.1.0
-bokeh #==2.2.1
+bokeh==2.2.3
 seaborn==0.11.0
 folium==0.11.0
+panel==0.10.3
 holoviews==1.13.4
 datashader==0.11.1
 
-fastparquet==0.5.0
+fastparquet #==0.5.0
 # psycopg2 
 # boto3
 # awscli
+
+# Data Loading #
+intake-stac==0.3.0 # Intake-STAC
+# git+https://github.com/intake/intake-stac 
 
 # ODC #
 odc-algo # 0.1.dev610+g46c92a6
