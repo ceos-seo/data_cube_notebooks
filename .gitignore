@@ -15,5 +15,6 @@ __pycache__
 *.tif
 *.tar.gz
 *.gif
+*.pkl
 **/tmp
 **/output
