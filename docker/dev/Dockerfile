@@ -16,8 +16,8 @@ RUN chown -R jovyan /env
 
 # RUN pip3 install --upgrade pip
 
-# Install graphviz for Dask (installing through Python has
-# failed previously).
+# Install the graphviz system package for Dask
+# (used through the graphviz Python library).
 RUN apt-get update && apt-get install graphviz -y && \
     rm -rf /var/lib/apt/lists/*
 
@@ -25,6 +25,9 @@ COPY requirements.txt requirements.txt
 RUN chown jovyan requirements.txt
 USER jovyan
 RUN pip3 install -r requirements.txt
+# RUN pip3 install rasterio==1.1.8 && \
+#     mkdir -p /etc/pki/tls/certs && \
+#     ln -s /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 RUN pip3 install --no-binary=rasterio rasterio==1.1.8 GDAL==$(gdal-config --version)
 
 USER root

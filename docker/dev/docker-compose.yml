@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   jupyter:
     image: jcrattzama/data_cube_notebooks:odc1.8.3
@@ -17,6 +16,7 @@ services:
       # AWS env vars for loading data from S3.
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REQUEST_PAYER: requester
     ports:
       # 8888 is the Jupyter notebook default port
       - ${HOST_PORT}:8888
