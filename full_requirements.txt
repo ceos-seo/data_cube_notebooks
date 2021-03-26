@@ -134,7 +134,7 @@ python-dateutil==2.8.0
 pytz==2020.1
 pyviz-comms==0.7.6
 PyWavelets==1.1.1
-PyYAML==5.3.1
+PyYAML==5.4
 pyzmq==19.0.2
 qtconsole==4.7.7
 QtPy==1.9.0
