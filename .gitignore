@@ -2,6 +2,12 @@ notebooks/AMA
 notebooks/experimental
 notebooks/indexing
 notebooks/scalability/Dask/mydask.png
+notebooks/test/error_report.csv
+notebooks/test/error_report.html
+notebooks/test/full_test_report.csv
+notebooks/test/full_test_report.html
+notebooks/test/success_report.html
+notebooks/test/success_report_report.csv
 notebooks/training/ardc_training/test.csv
 notebooks/water/coastline/wofs_compare.png
 land_change/SAR
