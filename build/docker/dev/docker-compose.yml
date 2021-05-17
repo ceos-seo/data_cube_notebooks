@@ -3,16 +3,16 @@ services:
   jupyter:
     image: jcrattzama/data_cube_notebooks:odc1.8.3
     build:
-      dockerfile: docker/dev/Dockerfile
-      context: ../..
+      dockerfile: build/docker/dev/Dockerfile
+      context: ${DKR_CMP_CONTEXT}
       args:
         - UID=${UID}
         - NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
-        - ODC_DB_HOSTNAME=${ODC_DB_HOSTNAME}
-        - ODC_DB_DATABASE=${ODC_DB_DATABASE}
-        - ODC_DB_USER=${ODC_DB_USER}
-        - ODC_DB_PASSWORD=${ODC_DB_PASSWORD}
     environment:
+      ODC_DB_HOSTNAME: ${ODC_DB_HOSTNAME}
+      ODC_DB_DATABASE: ${ODC_DB_DATABASE}
+      ODC_DB_USER: ${ODC_DB_USER}
+      ODC_DB_PASSWORD: ${ODC_DB_PASSWORD}
       # AWS env vars for loading data from S3.
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
@@ -21,7 +21,7 @@ services:
       # 8888 is the Jupyter notebook default port
       - ${HOST_PORT}:8888
     volumes:
-      - ../../notebooks:${NOTEBOOK_ROOT}
+      - ${DKR_CMP_CONTEXT}/notebooks:${NOTEBOOK_ROOT}
       # - /Datacube/data:/Datacube/data
     networks:
       - odc
