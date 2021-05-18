@@ -9,6 +9,7 @@ services:
         - UID=${UID}
         - NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
     environment:
+      NBK_SERVER_PASSWORD: ${NBK_SERVER_PASSWORD}
       ODC_DB_HOSTNAME: ${ODC_DB_HOSTNAME}
       ODC_DB_DATABASE: ${ODC_DB_DATABASE}
       ODC_DB_USER: ${ODC_DB_USER}
@@ -26,8 +27,6 @@ services:
     networks:
       - odc
     restart: "no"
-    entrypoint: /bin/tini --
-    command: jupyter notebook --allow-root --ip="0.0.0.0" --NotebookApp.token=''
   # postgres:
   #   image: postgis/postgis:10-2.5
   #   environment:
