@@ -5,7 +5,7 @@ IMG_REPO?=jcrattzama/data_cube_notebooks
 IMG_VER?=
 ODC_VER?=1.8.3
 
-DEV_OUT_IMG?=${IMG_REPO}:odc${ODC_VER}${IMG_VER}_dev
+DEV_OUT_IMG?=${IMG_REPO}:odc${ODC_VER}${IMG_VER}
 
 COMMON_EXPRTS=export UID=$(id -u)
 
