@@ -3,8 +3,8 @@ services:
   jupyter:
     image: jcrattzama/data_cube_notebooks:odc1.8.3
     build:
-      dockerfile: build/docker/dev/Dockerfile
       context: ${DKR_CMP_CONTEXT}
+      dockerfile: build/docker/dev/Dockerfile
       args:
         - UID=${UID}
         - NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
@@ -23,7 +23,6 @@ services:
       - ${HOST_PORT}:8888
     volumes:
       - ${DKR_CMP_CONTEXT}/notebooks:${NOTEBOOK_ROOT}
-      # - /Datacube/data:/Datacube/data
     networks:
       - odc
     restart: "no"
