@@ -1,0 +1,6 @@
+odc-algo # 0.1.dev610+g46c92a6
+# --extra-index-url="https://packages.dea.ga.gov.au"
+# datacube[performance,s3]==1.8.3
+# odc-apps-cloud[GCP,THREDDS]
+# odc-apps-dc-tools
+# odc-index

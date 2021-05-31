@@ -7,8 +7,8 @@ if [ ! -e $CONTAINER_STARTED ]; then
     bash native/odc_conf.sh
     touch $CONTAINER_STARTED
     cd $NOTEBOOK_ROOT
-    /bin/tini -s -- jupyter notebook --allow-root --ip='0.0.0.0' \
-      --NotebookApp.token=$NBK_SERVER_PASSWORD
+    nohup /bin/tini -s -- jupyter lab --allow-root --ip='0.0.0.0' \
+      --NotebookApp.token=$NBK_SERVER_PASSWORD &> notebook_server_logs.txt &
 fi
 
 exec "$@"

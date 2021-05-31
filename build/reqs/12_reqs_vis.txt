@@ -1,0 +1,9 @@
+matplotlib==3.3.2
+descartes==1.1.0
+bokeh==2.2.3
+seaborn==0.11.0
+folium==0.11.0
+panel==0.10.3
+holoviews==1.13.4
+datashader==0.11.1
+tqdm==4.49.0

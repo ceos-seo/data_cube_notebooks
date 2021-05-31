@@ -1,0 +1,8 @@
+# only used by animations/3D/GA_Water_3DReservoir
+rasterstats==0.15.0
+# TODO: Can this be removed if we use `odc.algo.xr_geomedian()`?
+hdmedians==0.14
+# hdstats
+# rasterio==1.1.8
+rioxarray==0.3.1
+xarray==0.16.0

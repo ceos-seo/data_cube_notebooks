@@ -11,6 +11,7 @@ notebooks/test/success_report_report.csv
 notebooks/training/ardc_training/test.csv
 notebooks/water/coastline/wofs_compare.png
 land_change/SAR
+**/notebook_server_logs.txt
 .idea
 .ipynb_checkpoints
 nohup.out
