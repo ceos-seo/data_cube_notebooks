@@ -25,9 +25,6 @@ dev-up-no-build:
 
 # Stop the notebooks environment
 dev-down:
-	$(docker_compose_dev) down
-
-dev-down-remove-orphans:
 	$(docker_compose_dev) down --remove-orphans
 
 dev-restart: dev-down dev-up
@@ -49,6 +46,9 @@ dev-clear:
 
 dev-push:
 	docker push ${DEV_OUT_IMG}
+
+dev-pull:
+	docker pull ${DEV_OUT_IMG}
 
 ## End Common ##
 
