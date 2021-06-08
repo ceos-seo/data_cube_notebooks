@@ -7,6 +7,7 @@ services:
       dockerfile: build/docker/dev/Dockerfile
       args:
         - UID=${UID}
+        - ROOT_DIR=${ROOT_DIR}
         - NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
     environment:
       NBK_SERVER_PASSWORD: ${NBK_SERVER_PASSWORD}
@@ -22,7 +23,7 @@ services:
       # 8888 is the Jupyter notebook default port
       - ${HOST_PORT}:8888
     volumes:
-      - ${DKR_CMP_CONTEXT}/notebooks:${NOTEBOOK_ROOT}
+      - ${DKR_CMP_CONTEXT}:${ROOT_DIR}
     networks:
       - odc
     restart: "no"

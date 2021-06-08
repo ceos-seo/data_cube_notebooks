@@ -75,15 +75,16 @@ ENV ODC_DB_HOSTNAME \
     ODC_DB_PORT
 COPY build/native/odc_conf.sh native/odc_conf.sh
 
+ARG ROOT_DIR
 ARG NOTEBOOK_ROOT
-ENV NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
-RUN chown -R jovyan ${NOTEBOOK_ROOT}
+ENV ROOT_DIR=${ROOT_DIR} NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
+RUN mkdir -p ${ROOT_DIR}; chown -R jovyan ${ROOT_DIR}
 
 COPY build/native/entrypoint.sh native/entrypoint.sh
 RUN chown -R jovyan:users ${BUILD_DIR}
 RUN chmod 777 -R ${BUILD_DIR}
 USER jovyan
-WORKDIR ${NOTEBOOK_ROOT}
+WORKDIR ${ROOT_DIR}
 ENV NBK_SERVER_PASSWORD=${NBK_SERVER_PASSWORD}
 ENV AWS_ACCESS_KEY_ID \
     AWS_SECRET_ACCESS_KEY \

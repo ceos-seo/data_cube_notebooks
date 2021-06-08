@@ -45,11 +45,13 @@ Before we begin, note that multiple commands should not be copied and pasted to 
 >### <a name="install_pre_start_config"></a> Pre-start configuration
 -------
 
-You can set the port that the notebooks will be available on with the `HOST_PORT` environment varaible in the `docker/dev/.env` file. By default, the notebooks will be available on port `8080` in the development environment.
+You can set the port that the notebooks will be available on with the `HOST_PORT` environment varaible in the `build/docker/dev/.env` file. By default, the notebooks will be available on port `8080` in the development environment.
 
-The `ODC_DB_*` variables in the `docker/dev/.env` file are the connection credentials for the ODC database. The `ODC_DB_*` variables are set to match the default settings for the ODC database container, but if these settings were changed in the command for the `create-odc-db` target in the `Makefile` file, they will need to be changed here.
+The `ODC_DB_*` variables in the `build/docker/dev/.env` file are the connection credentials for the ODC database. The `ODC_DB_*` variables are set to match the default settings for the ODC database container, but if these settings were changed in the command for the `create-odc-db` target in the `Makefile` file, they will need to be changed here.
 
-If you want to access data on S3, you will need to set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables. By default, they are set to use the values of identically named environment variables. You should set these environment variables before running the UI. Do not write these AWS credentials to the `docker/dev/.env` file directly.
+If you want to access data on S3, you will need to set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables. By default, they are set to use the values of identically named environment variables. You should set these environment variables before running the UI. Do not write these AWS credentials to the `build/docker/dev/.env` file directly.
+
+When you have finished configuring these values, run `make create-odc-network create-odc-db`.
 
 >### <a name="install_start_stop_restart"></a> Start, stop, or restart the notebook server
 -------
@@ -92,7 +94,7 @@ In the development environment, you also can launch terminals by clicking the `N
 ## <a name="connect"></a> Access the notebooks
 -------
 
-In the development environment, you can connect to the notebooks on the host machine at `localhost:<HOST_PORT>`, where `<HOST_PORT>` is the value of the `HOST_PORT` environment variable specified in `docker/dev/.env`.
+In the development environment, you can connect to the notebooks on the host machine at `localhost:<HOST_PORT>`, where `<HOST_PORT>` is the value of the `HOST_PORT` environment variable specified in `build/docker/dev/.env`.
 
 
 ## <a name="faqs"></a> Common problems/FAQs
