@@ -1,0 +1,6 @@
+intake-stac==0.3.0 # Intake-STAC
+# git+https://github.com/intake/intake-stac 
+fastparquet #==0.5.0
+sat-search==0.3.0
+ruamel.yaml==0.16.12
+xarray==0.16.0

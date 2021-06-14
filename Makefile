@@ -1,11 +1,11 @@
 SHELL:=/bin/bash
-docker_compose_dev = docker-compose --project-directory docker/dev -f docker/dev/docker-compose.yml
+docker_compose_dev = docker-compose --project-directory build/docker/dev -f build/docker/dev/docker-compose.yml
 
 IMG_REPO?=jcrattzama/data_cube_notebooks
 IMG_VER?=
 ODC_VER?=1.8.3
 
-DEV_OUT_IMG?="${IMG_REPO}:odc${ODC_VER}${IMG_VER}_dev"
+DEV_OUT_IMG?=${IMG_REPO}:odc${ODC_VER}${IMG_VER}
 
 COMMON_EXPRTS=export UID=$(id -u)
 
@@ -25,9 +25,6 @@ dev-up-no-build:
 
 # Stop the notebooks environment
 dev-down:
-	$(docker_compose_dev) down
-
-dev-down-remove-orphans:
 	$(docker_compose_dev) down --remove-orphans
 
 dev-restart: dev-down dev-up
@@ -49,6 +46,9 @@ dev-clear:
 
 dev-push:
 	docker push ${DEV_OUT_IMG}
+
+dev-pull:
+	docker pull ${DEV_OUT_IMG}
 
 ## End Common ##
 
@@ -129,10 +129,11 @@ dev-index:
 
 ## End Adding Data ##
 
+## Docker Misc ##
 sudo-ubuntu-install-docker:
 	sudo apt-get update
 	sudo apt install -y docker.io
-	sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+	sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
 	sudo chmod +x /usr/local/bin/docker-compose
 	sudo systemctl start docker
 	sudo systemctl enable docker
@@ -141,6 +142,7 @@ sudo-ubuntu-install-docker:
 	# without using `sudo`
 	getent group docker || sudo groupadd docker
 	sudo usermod -aG docker ${USER}
+## End Docker Misc ##
 
 # Update S3 template (this is owned by Digital Earth Australia)
 upload-s3:
