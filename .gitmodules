@@ -1,3 +1,3 @@
 [submodule "notebooks/utils"]
 	path = notebooks/utils
-	url = git@code.ama-inc.com:teams3/data_cube_utilities.git
+	url = https://github.com/ceos-seo/data_cube_utilities.git
