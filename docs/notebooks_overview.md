@@ -1,4 +1,4 @@
-# CEOS Open Data Cube Notebooks Overview
+# Notebooks Overview
 
 This document provides an overview of the available notebooks in the `notebooks` directory.
 
