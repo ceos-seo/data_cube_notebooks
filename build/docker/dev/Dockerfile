@@ -57,8 +57,10 @@ COPY build/reqs/11_reqs_analysis.txt reqs/11_reqs_analysis.txt
 RUN pip3 install -r reqs/11_reqs_analysis.txt
 COPY build/reqs/12_reqs_vis.txt reqs/12_reqs_vis.txt
 RUN pip3 install -r reqs/12_reqs_vis.txt
-COPY build/reqs/13_reqs_misc.txt reqs/13_reqs_misc.txt
-RUN pip3 install -r reqs/13_reqs_misc.txt
+COPY build/reqs/13_reqs_voxel_visualizer.txt reqs/13_reqs_voxel_visualizer.txt
+RUN pip3 install -r reqs/13_reqs_voxel_visualizer.txt
+COPY build/reqs/14_reqs_misc.txt reqs/14_reqs_misc.txt
+RUN pip3 install -r reqs/14_reqs_misc.txt
 
 # RUN pip3 install rasterio==1.1.8 && \
 #     mkdir -p /etc/pki/tls/certs && \

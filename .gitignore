@@ -1,5 +1,6 @@
 notebooks/AMA
-notebooks/experimental
+notebooks/experimental/*
+!notebooks/experimental/voxel_visualizer
 notebooks/indexing
 notebooks/scalability/Dask/mydask.png
 notebooks/test/error_report.csv
