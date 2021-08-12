@@ -11,6 +11,8 @@ services:
         - NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
     environment:
       NBK_SERVER_PASSWORD: ${NBK_SERVER_PASSWORD}
+      VOXEL_VISUALIZER_PORT: ${VOXEL_VISUALIZER_PORT}
+      # ODC DB credentials
       ODC_DB_HOSTNAME: ${ODC_DB_HOSTNAME}
       ODC_DB_DATABASE: ${ODC_DB_DATABASE}
       ODC_DB_USER: ${ODC_DB_USER}
@@ -22,6 +24,7 @@ services:
     ports:
       # 8888 is the Jupyter notebook default port
       - ${HOST_PORT}:8888
+      - ${VOXEL_VISUALIZER_PORT}:${VOXEL_VISUALIZER_PORT}
     volumes:
       - ${DKR_CMP_CONTEXT}:${ROOT_DIR}
     networks:
