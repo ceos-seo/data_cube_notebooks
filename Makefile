@@ -7,21 +7,21 @@ ODC_VER?=1.8.3
 
 DEV_OUT_IMG?=${IMG_REPO}:odc${ODC_VER}${IMG_VER}
 
-COMMON_EXPRTS=export UID=$(id -u)
+export UID:=$(shell id -u)
 
 ## Common ##
 
 dev-build:
-	(${COMMON_EXPRTS}; $(docker_compose_dev) build)
+	$(docker_compose_dev) build
 
 # Start the notebooks environment
 dev-up:
-	(${COMMON_EXPRTS}; $(docker_compose_dev) up -d --build)
+	$(docker_compose_dev) up -d --build
 
 # Start without rebuilding the Docker image
 # (use when dependencies have not changed for faster starts).
 dev-up-no-build:
-	(${COMMON_EXPRTS}; $(docker_compose_dev) up -d)
+	$(docker_compose_dev) up -d
 
 # Stop the notebooks environment
 dev-down:

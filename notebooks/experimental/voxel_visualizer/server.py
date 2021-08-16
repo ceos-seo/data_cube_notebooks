@@ -15,8 +15,8 @@ app.add_middleware(CORSMiddleware,
     allow_credentials = True)
 
 
+# Mount static files (provide routes).
 mountable = [["/static", "./"]]
-
 for api_route, directory_path in mountable:
     print("")
 
@@ -27,8 +27,6 @@ for api_route, directory_path in mountable:
 
     for x in directory_path.glob("./*"):
         print(":::",x)
-        
-print('port:', os.environ['VOXEL_VISUALIZER_PORT'])
 
 uvicorn.run(app,
             port = os.environ['VOXEL_VISUALIZER_PORT'],
