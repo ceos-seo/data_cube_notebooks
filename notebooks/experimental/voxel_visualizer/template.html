@@ -26,51 +26,37 @@
         color: #08f;
       }
 
-      #info {
-        position: absolute;
-        top: 10px;
-        width: 256px;
-
-        margin-left: 256px;
-        text-align: center;
-        z-index: 100;
-        display: block;
-      }
-
-      .black_box {
-        display: flex;
-        align-items: center;
-        background-color: #4444;
-        /* width: 256px; */
-      }
-
-      input[type="range"][orient="vertical"] {
+      #date_and_slider_holder {
         position: absolute;
         left: 10%;
         top: 30%;
+      }
+      
+      /* Formatting for the vertical sliders (for now, just the date slider). */
+      input[type="range"][orient="vertical"] {
         writing-mode: bt-lr; /* IE */
         -webkit-appearance: slider-vertical; /* WebKit */
         width: 8px;
         height: 35%;
-        padding: 0 5px;
+        padding: 0;
       }
 
-      #date_holder {
+      /* Formatting for the element containing the date string. */
+      #date_text {
         font-size: 80%;
         height: 4%;
-        position: absolute;
-        top: 26%;
-        left: 10%;
         color: #efefef;
+        margin-bottom: 0
       }
     </style>
   </head>
 
   <body>
     <div id="container"></div>
-    <input id="timeSlider" type="range" orient="vertical" min="0" max="100" value="100" />
-    <div id="date_holder">
+    <div id="date_and_slider_holder">
+      <!-- No bottom margin to flush with timeSlider. -->
       <p id="date_text">Test</p>
+      <input id="timeSlider" type="range" orient="vertical" min="0" max="100" value="100"/>
     </div>
     <script type="module">
       import * as THREE from "./js/lib/threejs/three.module.js";
