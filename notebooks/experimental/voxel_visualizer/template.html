@@ -55,7 +55,7 @@
     <div id="container"></div>
     <div id="date_and_slider_holder">
       <!-- No bottom margin to flush with timeSlider. -->
-      <p id="date_text">Test</p>
+      <p id="date_text"></p>
       <input id="timeSlider" type="range" orient="vertical" min="0" max="100" value="100"/>
     </div>
     <script type="module">
@@ -170,7 +170,7 @@
 
         let dates = getDates();
 
-        date_text.innerText = formatDate(dates[0]);
+        date_text.innerText = formatDate(dates[dates.length - 1]);
         console.log(dates);
 
         console.log(moment(dates[0]).format("MMM Do YYYY"));
@@ -352,14 +352,14 @@
         slider.addEventListener(
           "input",
           function (value) {
-            let rounded_index = Math.floor((slider.value * layers.length) / 100);
-
+            let rounded_index = Math.floor((slider.value * (layers.length - 1)) / 100);
+              
             let date = dates[rounded_index];
 
             date_text.innerText = formatDate(date);
 
-            print("!!!!!");
-            print(formatDate(date));
+//             print("!!!!!");
+//             print(formatDate(date));
 
             for (let layer_index = 0; layer_index < layers.length; layer_index++) {
               let point_cloud = layers[layer_index];
