@@ -62,18 +62,17 @@
       import * as THREE from "./js/lib/threejs/three.module.js";
       import { OrbitControls } from "./js/lib/threejs/OrbitControls.js";
       import Stats from "./js/jsm/stats.module.js";
-      import { data_array } from "./data/data.js";
+      // The default/example data
+      // import { data_array } from "./data/data.js";
+      var data_array = {{ data_array }};
       import { GUI } from "./js/jsm/dat.gui.module.js";
       import { BloomPass } from "./js/jsm/BloomPass.js";
       import { UnrealBloomPass } from "./js/jsm/UnrealBloomPass.js";
 
-      // import * as jPalette from  'js/lib/jpallette/jpallete.min.js'
-      // import * as jPalette from 'jpalette';
       import { RenderPass } from "./js/jsm/RenderPass.js";
 
       import { EffectComposer } from "./js/jsm/EffectComposer.js";
 
-      // const datGui  = new GUI({ autoPlace: true });
       let date_text = document.getElementById("date_text");
 
       const print = console.log;
@@ -124,45 +123,46 @@
 
       function init() {
         function getDates() {
-          // TODO: D Y N A M I C !!! D O  N O T  H A R D C O D E
-
-          const dates = [
-            "2014-02-10T07:49:28.833114000",
-            "2014-02-10T07:49:52.749567000",
-            "2014-02-26T07:49:16.056611000",
-            "2014-02-26T07:49:39.968828000",
-            "2014-03-14T07:49:05.166093000",
-            "2014-03-30T07:48:47.896778000",
-            "2014-03-30T07:49:11.808995000",
-            "2014-04-15T07:48:56.044301000",
-            "2014-05-01T07:48:18.098958000",
-            "2014-05-01T07:48:42.015411000",
-            "2014-05-17T07:48:05.687234000",
-            "2014-06-02T07:48:11.057618000",
-            "2014-06-02T07:48:34.982543000",
-            "2014-06-18T07:48:16.911472000",
-            "2014-06-18T07:48:40.832161000",
-            "2014-07-04T07:48:46.266883000",
-            "2014-07-20T07:48:26.625544000",
-            "2014-07-20T07:48:50.541997000",
-            "2014-08-05T07:48:34.681110000",
-            "2014-08-05T07:48:58.597563000",
-            "2014-08-21T07:48:38.755017000",
-            "2014-08-21T07:49:02.675706000",
-            "2014-09-06T07:48:41.986433002",
-            "2014-09-06T07:49:05.907122000",
-            "2014-09-22T07:48:39.940028000",
-            "2014-09-22T07:49:03.860717000",
-            "2014-10-08T07:48:45.947356000",
-            "2014-10-24T07:48:47.243876000",
-            "2014-10-24T07:49:11.156093000",
-            "2014-11-09T07:48:48.169206000",
-            "2014-11-09T07:49:12.085659000",
-            "2014-11-25T07:48:45.282986000",
-            "2014-11-25T07:49:09.203675000",
-            "2014-12-11T07:48:38.834411000",
-            "2014-12-11T07:49:02.755100000",
-          ];
+          const dates = {{ times }};
+          
+          // The default/example data times
+        //   const dates = [
+        //     "2014-02-10T07:49:28.833114000",
+        //     "2014-02-10T07:49:52.749567000",
+        //     "2014-02-26T07:49:16.056611000",
+        //     "2014-02-26T07:49:39.968828000",
+        //     "2014-03-14T07:49:05.166093000",
+        //     "2014-03-30T07:48:47.896778000",
+        //     "2014-03-30T07:49:11.808995000",
+        //     "2014-04-15T07:48:56.044301000",
+        //     "2014-05-01T07:48:18.098958000",
+        //     "2014-05-01T07:48:42.015411000",
+        //     "2014-05-17T07:48:05.687234000",
+        //     "2014-06-02T07:48:11.057618000",
+        //     "2014-06-02T07:48:34.982543000",
+        //     "2014-06-18T07:48:16.911472000",
+        //     "2014-06-18T07:48:40.832161000",
+        //     "2014-07-04T07:48:46.266883000",
+        //     "2014-07-20T07:48:26.625544000",
+        //     "2014-07-20T07:48:50.541997000",
+        //     "2014-08-05T07:48:34.681110000",
+        //     "2014-08-05T07:48:58.597563000",
+        //     "2014-08-21T07:48:38.755017000",
+        //     "2014-08-21T07:49:02.675706000",
+        //     "2014-09-06T07:48:41.986433002",
+        //     "2014-09-06T07:49:05.907122000",
+        //     "2014-09-22T07:48:39.940028000",
+        //     "2014-09-22T07:49:03.860717000",
+        //     "2014-10-08T07:48:45.947356000",
+        //     "2014-10-24T07:48:47.243876000",
+        //     "2014-10-24T07:49:11.156093000",
+        //     "2014-11-09T07:48:48.169206000",
+        //     "2014-11-09T07:49:12.085659000",
+        //     "2014-11-25T07:48:45.282986000",
+        //     "2014-11-25T07:49:09.203675000",
+        //     "2014-12-11T07:48:38.834411000",
+        //     "2014-12-11T07:49:02.755100000",
+        //   ];
           return dates.reverse();
         }
 
@@ -171,16 +171,19 @@
         let dates = getDates();
 
         date_text.innerText = formatDate(dates[dates.length - 1]);
-        console.log(dates);
+        // console.log(dates);
 
-        console.log(moment(dates[0]).format("MMM Do YYYY"));
+        // console.log(moment(dates[0]).format("MMM Do YYYY"));
 
         var data_NJ_array = nj.array(data_array);
         const z_dims = data_NJ_array.shape[0];
         const x_dims = data_NJ_array.shape[1];
         const y_dims = data_NJ_array.shape[2];
+        // console.log('z_dims: ' + z_dims)
+        // console.log('x_dims: ' + x_dims)
+        // console.log('y_dims: ' + y_dims)
 
-        console.log("Fidning Center Point");
+        console.log("Finding Center Point");
         // Find Centerpoint
         let xs = [];
         let ys = [];
@@ -188,7 +191,7 @@
         for (let z = 0; z < z_dims; z++) {
           for (let y = 0; y < y_dims; y++) {
             for (let x = 0; x < x_dims; x++) {
-              if (data_array[z][y][x] == 1) {
+              if (data_array[z][x][y] == 1) {
                 xs.push(x);
                 ys.push(y);
                 zs.push(z);
@@ -268,13 +271,13 @@
         let scale = chroma.scale("viridis");
 
         const layers = [];
-        var pcMat = new THREE.PointCloudMaterial();
+        var pcMat = new THREE.PointsMaterial();
         pcMat.colors = THREE.VertextColors;
         pcMat.size = 2;
         pcMat.vertexColors = true;
 
         function generate_point_cloud_material() {
-          var pcMat = new THREE.PointCloudMaterial();
+          var pcMat = new THREE.PointsMaterial();
           pcMat.colors = THREE.VertextColors;
           pcMat.size = 2;
           pcMat.vertexColors = true;
@@ -326,7 +329,7 @@
           geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
           geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
 
-          var pc = new THREE.PointCloud(geometry, generate_point_cloud_material());
+          var pc = new THREE.Points(geometry, generate_point_cloud_material());
           pc.sizeAttenuation = true;
           pc.sortPoints = true;
 
@@ -336,7 +339,7 @@
         // console.log("Vertices Length:  " + vertices.length + " Colors Length:" + colors.length)
         // geometry.colors = colors;
         // geometry.computeBoundingBox();
-        // var pcMat = new THREE.PointCloudMaterial(geometry);
+        // var pcMat = new THREE.PointsMaterial(geometry);
 
         // pcMat.blending = THREE.AdditiveBlending;
 

@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+"""Script for creating product definition files."""
+from re import sub
+import os
+
+import click
+import yaml
+
+from odc_gee import earthengine
+
+HOME = os.getenv("HOME")
+REGIONS_CONFIG = os.getenv('REGIONS_CONFIG', f'{HOME}/.config/odc-gee/regions.json')
+
+@click.command()
+@click.argument("file", required=True, type=click.STRING)
+@click.option("--asset", required=True, type=click.STRING,
+              help="The GEE asset ID.")
+@click.option("--product", required=False, type=click.STRING, default=None,
+              help="The datacube product name to index.")
+@click.option("--resolution", type=click.STRING, required=False, default=None,
+              help="The resolution for the product if generating a new product definition "
+              "[example: (-0.0001, 0.0001)].")
+@click.option("--output_crs", type=click.STRING, required=False, default=None,
+              help="The CRS of the product if generating new product definition.")
+def new_product(**kwargs):
+    """Creates a product definition through various prompts to user."""
+    datacube = earthengine.Datacube(app='GEE_New_Product_Script')
+
+    kwargs.update(resolution=tuple(float(x) for x in sub(r'[\(\)\[\] ]', '',
+                                                         kwargs['resolution']).split(','))
+                  if isinstance(kwargs['resolution'], str) else kwargs.get('resolution'))
+    if bool(kwargs['resolution']) ^ bool(kwargs['output_crs']):
+        raise ValueError('Both resolution and output_crs must be supplied together.')
+    definition = datacube.generate_product(name=kwargs.get('product'), **kwargs).definition
+    definition.update(measurements=list(dict(measurement)\
+                                   for measurement in definition['measurements']))
+
+    with open(kwargs['file'], 'w') as _file:
+        _file.write(yaml.dump(definition))
+
+    click.echo(f'File written to {kwargs["file"]}.')
+
+if __name__ == '__main__':
+    new_product()

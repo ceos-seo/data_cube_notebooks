@@ -27,6 +27,7 @@ services:
       - ${VOXEL_VISUALIZER_PORT}:${VOXEL_VISUALIZER_PORT}
     volumes:
       - ${DKR_CMP_CONTEXT}:${ROOT_DIR}
+      - ${DKR_CMP_CONTEXT}/odc_gee/config:/home/jovyan/.config/odc-gee
     networks:
       - odc
     restart: "no"

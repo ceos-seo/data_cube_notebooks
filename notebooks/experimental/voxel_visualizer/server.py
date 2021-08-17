@@ -28,8 +28,10 @@ for api_route, directory_path in mountable:
     for x in directory_path.glob("./*"):
         print(":::",x)
 
-uvicorn.run(app,
-            port = os.environ['VOXEL_VISUALIZER_PORT'],
-            host = "0.0.0.0"
-            )
+
+if __name__ == '__main__':
+    uvicorn.run(app,
+                port = os.environ['VOXEL_VISUALIZER_PORT'],
+                host = "0.0.0.0"
+                )
 

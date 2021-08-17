@@ -1,2 +1,3 @@
-**/*.tif
 .git
+**/*.tif
+odc_gee/config

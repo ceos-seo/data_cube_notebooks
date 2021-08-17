@@ -77,6 +77,13 @@ ENV ODC_DB_HOSTNAME \
     ODC_DB_PORT
 COPY build/native/odc_conf.sh native/odc_conf.sh
 
+# Install ODC-GEE.
+COPY odc_gee odc_gee
+RUN cd odc_gee; python3 setup.py build && python3 setup.py install
+# Set the recently changed or added packages' ownership to jovyan. 
+RUN find /env/lib/python3.6/site-packages -group root -mtime -1 -exec chown -R jovyan:users {} +
+
+# Create the main directory.
 ARG ROOT_DIR
 ARG NOTEBOOK_ROOT
 ENV ROOT_DIR=${ROOT_DIR} NOTEBOOK_ROOT=${NOTEBOOK_ROOT}
