@@ -1,0 +1,14 @@
+{
+    "el_salvador": {"latitude": [13.0, 14.5],
+                    "longitude": [-90.2, -87.6]},
+    "ghana": {"latitude": [5.0, 8.0],
+              "longitude": [-2.5, 0.5]},
+    "tanzania": {"latitude": [-12.0, -0.0001356],
+                 "longitude": [29.0, 41.0]},
+    "nsw": {"latitude": [-36.0574,-28.8608],
+            "longitude": [145.4694,153.6813]},
+    "vanuatu": {"latitude": [-20.3, -13.0],
+                "longitude": [166.3, 170.3]},
+    "kenya": {"latitude": [-4.7283, 4.4701],
+              "longitude": [33.7829, 41.9265]}
+}

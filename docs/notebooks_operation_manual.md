@@ -1,7 +1,6 @@
-﻿# CEOS Open Data Cube Notebooks Installation Guide
+﻿# Operation Manual
 
-This document will guide users through the process of installing and configuring 
-our Open Data Cube (ODC) Jupyter Notebook server.
+This document will guide users through the process of operating the Jupyter Notebook server.
 
 ## Contents
 
@@ -44,7 +43,9 @@ You can set the port that the notebooks will be available on with the `HOST_PORT
 
 The `ODC_DB_*` variables in the `build/docker/dev/.env` file are the connection credentials for the ODC database. The `ODC_DB_*` variables are set to match the default settings for the ODC database container, but if these settings were changed in the command for the `create-odc-db` target in the `Makefile` file, they will need to be changed here.
 
-If you want to access data on S3, you will need to set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables. By default, they are set to use the values of identically named environment variables. You should set these environment variables before running the UI. Do not write these AWS credentials to the `build/docker/dev/.env` file directly.
+If you want to access data on S3, you will need to set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables. By default, they are set to use the values of identically named environment variables. You should set these environment variables before starting the environment. Do not write these AWS credentials to the `build/docker/dev/.env` file directly.
+
+The pre-start configuration for the production environment in `build/docker/prod` is very similar to the pre-start configuration for the development environment. A notable difference is that the default port for the production environment is `8081`.
 
 When you have finished configuring these values, run `make create-odc-network create-odc-db`.
 
@@ -69,6 +70,8 @@ When starting or restarting in the future, you can use the `-no-build` versions 
 * dev-up-no-build
 * dev-restart-no-build
 
+The commands for the production environment in `build/docker/prod` are very similar to the commands for the development environment.
+
 >### <a name="install_ssh"></a> SSH to the notebook server
 
 To connect to the development environment through a bash shell over SSH, run this command:
@@ -82,11 +85,11 @@ source /env/bin/activate
 ```
 This must be run for every connection with `make dev-ssh`.
 
-In the development environment, you also can launch terminals by clicking the `New` dropdown button and then the `Terminal` option. This will provide a terminal through a webpage in your browser.
+In the development environment, you can also launch terminals through the interface in your web browser by clicking the `New` dropdown button and then the `Terminal` option. This will provide a terminal through a webpage in your browser.
 
 ## <a name="connect"></a> Access the notebooks
 
-In the development environment, you can connect to the notebooks on the host machine at `localhost:<HOST_PORT>`, where `<HOST_PORT>` is the value of the `HOST_PORT` environment variable specified in `build/docker/dev/.env`.
+In the development environment, you can connect to the notebooks on the host machine at `localhost:<HOST_PORT>`, where `<HOST_PORT>` is the value of the `HOST_PORT` environment variable specified in the `.env` file of the environment (i.e. `build/docker/dev/.env` or `build/docker/prod/.env`).
 
 ## <a name="faqs"></a> Common problems/FAQs
 

@@ -65,7 +65,15 @@ RUN pip3 install -r reqs/13_reqs_misc.txt
 #     ln -s /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 RUN pip3 install --no-binary=rasterio rasterio==1.1.8 GDAL==$(gdal-config --version)
 
+# Set config directory for Matplotlib to avoid warnings.
+ENV MPLCONFIGDIR=/var/jovyan/.config/matplotlib
+
+# Install the ODC-GEE package.
+COPY odc_gee odc_gee
 USER root
+RUN cd odc_gee; python3 setup.py build && python3 setup.py install
+# Set the recently changed or added packages' ownership to jovyan. 
+RUN find /env/lib/python3.6/site-packages -group root -mtime -1 -exec chown -R jovyan:users {} +
 
 # Setup the ODC configuration.
 ENV ODC_DB_HOSTNAME \
