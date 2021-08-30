@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+trap_ctrlc() {
+    echo "Ctrl-C caught...exiting script."
+    exit 130
+}
+
+trap "trap_ctrlc" 2
+
+source "$DATACUBE_ENV"
+echo "Updating products..."
+
+# Default extent products
+
+products=(
+dmsp_google
+era5_daily_google
+palsar_google
+srtm_google
+viirs_google
+)
+for product in "${products[@]}"; do
+    echo "Updating $product"
+    index_gee --product $product --rolling_update -v 3 --no_confirm
+done
+
+# "Global" region products
+
+products=(
+ls8_google
+proba_google
+s1_google
+s2_google
+)
+for product in "${products[@]}"; do
+    echo "Updating $product"
+    index_gee --product $product --region global --rolling_update -v 3 --no_confirm
+done
+
+echo "Finished update."
+deactivate
+
+exit 0

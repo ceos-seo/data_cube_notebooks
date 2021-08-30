@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+# pylint: disable=import-error,bare-except
+"""Indexes GEE Products."""
+from re import sub
+import json
+import os
+import traceback
+
+import click
+
+from datacube.api.query import Query
+from odc_gee.indexing import Indexer
+from odc_gee.logger import Logger
+
+HOME = os.getenv("HOME")
+REGIONS_CONFIG = os.getenv('REGIONS_CONFIG', f'{HOME}/.config/odc-gee/regions.json')
+
+@click.command()
+@click.option("--asset", required=False, type=click.STRING, default=None,
+              help="The GEE asset ID.")
+@click.option("--product", required=False, type=click.STRING, default=None,
+              help="The datacube product name to index.")
+@click.option("--region", default=None, type=click.STRING,
+              help="A region defined in the json file located in the REGIONS_CONFIG env.")
+@click.option("--latitude", default=(-90.0, 90.0), type=click.STRING,
+              help="A latitude to index if region is not supplied [default: (-90.0, 90.0)].")
+@click.option("--longitude", default=(-180.0, 180.0), type=click.STRING,
+              help="A longitude to index if region is not supplied [default: (-180.0, 180.0)].")
+@click.option("--time", type=click.STRING, required=False, default=None,
+              help="The time extents to index for the product [example: (2013-01-01, 2020-01-01].")
+@click.option("--generate_product", "-gp", is_flag=True, flag_value=True,
+              help="Generates a new product from GEE metadata.")
+@click.option("--resolution", type=click.STRING, required=False, default=None,
+              help="The resolution for the product if generating a new product definition "
+              "[example: (-0.0001, 0.0001)].")
+@click.option("--output_crs", type=click.STRING, required=False, default=None,
+              help="The CRS of the product if generating new product definition.")
+@click.option("--update_product", "-u", is_flag=True, flag_value=True,
+              help="Updates the entire product in the index.")
+@click.option("--rolling_update", "-r", is_flag=True, flag_value=True,
+              help="Updates the product with latest available times.")
+@click.option("--verbosity", "-v", required=False, type=click.INT, default=1,
+              help="The level of verbosity to use [0-5]")
+@click.option("--no_confirm", is_flag=True, flag_value=True,
+              help="Do not prompt for latitude/longitude confirmation.")
+@click.option("--config", "-C", type=click.STRING, required=False, default=None,
+              help="An ODC configuration file path.")
+def index_gee(**kwargs):
+    """This script indexes GEE products."""
+    logger = Logger(name="index_gee", base_dir=f'{HOME}/.local/share/odc-gee',
+                    verbosity=kwargs['verbosity'])
+    try:
+        logger.log(f'Indexing {kwargs.get("product")}.')
+        indexer = Indexer(app='GEE_Indexing_Script', config=kwargs['config'])
+
+        if kwargs.get('product') and not kwargs.get('asset'):
+            kwargs.update(asset=indexer.datacube.index.products.get_by_name(
+                kwargs['product']).metadata_doc['properties']['gee:asset'])
+        elif not kwargs.get('asset'):
+            raise ValueError('Missing asset ID, check if asset has been indexed.')
+
+        if kwargs['generate_product']:
+            kwargs.update(product=indexer.generate_product(**kwargs).name)
+        if kwargs['region']:
+            with open(REGIONS_CONFIG, 'r') as _file:
+                regions = json.loads(_file.read())
+            kwargs.update(**regions[kwargs['region']])
+        if kwargs.get('no_confirm')\
+        or click.confirm(f'Index {kwargs.get("product")} for latitude=({kwargs.get("latitude")})'\
+                         + f', longitude=({kwargs.get("longitude")})?', abort=True):
+            kwargs.update(latitude=tuple(float(lat)\
+                          for lat in sub(r'[\(\)\[\] ]', '',
+                                         kwargs.get('latitude')).split(','))\
+                          if isinstance(kwargs.get('latitude'), str)\
+                          else kwargs.get('latitude'))
+            kwargs.update(longitude=tuple(float(lon)\
+                          for lon in sub(r'[\(\)\[\] ]', '',
+                                         kwargs.get('longitude')).split(','))\
+                          if isinstance(kwargs.get('longitude'), str)\
+                          else kwargs.get('longitude'))
+        kwargs.update(time=indexer.parse_time_parameter(**kwargs))
+        query = Query(**kwargs)
+        query.asset = kwargs.get('asset')
+        query.product = kwargs.get('product')
+        parameters = indexer.datacube.build_parameters(query)
+
+
+        if kwargs['verbosity'] >= 2:
+            click.echo('Total in database before  {}'\
+                       .format(indexer.datacube.index.datasets.count(product=kwargs['product'])))
+        _sum = indexer(kwargs['asset'], kwargs['product'],
+                       parameters, update=kwargs['update_product'])
+        if kwargs['verbosity'] >= 2:
+            click.echo(f'Sum of images found: {_sum}')
+            click.echo('Total in database after  {}'\
+                       .format(indexer.datacube.index.datasets.count(product=kwargs['product'])))
+        logger.log(f'Successfully indexed {kwargs.get("product")}.')
+    except:
+        logger.log(f'Failed to index {kwargs.get("product")}.', logger.lvl.ERROR)
+        logger.log(traceback.format_exc(), logger.lvl.DEBUG)
+
+if __name__ == '__main__':
+    index_gee()
