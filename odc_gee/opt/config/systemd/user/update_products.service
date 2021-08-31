@@ -1,0 +1,9 @@
+[Unit]
+Description=Update Google Earth Engine products in ODC
+
+[Service]
+Environment="DATACUBE_ENV=/home/$USER/datacube_env/bin/activate"
+ExecStart=/home/$USER/.local/bin/update_products
+
+[Install]
+WantedBy=default.target

@@ -95,10 +95,7 @@ def index_gee(**kwargs):
             click.echo('Total in database after  {}'\
                        .format(indexer.datacube.index.datasets.count(product=kwargs['product'])))
         logger.log(f'Successfully indexed {kwargs.get("product")}.')
-    except Exception as e:
-        print(e)
-        import traceback
-        traceback.print_exc()
+    except:
         logger.log(f'Failed to index {kwargs.get("product")}.', logger.lvl.ERROR)
         logger.log(traceback.format_exc(), logger.lvl.DEBUG)
 
