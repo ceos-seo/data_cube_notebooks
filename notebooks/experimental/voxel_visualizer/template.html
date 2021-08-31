@@ -60,19 +60,19 @@
       <input id='timeSlider' type='range' orient='vertical' min='0' max='100' value='100'/>
     </div>
     <script type='module'>
-      import * as THREE from '{{ static_url }}/js/lib/threejs/three.module.js';
-      import { OrbitControls } from '{{ static_url }}/js/lib/threejs/OrbitControls.js';
-      import Stats from '{{ static_url }}/js/jsm/stats.module.js';
+      import * as THREE from 'static_url/js/lib/threejs/three.module.js';
+      import { OrbitControls } from 'static_url/js/lib/threejs/OrbitControls.js';
+      import Stats from 'static_url/js/jsm/stats.module.js';
       // The default/example data
       // import { data_array } from './data/data.js';
       var data_array = {{ data_array }};
-      import { GUI } from '{{ static_url }}/js/jsm/dat.gui.module.js';
-      import { BloomPass } from '{{ static_url }}/js/jsm/BloomPass.js';
-      import { UnrealBloomPass } from '{{ static_url }}/js/jsm/UnrealBloomPass.js';
+      import { GUI } from 'static_url/js/jsm/dat.gui.module.js';
+      import { BloomPass } from 'static_url/js/jsm/BloomPass.js';
+      import { UnrealBloomPass } from 'static_url/js/jsm/UnrealBloomPass.js';
 
-      import { RenderPass } from '{{ static_url }}/js/jsm/RenderPass.js';
+      import { RenderPass } from 'static_url/js/jsm/RenderPass.js';
 
-      import { EffectComposer } from '{{ static_url }}/js/jsm/EffectComposer.js';
+      import { EffectComposer } from 'static_url/js/jsm/EffectComposer.js';
 
       let date_text = document.getElementById('date_text');
 
