@@ -1,5 +1,9 @@
 SHELL:=/bin/bash
-docker_compose_dev = docker-compose --project-directory build/docker/dev -f build/docker/dev/docker-compose.yml
+# Set the project name to the path - making underscore the path separator.
+PWD=$(pwd)
+project_name=$(shell echo $${PWD//\//_})
+docker_compose_dev = docker-compose --project-directory build/docker/dev -f build/docker/dev/docker-compose.yml -p $(project_name)
+
 
 IMG_REPO?=jcrattzama/data_cube_notebooks
 IMG_VER?=
@@ -10,6 +14,9 @@ DEV_OUT_IMG?=${IMG_REPO}:odc${ODC_VER}${IMG_VER}
 export UID:=$(shell id -u)
 
 ## Common ##
+
+dev-build-no-cache:
+	$(docker_compose_dev) build --no-cache
 
 dev-build:
 	$(docker_compose_dev) build
