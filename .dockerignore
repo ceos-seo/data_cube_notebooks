@@ -1,3 +1,5 @@
 .git
 **/*.tif
 odc_gee/config
+# created by Gitlab CI local runners
+builds

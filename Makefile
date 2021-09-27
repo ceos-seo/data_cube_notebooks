@@ -1,7 +1,7 @@
 SHELL:=/bin/bash
 # Set the project name to the path - making underscore the path separator.
-PWD=$(pwd)
-project_name=$(shell echo $${PWD//\//_})
+# Remove the leading slash and use lowercase since docker-compose will.
+project_name=$(shell PWD_var=$$(pwd); PWD_no_lead_slash=$${PWD_var:1}; echo $${PWD_no_lead_slash//\//_} | awk '{print tolower($$0)}' | cat)
 docker_compose_dev = docker-compose --project-directory build/docker/dev -f build/docker/dev/docker-compose.yml -p $(project_name)
 
 
@@ -12,6 +12,8 @@ ODC_VER?=1.8.3
 DEV_OUT_IMG?=${IMG_REPO}:odc${ODC_VER}${IMG_VER}
 
 export UID:=$(shell id -u)
+
+.PHONY: build
 
 ## Common ##
 
@@ -151,24 +153,7 @@ sudo-ubuntu-install-docker:
 	sudo usermod -aG docker ${USER}
 ## End Docker Misc ##
 
-# Update S3 template (this is owned by Digital Earth Australia)
-upload-s3:
-	aws s3 cp cube-in-a-box-cloudformation.yml s3://opendatacube-cube-in-a-box/ --acl public-read
-
-# This section can be used to deploy onto CloudFormation instead of the 'magic link'
-create-infra:
-	aws cloudformation create-stack \
-		--region ap-southeast-2 \
-		--stack-name odc-test \
-		--template-body file://opendatacube-test.yml \
-		--parameter file://parameters.json \
-		--tags Key=Name,Value=OpenDataCube \
-		--capabilities CAPABILITY_NAMED_IAM
-
-update-infra:
-	aws cloudformation update-stack \
-		--stack-name odc-test \
-		--template-body file://opendatacube-test.yml \
-		--parameter file://parameters.json \
-		--tags Key=Name,Value=OpenDataCube \
-		--capabilities CAPABILITY_NAMED_IAM
+## CI ##
+test-ci-local:
+	gitlab-runner exec shell build-no-cache
+## End CI ##

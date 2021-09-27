@@ -28,3 +28,5 @@ __pycache__
 **/output
 **/.env
 odc_gee/config
+# created by Gitlab CI local runners
+builds
