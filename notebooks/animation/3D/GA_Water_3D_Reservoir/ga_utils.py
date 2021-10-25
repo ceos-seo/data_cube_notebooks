@@ -1,7 +1,7 @@
 import pandas as pd 
 import numpy as np
 import xarray as xr
-import gdal
+from osgeo import gdal
 import affine
 import fiona
 import collections
