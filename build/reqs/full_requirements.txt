@@ -32,7 +32,7 @@ contextvars==2.4
 cramjam==2.3.2
 cycler==0.10.0
 Cython==0.29.23
-dask==2.27.0
+dask==2021.10.0
 dask-glm==0.2.0
 dask-ml==1.8.0
 dataclasses==0.8
