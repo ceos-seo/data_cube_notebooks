@@ -28,7 +28,7 @@ colorcet==2.0.2
 contextvars==2.4
 cycler==0.10.0
 Cython==0.29.21
-dask==2.27.0
+dask==2021.10.0
 datacube==1.8.3
 datashader==0.11.1
 datashape==0.5.2
