@@ -15,6 +15,7 @@ setup(name='odc-gee',
           "earthengine-api>=0.1.24",
           "numpy>=1.18.4",
           "rasterio>=1.1.8",
+          "google-api-core==1.31.2"
           ],
       packages=find_packages(),
       scripts=['scripts/index_gee', 'scripts/new_product'],)
