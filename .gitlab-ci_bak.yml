@@ -1,0 +1,19 @@
+image: jcrattzama/odc-gitlab-runner
+
+stages:
+  - build-no-cache
+
+build:
+  stage: build
+  script:
+    - make dev-build
+
+build-no-cache:
+  stage: build-no-cache
+  script:
+    - make dev-build-no-cache
+
+push:
+  stage: push
+  script:
+    - make dev-push
