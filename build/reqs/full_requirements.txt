@@ -101,7 +101,7 @@ lark-parser==0.9.0
 lcmap-pyccd==2018.10.17
 llvmlite==0.36.0
 locket==0.2.1
-lxml==4.5.2
+lxml==4.6.5
 Markdown==3.3.4
 MarkupSafe==1.1.1
 matplotlib==3.3.2
