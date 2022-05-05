@@ -1,0 +1,1 @@
+These notebooks have been developed to run on the Microsoft Planetary Computer. They use free/open satellite data from the Microsoft Planetary Computer Data Catalog. They provide simple examples of how satellite data can be used by the 2022 Better Working World Data Challenge participants. 

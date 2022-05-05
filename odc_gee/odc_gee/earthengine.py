@@ -46,7 +46,7 @@ class Datacube(datacube.Datacube, metaclass=Singleton):
             self.ee.Initialize(self.credentials)
         else:
             if not self.request:
-                self.ee.Authenticate()
+                self.ee.Authenticate(auth_mode='paste')
                 self.ee.Initialize()
             self.credentials = self.ee.data.get_persistent_credentials()
             self.request = import_module('google.auth.transport.requests').Request()
