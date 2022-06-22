@@ -120,7 +120,7 @@ networkx==2.5
 notebook==6.1.3
 numba==0.53.1
 numexpr==2.7.1
-numpy==1.19.1
+numpy==1.22.0
 odc-aio==0.1.dev574+gfcf7220
 odc-algo==0.1.dev574+gfcf7220
 odc-apps-cloud==0.1.dev574+gfcf7220

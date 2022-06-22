@@ -95,7 +95,7 @@ networkx==2.5
 notebook==6.1.4
 numba==0.51.2
 numexpr==2.7.1
-numpy==1.19.2
+numpy==1.22.0
 odc-aio==0.1.dev610+g46c92a6
 odc-algo==0.1.dev610+g46c92a6
 odc-apps-cloud==0.1.dev610+g46c92a6
