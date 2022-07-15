@@ -35,7 +35,7 @@ datashape==0.5.2
 decorator==4.4.2
 defusedxml==0.6.0
 descartes==1.1.0
-distributed==2.27.0
+distributed==2021.10.0
 docutils==0.15.2
 entrypoints==0.3
 Fiona==1.8.17
