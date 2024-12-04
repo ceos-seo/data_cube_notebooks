@@ -1,4 +1,4 @@
 dask[dataframe]==2.27.0
 dask-ml==1.8.0
 graphviz==0.16 # Handled by `apt-get install`.
-joblib==0.16.0
+joblib==1.2.0
